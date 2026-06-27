@@ -3,20 +3,19 @@ import { randomUUID } from "crypto";
 import { loadAppConfig } from "@/lib/admin/config";
 import type { Locale } from "@/lib/config";
 
-import { createCorrelationId, logNodeTransition } from "./audit-log";
+import { createCorrelationId, logNodeTransition } from "./observability/audit-log";
 import { loadRunState, persistRunState } from "./checkpointer";
-import {
-  detectAgentFileType,
-  extractAgentDocumentText,
-  validateExtractedDocument,
-} from "./extract-upload";
-import { applyGraphTransition } from "./graph";
-import { syncOrchestratorNode } from "./langgraph-orchestrator";
+import { applyGraphTransition } from "./orchestration/graph";
 import { executeInE2bSandbox, isE2bConfigured } from "./sandbox/e2b-executor";
 import {
   buildPlaceholderInjectionPreview,
   processUploadedTemplate,
-} from "./template-engine";
+} from "./templates/template-engine";
+import {
+  detectAgentFileType,
+  extractAgentDocumentText,
+  validateExtractedDocument,
+} from "./validation/extract-upload";
 import type {
   AgentApiRequest,
   AgentArtifact,
@@ -28,7 +27,7 @@ import type {
 import {
   buildDocumentAnalysis,
   generateWorkflowProposal,
-} from "./workflow-generator";
+} from "./workflow/proposal-generator";
 
 function createRunId(): string {
   return `agent-${Date.now()}-${randomUUID().slice(0, 8)}`;
@@ -73,8 +72,8 @@ async function transition(
     details?: Record<string, string | number | boolean>;
   },
 ): Promise<AgentWorkflowRun> {
-  let next = applyGraphTransition(run, node);
-  next = {
+  const next = applyGraphTransition(run, node);
+  const withAudit = {
     ...next,
     auditLogs: logNodeTransition({
       logs: next.auditLogs,
@@ -85,9 +84,8 @@ async function transition(
       details: audit.details,
     }),
   };
-  next = await syncOrchestratorNode(next, node);
-  await persistRunState(next);
-  return next;
+  await persistRunState(withAudit);
+  return withAudit;
 }
 
 export async function extractDocumentsFromPayload(
@@ -190,11 +188,8 @@ export async function runAnalyzeAction(options: {
   });
 
   run = {
-    ...run,
+    ...applyGraphTransition(run, "user_approve"),
     proposal,
-    status: "awaiting_approval",
-    currentNode: "user_approve",
-    updatedAt: Date.now(),
     notifications: [
       {
         id: `notif-${randomUUID().slice(0, 6)}`,
@@ -204,10 +199,6 @@ export async function runAnalyzeAction(options: {
         read: false,
       },
     ],
-  };
-
-  run = {
-    ...run,
     auditLogs: logNodeTransition({
       logs: run.auditLogs,
       correlationId: run.correlationId,
@@ -226,11 +217,10 @@ export function runApproveAction(run: AgentWorkflowRun): AgentWorkflowRun {
     throw new Error("Workflow is not awaiting approval.");
   }
 
-  let next: AgentWorkflowRun = {
-    ...run,
-    status: "awaiting_templates",
-    currentNode: "request_templates",
-    updatedAt: Date.now(),
+  const next = applyGraphTransition(run, "request_templates");
+
+  return {
+    ...next,
     notifications: [
       ...run.notifications,
       {
@@ -242,10 +232,6 @@ export function runApproveAction(run: AgentWorkflowRun): AgentWorkflowRun {
         read: false,
       },
     ],
-  };
-
-  next = {
-    ...next,
     auditLogs: logNodeTransition({
       logs: next.auditLogs,
       correlationId: next.correlationId,
@@ -254,8 +240,6 @@ export function runApproveAction(run: AgentWorkflowRun): AgentWorkflowRun {
       actor: "user",
     }),
   };
-
-  return next;
 }
 
 export function runUploadTemplatesAction(
@@ -272,11 +256,9 @@ export function runUploadTemplatesAction(
 
   const processed = templates.map(processUploadedTemplate);
 
-  const next: AgentWorkflowRun = {
-    ...run,
+  return {
+    ...applyGraphTransition(run, "upload_templates"),
     templates: processed,
-    currentNode: "upload_templates",
-    updatedAt: Date.now(),
     auditLogs: logNodeTransition({
       logs: run.auditLogs,
       correlationId: run.correlationId,
@@ -286,8 +268,6 @@ export function runUploadTemplatesAction(
       details: { templateCount: processed.length },
     }),
   };
-
-  return next;
 }
 
 export function runInjectTemplatesAction(
@@ -299,17 +279,20 @@ export function runInjectTemplatesAction(
 
   const placeholders = buildPlaceholderInjectionPreview(run, run.templates);
 
-  const next: AgentWorkflowRun = {
+  const withPlaceholders: AgentWorkflowRun = {
     ...run,
-    status: "approved",
-    currentNode: "validate_inject",
     proposal: run.proposal
       ? { ...run.proposal, placeholders }
       : run.proposal,
-    updatedAt: Date.now(),
+  };
+
+  const next = applyGraphTransition(withPlaceholders, "execution_approve");
+
+  return {
+    ...next,
     auditLogs: logNodeTransition({
-      logs: run.auditLogs,
-      correlationId: run.correlationId,
+      logs: next.auditLogs,
+      correlationId: next.correlationId,
       node: "validate_inject",
       action: "placeholders_injected",
       actor: "agent",
@@ -321,8 +304,6 @@ export function runInjectTemplatesAction(
       },
     }),
   };
-
-  return next;
 }
 
 export function runEditWorkflowAction(
@@ -333,7 +314,7 @@ export function runEditWorkflowAction(
   if (!run.proposal) throw new Error("No workflow proposal to edit.");
 
   return {
-    ...run,
+    ...applyGraphTransition(run, "user_approve"),
     proposal: {
       ...run.proposal,
       steps: steps.map((step, index) => ({
@@ -347,8 +328,6 @@ export function runEditWorkflowAction(
       })),
       mermaidDiagram: mermaidDiagram ?? run.proposal.mermaidDiagram,
     },
-    status: "awaiting_approval",
-    currentNode: "user_approve",
     updatedAt: Date.now(),
   };
 }
@@ -357,6 +336,7 @@ export function runCancelAction(run: AgentWorkflowRun): AgentWorkflowRun {
   return {
     ...run,
     status: "cancelled",
+    interruptedAt: null,
     updatedAt: Date.now(),
     auditLogs: logNodeTransition({
       logs: run.auditLogs,
@@ -371,8 +351,13 @@ export function runCancelAction(run: AgentWorkflowRun): AgentWorkflowRun {
 export async function runExecuteAction(
   run: AgentWorkflowRun,
 ): Promise<AgentWorkflowRun> {
-  if (run.status !== "approved") {
-    throw new Error("Approve workflow and upload templates before execution.");
+  if (
+    run.status !== "approved" ||
+    run.currentNode !== "execution_approve"
+  ) {
+    throw new Error(
+      "Approve workflow, upload templates, and confirm execution before running.",
+    );
   }
 
   let current = await transition(run, "sandbox_execute", {
@@ -389,6 +374,7 @@ export async function runExecuteAction(
     executionSteps,
     status: "executing",
     currentNode: "doc_playwright",
+    interruptedAt: null,
     updatedAt: Date.now(),
   };
 
@@ -450,12 +436,11 @@ export async function runExecuteAction(
   });
 
   current = {
-    ...current,
+    ...applyGraphTransition(current, "workflow_complete"),
     artifacts,
     executionSteps,
     notifications: [...current.notifications, notification],
-    status: "completed",
-    currentNode: "workflow_complete",
+    interruptedAt: null,
     updatedAt: Date.now(),
   };
 

@@ -30,6 +30,7 @@ export type AgentGraphNodeId =
   | "request_templates"
   | "upload_templates"
   | "validate_inject"
+  | "execution_approve"
   | "sandbox_execute"
   | "doc_playwright"
   | "branch_leadtime"
@@ -169,6 +170,35 @@ export interface AgentArtifact {
   createdAt: number;
 }
 
+export type AgentApprovalDecision = "approve" | "edit" | "cancel";
+export type AgentExecutionDecision = "execute" | "cancel";
+
+export interface AgentWorkflowApprovalInterrupt {
+  gate: "workflow_approval";
+  correlationId: string;
+  runId: string;
+  message: string;
+}
+
+export interface AgentExecutionApprovalInterrupt {
+  gate: "execution_approval";
+  correlationId: string;
+  runId: string;
+  message: string;
+}
+
+export type AgentResumePayload =
+  | { gate: "workflow_approval"; action: AgentApprovalDecision }
+  | { gate: "execution_approval"; action: AgentExecutionDecision }
+  | { gate: "template_confirm"; action: "confirm" };
+
+export interface AgentOrchestrationState {
+  run: AgentWorkflowRun;
+  resumePayload?: AgentResumePayload | null;
+  interruptedAt?: AgentGraphNodeId | null;
+  error?: string | null;
+}
+
 export interface AgentWorkflowRun {
   id: string;
   correlationId: string;
@@ -177,6 +207,7 @@ export interface AgentWorkflowRun {
   instruction: string;
   status: AgentWorkflowStatus;
   currentNode: AgentGraphNodeId;
+  interruptedAt?: AgentGraphNodeId | null;
   documents: AgentUploadedDocument[];
   templates: AgentCompanyTemplate[];
   analysis?: AgentDocumentAnalysis;

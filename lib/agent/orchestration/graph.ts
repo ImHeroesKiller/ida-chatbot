@@ -2,9 +2,9 @@ import type {
   AgentGraphNodeId,
   AgentWorkflowRun,
   AgentWorkflowStatus,
-} from "./types";
+} from "../types";
 
-/** LangGraph node edges aligned with AgentFlow AI Technical Specification v1.0 §5 & §8 */
+/** LangGraph node edges — AgentFlow Technical Specification v1.0 §5 & §8 */
 export const AGENT_GRAPH_EDGES: Record<AgentGraphNodeId, AgentGraphNodeId[]> = {
   user_input: ["llm_analysis"],
   llm_analysis: ["propose_workflow"],
@@ -39,6 +39,14 @@ export const AGENT_GRAPH_NODE_LABELS: Record<AgentGraphNodeId, string> = {
   workflow_complete: "Workflow Complete",
 };
 
+/** Nodes that pause for human-in-the-loop via LangGraph interrupt. */
+export const INTERRUPT_NODES = [
+  "user_approve",
+  "execution_approve",
+] as const satisfies readonly AgentGraphNodeId[];
+
+export type AgentInterruptNodeId = (typeof INTERRUPT_NODES)[number];
+
 export function statusForNode(node: AgentGraphNodeId): AgentWorkflowStatus {
   switch (node) {
     case "user_input":
@@ -68,12 +76,6 @@ export function statusForNode(node: AgentGraphNodeId): AgentWorkflowStatus {
   }
 }
 
-export function advanceGraphNode(
-  current: AgentGraphNodeId,
-): AgentGraphNodeId | null {
-  return AGENT_GRAPH_EDGES[current]?.[0] ?? null;
-}
-
 export function applyGraphTransition(
   run: AgentWorkflowRun,
   targetNode: AgentGraphNodeId,
@@ -82,28 +84,11 @@ export function applyGraphTransition(
     ...run,
     currentNode: targetNode,
     status: statusForNode(targetNode),
+    interruptedAt: INTERRUPT_NODES.includes(targetNode as AgentInterruptNodeId)
+      ? targetNode
+      : null,
     updatedAt: Date.now(),
   };
-}
-
-export function canExecute(run: AgentWorkflowRun): boolean {
-  return run.status === "approved";
-}
-
-export function requiresApproval(run: AgentWorkflowRun): boolean {
-  return (
-    run.currentNode === "user_approve" ||
-    run.status === "proposed" ||
-    run.status === "awaiting_approval"
-  );
-}
-
-export function requiresTemplates(run: AgentWorkflowRun): boolean {
-  return (
-    run.status === "awaiting_templates" ||
-    run.currentNode === "request_templates" ||
-    run.currentNode === "upload_templates"
-  );
 }
 
 export function getGraphProgress(run: AgentWorkflowRun): Array<{
@@ -111,6 +96,7 @@ export function getGraphProgress(run: AgentWorkflowRun): Array<{
   label: string;
   completed: boolean;
   current: boolean;
+  isInterrupt: boolean;
 }> {
   const order = Object.keys(AGENT_GRAPH_NODE_LABELS) as AgentGraphNodeId[];
   const currentIndex = order.indexOf(run.currentNode);
@@ -118,7 +104,10 @@ export function getGraphProgress(run: AgentWorkflowRun): Array<{
   return order.map((node, index) => ({
     node,
     label: AGENT_GRAPH_NODE_LABELS[node],
-    completed: index < currentIndex || run.status === "completed",
+    completed:
+      run.status === "completed" ||
+      (currentIndex >= 0 && index < currentIndex),
     current: node === run.currentNode,
+    isInterrupt: INTERRUPT_NODES.includes(node as AgentInterruptNodeId),
   }));
 }
