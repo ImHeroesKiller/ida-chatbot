@@ -139,12 +139,104 @@ function testSortSessionsPinnedFirst() {
   return { pass: checks.length === 0, checks };
 }
 
+function testChatStoreScopeKeys() {
+  const checks = [];
+
+  function getChatStoreStorageKey(scope) {
+    if (scope.kind === "authenticated") {
+      return `ida-chat-store:user:${scope.userId}`;
+    }
+    return `ida-chat-store:anonymous:${scope.deviceId}`;
+  }
+
+  function resolveChatStoreScope({ authUserId, anonymousDeviceId }) {
+    if (authUserId) return { kind: "authenticated", userId: authUserId };
+    return { kind: "anonymous", deviceId: anonymousDeviceId };
+  }
+
+  const userA = resolveChatStoreScope({
+    authUserId: "11111111-1111-4111-8111-111111111111",
+    anonymousDeviceId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  });
+  const userB = resolveChatStoreScope({
+    authUserId: "22222222-2222-4222-8222-222222222222",
+    anonymousDeviceId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  });
+  const anon = resolveChatStoreScope({
+    authUserId: null,
+    anonymousDeviceId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  });
+
+  const keyA = getChatStoreStorageKey(userA);
+  const keyB = getChatStoreStorageKey(userB);
+  const keyAnon = getChatStoreStorageKey(anon);
+
+  if (keyA === keyB) checks.push("user A and B must have different storage keys");
+  if (keyA === keyAnon) checks.push("authenticated and anonymous keys must differ");
+  if (!keyA.includes("user:11111111")) checks.push("user A key must include user id");
+  if (!keyAnon.includes("anonymous:aaaaaaaa")) {
+    checks.push("anonymous key must include device id");
+  }
+
+  return { pass: checks.length === 0, checks };
+}
+
+function testMeaningfulHistoryDetection() {
+  const checks = [];
+
+  function hasMeaningfulChatHistory(store) {
+    if (store.order.length > 1) return true;
+    const current = store.chats[store.currentChatId];
+    if (!current) return false;
+    return current.messages.some(
+      (message) =>
+        message.role === "user" &&
+        message.id !== "ida-welcome" &&
+        message.content.trim().length > 0,
+    );
+  }
+
+  const empty = {
+    currentChatId: "c1",
+    order: ["c1"],
+    chats: {
+      c1: {
+        messages: [{ id: "ida-welcome", role: "assistant", content: "Hi" }],
+      },
+    },
+  };
+
+  const withUser = {
+    currentChatId: "c1",
+    order: ["c1"],
+    chats: {
+      c1: {
+        messages: [
+          { id: "ida-welcome", role: "assistant", content: "Hi" },
+          { id: "u1", role: "user", content: "Halo" },
+        ],
+      },
+    },
+  };
+
+  if (hasMeaningfulChatHistory(empty)) {
+    checks.push("welcome-only store should not be meaningful");
+  }
+  if (!hasMeaningfulChatHistory(withUser)) {
+    checks.push("store with user message should be meaningful");
+  }
+
+  return { pass: checks.length === 0, checks };
+}
+
 async function main() {
   const cases = [
     { name: "derive-title", ...testDeriveTitle() },
     { name: "store-roundtrip", ...simulateStoreRoundtrip() },
     { name: "switch-session", ...testMultiSessionSwitch() },
     { name: "sort-pinned", ...testSortSessionsPinnedFirst() },
+    { name: "scope-keys", ...testChatStoreScopeKeys() },
+    { name: "meaningful-history", ...testMeaningfulHistoryDetection() },
   ];
 
   console.log("Chat store tests\n");

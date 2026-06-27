@@ -96,7 +96,7 @@ function ChatRoomContent() {
 
   const {
     hydrated,
-    userId,
+    apiUserId,
     currentChat,
     sessions,
     switchChat,
@@ -220,7 +220,7 @@ function ChatRoomContent() {
       streamId: string,
       chatIdAtSend: string,
       apiSessionId: string,
-      anonymousUserId: string,
+      apiUserId: string,
     ) => {
       const streamingPlaceholder: IdaMessage = {
         id: streamId,
@@ -238,7 +238,7 @@ function ChatRoomContent() {
           body: JSON.stringify({
             locale,
             sessionId: apiSessionId,
-            ...(anonymousUserId ? { userId: anonymousUserId } : {}),
+            ...(apiUserId ? { userId: apiUserId } : {}),
             messages: toApiMessages(contextMessages),
           }),
         });
@@ -405,7 +405,7 @@ function ChatRoomContent() {
         streamId,
         chatIdAtSend,
         currentChat.apiSessionId,
-        userId,
+        apiUserId,
       );
     } finally {
       if (activeChatIdRef.current === chatIdAtSend) {
@@ -451,7 +451,7 @@ function ChatRoomContent() {
           streamId,
           chatIdAtSend,
           currentChat.apiSessionId,
-          userId,
+          apiUserId,
         );
       } finally {
         if (activeChatIdRef.current === chatIdAtSend) {
@@ -460,7 +460,7 @@ function ChatRoomContent() {
         }
       }
     },
-    [currentChat, isLoading, messages, streamAssistantReply, userId],
+    [currentChat, isLoading, messages, streamAssistantReply, apiUserId],
   );
 
   const handleQuickReply = (message: string) => {

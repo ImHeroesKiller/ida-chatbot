@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import {
@@ -8,13 +8,16 @@ import {
   initializeRemoteChatStore,
   persistRemoteChatStore,
 } from "@/lib/client/sync-sessions";
+import { getOrCreateAnonymousUserId } from "@/lib/client/user-id";
 import type { Locale } from "@/lib/config";
 import { getQuickReplies } from "@/lib/handoff";
 import { COPY } from "@/lib/i18n";
 import type { IdaMessage } from "@/lib/types";
 
 export const WELCOME_MESSAGE_ID = "ida-welcome";
+/** @deprecated Legacy unscoped key — migrated to per-user / anonymous scopes */
 export const CHAT_STORE_KEY = "ida-chat-store";
+export const CHAT_STORE_KEY_PREFIX = "ida-chat-store:";
 const MAX_SESSIONS = 50;
 
 export interface ChatSession {
@@ -33,6 +36,10 @@ export interface ChatStoreState {
   chats: Record<string, ChatSession>;
   order: string[];
 }
+
+export type ChatStoreScope =
+  | { kind: "authenticated"; userId: string }
+  | { kind: "anonymous"; deviceId: string };
 
 function createId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -109,13 +116,8 @@ function normalizeSession(session: ChatSession): ChatSession {
   return { ...session, pinned: Boolean(session.pinned) };
 }
 
-export function loadChatStore(): ChatStoreState | null {
-  if (typeof window === "undefined") return null;
-
+function parseChatStoreState(raw: string): ChatStoreState | null {
   try {
-    const raw = localStorage.getItem(CHAT_STORE_KEY);
-    if (!raw) return null;
-
     const parsed = JSON.parse(raw) as ChatStoreState;
 
     if (
@@ -140,60 +142,199 @@ export function loadChatStore(): ChatStoreState | null {
   }
 }
 
-export function saveChatStore(state: ChatStoreState): void {
+export function resolveChatStoreScope(options: {
+  authUserId?: string | null;
+  anonymousDeviceId: string;
+}): ChatStoreScope {
+  if (options.authUserId) {
+    return { kind: "authenticated", userId: options.authUserId };
+  }
+
+  return { kind: "anonymous", deviceId: options.anonymousDeviceId };
+}
+
+export function getChatStoreStorageKey(scope: ChatStoreScope): string {
+  if (scope.kind === "authenticated") {
+    return `${CHAT_STORE_KEY_PREFIX}user:${scope.userId}`;
+  }
+
+  return `${CHAT_STORE_KEY_PREFIX}anonymous:${scope.deviceId}`;
+}
+
+export function hasMeaningfulChatHistory(store: ChatStoreState): boolean {
+  if (store.order.length > 1) return true;
+
+  const current = store.chats[store.currentChatId];
+  if (!current) return false;
+
+  return current.messages.some(
+    (message) =>
+      message.role === "user" &&
+      message.id !== WELCOME_MESSAGE_ID &&
+      message.content.trim().length > 0,
+  );
+}
+
+export function loadChatStore(scope: ChatStoreScope): ChatStoreState | null {
+  if (typeof window === "undefined") return null;
+
+  const scopedKey = getChatStoreStorageKey(scope);
+  const scopedRaw = localStorage.getItem(scopedKey);
+  if (scopedRaw) {
+    return parseChatStoreState(scopedRaw);
+  }
+
+  return migrateLegacyChatStore(scope);
+}
+
+function migrateLegacyChatStore(scope: ChatStoreScope): ChatStoreState | null {
+  if (typeof window === "undefined") return null;
+
+  const legacyRaw = localStorage.getItem(CHAT_STORE_KEY);
+  if (!legacyRaw) return null;
+
+  const parsed = parseChatStoreState(legacyRaw);
+  if (!parsed) {
+    localStorage.removeItem(CHAT_STORE_KEY);
+    return null;
+  }
+
+  saveChatStore(parsed, scope);
+  localStorage.removeItem(CHAT_STORE_KEY);
+  return parsed;
+}
+
+export function saveChatStore(
+  state: ChatStoreState,
+  scope: ChatStoreScope,
+): void {
   if (typeof window === "undefined") return;
 
-  localStorage.setItem(CHAT_STORE_KEY, JSON.stringify(state));
+  localStorage.setItem(
+    getChatStoreStorageKey(scope),
+    JSON.stringify(state),
+  );
+}
+
+export function clearChatStore(scope: ChatStoreScope): void {
+  if (typeof window === "undefined") return;
+
+  localStorage.removeItem(getChatStoreStorageKey(scope));
 }
 
 const REMOTE_SYNC_DEBOUNCE_MS = 1200;
 
 export function useChatStore(locale: Locale) {
   const { user, loading: authLoading } = useAuth();
+  const anonymousDeviceIdRef = useRef<string>("");
+  if (!anonymousDeviceIdRef.current) {
+    anonymousDeviceIdRef.current = getOrCreateAnonymousUserId();
+  }
+  const anonymousDeviceId = anonymousDeviceIdRef.current;
+
+  const scope = useMemo(
+    () =>
+      resolveChatStoreScope({
+        authUserId: user?.id,
+        anonymousDeviceId,
+      }),
+    [user?.id, anonymousDeviceId],
+  );
+
+  const scopeStorageKey = useMemo(
+    () => getChatStoreStorageKey(scope),
+    [scope],
+  );
+
   const [store, setStore] = useState<ChatStoreState>(() =>
     createInitialStore(locale),
   );
   const [hydrated, setHydrated] = useState(false);
-  const userId = user?.id ?? "";
+  const loadedScopeRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
 
+    if (loadedScopeRef.current === scopeStorageKey) {
+      return;
+    }
+
+    loadedScopeRef.current = scopeStorageKey;
     let cancelled = false;
 
-    async function hydrate() {
-      if (!user) {
-        if (!cancelled) setHydrated(true);
+    setHydrated(false);
+    setStore(createInitialStore(locale));
+
+    async function hydrateAuthenticated(
+      authScope: Extract<ChatStoreScope, { kind: "authenticated" }>,
+    ) {
+      const userLocal = loadChatStore(authScope);
+      const anonymousScope = resolveChatStoreScope({
+        authUserId: null,
+        anonymousDeviceId,
+      });
+      const anonymousLocal = loadChatStore(anonymousScope);
+
+      let remote = await fetchRemoteChatStore(locale);
+      if (cancelled) return;
+
+      if (remote) {
+        setStore(remote);
+        saveChatStore(remote, authScope);
         return;
       }
 
-      const local = loadChatStore();
+      if (userLocal) {
+        setStore(userLocal);
+        await persistRemoteChatStore(userLocal, locale);
+        return;
+      }
 
+      if (anonymousLocal && hasMeaningfulChatHistory(anonymousLocal)) {
+        setStore(anonymousLocal);
+        saveChatStore(anonymousLocal, authScope);
+        await persistRemoteChatStore(anonymousLocal, locale);
+        clearChatStore(anonymousScope);
+        return;
+      }
+
+      remote = await initializeRemoteChatStore(locale);
+      if (cancelled) return;
+
+      if (remote) {
+        setStore(remote);
+        saveChatStore(remote, authScope);
+      }
+    }
+
+    async function hydrateAnonymous() {
+      const anonymousScope = resolveChatStoreScope({
+        authUserId: null,
+        anonymousDeviceId,
+      });
+      const local = loadChatStore(anonymousScope);
+
+      if (cancelled) return;
+
+      if (local) {
+        setStore(local);
+      }
+    }
+
+    async function hydrate() {
       try {
-        let remote = await fetchRemoteChatStore(locale);
-        if (cancelled) return;
-
-        if (!remote && local) {
-          setStore(local);
-          await persistRemoteChatStore(local, locale);
-          if (!cancelled) setHydrated(true);
-          return;
-        }
-
-        if (!remote) {
-          remote = await initializeRemoteChatStore(locale);
-        }
-
-        if (cancelled) return;
-
-        if (remote) {
-          setStore(remote);
-        } else if (local) {
-          setStore(local);
+        if (scope.kind === "authenticated") {
+          await hydrateAuthenticated(scope);
+        } else {
+          await hydrateAnonymous();
         }
       } catch (error) {
         console.error("[IDA chat-store hydrate]", error);
-        if (!cancelled && local) setStore(local);
+
+        if (!cancelled) {
+          const fallback = loadChatStore(scope);
+          if (fallback) setStore(fallback);
+        }
       }
 
       if (!cancelled) setHydrated(true);
@@ -204,14 +345,14 @@ export function useChatStore(locale: Locale) {
     return () => {
       cancelled = true;
     };
-  }, [locale, user, authLoading]);
+  }, [locale, scope, scopeStorageKey, authLoading, anonymousDeviceId]);
 
   useEffect(() => {
     if (!hydrated) return;
 
-    saveChatStore(store);
+    saveChatStore(store, scope);
 
-    if (!userId) return;
+    if (scope.kind !== "authenticated") return;
 
     const timer = window.setTimeout(() => {
       void persistRemoteChatStore(store, locale).catch((error) => {
@@ -220,7 +361,7 @@ export function useChatStore(locale: Locale) {
     }, REMOTE_SYNC_DEBOUNCE_MS);
 
     return () => window.clearTimeout(timer);
-  }, [store, hydrated, userId, locale]);
+  }, [store, hydrated, scope, locale]);
 
   const currentChat = store.chats[store.currentChatId];
 
@@ -367,9 +508,16 @@ export function useChatStore(locale: Locale) {
     [locale, updateCurrentChat],
   );
 
+  const authUserId = user?.id ?? null;
+  const apiUserId = authUserId ?? anonymousDeviceId;
+
   return {
     hydrated,
-    userId,
+    authUserId,
+    anonymousDeviceId,
+    apiUserId,
+    /** @deprecated Use apiUserId */
+    userId: apiUserId,
     currentChat,
     sessions,
     switchChat,
