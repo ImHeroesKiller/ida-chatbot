@@ -14,6 +14,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
+import { AgentApiStatus } from "@/components/agent/agent-api-status";
 import { AgentGraphProgress } from "@/components/agent/agent-graph-progress";
 import { AgentMermaid } from "@/components/agent/agent-mermaid";
 import { Badge } from "@/components/ui/badge";
@@ -254,6 +255,8 @@ export function AgentWorkspace({
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
         <div className="mx-auto max-w-3xl space-y-6">
+          <AgentApiStatus locale={locale} />
+
           <Card size="sm">
             <CardHeader>
               <CardTitle className="text-sm">{copy.techStackTitle}</CardTitle>

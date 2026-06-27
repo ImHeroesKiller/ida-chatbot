@@ -73,6 +73,12 @@ export const AGENT_COPY: Record<
     notificationTitle: string;
     workflowComplete: string;
     fidelityLabel: string;
+    apiStatusTitle: string;
+    apiStatusDescription: string;
+    apiStatusLoading: string;
+    apiStatusError: string;
+    apiStatusReady: string;
+    apiStatusIncomplete: string;
   }
 > = {
   id: {
@@ -149,6 +155,13 @@ export const AGENT_COPY: Record<
     notificationTitle: "Notifikasi",
     workflowComplete: "Workflow selesai dieksekusi di sandbox.",
     fidelityLabel: "Fidelity",
+    apiStatusTitle: "Status API & Integrasi",
+    apiStatusDescription:
+      "Periksa koneksi ke Gemini, Supabase, E2B, dan Redis sebelum menjalankan workflow.",
+    apiStatusLoading: "Memeriksa koneksi API...",
+    apiStatusError: "Gagal memuat status API. Pastikan Anda sudah login.",
+    apiStatusReady: "Siap",
+    apiStatusIncomplete: "Perlu konfigurasi",
   },
   en: {
     navChat: "Chat",
@@ -223,6 +236,13 @@ export const AGENT_COPY: Record<
     notificationTitle: "Notifications",
     workflowComplete: "Workflow completed in sandbox.",
     fidelityLabel: "Fidelity",
+    apiStatusTitle: "API & Integration Status",
+    apiStatusDescription:
+      "Check Gemini, Supabase, E2B, and Redis connections before running workflows.",
+    apiStatusLoading: "Checking API connections...",
+    apiStatusError: "Failed to load API status. Ensure you are logged in.",
+    apiStatusReady: "Ready",
+    apiStatusIncomplete: "Needs setup",
   },
   zh: {
     navChat: "聊天",
@@ -297,5 +317,11 @@ export const AGENT_COPY: Record<
     notificationTitle: "通知",
     workflowComplete: "工作流已在沙箱中完成。",
     fidelityLabel: "保真度",
+    apiStatusTitle: "API 与集成状态",
+    apiStatusDescription: "运行工作流前检查 Gemini、Supabase、E2B 和 Redis 连接。",
+    apiStatusLoading: "正在检查 API 连接...",
+    apiStatusError: "无法加载 API 状态。请确保已登录。",
+    apiStatusReady: "就绪",
+    apiStatusIncomplete: "需要配置",
   },
 };

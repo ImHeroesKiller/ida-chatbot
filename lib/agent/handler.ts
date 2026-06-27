@@ -4,7 +4,7 @@ import { loadAppConfig } from "@/lib/admin/config";
 import type { Locale } from "@/lib/config";
 
 import { createCorrelationId, logNodeTransition } from "./audit-log";
-import { persistRunState } from "./checkpointer";
+import { loadRunState, persistRunState } from "./checkpointer";
 import {
   detectAgentFileType,
   extractAgentDocumentText,
@@ -504,6 +504,22 @@ function buildArtifactContent(run: AgentWorkflowRun): string {
   return lines.join("\n");
 }
 
+async function resolveWorkflowRun(
+  runId: string,
+  existingRun?: AgentWorkflowRun,
+): Promise<AgentWorkflowRun> {
+  if (existingRun && existingRun.id === runId) {
+    return existingRun;
+  }
+
+  const stored = await loadRunState(runId);
+  if (stored) return stored;
+
+  if (existingRun) return existingRun;
+
+  throw new Error("Workflow run not found.");
+}
+
 export async function handleAgentRequest(
   request: AgentApiRequest,
   existingRun?: AgentWorkflowRun,
@@ -515,41 +531,55 @@ export async function handleAgentRequest(
         request.documents,
         request.locale,
       );
-      return runAnalyzeAction({
+      const analyzed = await runAnalyzeAction({
         instruction: request.instruction,
         documents,
         locale: request.locale,
         runId: request.runId,
         userId,
       });
+      await persistRunState(analyzed);
+      return analyzed;
     }
     case "approve": {
-      if (!existingRun) throw new Error("Workflow run not found.");
-      return runApproveAction(existingRun);
+      const run = await resolveWorkflowRun(request.runId, existingRun);
+      const result = runApproveAction(run);
+      await persistRunState(result);
+      return result;
     }
     case "upload_templates": {
-      if (!existingRun) throw new Error("Workflow run not found.");
-      return runUploadTemplatesAction(existingRun, request.templates);
+      const run = await resolveWorkflowRun(request.runId, existingRun);
+      const uploaded = runUploadTemplatesAction(run, request.templates);
+      await persistRunState(uploaded);
+      return uploaded;
     }
     case "inject_templates": {
-      if (!existingRun) throw new Error("Workflow run not found.");
-      return runInjectTemplatesAction(existingRun);
+      const run = await resolveWorkflowRun(request.runId, existingRun);
+      const result = runInjectTemplatesAction(run);
+      await persistRunState(result);
+      return result;
     }
     case "edit_workflow": {
-      if (!existingRun) throw new Error("Workflow run not found.");
-      return runEditWorkflowAction(
-        existingRun,
+      const run = await resolveWorkflowRun(request.runId, existingRun);
+      const result = runEditWorkflowAction(
+        run,
         request.steps,
         request.mermaidDiagram,
       );
+      await persistRunState(result);
+      return result;
     }
     case "execute": {
-      if (!existingRun) throw new Error("Workflow run not found.");
-      return runExecuteAction(existingRun);
+      const run = await resolveWorkflowRun(request.runId, existingRun);
+      const result = await runExecuteAction(run);
+      await persistRunState(result);
+      return result;
     }
     case "cancel": {
-      if (!existingRun) throw new Error("Workflow run not found.");
-      return runCancelAction(existingRun);
+      const run = await resolveWorkflowRun(request.runId, existingRun);
+      const result = runCancelAction(run);
+      await persistRunState(result);
+      return result;
     }
     default:
       throw new Error("Unknown agent action.");
