@@ -6,6 +6,7 @@ import { Mic, User } from "lucide-react";
 import { IdaLogo } from "@/components/brand/ida-logo";
 import { AttachmentPreview } from "@/components/chat/attachment-preview";
 import { MarkdownContent } from "@/components/chat/markdown-content";
+import { WebSearchSources } from "@/components/chat/web-search-sources";
 import { MessageActions } from "@/components/chat/message-actions";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
@@ -130,6 +131,13 @@ export function MessageBubble({
             )}
           </div>
         )}
+
+        {!isUser && message.webSearchSources?.length ? (
+          <WebSearchSources
+            sources={message.webSearchSources}
+            locale={locale}
+          />
+        ) : null}
 
         {showActions && (
           <MessageActions

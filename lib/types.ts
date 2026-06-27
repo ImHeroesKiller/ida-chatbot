@@ -10,6 +10,12 @@ export interface IdaAttachment {
   summary?: string;
 }
 
+export interface IdaWebSearchSource {
+  title: string;
+  url: string;
+  snippet: string;
+}
+
 export interface IdaMessage {
   id: string;
   role: "user" | "assistant";
@@ -18,6 +24,7 @@ export interface IdaMessage {
   caption?: string;
   attachment?: IdaAttachment;
   isVoiceNote?: boolean;
+  webSearchSources?: IdaWebSearchSource[];
 }
 
 export interface IdaChatErrorResponse {

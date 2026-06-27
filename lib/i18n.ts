@@ -103,6 +103,7 @@ export const COPY: Record<
     speechRate: string;
     speechPitch: string;
     sendAsVoiceNote: string;
+    webSearchSources: string;
     errors: {
       generic: string;
       rateLimit: string;
@@ -216,6 +217,7 @@ export const COPY: Record<
     speechRate: "Kecepatan bicara",
     speechPitch: "Nada suara",
     sendAsVoiceNote: "Kirim sebagai voice note",
+    webSearchSources: "Sumber web",
     errors: {
       generic: "Gagal mendapatkan respons. Coba lagi.",
       rateLimit: "Terlalu banyak permintaan. Tunggu sebentar.",
@@ -328,6 +330,7 @@ export const COPY: Record<
     speechRate: "Speech rate",
     speechPitch: "Voice pitch",
     sendAsVoiceNote: "Send as voice note",
+    webSearchSources: "Web sources",
     errors: {
       generic: "Failed to get a response. Please try again.",
       rateLimit: "Too many requests. Please wait a moment.",
@@ -440,6 +443,7 @@ export const COPY: Record<
     speechRate: "语速",
     speechPitch: "音调",
     sendAsVoiceNote: "作为语音消息发送",
+    webSearchSources: "网络来源",
     errors: {
       generic: "获取回复失败，请重试。",
       rateLimit: "请求过多，请稍后再试。",

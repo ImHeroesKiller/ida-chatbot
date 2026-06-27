@@ -9,6 +9,8 @@ const LOCALE_INSTRUCTIONS: Record<Locale, string> = {
 interface PromptContext {
   retrievedContext?: string;
   conversationMemory?: string;
+  webSearchContext?: string;
+  webSearchEnabled?: boolean;
   basePromptOverride?: string | null;
 }
 
@@ -21,7 +23,12 @@ export function buildIdaSystemPrompt(
   }
 
   const languageRule = LOCALE_INSTRUCTIONS[locale];
-  const { retrievedContext, conversationMemory } = context;
+  const {
+    retrievedContext,
+    conversationMemory,
+    webSearchContext,
+    webSearchEnabled = false,
+  } = context;
 
   const ragSection = retrievedContext?.trim()
     ? `## Konteks Retrieval (RAG) — Prioritaskan informasi ini
@@ -37,6 +44,32 @@ Ingat konteks percakapan sebelumnya dalam sesi ini:
 ${conversationMemory}`
     : `## Memori Percakapan (Sesi Ini)
 Ini awal percakapan atau belum ada riwayat sebelumnya.`;
+
+  const webSearchSection = webSearchContext?.trim()
+    ? `## Konteks Web Search (Real-time)
+Gunakan hasil pencarian web berikut untuk pertanyaan yang membutuhkan data terkini. Sertakan URL sumber dalam jawaban.
+
+${webSearchContext}`
+    : "";
+
+  const webSearchToolSection = webSearchEnabled
+    ? `## Tool Calling — web_search
+Kamu memiliki akses ke tool **web_search** untuk mencari informasi terkini di internet.
+
+Panggil tool ini ketika:
+- Pengguna meminta data real-time (harga, kurs, berita hari ini, regulasi terbaru, cuaca, jadwal terkini)
+- Informasi tidak tersedia di knowledge base (RAG) atau jelas sudah kedaluwarsa
+- Pertanyaan eksplisit membutuhkan sumber eksternal terbaru
+
+Jangan panggil tool untuk:
+- Pertanyaan umum yang bisa dijawab dari RAG atau pengetahuan stabil
+- Opini, brainstorming, atau penjelasan konsep yang tidak bergantung waktu
+
+Setelah menggunakan web search:
+- Rangkum fakta dengan jelas dan profesional
+- Selalu cantumkan sumber (judul + URL) di akhir jawaban
+- Jika hasil search kosong/gagal, jawab dengan kemampuan yang ada dan jelaskan keterbatasannya`
+    : "";
 
   return `Kamu adalah IDA — Intelligent Digital Assistant, asisten AI mandiri yang ramah dan profesional.
 
@@ -63,13 +96,18 @@ Jangan panggil tool untuk pertanyaan umum yang masih bisa dijawab dari RAG atau 
 Jangan menyarankan atau menawarkan tombol "hubungi tim manusia" — handoff hanya dipicu secara eksplisit oleh pengguna.
 Saat tool dipanggil, berikan respons singkat bahwa handoff sedang disiapkan beserta ringkasan topik.
 
+${webSearchToolSection}
+
 ## Cara Menggunakan Konteks
 - **Prioritas 1:** Konteks Retrieval (RAG) — jawab berdasarkan dokumen yang di-retrieve.
-- **Prioritas 2:** Memori Percakapan — pertahankan kontinuitas topik dalam sesi yang sama.
-- **Prioritas 3:** Pengetahuan umum — hanya jika retrieval kosong; jangan mengarang fakta spesifik.
+- **Prioritas 2:** Web Search — untuk data real-time yang tidak ada di RAG.
+- **Prioritas 3:** Memori Percakapan — pertahankan kontinuitas topik dalam sesi yang sama.
+- **Prioritas 4:** Pengetahuan umum — hanya jika retrieval kosong; jangan mengarang fakta spesifik.
 - Jika informasi tidak tersedia, katakan dengan jujur dan tawarkan alternatif.
 
 ${ragSection}
+
+${webSearchSection}
 
 ${memorySection}
 

@@ -22,12 +22,16 @@ export interface IdaAppConfig {
     voice: boolean;
     ocr: boolean;
     autoSpeak: boolean;
+    webSearch: boolean;
   };
   systemPromptOverride: string | null;
   rag: {
     confidenceThreshold: number;
     topK: number;
     retrievalThreshold: number;
+  };
+  webSearch: {
+    maxResults: number;
   };
   modelPricing?: Record<
     string,

@@ -130,6 +130,15 @@ export async function POST(request: Request) {
       });
     }
 
+    if (context.meta.usedWebSearch) {
+      console.log("[IDA chat] Web search context prepared", {
+        queries: context.meta.webSearchQueries ?? [],
+        sourceCount: context.meta.webSearchSources?.length ?? 0,
+        locale,
+        sessionId: sessionId ?? null,
+      });
+    }
+
     if (!context.meta.usedRag) {
       console.log("[IDA chat] RAG fallback", {
         reason: context.meta.ragFallbackReason ?? "unknown",
@@ -160,12 +169,33 @@ export async function POST(request: Request) {
         activeContext: typeof context,
         usedFallback: boolean,
       ) => {
-        const result = await runIdaChatStream(activeContext, (token) => {
-          send("token", { text: token });
+        const result = await runIdaChatStream(activeContext, {
+          onToken: (token) => {
+            send("token", { text: token });
+          },
+          onMetaUpdate: (patch) => {
+            send("meta", {
+              ...activeContext.meta,
+              ...patch,
+              activeModel: activeContext.modelId,
+              activeProvider: activeContext.provider,
+            });
+          },
         });
+
+        if (result.usedWebSearch) {
+          console.log("[IDA chat] Web search used in response", {
+            queries: result.webSearchQueries ?? [],
+            sourceCount: result.webSearchSources?.length ?? 0,
+            locale,
+            sessionId: sessionId ?? null,
+          });
+        }
 
         send("done", {
           message: result.fullText,
+          usedWebSearch: result.usedWebSearch,
+          webSearchSources: result.webSearchSources,
         });
 
         void logRequest({

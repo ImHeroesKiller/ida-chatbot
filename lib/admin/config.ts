@@ -29,12 +29,16 @@ export const DEFAULT_APP_CONFIG: IdaAppConfig = {
     voice: true,
     ocr: true,
     autoSpeak: false,
+    webSearch: true,
   },
   systemPromptOverride: null,
   rag: {
     confidenceThreshold: IDA_CONFIG.ragConfidenceThreshold,
     topK: IDA_CONFIG.retrievalTopK,
     retrievalThreshold: IDA_CONFIG.retrievalThreshold,
+  },
+  webSearch: {
+    maxResults: 5,
   },
 };
 
@@ -67,6 +71,8 @@ function mergeConfig(partial: Partial<IdaAppConfig> | null): IdaAppConfig {
       ocr: partial.features?.ocr ?? DEFAULT_APP_CONFIG.features.ocr,
       autoSpeak:
         partial.features?.autoSpeak ?? DEFAULT_APP_CONFIG.features.autoSpeak,
+      webSearch:
+        partial.features?.webSearch ?? DEFAULT_APP_CONFIG.features.webSearch,
     },
     systemPromptOverride:
       partial.systemPromptOverride ?? DEFAULT_APP_CONFIG.systemPromptOverride,
@@ -78,6 +84,11 @@ function mergeConfig(partial: Partial<IdaAppConfig> | null): IdaAppConfig {
       retrievalThreshold:
         partial.rag?.retrievalThreshold ??
         DEFAULT_APP_CONFIG.rag.retrievalThreshold,
+    },
+    webSearch: {
+      maxResults:
+        partial.webSearch?.maxResults ??
+        DEFAULT_APP_CONFIG.webSearch.maxResults,
     },
   };
 }

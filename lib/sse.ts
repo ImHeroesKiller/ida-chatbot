@@ -1,5 +1,11 @@
 export type IdaSseEventType = "meta" | "token" | "done" | "error";
 
+export interface IdaWebSearchSourcePayload {
+  title: string;
+  url: string;
+  snippet: string;
+}
+
 export interface IdaSseMetaPayload {
   retrievedChunks: number;
   usedRag: boolean;
@@ -13,6 +19,9 @@ export interface IdaSseMetaPayload {
     topic: string;
     description: string;
   };
+  usedWebSearch?: boolean;
+  webSearchQueries?: string[];
+  webSearchSources?: IdaWebSearchSourcePayload[];
   usedFallbackModel?: boolean;
   activeModel?: string;
   activeProvider?: string;
@@ -24,6 +33,8 @@ export interface IdaSseTokenPayload {
 
 export interface IdaSseDonePayload {
   message: string;
+  usedWebSearch?: boolean;
+  webSearchSources?: IdaWebSearchSourcePayload[];
 }
 
 export interface IdaSseErrorPayload {

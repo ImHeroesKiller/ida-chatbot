@@ -7,6 +7,7 @@ export interface AppFeatures {
   voice: boolean;
   ocr: boolean;
   autoSpeak: boolean;
+  webSearch: boolean;
 }
 
 export interface AppTtsConfig {
@@ -28,6 +29,7 @@ const DEFAULT_FEATURES: AppFeatures = {
   voice: true,
   ocr: true,
   autoSpeak: false,
+  webSearch: true,
 };
 
 const DEFAULT_TTS: AppTtsConfig = {

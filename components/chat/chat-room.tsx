@@ -261,6 +261,24 @@ function ChatRoomContent() {
           throw new Error(copy.errors.generic);
         }
 
+        const applyWebSearchSources = (
+          sources: IdaSseMetaPayload["webSearchSources"],
+        ) => {
+          if (!sources?.length) return;
+
+          finalMessages = finalMessages.map((message) =>
+            message.id === streamId
+              ? { ...message, webSearchSources: sources }
+              : message,
+          );
+
+          if (activeChatIdRef.current === chatIdAtSend) {
+            setMessages(finalMessages);
+          } else {
+            persistCurrentChat({ messages: finalMessages });
+          }
+        };
+
         await consumeIdaSseStream(
           response,
           (token) => {
@@ -289,6 +307,11 @@ function ChatRoomContent() {
             if (meta.handoffTriggered && meta.handoffPrefill) {
               openHandoff(meta.handoffPrefill);
             }
+
+            applyWebSearchSources(meta.webSearchSources);
+          },
+          (done) => {
+            applyWebSearchSources(done.webSearchSources);
           },
         );
 

@@ -8,6 +8,7 @@ import type {
 export interface ParsedIdaSseStream {
   meta?: IdaSseMetaPayload;
   message: string;
+  done?: IdaSseDonePayload;
   error?: string;
 }
 
@@ -15,6 +16,7 @@ export async function consumeIdaSseStream(
   response: Response,
   onToken: (text: string) => void,
   onMeta?: (meta: IdaSseMetaPayload) => void,
+  onDone?: (payload: IdaSseDonePayload) => void,
 ): Promise<ParsedIdaSseStream> {
   const reader = response.body?.getReader();
 
@@ -25,6 +27,7 @@ export async function consumeIdaSseStream(
   const decoder = new TextDecoder();
   let buffer = "";
   let meta: IdaSseMetaPayload | undefined;
+  let donePayload: IdaSseDonePayload | undefined;
   let message = "";
   let error: string | undefined;
 
@@ -62,7 +65,9 @@ export async function consumeIdaSseStream(
         message += token;
         onToken(token);
       } else if (eventType === "done") {
-        message = (payload as IdaSseDonePayload).message || message;
+        donePayload = payload as IdaSseDonePayload;
+        message = donePayload.message || message;
+        onDone?.(donePayload);
       } else if (eventType === "error") {
         error = (payload as IdaSseErrorPayload).error;
       }
@@ -73,5 +78,9 @@ export async function consumeIdaSseStream(
     throw new Error(error);
   }
 
-  return { meta, message: message.trim() };
+  return {
+    meta,
+    message: message.trim(),
+    done: donePayload,
+  };
 }
