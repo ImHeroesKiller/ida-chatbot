@@ -41,7 +41,7 @@ export function LandingFooter() {
               href="/#sign-in"
               className="text-muted-foreground transition-colors hover:text-foreground"
             >
-              {LANDING_COPY.signInTitle}
+              {LANDING_COPY.primaryCta}
             </Link>
           </nav>
         </div>

@@ -1,7 +1,15 @@
 import Link from "next/link";
-import { Brain, Globe2, MessageSquare, Shield } from "lucide-react";
+import {
+  ArrowRight,
+  Brain,
+  Globe2,
+  MessageSquare,
+  Shield,
+  Sparkles,
+} from "lucide-react";
 
 import { LandingFooter } from "@/components/landing/footer";
+import { LandingCtaLazy } from "@/components/landing/landing-cta-lazy";
 import { LandingLcpLogo } from "@/components/landing/landing-lcp-logo";
 import { LandingLoginLazy } from "@/components/landing/landing-login-lazy";
 import { IDA_CONFIG } from "@/lib/config";
@@ -12,70 +20,102 @@ const FEATURE_ICONS = [Brain, MessageSquare, Globe2, Shield] as const;
 export function LandingPageStatic() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <LandingLcpLogo />
-            <span className="text-sm font-semibold tracking-tight">
-              {IDA_CONFIG.name}
-            </span>
+            <div className="leading-tight">
+              <span className="block text-sm font-semibold tracking-tight">
+                {IDA_CONFIG.name}
+              </span>
+              <span className="hidden text-[11px] text-muted-foreground sm:block">
+                {LANDING_COPY.badge}
+              </span>
+            </div>
           </div>
-          <nav
-            className="flex items-center gap-4 text-sm text-muted-foreground"
-            aria-label="Legal"
-          >
-            <Link
-              href="/privacy"
-              className="hover:text-foreground hover:underline"
-            >
-              {LANDING_COPY.privacyLink}
-            </Link>
-            <Link
-              href="/terms"
-              className="hover:text-foreground hover:underline"
-            >
-              {LANDING_COPY.termsLink}
-            </Link>
-          </nav>
+          <LandingCtaLazy variant="header" />
         </div>
       </header>
 
       <main className="flex-1">
-        <section className="border-b px-4 py-12 sm:px-6 sm:py-16">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+        <section className="relative overflow-hidden border-b px-4 py-14 sm:px-6 sm:py-20 lg:py-24">
+          <div
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute -top-24 right-0 size-72 rounded-full bg-primary/5 blur-3xl"
+            aria-hidden
+          />
+
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur-sm sm:text-sm">
+              <Sparkles className="size-3.5 text-primary" aria-hidden />
+              {LANDING_COPY.badge}
+            </div>
+
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               {LANDING_COPY.headline}
+              <span className="mt-2 block bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-3xl font-semibold text-transparent sm:text-4xl lg:text-5xl">
+                {LANDING_COPY.headlineAccent}
+              </span>
             </h1>
-            <p className="mt-4 text-lg text-muted-foreground">
+
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
               {LANDING_COPY.subheadline}
             </p>
-            <p className="mx-auto mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground/90">
               {LANDING_COPY.description}
+            </p>
+
+            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+              <LandingCtaLazy variant="hero" />
+              <Link
+                href="#features"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border bg-card/50 px-6 text-sm font-medium text-foreground transition-colors hover:bg-muted sm:text-base"
+              >
+                {LANDING_COPY.heroSecondaryCta}
+                <ArrowRight className="size-4" aria-hidden />
+              </Link>
+            </div>
+
+            <p className="mt-6 text-xs text-muted-foreground sm:text-sm">
+              {LANDING_COPY.trustLine}
             </p>
           </div>
         </section>
 
-        <section className="px-4 py-12 sm:px-6 sm:py-16">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="text-center text-xl font-semibold tracking-tight sm:text-2xl">
-              Fitur Utama
-            </h2>
-            <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-muted-foreground">
-              IDA dirancang sebagai asisten digital yang andal untuk kebutuhan
-              informasi dan produktivitas Anda.
-            </p>
-            <ul className="mt-10 grid gap-6 sm:grid-cols-2">
+        <section
+          id="features"
+          className="scroll-mt-20 px-4 py-14 sm:px-6 sm:py-20"
+        >
+          <div className="mx-auto max-w-6xl">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                {LANDING_COPY.featuresTitle}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                {LANDING_COPY.featuresSubtitle}
+              </p>
+            </div>
+
+            <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:gap-6">
               {LANDING_FEATURES.map((feature, index) => {
                 const Icon = FEATURE_ICONS[index] ?? Brain;
                 return (
                   <li
                     key={feature.title}
-                    className="rounded-xl border bg-card p-5 shadow-sm"
+                    className="group rounded-2xl border bg-card/50 p-6 shadow-sm transition-all hover:border-primary/20 hover:shadow-md dark:bg-card/30"
                   >
-                    <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Icon className="size-5" aria-hidden />
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
+                        <Icon className="size-5" aria-hidden />
+                      </div>
+                      <span className="rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+                        {feature.highlight}
+                      </span>
                     </div>
-                    <h3 className="text-base font-semibold">{feature.title}</h3>
+                    <h3 className="text-lg font-semibold">{feature.title}</h3>
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                       {feature.description}
                     </p>
@@ -88,29 +128,18 @@ export function LandingPageStatic() {
 
         <section
           id="sign-in"
-          className="border-t bg-muted/20 px-4 py-12 dark:bg-muted/10 sm:px-6 sm:py-16"
+          className="scroll-mt-20 border-t bg-muted/30 px-4 py-14 dark:bg-muted/10 sm:px-6 sm:py-20"
         >
-          <div className="mx-auto max-w-md space-y-6 text-center">
-            <div className="space-y-2">
-              <h2 className="text-xl font-semibold tracking-tight">
+          <div className="mx-auto max-w-lg space-y-8 text-center">
+            <div className="space-y-3">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
                 {LANDING_COPY.signInTitle}
               </h2>
-              <p className="text-sm leading-relaxed text-muted-foreground">
+              <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
                 {LANDING_COPY.signInDescription}
               </p>
             </div>
             <LandingLoginLazy />
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              {LANDING_COPY.privacyNote}{" "}
-              <Link href="/terms" className="underline hover:text-foreground">
-                {LANDING_COPY.termsLink}
-              </Link>{" "}
-              dan{" "}
-              <Link href="/privacy" className="underline hover:text-foreground">
-                {LANDING_COPY.privacyLink}
-              </Link>
-              .
-            </p>
           </div>
         </section>
       </main>

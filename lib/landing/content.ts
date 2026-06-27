@@ -2,40 +2,55 @@ import { IDA_CONFIG } from "@/lib/config";
 
 export const LANDING_FEATURES = [
   {
-    title: "RAG & Knowledge Base",
+    title: "Jawaban Berbasis Pengetahuan",
     description:
-      "Jawaban berbasis dokumen dan pengetahuan terkurasi agar respons IDA akurat dan relevan.",
+      "RAG dan knowledge base membuat IDA menjawab dengan konteks yang relevan, bukan tebakan kosong.",
+    highlight: "RAG",
   },
   {
     title: "Memori Percakapan",
     description:
-      "Riwayat chat tersimpan per akun sehingga Anda dapat melanjutkan percakapan di perangkat mana pun.",
+      "Riwayat chat tersimpan per akun Google Anda — lanjutkan dari laptop, tablet, atau ponsel.",
+    highlight: "Sync",
   },
   {
     title: "Multibahasa",
     description:
-      "Dukungan Bahasa Indonesia, English, dan 中文 untuk pengalaman chat yang nyaman.",
+      "Ngobrol dalam Bahasa Indonesia, English, atau 中文 dengan pengalaman yang konsisten.",
+    highlight: "ID · EN · 中文",
   },
   {
-    title: "Privasi & Keamanan",
+    title: "Aman & Transparan",
     description:
-      "Login melalui Google OAuth. Data pengguna dikelola sesuai kebijakan privasi dan syarat layanan kami.",
+      "Login via Google OAuth. Kebijakan privasi dan syarat layanan tersedia untuk transparansi penuh.",
+    highlight: "OAuth",
   },
 ] as const;
 
 export const LANDING_COPY = {
-  headline: `${IDA_CONFIG.name} — Intelligent Digital Assistant`,
+  badge: "Intelligent Digital Assistant",
+  headline: "Asisten AI yang Mengerti Konteks Anda",
+  headlineAccent: "Lebih Cerdas. Lebih Personal.",
   subheadline:
-    "Asisten AI untuk percakapan cerdas, brainstorming, dan bantuan informasi harian.",
+    "Tanya apa saja, brainstorm ide, atau selesaikan tugas — IDA siap membantu lewat percakapan natural.",
   description:
-    "IDA (Intelligent Digital Assistant) adalah aplikasi chatbot AI yang membantu Anda bertanya, belajar, dan menyelesaikan tugas melalui percakapan natural. Fitur RAG, memori sesi, dan dukungan multibahasa dirancang untuk pengalaman yang konsisten dan personal.",
-  signInTitle: "Masuk untuk memulai chat",
+    "IDA (Intelligent Digital Assistant) adalah chatbot AI dengan RAG, memori sesi, dan dukungan multibahasa. Dirancang untuk produktivitas harian, belajar, dan bantuan informasi yang cepat serta terpercaya.",
+  primaryCta: "Coba IDA Sekarang",
+  primaryCtaShort: "Try IDA",
+  heroSecondaryCta: "Lihat Fitur",
+  signInTitle: "Siap memulai?",
   signInDescription:
-    "Gunakan akun Google untuk mengakses chat room IDA dan menyinkronkan riwayat percakapan Anda. Login bersifat opsional untuk menjelajahi informasi aplikasi di halaman ini.",
+    "Masuk dengan Google untuk membuka chat room IDA dan menyimpan riwayat percakapan Anda.",
   googleSignInLabel: "Masuk dengan Google",
   privacyNote:
     "Dengan masuk, Anda menyetujui Syarat Layanan dan Kebijakan Privasi IDA.",
   continueToChat: "Lanjut ke Chat",
   privacyLink: "Kebijakan Privasi",
   termsLink: "Syarat Layanan",
+  featuresTitle: "Kenapa IDA?",
+  featuresSubtitle:
+    "Semua yang Anda butuhkan dari asisten AI modern — dalam satu pengalaman chat yang rapi.",
+  trustLine: "Gratis untuk digunakan · Login Google · Tanpa login wall di halaman ini",
 } as const;
+
+export { IDA_CONFIG };
