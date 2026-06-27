@@ -254,6 +254,25 @@ export const MODEL_LIBRARY: ModelDefinition[] = [
     releaseStatus: "stable",
     docsUrl: "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct",
   },
+  {
+    id: "llama-3.2-11b-vision-preview",
+    name: "Llama 3.2 11B Vision",
+    provider: "groq",
+    description: "Groq-hosted multimodal vision for OCR.",
+    capabilities: ["vision"],
+    envKey: "GROQ_API_KEY",
+    releaseStatus: "preview",
+  },
+  {
+    id: "google/gemma-3-27b-it",
+    name: "Gemma 3 27B IT",
+    provider: "huggingface",
+    description: "HF multimodal vision + text for document OCR.",
+    capabilities: ["vision"],
+    envKey: "HUGGINGFACE_API_KEY",
+    releaseStatus: "preview",
+    docsUrl: "https://huggingface.co/google/gemma-3-27b-it",
+  },
 ];
 
 export type ModelAvailability =
@@ -273,6 +292,10 @@ export function getModelAvailability(
 
 export function getChatModels(): ModelDefinition[] {
   return MODEL_LIBRARY.filter((model) => model.capabilities.includes("chat"));
+}
+
+export function getVisionModels(): ModelDefinition[] {
+  return MODEL_LIBRARY.filter((model) => model.capabilities.includes("vision"));
 }
 
 export function findModelDefinition(

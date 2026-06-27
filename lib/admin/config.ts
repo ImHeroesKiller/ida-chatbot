@@ -10,6 +10,20 @@ export const DEFAULT_APP_CONFIG: IdaAppConfig = {
     id: IDA_CONFIG.model,
     provider: "google",
   },
+  fallbackModel: {
+    id: "gemini-2.5-flash-lite",
+    provider: "google",
+  },
+  visionModel: {
+    id: "gemini-2.5-flash",
+    provider: "google",
+  },
+  tts: {
+    engine: "browser",
+    voiceId: "",
+    speed: 1,
+    pitch: 1,
+  },
   features: {
     rag: true,
     voice: true,
@@ -33,6 +47,19 @@ function mergeConfig(partial: Partial<IdaAppConfig> | null): IdaAppConfig {
       provider:
         (partial.defaultModel?.provider as ModelProvider | undefined) ??
         DEFAULT_APP_CONFIG.defaultModel.provider,
+    },
+    fallbackModel: partial.fallbackModel ?? DEFAULT_APP_CONFIG.fallbackModel,
+    visionModel: {
+      id: partial.visionModel?.id ?? DEFAULT_APP_CONFIG.visionModel.id,
+      provider:
+        (partial.visionModel?.provider as ModelProvider | undefined) ??
+        DEFAULT_APP_CONFIG.visionModel.provider,
+    },
+    tts: {
+      engine: partial.tts?.engine ?? DEFAULT_APP_CONFIG.tts.engine,
+      voiceId: partial.tts?.voiceId ?? DEFAULT_APP_CONFIG.tts.voiceId,
+      speed: partial.tts?.speed ?? DEFAULT_APP_CONFIG.tts.speed,
+      pitch: partial.tts?.pitch ?? DEFAULT_APP_CONFIG.tts.pitch,
     },
     features: {
       rag: partial.features?.rag ?? DEFAULT_APP_CONFIG.features.rag,

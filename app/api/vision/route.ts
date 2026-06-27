@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { loadAppConfig } from "@/lib/admin/config";
 import { LOCALES } from "@/lib/config";
-import { extractTextWithGeminiVision } from "@/lib/vision/gemini-vision";
+import { extractVisionWithConfig } from "@/lib/vision/vision-service";
 import {
   buildRateLimitKey,
   enforceIdaRateLimit,
@@ -70,11 +70,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await extractTextWithGeminiVision({
+    const result = await extractVisionWithConfig({
       data,
       mimeType,
       fileName,
       locale,
+      visionModel: appConfig.visionModel,
     });
 
     return NextResponse.json(result);

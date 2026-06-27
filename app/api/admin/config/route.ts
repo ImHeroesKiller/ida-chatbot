@@ -9,6 +9,8 @@ import {
 import { requireAdmin } from "@/lib/admin/guard";
 import {
   getModelAvailability,
+  getChatModels,
+  getVisionModels,
   isProviderConfigured,
   MODEL_LIBRARY,
   MODEL_PROVIDERS,
@@ -17,10 +19,20 @@ import type { IdaAppConfig } from "@/lib/admin/types";
 
 const modelProviderSchema = z.enum(["google", "groq", "xai", "huggingface"]);
 
+const modelSelectionSchema = z.object({
+  id: z.string().min(1),
+  provider: modelProviderSchema,
+});
+
 const configSchema = z.object({
-  defaultModel: z.object({
-    id: z.string().min(1),
-    provider: modelProviderSchema,
+  defaultModel: modelSelectionSchema,
+  fallbackModel: modelSelectionSchema.nullable(),
+  visionModel: modelSelectionSchema,
+  tts: z.object({
+    engine: z.enum(["browser", "openai", "xai", "groq"]),
+    voiceId: z.string(),
+    speed: z.number().min(0.5).max(2),
+    pitch: z.number().min(0).max(2),
   }),
   features: z.object({
     rag: z.boolean(),
@@ -35,6 +47,18 @@ const configSchema = z.object({
     retrievalThreshold: z.number().min(0).max(1),
   }),
 });
+
+function validateModelSelection(
+  selection: z.infer<typeof modelSelectionSchema>,
+  capability: "chat" | "vision",
+): boolean {
+  return MODEL_LIBRARY.some(
+    (model) =>
+      model.id === selection.id &&
+      model.provider === selection.provider &&
+      model.capabilities.includes(capability),
+  );
+}
 
 export async function GET() {
   const guard = await requireAdmin();
@@ -59,9 +83,17 @@ export async function GET() {
     config,
     defaults: DEFAULT_APP_CONFIG,
     models: MODEL_LIBRARY,
+    chatModels: getChatModels(),
+    visionModels: getVisionModels(),
     providerStatus,
     modelAvailability,
     providerDocs: MODEL_PROVIDERS,
+    ttsEngines: {
+      browser: true,
+      openai: Boolean(process.env.OPENAI_API_KEY?.trim()),
+      xai: Boolean(process.env.XAI_API_KEY?.trim()),
+      groq: false,
+    },
   });
 }
 
@@ -82,15 +114,19 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Invalid config payload." }, { status: 400 });
   }
 
-  const modelExists = MODEL_LIBRARY.some(
-    (model) =>
-      model.id === parsed.data.defaultModel.id &&
-      model.provider === parsed.data.defaultModel.provider &&
-      model.capabilities.includes("chat"),
-  );
+  if (!validateModelSelection(parsed.data.defaultModel, "chat")) {
+    return NextResponse.json({ error: "Unknown primary chat model." }, { status: 400 });
+  }
 
-  if (!modelExists) {
-    return NextResponse.json({ error: "Unknown chat model." }, { status: 400 });
+  if (
+    parsed.data.fallbackModel &&
+    !validateModelSelection(parsed.data.fallbackModel, "chat")
+  ) {
+    return NextResponse.json({ error: "Unknown fallback chat model." }, { status: 400 });
+  }
+
+  if (!validateModelSelection(parsed.data.visionModel, "vision")) {
+    return NextResponse.json({ error: "Unknown vision model." }, { status: 400 });
   }
 
   try {

@@ -13,6 +13,9 @@ export interface IdaSseMetaPayload {
     topic: string;
     description: string;
   };
+  usedFallbackModel?: boolean;
+  activeModel?: string;
+  activeProvider?: string;
 }
 
 export interface IdaSseTokenPayload {

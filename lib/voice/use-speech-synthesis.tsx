@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { useAppFeatures } from "@/lib/client/use-app-features";
 import { detectSpeechLanguage } from "@/lib/voice/detect-language";
 import { getLocaleTag, pickBestVoice } from "@/lib/voice/pick-voice";
 import { stripMarkdownForSpeech } from "@/lib/voice/strip-markdown";
@@ -57,8 +58,38 @@ function waitForVoices(): Promise<SpeechSynthesisVoice[]> {
   });
 }
 
+async function playServerTts(text: string): Promise<void> {
+  const response = await fetch("/api/tts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => ({}))) as { error?: string };
+    throw new Error(data.error ?? "TTS request failed.");
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+
+  await new Promise<void>((resolve, reject) => {
+    const audio = new Audio(url);
+    audio.onended = () => {
+      URL.revokeObjectURL(url);
+      resolve();
+    };
+    audio.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to play TTS audio."));
+    };
+    void audio.play().catch(reject);
+  });
+}
+
 export function SpeechSynthesisProvider({ children }: { children: ReactNode }) {
   const { prefs } = useVoicePrefs();
+  const appFeatures = useAppFeatures();
   const [isSupported, setIsSupported] = useState(false);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(
@@ -88,22 +119,40 @@ export function SpeechSynthesisProvider({ children }: { children: ReactNode }) {
 
   const speak = useCallback(
     (messageId: string, text: string) => {
-      if (!isSupported || !text.trim()) return;
+      if (!text.trim()) return;
 
       stop();
 
       const plainText = stripMarkdownForSpeech(text);
       if (!plainText) return;
 
+      const ttsConfig = appFeatures?.tts;
+      const engine = ttsConfig?.engine ?? "browser";
+
+      if (engine !== "browser") {
+        setSpeakingMessageId(messageId);
+        void playServerTts(plainText)
+          .catch((error) => console.error("[IDA TTS]", error))
+          .finally(() => setSpeakingMessageId(null));
+        return;
+      }
+
+      if (!isSupported) return;
+
       const detectedLocale = detectSpeechLanguage(plainText);
       const voiceLocale = prefs.voiceLanguage ?? detectedLocale;
       const lang = getLocaleTag(voiceLocale);
-      const voice = pickBestVoice(voices, voiceLocale);
+      const adminVoiceId = ttsConfig?.voiceId?.trim();
+      const voice =
+        adminVoiceId
+          ? voices.find((item) => item.name.includes(adminVoiceId)) ??
+            pickBestVoice(voices, voiceLocale)
+          : pickBestVoice(voices, voiceLocale);
 
       const utterance = new SpeechSynthesisUtterance(plainText);
       utterance.lang = lang;
-      utterance.rate = prefs.speechRate;
-      utterance.pitch = prefs.speechPitch;
+      utterance.rate = ttsConfig?.speed ?? prefs.speechRate;
+      utterance.pitch = ttsConfig?.pitch ?? prefs.speechPitch;
       if (voice) utterance.voice = voice;
 
       utterance.onstart = () => setSpeakingMessageId(messageId);
@@ -113,7 +162,15 @@ export function SpeechSynthesisProvider({ children }: { children: ReactNode }) {
       utteranceRef.current = utterance;
       window.speechSynthesis.speak(utterance);
     },
-    [isSupported, prefs.speechPitch, prefs.speechRate, prefs.voiceLanguage, stop, voices],
+    [
+      appFeatures?.tts,
+      isSupported,
+      prefs.speechPitch,
+      prefs.speechRate,
+      prefs.voiceLanguage,
+      stop,
+      voices,
+    ],
   );
 
   const toggle = useCallback(

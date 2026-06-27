@@ -1,6 +1,6 @@
 "use client";
 
-import { Database, Save, Settings2 } from "lucide-react";
+import { Database, Mic, Save, Settings2, Sparkles, ImageIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -16,17 +16,93 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import type { IdaAppConfig } from "@/lib/admin/types";
+import type { ModelDefinition } from "@/lib/admin/models";
+import type { IdaAppConfig, ModelSelection, TtsEngine } from "@/lib/admin/types";
+
+interface ConfigResponse {
+  config: IdaAppConfig;
+  chatModels: ModelDefinition[];
+  visionModels: ModelDefinition[];
+  ttsEngines: Record<TtsEngine, boolean>;
+}
+
+const TTS_ENGINE_LABELS: Record<TtsEngine, string> = {
+  browser: "Browser SpeechSynthesis",
+  openai: "OpenAI TTS",
+  xai: "xAI TTS",
+  groq: "Groq TTS (unavailable)",
+};
+
+function ModelSelect({
+  label,
+  value,
+  models,
+  onChange,
+  allowNone,
+}: {
+  label: string;
+  value: ModelSelection | null;
+  models: ModelDefinition[];
+  onChange: (next: ModelSelection | null) => void;
+  allowNone?: boolean;
+}) {
+  const currentKey = value ? `${value.provider}:${value.id}` : "";
+
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <select
+        className="flex h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
+        value={currentKey}
+        onChange={(event) => {
+          const key = event.target.value;
+          if (!key && allowNone) {
+            onChange(null);
+            return;
+          }
+          const [provider, ...idParts] = key.split(":");
+          onChange({
+            provider: provider as ModelSelection["provider"],
+            id: idParts.join(":"),
+          });
+        }}
+      >
+        {allowNone && <option value="">None</option>}
+        {models.map((model) => (
+          <option
+            key={`${model.provider}:${model.id}`}
+            value={`${model.provider}:${model.id}`}
+          >
+            {model.name} ({model.provider})
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
 export function SettingsTab() {
   const [config, setConfig] = useState<IdaAppConfig | null>(null);
+  const [chatModels, setChatModels] = useState<ModelDefinition[]>([]);
+  const [visionModels, setVisionModels] = useState<ModelDefinition[]>([]);
+  const [ttsEngines, setTtsEngines] = useState<ConfigResponse["ttsEngines"]>({
+    browser: true,
+    openai: false,
+    xai: false,
+    groq: false,
+  });
   const [saving, setSaving] = useState(false);
   const [reindexing, setReindexing] = useState(false);
 
   useEffect(() => {
     void fetch("/api/admin/config")
       .then((response) => response.json())
-      .then((payload: { config: IdaAppConfig }) => setConfig(payload.config))
+      .then((payload: ConfigResponse) => {
+        setConfig(payload.config);
+        setChatModels(payload.chatModels ?? []);
+        setVisionModels(payload.visionModels ?? []);
+        setTtsEngines(payload.ttsEngines ?? { browser: true, openai: false, xai: false, groq: false });
+      })
       .catch(() => toast.error("Failed to load settings."));
   }, []);
 
@@ -57,7 +133,6 @@ export function SettingsTab() {
       const response = await fetch("/api/admin/reindex", { method: "POST" });
       const data = (await response.json().catch(() => ({}))) as {
         error?: string;
-        output?: string;
       };
 
       if (!response.ok) {
@@ -78,6 +153,167 @@ export function SettingsTab() {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="size-4" />
+            Fallback model
+          </CardTitle>
+          <CardDescription>
+            Used automatically when the primary model errors or hits rate limits.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ModelSelect
+            label="Fallback chat model"
+            value={config.fallbackModel}
+            models={chatModels}
+            allowNone
+            onChange={(fallbackModel) =>
+              setConfig((prev) => (prev ? { ...prev, fallbackModel } : prev))
+            }
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ImageIcon className="size-4" />
+            Vision / OCR model
+          </CardTitle>
+          <CardDescription>
+            Model for image and PDF text extraction via /api/vision.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ModelSelect
+            label="Vision model"
+            value={config.visionModel}
+            models={visionModels}
+            onChange={(visionModel) => {
+              if (!visionModel) return;
+              setConfig((prev) => (prev ? { ...prev, visionModel } : prev));
+            }}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mic className="size-4" />
+            TTS engine
+          </CardTitle>
+          <CardDescription>
+            Text-to-speech for assistant replies. Browser engine runs locally;
+            OpenAI/xAI use server-side synthesis.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="tts-engine">Engine</Label>
+            <select
+              id="tts-engine"
+              className="flex h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
+              value={config.tts.engine}
+              onChange={(event) =>
+                setConfig((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        tts: {
+                          ...prev.tts,
+                          engine: event.target.value as TtsEngine,
+                        },
+                      }
+                    : prev,
+                )
+              }
+            >
+              {(Object.keys(TTS_ENGINE_LABELS) as TtsEngine[]).map((engine) => (
+                <option
+                  key={engine}
+                  value={engine}
+                  disabled={engine !== "browser" && !ttsEngines[engine]}
+                >
+                  {TTS_ENGINE_LABELS[engine]}
+                  {engine !== "browser" && !ttsEngines[engine]
+                    ? " — API key missing"
+                    : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tts-voice">Voice ID</Label>
+            <Input
+              id="tts-voice"
+              placeholder={
+                config.tts.engine === "openai"
+                  ? "alloy, echo, fable..."
+                  : config.tts.engine === "xai"
+                    ? "default"
+                    : "Browser voice name (optional)"
+              }
+              value={config.tts.voiceId}
+              onChange={(event) =>
+                setConfig((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        tts: { ...prev.tts, voiceId: event.target.value },
+                      }
+                    : prev,
+                )
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tts-speed">Speed</Label>
+            <Input
+              id="tts-speed"
+              type="number"
+              min={0.5}
+              max={2}
+              step={0.1}
+              value={config.tts.speed}
+              onChange={(event) =>
+                setConfig((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        tts: { ...prev.tts, speed: Number(event.target.value) },
+                      }
+                    : prev,
+                )
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tts-pitch">Pitch (browser only)</Label>
+            <Input
+              id="tts-pitch"
+              type="number"
+              min={0}
+              max={2}
+              step={0.1}
+              value={config.tts.pitch}
+              onChange={(event) =>
+                setConfig((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        tts: { ...prev.tts, pitch: Number(event.target.value) },
+                      }
+                    : prev,
+                )
+              }
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -198,8 +434,7 @@ export function SettingsTab() {
         <CardHeader>
           <CardTitle>System prompt</CardTitle>
           <CardDescription>
-            Leave empty to use the built-in IDA prompt. When set, this fully
-            replaces the default system instruction.
+            Leave empty to use the built-in IDA prompt.
           </CardDescription>
         </CardHeader>
         <CardContent>

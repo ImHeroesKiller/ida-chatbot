@@ -271,7 +271,7 @@ function ChatRoomContent() {
           (message) => message.id === streamId,
         );
         if (
-          appFeatures?.autoSpeak !== false &&
+          appFeatures?.features.autoSpeak !== false &&
           prefs.autoSpeak &&
           assistantReply?.content.trim()
         ) {
@@ -295,7 +295,7 @@ function ChatRoomContent() {
       locale,
       openHandoff,
       persistCurrentChat,
-      appFeatures?.autoSpeak,
+      appFeatures?.features.autoSpeak,
       prefs.autoSpeak,
       speak,
     ],

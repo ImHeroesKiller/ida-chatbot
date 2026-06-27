@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-import { fetchAppFeatures, type AppFeatures } from "@/lib/client/features";
+import {
+  fetchAppFeatures,
+  type AppFeaturesResponse,
+} from "@/lib/client/features";
 
-export function useAppFeatures(): AppFeatures | null {
-  const [features, setFeatures] = useState<AppFeatures | null>(null);
+export function useAppFeatures(): AppFeaturesResponse | null {
+  const [features, setFeatures] = useState<AppFeaturesResponse | null>(null);
 
   useEffect(() => {
     void fetchAppFeatures().then(setFeatures);

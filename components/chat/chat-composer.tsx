@@ -85,9 +85,9 @@ export function ChatComposer({
   const skipVoiceAutoSendRef = useRef(false);
 
   const { prefs } = useVoicePrefs();
-  const features = useAppFeatures();
-  const voiceEnabled = features?.voice !== false;
-  const ocrEnabled = features?.ocr !== false;
+  const appFeatures = useAppFeatures();
+  const voiceEnabled = appFeatures?.features.voice !== false;
+  const ocrEnabled = appFeatures?.features.ocr !== false;
 
   const resolveOcrError = useCallback(
     (err: unknown): string => {

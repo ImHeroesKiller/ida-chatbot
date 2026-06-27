@@ -1,9 +1,21 @@
 import type { ModelProvider } from "@/lib/admin/models";
 
+export type TtsEngine = "browser" | "openai" | "xai" | "groq";
+
+export interface ModelSelection {
+  id: string;
+  provider: ModelProvider;
+}
+
 export interface IdaAppConfig {
-  defaultModel: {
-    id: string;
-    provider: ModelProvider;
+  defaultModel: ModelSelection;
+  fallbackModel: ModelSelection | null;
+  visionModel: ModelSelection;
+  tts: {
+    engine: TtsEngine;
+    voiceId: string;
+    speed: number;
+    pitch: number;
   };
   features: {
     rag: boolean;

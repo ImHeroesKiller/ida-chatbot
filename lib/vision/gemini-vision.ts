@@ -97,6 +97,7 @@ export async function extractTextWithGeminiVision(options: {
   mimeType: string;
   fileName: string;
   locale: Locale;
+  modelId?: string;
 }): Promise<VisionExtractResult> {
   const apiKey = process.env.GEMINI_API_KEY;
 
@@ -107,8 +108,10 @@ export async function extractTextWithGeminiVision(options: {
   const fileType = inferFileType(options.mimeType);
   const prompt = EXTRACTION_PROMPTS[options.locale];
 
+  const modelId = options.modelId ?? IDA_CONFIG.model;
+
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${IDA_CONFIG.model}:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

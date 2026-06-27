@@ -1,10 +1,26 @@
 "use client";
 
+import type { ModelSelection, TtsEngine } from "@/lib/admin/types";
+
 export interface AppFeatures {
   rag: boolean;
   voice: boolean;
   ocr: boolean;
   autoSpeak: boolean;
+}
+
+export interface AppTtsConfig {
+  engine: TtsEngine;
+  voiceId: string;
+  speed: number;
+  pitch: number;
+}
+
+export interface AppFeaturesResponse {
+  features: AppFeatures;
+  tts: AppTtsConfig;
+  visionModel: ModelSelection;
+  ttsEngines: Record<TtsEngine, boolean>;
 }
 
 const DEFAULT_FEATURES: AppFeatures = {
@@ -14,23 +30,66 @@ const DEFAULT_FEATURES: AppFeatures = {
   autoSpeak: false,
 };
 
-let cachedFeatures: AppFeatures | null = null;
+const DEFAULT_TTS: AppTtsConfig = {
+  engine: "browser",
+  voiceId: "",
+  speed: 1,
+  pitch: 1,
+};
 
-export async function fetchAppFeatures(): Promise<AppFeatures> {
-  if (cachedFeatures) return cachedFeatures;
+let cached: AppFeaturesResponse | null = null;
+
+export async function fetchAppFeatures(): Promise<AppFeaturesResponse> {
+  if (cached) return cached;
 
   try {
     const response = await fetch("/api/features");
-    if (!response.ok) return DEFAULT_FEATURES;
+    if (!response.ok) {
+      return {
+        features: DEFAULT_FEATURES,
+        tts: DEFAULT_TTS,
+        visionModel: { id: "gemini-2.5-flash", provider: "google" },
+        ttsEngines: {
+          browser: true,
+          openai: false,
+          xai: false,
+          groq: false,
+        },
+      };
+    }
 
-    const data = (await response.json()) as { features?: AppFeatures };
-    cachedFeatures = { ...DEFAULT_FEATURES, ...data.features };
-    return cachedFeatures;
+    const data = (await response.json()) as Partial<AppFeaturesResponse>;
+    cached = {
+      features: { ...DEFAULT_FEATURES, ...data.features },
+      tts: { ...DEFAULT_TTS, ...data.tts },
+      visionModel: data.visionModel ?? {
+        id: "gemini-2.5-flash",
+        provider: "google",
+      },
+      ttsEngines: {
+        browser: true,
+        openai: Boolean(data.ttsEngines?.openai),
+        xai: Boolean(data.ttsEngines?.xai),
+        groq: false,
+        ...data.ttsEngines,
+      },
+    };
+    return cached;
   } catch {
-    return DEFAULT_FEATURES;
+    return {
+      features: DEFAULT_FEATURES,
+      tts: DEFAULT_TTS,
+      visionModel: { id: "gemini-2.5-flash", provider: "google" },
+      ttsEngines: {
+        browser: true,
+        openai: false,
+        xai: false,
+        groq: false,
+      },
+    };
   }
 }
 
 export function invalidateFeaturesCache(): void {
-  cachedFeatures = null;
+  cached = null;
 }

@@ -20,6 +20,7 @@ import {
   isProviderConfigured,
   type ModelProvider,
 } from "@/lib/admin/models";
+import type { ModelSelection } from "@/lib/admin/types";
 import type { Locale } from "@/lib/config";
 import { buildHandoffPrefill, getQuickReplies } from "@/lib/handoff";
 import {
@@ -120,9 +121,10 @@ export async function resolveHandoffTool(options: {
 
 export async function prepareIdaChatContext(
   input: IdaChatHandlerInput,
+  options?: { model?: ModelSelection },
 ): Promise<IdaChatPreparedContext> {
   const appConfig = await loadAppConfig();
-  const selectedModel = appConfig.defaultModel;
+  const selectedModel = options?.model ?? appConfig.defaultModel;
   const modelDefinition = findModelDefinition(
     selectedModel.id,
     selectedModel.provider,

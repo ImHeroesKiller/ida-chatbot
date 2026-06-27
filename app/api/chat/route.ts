@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { loadAppConfig } from "@/lib/admin/config";
+import {
+  isModelConfigured,
+  isSameModel,
+  shouldRetryWithFallback,
+} from "@/lib/admin/model-selection";
 import { logRequest } from "@/lib/admin/request-logs";
 import {
   prepareIdaChatContext,
@@ -145,41 +150,84 @@ export async function POST(request: Request) {
     }
 
     const stream = createSseStream(async (send) => {
-      send("meta", context.meta);
+      send("meta", {
+        ...context.meta,
+        activeModel: context.modelId,
+        activeProvider: context.provider,
+      });
 
-      try {
-        const result = await runIdaChatStream(context, (token) => {
+      const runWithContext = async (
+        activeContext: typeof context,
+        usedFallback: boolean,
+      ) => {
+        const result = await runIdaChatStream(activeContext, (token) => {
           send("token", { text: token });
         });
 
-        send("done", { message: result.fullText });
+        send("done", {
+          message: result.fullText,
+        });
 
         void logRequest({
           userId: userId ?? null,
           sessionId: sessionId ?? null,
-          model: context.modelId,
-          provider: context.provider,
-          route: "chat",
+          model: activeContext.modelId,
+          provider: activeContext.provider,
+          route: usedFallback ? "chat:fallback" : "chat",
           usage: result.usage,
           status: "success",
         });
-      } catch (streamError) {
-        const errorMessage =
-          streamError instanceof Error
-            ? streamError.message
-            : "Stream failed.";
+      };
 
-        void logRequest({
-          userId: userId ?? null,
-          sessionId: sessionId ?? null,
-          model: context.modelId,
-          provider: context.provider,
-          route: "chat",
-          status: "error",
-          errorMessage,
+      try {
+        await runWithContext(context, false);
+      } catch (streamError) {
+        const fallback = appConfig.fallbackModel;
+        const canFallback =
+          fallback &&
+          !isSameModel(fallback, appConfig.defaultModel) &&
+          isModelConfigured(fallback) &&
+          shouldRetryWithFallback(streamError);
+
+        if (!canFallback) {
+          const errorMessage =
+            streamError instanceof Error
+              ? streamError.message
+              : "Stream failed.";
+
+          void logRequest({
+            userId: userId ?? null,
+            sessionId: sessionId ?? null,
+            model: context.modelId,
+            provider: context.provider,
+            route: "chat",
+            status: "error",
+            errorMessage,
+          });
+
+          throw streamError;
+        }
+
+        console.warn("[IDA chat] Primary model failed, using fallback", {
+          primary: context.modelId,
+          fallback: fallback.id,
+          error:
+            streamError instanceof Error ? streamError.message : streamError,
         });
 
-        throw streamError;
+        const fallbackContext = await prepareIdaChatContext(
+          { messages, locale, sessionId, userId },
+          { model: fallback },
+        );
+
+        send("meta", {
+          ...fallbackContext.meta,
+          usedFallbackModel: true,
+          activeModel: fallbackContext.modelId,
+          activeProvider: fallbackContext.provider,
+        });
+
+        await runWithContext(fallbackContext, true);
       }
     });
 
