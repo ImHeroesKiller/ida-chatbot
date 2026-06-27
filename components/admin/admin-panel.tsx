@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Database,
   LayoutDashboard,
   LogOut,
   Palette,
@@ -14,6 +15,7 @@ import toast from "react-hot-toast";
 import { AdminLogin } from "@/components/admin/admin-login";
 import { AppearanceTab } from "@/components/admin/appearance-tab";
 import { DashboardTab } from "@/components/admin/dashboard-tab";
+import { KnowledgeTab } from "@/components/admin/knowledge-tab";
 import { LogsTab } from "@/components/admin/logs-tab";
 import { ModelsTab } from "@/components/admin/models-tab";
 import { SettingsTab } from "@/components/admin/settings-tab";
@@ -63,7 +65,7 @@ export function AdminPanel({
             <div>
               <h1 className="text-base font-semibold">IDA Admin</h1>
               <p className="text-xs text-muted-foreground">
-                Dashboard, models, appearance, settings & logs
+                Dashboard, models, knowledge, appearance, settings & logs
               </p>
             </div>
           </div>
@@ -85,6 +87,10 @@ export function AdminPanel({
               <Sparkles className="size-4" />
               Models
             </TabsTrigger>
+            <TabsTrigger value="knowledge">
+              <Database className="size-4" />
+              Knowledge
+            </TabsTrigger>
             <TabsTrigger value="appearance">
               <Palette className="size-4" />
               Appearance
@@ -104,6 +110,9 @@ export function AdminPanel({
           </TabsContent>
           <TabsContent value="models" className="mt-6">
             <ModelsTab />
+          </TabsContent>
+          <TabsContent value="knowledge" className="mt-6">
+            <KnowledgeTab />
           </TabsContent>
           <TabsContent value="appearance" className="mt-6">
             <AppearanceTab />

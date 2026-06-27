@@ -4,6 +4,24 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { embedText } from "./embeddings";
 import type { DocumentChunk, RetrievedChunk } from "./types";
 
+export async function deleteChunksForSource(options: {
+  pageSlug: string;
+  section: string;
+  locale: Locale;
+}): Promise<void> {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase
+    .from("ida_document_chunks")
+    .delete()
+    .eq("page_slug", options.pageSlug)
+    .eq("section", options.section)
+    .eq("locale", options.locale);
+
+  if (error) {
+    throw new Error(`Failed to delete chunks: ${error.message}`);
+  }
+}
+
 interface ChunkRow {
   content: string;
   embedding: number[];

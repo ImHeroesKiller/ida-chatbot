@@ -1,6 +1,6 @@
 "use client";
 
-import { Database, Mic, Save, Settings2, Sparkles, ImageIcon } from "lucide-react";
+import { Mic, Save, Settings2, Sparkles, ImageIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -92,7 +92,6 @@ export function SettingsTab() {
     groq: false,
   });
   const [saving, setSaving] = useState(false);
-  const [reindexing, setReindexing] = useState(false);
 
   useEffect(() => {
     void fetch("/api/admin/config")
@@ -123,27 +122,6 @@ export function SettingsTab() {
       toast.error("Failed to save settings.");
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleReindex = async () => {
-    setReindexing(true);
-
-    try {
-      const response = await fetch("/api/admin/reindex", { method: "POST" });
-      const data = (await response.json().catch(() => ({}))) as {
-        error?: string;
-      };
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Re-index failed.");
-      }
-
-      toast.success("Knowledge base re-indexed.");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Re-index failed.");
-    } finally {
-      setReindexing(false);
     }
   };
 
@@ -453,27 +431,6 @@ export function SettingsTab() {
             }
             placeholder="Custom system prompt..."
           />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Database className="size-4" />
-            Knowledge base
-          </CardTitle>
-          <CardDescription>
-            Re-run the seed script to refresh RAG document chunks.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant="outline"
-            onClick={() => void handleReindex()}
-            disabled={reindexing}
-          >
-            {reindexing ? "Re-indexing..." : "Re-index knowledge base"}
-          </Button>
         </CardContent>
       </Card>
 
