@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, MessageSquare, Send, Sparkles } from "lucide-react";
+import { Menu, Send, Sparkles } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -11,12 +11,14 @@ import {
   type KeyboardEvent,
 } from "react";
 
+import { ChatEmptyState } from "@/components/chat/chat-empty-state";
 import { HandoffDialog } from "@/components/chat/handoff-dialog";
 import { MessageBubble } from "@/components/chat/message-bubble";
+import { MessageSkeleton } from "@/components/chat/message-skeleton";
 import { QuickReplies } from "@/components/chat/quick-replies";
 import { ChatSidebar } from "@/components/chat/sidebar";
-import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { useChatContext } from "@/components/chat/chat-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -46,7 +48,7 @@ function toApiMessages(messages: IdaMessage[]) {
 }
 
 export function ChatRoom() {
-  const { locale, openHandoff } = useChatContext();
+  const { locale, openHandoff, closeHandoff } = useChatContext();
   const copy = COPY[locale];
   const inputId = useId();
   const { expanded: sidebarExpanded, toggle: toggleSidebar } =
@@ -78,13 +80,6 @@ export function ChatRoom() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const activeChatIdRef = useRef<string | null>(null);
 
-  const streamingMessage = messages.find(
-    (message) => message.id === streamingMessageId,
-  );
-  const showTypingIndicator =
-    isLoading &&
-    (!streamingMessageId || !streamingMessage?.content.length);
-
   const hasUserMessages = messages.some((message) => message.role === "user");
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
@@ -98,7 +93,7 @@ export function ChatRoom() {
 
   useEffect(() => {
     scrollToBottom(isLoading ? "auto" : "smooth");
-  }, [messages, showTypingIndicator, isLoading, scrollToBottom]);
+  }, [messages, isLoading, scrollToBottom]);
 
   useEffect(() => {
     if (!hydrated || !currentChat) return;
@@ -124,6 +119,18 @@ export function ChatRoom() {
     const timer = window.setTimeout(() => inputRef.current?.focus(), 200);
     return () => window.clearTimeout(timer);
   }, [currentChat?.id]);
+
+  useEffect(() => {
+    const handleEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+
+      setMobileSidebarOpen(false);
+      closeHandoff();
+    };
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [closeHandoff]);
 
   const handleSmartHandoff = useCallback(() => {
     const apiMessages = toApiMessages(messages);
@@ -269,7 +276,7 @@ export function ChatRoom() {
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && !event.shiftKey) {
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
       event.preventDefault();
       void sendMessage(input);
     }
@@ -310,7 +317,7 @@ export function ChatRoom() {
               <Menu className="h-4 w-4" />
             </Button>
 
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20 sm:h-10 sm:w-10">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20 dark:bg-primary/15 sm:h-10 sm:w-10">
               <Sparkles className="h-4 w-4 text-primary sm:h-5 sm:w-5" />
             </div>
 
@@ -322,6 +329,8 @@ export function ChatRoom() {
                 {copy.subtitle}
               </p>
             </div>
+
+            <ThemeToggle locale={locale} />
 
             <Button
               size="sm"
@@ -337,25 +346,17 @@ export function ChatRoom() {
             ref={scrollContainerRef}
             className="flex-1 overflow-y-auto overscroll-y-contain px-3 py-4 sm:px-5"
           >
-            <div className="mx-auto w-full max-w-2xl space-y-5">
-              {!hasUserMessages && (
-                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/20 px-6 py-10 text-center">
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/15">
-                    <MessageSquare className="h-5 w-5 text-primary" />
-                  </div>
-                  <p className="text-sm font-medium">{copy.emptyStateTitle}</p>
-                  <p className="mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">
-                    {copy.emptyStateHint}
-                  </p>
-                </div>
-              )}
+            <div className="mx-auto w-full max-w-2xl space-y-6">
+              {!hasUserMessages && <ChatEmptyState locale={locale} />}
 
               {messages.map((message) => {
                 const isStreaming = message.id === streamingMessageId;
                 const isEmptyStreaming =
                   isStreaming && message.content.length === 0;
 
-                if (isEmptyStreaming) return null;
+                if (isEmptyStreaming) {
+                  return <MessageSkeleton key={message.id} />;
+                }
 
                 return (
                   <MessageBubble
@@ -366,8 +367,6 @@ export function ChatRoom() {
                   />
                 );
               })}
-
-              {showTypingIndicator && <TypingIndicator locale={locale} />}
 
               <div ref={messagesEndRef} className="h-px" aria-hidden />
             </div>
@@ -382,7 +381,7 @@ export function ChatRoom() {
           <form
             onSubmit={handleSubmit}
             className={cn(
-              "shrink-0 border-t bg-muted/30 px-3 pt-3",
+              "shrink-0 border-t bg-muted/30 px-3 pt-3 dark:bg-muted/20",
               "pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-5 sm:pb-4",
             )}
           >
@@ -408,10 +407,10 @@ export function ChatRoom() {
                   placeholder={copy.inputPlaceholder}
                   rows={1}
                   disabled={isLoading}
-                  autoFocus
                   className={cn(
                     "max-h-28 min-h-10 flex-1 resize-none rounded-2xl text-base sm:text-sm",
                     "focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/20",
+                    "dark:bg-background/60",
                   )}
                 />
                 <Button
@@ -424,7 +423,10 @@ export function ChatRoom() {
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
-              <p className="mt-2.5 text-center text-[10px] leading-relaxed text-muted-foreground">
+              <p className="mt-2 text-center text-[10px] text-muted-foreground">
+                {copy.sendShortcut}
+              </p>
+              <p className="mt-1 text-center text-[10px] leading-relaxed text-muted-foreground">
                 {copy.disclaimer}
               </p>
             </div>

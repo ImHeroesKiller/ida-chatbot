@@ -20,17 +20,17 @@ interface TypingIndicatorProps {
 export function TypingIndicator({ locale, className }: TypingIndicatorProps) {
   return (
     <div
-      className={cn("flex items-end gap-2", className)}
+      className={cn("flex w-full items-start gap-3", className)}
       role="status"
       aria-live="polite"
       aria-label={TYPING_LABEL[locale]}
     >
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/15">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/15 dark:bg-primary/15">
         <Sparkles className="h-4 w-4 text-primary" aria-hidden />
       </div>
 
-      <div className="rounded-2xl rounded-bl-md border bg-card px-4 py-3 shadow-sm">
-        <div className="flex items-center gap-1">
+      <div className="rounded-2xl rounded-bl-md border bg-card px-4 py-3 shadow-sm dark:border-border/80">
+        <div className="flex items-center gap-1.5">
           {[0, 1, 2].map((index) => (
             <motion.span
               key={index}

@@ -52,7 +52,7 @@ export function ChatSidebar({
   return (
     <aside
       className={cn(
-        "flex h-full flex-col overflow-hidden bg-muted/20 transition-[width] duration-200 ease-in-out",
+        "flex h-full flex-col overflow-hidden bg-muted/20 transition-[width] duration-200 ease-in-out dark:bg-muted/10",
         expanded ? "w-[260px]" : "w-14",
         className,
       )}

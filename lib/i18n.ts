@@ -26,6 +26,12 @@ export const COPY: Record<
     collapseSidebar: string;
     emptyStateTitle: string;
     emptyStateHint: string;
+    emptyStateTipsTitle: string;
+    emptyStateTips: string[];
+    copyMessage: string;
+    copySuccess: string;
+    toggleTheme: string;
+    sendShortcut: string;
     errors: {
       generic: string;
       rateLimit: string;
@@ -58,6 +64,16 @@ export const COPY: Record<
     collapseSidebar: "Ciutkan sidebar",
     emptyStateTitle: "Mulai percakapan",
     emptyStateHint: "Ketik pesan di bawah atau pilih saran cepat untuk memulai.",
+    emptyStateTipsTitle: "Tips",
+    emptyStateTips: [
+      "Tanyakan apa saja — IDA mendukung Bahasa Indonesia, Inggris, dan Mandarin.",
+      "Gunakan quick reply untuk memulai dengan cepat.",
+      "Tekan ⌘/Ctrl + Enter untuk mengirim pesan.",
+    ],
+    copyMessage: "Salin pesan",
+    copySuccess: "Pesan disalin",
+    toggleTheme: "Ganti tema",
+    sendShortcut: "⌘/Ctrl + Enter untuk kirim",
     errors: {
       generic: "Gagal mendapatkan respons. Coba lagi.",
       rateLimit: "Terlalu banyak permintaan. Tunggu sebentar.",
@@ -89,6 +105,16 @@ export const COPY: Record<
     collapseSidebar: "Collapse sidebar",
     emptyStateTitle: "Start a conversation",
     emptyStateHint: "Type a message below or pick a quick suggestion to begin.",
+    emptyStateTipsTitle: "Tips",
+    emptyStateTips: [
+      "Ask anything — IDA supports Indonesian, English, and Chinese.",
+      "Use quick replies to get started faster.",
+      "Press ⌘/Ctrl + Enter to send a message.",
+    ],
+    copyMessage: "Copy message",
+    copySuccess: "Message copied",
+    toggleTheme: "Toggle theme",
+    sendShortcut: "⌘/Ctrl + Enter to send",
     errors: {
       generic: "Failed to get a response. Please try again.",
       rateLimit: "Too many requests. Please wait a moment.",
@@ -120,6 +146,16 @@ export const COPY: Record<
     collapseSidebar: "收起侧边栏",
     emptyStateTitle: "开始对话",
     emptyStateHint: "在下方输入消息或选择快捷建议开始。",
+    emptyStateTipsTitle: "小贴士",
+    emptyStateTips: [
+      "随意提问 — IDA 支持印尼语、英语和中文。",
+      "使用快捷回复更快开始。",
+      "按 ⌘/Ctrl + Enter 发送消息。",
+    ],
+    copyMessage: "复制消息",
+    copySuccess: "消息已复制",
+    toggleTheme: "切换主题",
+    sendShortcut: "⌘/Ctrl + Enter 发送",
     errors: {
       generic: "获取回复失败，请重试。",
       rateLimit: "请求过多，请稍后再试。",

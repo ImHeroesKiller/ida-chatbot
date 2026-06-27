@@ -12,6 +12,7 @@ interface FloatingChatProps {
 }
 
 /** @deprecated Use ChatRoom at / instead. */
-export function FloatingChat(_: FloatingChatProps = {}) {
+export function FloatingChat(_props?: FloatingChatProps) {
+  void _props;
   return null;
 }
