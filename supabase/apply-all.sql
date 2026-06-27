@@ -1,5 +1,5 @@
--- IDA RAG: pgvector extension + document chunks schema
--- Run in Supabase SQL Editor or via Supabase CLI
+-- IDA RAG — full schema (run once in Supabase SQL Editor)
+-- Equivalent to migrations 001 + 002 in order.
 
 create extension if not exists vector;
 
@@ -26,7 +26,6 @@ create index if not exists ida_document_chunks_locale_idx
 create index if not exists ida_document_chunks_page_slug_idx
   on ida_document_chunks (page_slug);
 
--- IVFFlat index: best built after seeding chunks (lists tuned for ~100–10k rows)
 create index if not exists ida_document_chunks_embedding_idx
   on ida_document_chunks
   using ivfflat (embedding vector_cosine_ops)
@@ -43,3 +42,37 @@ create table if not exists ida_chat_sessions (
 
 create index if not exists ida_chat_sessions_session_id_idx
   on ida_chat_sessions (session_id);
+
+-- RPC used by lib/rag/vector-store.ts (includes metadata for RAG context)
+create or replace function match_ida_chunks(
+  query_embedding vector(768),
+  match_locale text,
+  match_count int default 6,
+  match_threshold float default 0.35
+)
+returns table (
+  id uuid,
+  content text,
+  page_slug text,
+  section text,
+  source_type text,
+  metadata jsonb,
+  similarity float
+)
+language sql
+stable
+as $$
+  select
+    ida_document_chunks.id,
+    ida_document_chunks.content,
+    ida_document_chunks.page_slug,
+    ida_document_chunks.section,
+    ida_document_chunks.source_type,
+    ida_document_chunks.metadata,
+    1 - (ida_document_chunks.embedding <=> query_embedding) as similarity
+  from ida_document_chunks
+  where ida_document_chunks.locale = match_locale
+    and 1 - (ida_document_chunks.embedding <=> query_embedding) > match_threshold
+  order by ida_document_chunks.embedding <=> query_embedding
+  limit match_count;
+$$;
