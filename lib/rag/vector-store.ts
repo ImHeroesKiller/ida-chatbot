@@ -87,6 +87,7 @@ export async function searchDocumentChunks(options: {
       page_slug: string;
       section: string;
       source_type: string;
+      metadata: Record<string, string> | null;
       similarity: number;
     }) => ({
       id: row.id,
@@ -94,6 +95,12 @@ export async function searchDocumentChunks(options: {
       pageSlug: row.page_slug,
       section: row.section,
       sourceType: row.source_type as RetrievedChunk["sourceType"],
+      metadata: {
+        source: row.page_slug,
+        section: row.section,
+        locale,
+        ...((row.metadata ?? {}) as Record<string, string>),
+      },
       similarity: row.similarity,
     }),
   );

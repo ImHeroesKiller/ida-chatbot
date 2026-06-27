@@ -4,6 +4,8 @@ export const IDA_CONFIG = {
   embeddingModel: "gemini-embedding-001",
   maxMessages: 40,
   maxMessageLength: 4000,
+  chunkSize: 800,
+  chunkOverlap: 150,
   retrievalTopK: 6,
   retrievalThreshold: 0.35,
   memoryWindowK: 10,
