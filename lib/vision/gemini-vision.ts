@@ -3,45 +3,69 @@ import { IDA_CONFIG, type Locale } from "@/lib/config";
 import type { VisionExtractResult, VisionFileType } from "./types";
 
 const EXTRACTION_PROMPTS: Record<Locale, string> = {
-  id: `Kamu adalah asisten OCR dan analisis dokumen IDA.
+  id: `Kamu adalah asisten OCR dan analisis dokumen IDA (Gemini Vision).
 
 Tugas:
-1. Ekstrak SEMUA teks yang terbaca dari file (foto, scan, screenshot, atau PDF).
-2. Untuk PDF multi-halaman: proses setiap halaman, pisahkan dengan "--- Halaman N ---".
-3. Pertahankan struktur: paragraf, heading, bullet/numbered list, tabel (format baris dengan |), label form, dan urutan baca.
-4. Jika ada teks tangan, stempel, watermark, atau teks kecil — tetap ekstrak sebisa mungkin; tandai [tidak terbaca] jika benar-benar tidak jelas.
-5. Jangan menerjemahkan; pertahankan bahasa asli dokumen.
-6. Berikan ringkasan 2-3 kalimat tentang jenis dokumen dan isi utamanya.
+1. Ekstrak SEMUA teks dari file (foto, scan, screenshot, PDF, faktur, kontrak, formulir).
+2. PDF multi-halaman: proses setiap halaman berurutan. Pisahkan dengan:
+   --- Halaman 1 ---
+   --- Halaman 2 --- (dst.)
+3. Struktur dokumen:
+   - Heading/judul: baris sendiri, pertahankan hierarki
+   - Paragraf: pisahkan baris kosong
+   - Bullet/numbered list: pertahankan nomor/penanda
+   - Tabel: setiap baris sebagai | kolom1 | kolom2 | ... |, sertakan header jika ada
+   - Form/kolom: label: nilai per baris
+   - Multi-kolom: baca kiri→kanan, atas→bawah
+4. Teks tangan, stempel, watermark, caption gambar — ekstrak sebisa mungkin; [tidak terbaca] jika tidak jelas.
+5. Jangan menerjemahkan; pertahankan bahasa asli.
+6. Ringkasan 2-3 kalimat: jenis dokumen + isi utama + bahasa dominan.
 
 Format jawaban WAJIB:
 ---TEKS---
-(teks lengkap hasil ekstraksi)
+(teks lengkap)
 ---RINGKASAN---
-(ringkasan singkat dalam Bahasa Indonesia)`,
-  en: `You are IDA's OCR and document analysis assistant.
+(ringkasan Bahasa Indonesia)`,
+  en: `You are IDA's OCR and document analysis assistant (Gemini Vision).
 
 Tasks:
-1. Extract ALL readable text from the file (photo, scan, screenshot, or PDF).
-2. For multi-page PDFs: process every page and separate sections with "--- Page N ---".
-3. Preserve structure: paragraphs, headings, bullet/numbered lists, tables (row format with |), form labels, and reading order.
-4. For handwriting, stamps, watermarks, or small text — extract as much as possible; mark [illegible] when truly unclear.
-5. Do not translate; keep the document's original language.
-6. Provide a 2-3 sentence summary of document type and main content.
+1. Extract ALL text from the file (photo, scan, screenshot, PDF, invoice, contract, form).
+2. Multi-page PDFs: process pages in order. Separate with:
+   --- Page 1 ---
+   --- Page 2 --- (etc.)
+3. Document structure:
+   - Headings: own lines, preserve hierarchy
+   - Paragraphs: blank line separators
+   - Bullet/numbered lists: keep markers/numbers
+   - Tables: each row as | col1 | col2 | ... |, include headers when present
+   - Forms: label: value per line
+   - Multi-column layout: left→right, top→bottom reading order
+4. Handwriting, stamps, watermarks, image captions — extract when possible; [illegible] if unclear.
+5. Do not translate; keep original language.
+6. 2-3 sentence summary: document type + main content + dominant language.
 
 Response format MUST be:
 ---TEKS---
 (full extracted text)
 ---RINGKASAN---
-(brief summary in English)`,
-  zh: `你是 IDA 的 OCR 和文档分析助手。
+(brief English summary)`,
+  zh: `你是 IDA 的 OCR 和文档分析助手（Gemini Vision）。
 
 任务：
-1. 提取文件中所有可读文本（照片、扫描件、截图或 PDF）。
-2. 多页 PDF：处理每一页，用 "--- 第 N 页 ---" 分隔。
-3. 保留结构：段落、标题、列表、表格（用 | 分隔行）、表单标签和阅读顺序。
-4. 手写、印章、水印或小字——尽量提取；确实无法辨认时标注 [无法辨认]。
-5. 不要翻译；保留文档原文语言。
-6. 用 2-3 句话概括文档类型和主要内容。
+1. 提取文件中所有文本（照片、扫描件、截图、PDF、发票、合同、表单）。
+2. 多页 PDF：按顺序处理每一页，用以下分隔：
+   --- 第 1 页 ---
+   --- 第 2 页 ---（依此类推）
+3. 文档结构：
+   - 标题：单独成行，保留层级
+   - 段落：空行分隔
+   - 列表：保留编号/标记
+   - 表格：每行 | 列1 | 列2 | ... |，含表头
+   - 表单：标签：值，每行一项
+   - 多栏排版：从左到右、从上到下阅读
+4. 手写、印章、水印、图片说明——尽量提取；不清楚时标注 [无法辨认]。
+5. 不要翻译；保留原文语言。
+6. 2-3 句摘要：文档类型 + 主要内容 + 主要语言。
 
 回复格式必须为：
 ---TEKS---

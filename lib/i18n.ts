@@ -90,6 +90,7 @@ export const COPY: Record<
     reviewVoiceBeforeSend: string;
     voiceLanguage: string;
     speechRate: string;
+    speechPitch: string;
     sendAsVoiceNote: string;
     errors: {
       generic: string;
@@ -191,6 +192,7 @@ export const COPY: Record<
     reviewVoiceBeforeSend: "Edit suara sebelum kirim",
     voiceLanguage: "Bahasa suara",
     speechRate: "Kecepatan bicara",
+    speechPitch: "Nada suara",
     sendAsVoiceNote: "Kirim sebagai voice note",
     errors: {
       generic: "Gagal mendapatkan respons. Coba lagi.",
@@ -291,6 +293,7 @@ export const COPY: Record<
     reviewVoiceBeforeSend: "Edit voice before sending",
     voiceLanguage: "Voice language",
     speechRate: "Speech rate",
+    speechPitch: "Voice pitch",
     sendAsVoiceNote: "Send as voice note",
     errors: {
       generic: "Failed to get a response. Please try again.",
@@ -391,6 +394,7 @@ export const COPY: Record<
     reviewVoiceBeforeSend: "发送前编辑语音",
     voiceLanguage: "语音语言",
     speechRate: "语速",
+    speechPitch: "音调",
     sendAsVoiceNote: "作为语音消息发送",
     errors: {
       generic: "获取回复失败，请重试。",

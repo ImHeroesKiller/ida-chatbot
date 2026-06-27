@@ -9,6 +9,7 @@ const LOCALE_TAGS: Record<Locale, string> = {
 const VOICE_PRIORITY: Record<Locale, string[]> = {
   id: [
     "Gadis Online (Natural)",
+    "Ardi Online (Natural)",
     "Google Bahasa Indonesia",
     "id-id-x-idc",
     "id-id-x-idd",
@@ -17,6 +18,8 @@ const VOICE_PRIORITY: Record<Locale, string[]> = {
   ],
   en: [
     "Natural) - English (United States)",
+    "Jenny Online (Natural)",
+    "Aria Online (Natural)",
     "Samantha",
     "Google US English",
     "Karen",
@@ -25,6 +28,7 @@ const VOICE_PRIORITY: Record<Locale, string[]> = {
   ],
   zh: [
     "Xiaoxiao Online (Natural)",
+    "Xiaoyi Online (Natural)",
     "Google 普通话",
     "cmn-CN-x-ccc",
     "Tingting",
@@ -56,8 +60,11 @@ function scoreVoice(voice: SpeechSynthesisVoice, locale: Locale): number {
     if (name.includes(hint)) score += 30 - index * 2;
   });
 
-  if (name.includes("Natural")) score += 20;
+  if (name.includes("Natural")) score += 28;
+  if (name.includes("Premium")) score += 18;
+  if (name.includes("Enhanced")) score += 12;
   if (name.includes("Online")) score += 12;
+  if (name.includes("Multilingual")) score += 8;
   if (name.includes("Google")) score += 8;
   if (name.includes("Microsoft")) score += 8;
   if (!voice.localService) score += 6;

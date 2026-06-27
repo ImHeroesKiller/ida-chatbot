@@ -96,12 +96,14 @@ export function SpeechSynthesisProvider({ children }: { children: ReactNode }) {
       if (!plainText) return;
 
       const detectedLocale = detectSpeechLanguage(plainText);
-      const lang = getLocaleTag(detectedLocale);
-      const voice = pickBestVoice(voices, detectedLocale);
+      const voiceLocale = prefs.voiceLanguage ?? detectedLocale;
+      const lang = getLocaleTag(voiceLocale);
+      const voice = pickBestVoice(voices, voiceLocale);
 
       const utterance = new SpeechSynthesisUtterance(plainText);
       utterance.lang = lang;
       utterance.rate = prefs.speechRate;
+      utterance.pitch = prefs.speechPitch;
       if (voice) utterance.voice = voice;
 
       utterance.onstart = () => setSpeakingMessageId(messageId);
@@ -111,7 +113,7 @@ export function SpeechSynthesisProvider({ children }: { children: ReactNode }) {
       utteranceRef.current = utterance;
       window.speechSynthesis.speak(utterance);
     },
-    [isSupported, prefs.speechRate, stop, voices],
+    [isSupported, prefs.speechPitch, prefs.speechRate, prefs.voiceLanguage, stop, voices],
   );
 
   const toggle = useCallback(

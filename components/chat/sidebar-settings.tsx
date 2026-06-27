@@ -251,6 +251,28 @@ export function SidebarSettings({
                 className="w-full accent-primary"
               />
             </div>
+
+            <div className="space-y-1">
+              <label
+                htmlFor="ida-speech-pitch"
+                className="flex items-center justify-between text-xs text-muted-foreground"
+              >
+                <span>{copy.speechPitch}</span>
+                <span>{prefs.speechPitch.toFixed(1)}×</span>
+              </label>
+              <input
+                id="ida-speech-pitch"
+                type="range"
+                min="0.5"
+                max="1.5"
+                step="0.1"
+                value={prefs.speechPitch}
+                onChange={(event) =>
+                  setPrefs({ speechPitch: Number(event.target.value) })
+                }
+                className="w-full accent-primary"
+              />
+            </div>
           </div>
         </div>
       )}

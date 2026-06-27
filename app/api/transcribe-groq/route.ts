@@ -8,6 +8,7 @@ import {
   getClientIp,
   IdaRateLimitError,
 } from "@/lib/rate-limit";
+import { GroqTranscribeError } from "@/lib/voice/groq-transcribe";
 import { transcribeAudio } from "@/lib/voice/transcribe-service";
 
 const MAX_AUDIO_BASE64_LENGTH = 8_000_000;
@@ -62,12 +63,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ transcript, provider });
   } catch (error) {
-    console.error("[IDA transcribe]", error);
+    console.error("[IDA transcribe-groq]", error);
 
     const notConfigured =
-      error instanceof Error &&
-      (error.message === "GEMINI_API_KEY is not configured." ||
-        error.message === "GROQ_API_KEY is not configured.");
+      (error instanceof GroqTranscribeError &&
+        error.message === "GROQ_API_KEY is not configured.") ||
+      (error instanceof Error &&
+        error.message === "GEMINI_API_KEY is not configured.");
 
     const message = notConfigured
       ? "Transcribe service is not configured."

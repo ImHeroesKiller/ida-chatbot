@@ -9,6 +9,7 @@ export const VOICE_PREFS_KEY = "ida-voice-prefs";
 export interface VoicePrefs {
   autoSpeak: boolean;
   speechRate: number;
+  speechPitch: number;
   voiceLanguage: Locale;
   sendAsVoiceNote: boolean;
   reviewVoiceBeforeSend: boolean;
@@ -17,6 +18,7 @@ export interface VoicePrefs {
 const DEFAULT_PREFS: VoicePrefs = {
   autoSpeak: false,
   speechRate: 1,
+  speechPitch: 1,
   voiceLanguage: "id",
   sendAsVoiceNote: false,
   reviewVoiceBeforeSend: false,

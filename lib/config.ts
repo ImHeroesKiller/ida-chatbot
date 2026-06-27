@@ -14,6 +14,8 @@ export const IDA_CONFIG = {
   rateLimitDurationSec: 60,
   maxUploadBytes: 10 * 1024 * 1024,
   maxUploadPreviewDimension: 320,
+  sttModel: "whisper-large-v3",
+  sttFallbackModel: "whisper-large-v3-turbo",
 } as const;
 
 export const LOCALES = ["id", "en", "zh"] as const;
