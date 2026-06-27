@@ -32,6 +32,21 @@ export const COPY: Record<
     copySuccess: string;
     toggleTheme: string;
     sendShortcut: string;
+    searchSessions: string;
+    noSearchResults: string;
+    noSessionsHint: string;
+    sessionMenu: string;
+    pinSession: string;
+    unpinSession: string;
+    renameSession: string;
+    renameLabel: string;
+    renameSave: string;
+    deleteSession: string;
+    deleteConfirm: string;
+    settings: string;
+    compactMode: string;
+    clearAllChats: string;
+    clearAllConfirm: string;
     errors: {
       generic: string;
       rateLimit: string;
@@ -74,6 +89,21 @@ export const COPY: Record<
     copySuccess: "Pesan disalin",
     toggleTheme: "Ganti tema",
     sendShortcut: "⌘/Ctrl + Enter untuk kirim",
+    searchSessions: "Cari percakapan...",
+    noSearchResults: "Tidak ada percakapan yang cocok",
+    noSessionsHint: "Mulai chat baru untuk menyimpan riwayat di sini.",
+    sessionMenu: "Menu percakapan",
+    pinSession: "Sematkan",
+    unpinSession: "Lepas sematan",
+    renameSession: "Ubah nama",
+    renameLabel: "Nama percakapan",
+    renameSave: "Simpan",
+    deleteSession: "Hapus",
+    deleteConfirm: "Hapus percakapan ini? Tindakan tidak dapat dibatalkan.",
+    settings: "Pengaturan",
+    compactMode: "Mode ringkas",
+    clearAllChats: "Hapus semua chat",
+    clearAllConfirm: "Hapus semua percakapan? Tindakan ini tidak dapat dibatalkan.",
     errors: {
       generic: "Gagal mendapatkan respons. Coba lagi.",
       rateLimit: "Terlalu banyak permintaan. Tunggu sebentar.",
@@ -115,6 +145,21 @@ export const COPY: Record<
     copySuccess: "Message copied",
     toggleTheme: "Toggle theme",
     sendShortcut: "⌘/Ctrl + Enter to send",
+    searchSessions: "Search conversations...",
+    noSearchResults: "No matching conversations",
+    noSessionsHint: "Start a new chat to save history here.",
+    sessionMenu: "Conversation menu",
+    pinSession: "Pin",
+    unpinSession: "Unpin",
+    renameSession: "Rename",
+    renameLabel: "Conversation name",
+    renameSave: "Save",
+    deleteSession: "Delete",
+    deleteConfirm: "Delete this conversation? This cannot be undone.",
+    settings: "Settings",
+    compactMode: "Compact mode",
+    clearAllChats: "Clear all chats",
+    clearAllConfirm: "Delete all conversations? This cannot be undone.",
     errors: {
       generic: "Failed to get a response. Please try again.",
       rateLimit: "Too many requests. Please wait a moment.",
@@ -156,6 +201,21 @@ export const COPY: Record<
     copySuccess: "消息已复制",
     toggleTheme: "切换主题",
     sendShortcut: "⌘/Ctrl + Enter 发送",
+    searchSessions: "搜索对话...",
+    noSearchResults: "没有匹配的对话",
+    noSessionsHint: "开始新对话以在此保存记录。",
+    sessionMenu: "对话菜单",
+    pinSession: "置顶",
+    unpinSession: "取消置顶",
+    renameSession: "重命名",
+    renameLabel: "对话名称",
+    renameSave: "保存",
+    deleteSession: "删除",
+    deleteConfirm: "删除此对话？此操作无法撤销。",
+    settings: "设置",
+    compactMode: "紧凑模式",
+    clearAllChats: "清除所有对话",
+    clearAllConfirm: "删除所有对话？此操作无法撤销。",
     errors: {
       generic: "获取回复失败，请重试。",
       rateLimit: "请求过多，请稍后再试。",

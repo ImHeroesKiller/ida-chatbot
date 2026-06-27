@@ -14,6 +14,15 @@ function deriveChatTitle(messages, locale) {
   return trimmed.length > 42 ? `${trimmed.slice(0, 39)}...` : trimmed;
 }
 
+function sortSessions(sessions) {
+  return [...sessions].sort((a, b) => {
+    const aPinned = Boolean(a.pinned);
+    const bPinned = Boolean(b.pinned);
+    if (aPinned !== bPinned) return aPinned ? -1 : 1;
+    return b.updatedAt - a.updatedAt;
+  });
+}
+
 function simulateStoreRoundtrip() {
   const store = {
     currentChatId: "chat-1",
@@ -24,6 +33,7 @@ function simulateStoreRoundtrip() {
         messages: [{ id: "ida-welcome", role: "assistant", content: "Hi" }],
         quickReplies: ["A", "B"],
         apiSessionId: "ida-1",
+        pinned: false,
         createdAt: 1,
         updatedAt: 1,
       },
@@ -36,6 +46,7 @@ function simulateStoreRoundtrip() {
         ],
         quickReplies: ["A", "B"],
         apiSessionId: "ida-2",
+        pinned: true,
         createdAt: 2,
         updatedAt: 2,
       },
@@ -104,11 +115,36 @@ function testMultiSessionSwitch() {
   };
 }
 
+function testSortSessionsPinnedFirst() {
+  const sessions = [
+    { id: "a", title: "A", updatedAt: 100, pinned: false },
+    { id: "b", title: "B", updatedAt: 50, pinned: true },
+    { id: "c", title: "C", updatedAt: 200, pinned: false },
+    { id: "d", title: "D", updatedAt: 10, pinned: true },
+  ];
+
+  const sorted = sortSessions(sessions);
+  const checks = [];
+
+  if (sorted[0].id !== "b") {
+    checks.push(`expected pinned b first, got ${sorted[0].id}`);
+  }
+  if (sorted[1].id !== "d") {
+    checks.push(`expected pinned d second, got ${sorted[1].id}`);
+  }
+  if (sorted[2].id !== "c") {
+    checks.push(`expected unpinned c third, got ${sorted[2].id}`);
+  }
+
+  return { pass: checks.length === 0, checks };
+}
+
 async function main() {
   const cases = [
     { name: "derive-title", ...testDeriveTitle() },
     { name: "store-roundtrip", ...simulateStoreRoundtrip() },
     { name: "switch-session", ...testMultiSessionSwitch() },
+    { name: "sort-pinned", ...testSortSessionsPinnedFirst() },
   ];
 
   console.log("Chat store tests\n");

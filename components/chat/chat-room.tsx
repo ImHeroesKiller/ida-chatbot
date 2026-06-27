@@ -18,7 +18,6 @@ import { MessageSkeleton } from "@/components/chat/message-skeleton";
 import { QuickReplies } from "@/components/chat/quick-replies";
 import { ChatSidebar } from "@/components/chat/sidebar";
 import { useChatContext } from "@/components/chat/chat-provider";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -33,6 +32,7 @@ import { IDA_CONFIG } from "@/lib/config";
 import { buildHandoffPrefill, getQuickReplies } from "@/lib/handoff";
 import { COPY } from "@/lib/i18n";
 import { useSidebarExpanded } from "@/lib/sidebar-prefs";
+import { useUiPrefs } from "@/lib/ui-prefs";
 import type { IdaMessage } from "@/lib/types";
 import type { IdaSseMetaPayload } from "@/lib/sse";
 import { cn } from "@/lib/utils";
@@ -53,6 +53,7 @@ export function ChatRoom() {
   const inputId = useId();
   const { expanded: sidebarExpanded, toggle: toggleSidebar } =
     useSidebarExpanded();
+  const { prefs: uiPrefs } = useUiPrefs();
 
   const {
     hydrated,
@@ -60,6 +61,10 @@ export function ChatRoom() {
     sessions,
     switchChat,
     createChat,
+    pinChat,
+    renameChat,
+    deleteChat,
+    clearAllChats,
     persistCurrentChat,
   } = useChatStore(locale);
 
@@ -286,8 +291,13 @@ export function ChatRoom() {
     sessions,
     currentChatId: currentChat?.id ?? "",
     locale,
+    loading: !hydrated,
     onSelect: handleSelectChat,
     onNewChat: handleNewChat,
+    onPin: pinChat,
+    onRename: renameChat,
+    onDelete: deleteChat,
+    onClearAll: clearAllChats,
   };
 
   return (
@@ -330,8 +340,6 @@ export function ChatRoom() {
               </p>
             </div>
 
-            <ThemeToggle locale={locale} />
-
             <Button
               size="sm"
               variant="outline"
@@ -346,7 +354,12 @@ export function ChatRoom() {
             ref={scrollContainerRef}
             className="flex-1 overflow-y-auto overscroll-y-contain px-3 py-4 sm:px-5"
           >
-            <div className="mx-auto w-full max-w-2xl space-y-6">
+            <div
+              className={cn(
+                "mx-auto w-full max-w-2xl",
+                uiPrefs.compactMode ? "space-y-4" : "space-y-6",
+              )}
+            >
               {!hasUserMessages && <ChatEmptyState locale={locale} />}
 
               {messages.map((message) => {

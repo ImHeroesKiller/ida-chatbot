@@ -17,6 +17,7 @@ export interface ChatSession {
   messages: IdaMessage[];
   quickReplies: string[];
   apiSessionId: string;
+  pinned?: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -63,6 +64,16 @@ export function deriveChatTitle(
   return trimmed.length > 42 ? `${trimmed.slice(0, 39)}...` : trimmed;
 }
 
+export function sortSessions(sessions: ChatSession[]): ChatSession[] {
+  return [...sessions].sort((a, b) => {
+    const aPinned = Boolean(a.pinned);
+    const bPinned = Boolean(b.pinned);
+
+    if (aPinned !== bPinned) return aPinned ? -1 : 1;
+    return b.updatedAt - a.updatedAt;
+  });
+}
+
 export function createChatSession(locale: Locale): ChatSession {
   const now = Date.now();
 
@@ -72,6 +83,7 @@ export function createChatSession(locale: Locale): ChatSession {
     messages: [createWelcomeMessage(locale)],
     quickReplies: getQuickReplies(locale),
     apiSessionId: createId("ida"),
+    pinned: false,
     createdAt: now,
     updatedAt: now,
   };
@@ -85,6 +97,10 @@ export function createInitialStore(locale: Locale): ChatStoreState {
     chats: { [session.id]: session },
     order: [session.id],
   };
+}
+
+function normalizeSession(session: ChatSession): ChatSession {
+  return { ...session, pinned: Boolean(session.pinned) };
 }
 
 export function loadChatStore(): ChatStoreState | null {
@@ -105,7 +121,14 @@ export function loadChatStore(): ChatStoreState | null {
       return null;
     }
 
-    return parsed;
+    const chats = Object.fromEntries(
+      Object.entries(parsed.chats).map(([id, chat]) => [
+        id,
+        normalizeSession(chat),
+      ]),
+    );
+
+    return { ...parsed, chats };
   } catch {
     return null;
   }
@@ -140,9 +163,11 @@ export function useChatStore(locale: Locale) {
 
   const sessions = useMemo(
     () =>
-      store.order
-        .map((id) => store.chats[id])
-        .filter((chat): chat is ChatSession => Boolean(chat)),
+      sortSessions(
+        store.order
+          .map((id) => store.chats[id])
+          .filter((chat): chat is ChatSession => Boolean(chat)),
+      ),
     [store.chats, store.order],
   );
 
@@ -188,6 +213,78 @@ export function useChatStore(locale: Locale) {
     return session.id;
   }, [locale]);
 
+  const pinChat = useCallback((chatId: string, pinned: boolean) => {
+    setStore((prev) => {
+      const chat = prev.chats[chatId];
+      if (!chat) return prev;
+
+      return {
+        ...prev,
+        chats: {
+          ...prev.chats,
+          [chatId]: { ...chat, pinned, updatedAt: Date.now() },
+        },
+      };
+    });
+  }, []);
+
+  const renameChat = useCallback((chatId: string, title: string) => {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+
+    setStore((prev) => {
+      const chat = prev.chats[chatId];
+      if (!chat) return prev;
+
+      return {
+        ...prev,
+        chats: {
+          ...prev.chats,
+          [chatId]: { ...chat, title: trimmed, updatedAt: Date.now() },
+        },
+      };
+    });
+  }, []);
+
+  const deleteChat = useCallback(
+    (chatId: string) => {
+      setStore((prev) => {
+        if (!prev.chats[chatId]) return prev;
+
+        const remainingIds = prev.order.filter((id) => id !== chatId);
+
+        if (remainingIds.length === 0) {
+          const session = createChatSession(locale);
+          return {
+            currentChatId: session.id,
+            chats: { [session.id]: session },
+            order: [session.id],
+          };
+        }
+
+        const newChats = { ...prev.chats };
+        delete newChats[chatId];
+
+        return {
+          currentChatId:
+            prev.currentChatId === chatId ? remainingIds[0]! : prev.currentChatId,
+          chats: newChats,
+          order: remainingIds,
+        };
+      });
+    },
+    [locale],
+  );
+
+  const clearAllChats = useCallback(() => {
+    const session = createChatSession(locale);
+    setStore({
+      currentChatId: session.id,
+      chats: { [session.id]: session },
+      order: [session.id],
+    });
+  }, [locale]);
+
   const persistCurrentChat = useCallback(
     (patch: Partial<Pick<ChatSession, "messages" | "quickReplies" | "title">>) => {
       updateCurrentChat((chat) => {
@@ -213,6 +310,10 @@ export function useChatStore(locale: Locale) {
     sessions,
     switchChat,
     createChat,
+    pinChat,
+    renameChat,
+    deleteChat,
+    clearAllChats,
     persistCurrentChat,
   };
 }
