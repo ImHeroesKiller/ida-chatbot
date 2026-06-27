@@ -22,6 +22,10 @@ export const COPY: Record<
     sessionsLabel: string;
     noSessions: string;
     openSessions: string;
+    expandSidebar: string;
+    collapseSidebar: string;
+    emptyStateTitle: string;
+    emptyStateHint: string;
     errors: {
       generic: string;
       rateLimit: string;
@@ -50,6 +54,10 @@ export const COPY: Record<
     sessionsLabel: "Daftar percakapan",
     noSessions: "Belum ada percakapan",
     openSessions: "Buka daftar percakapan",
+    expandSidebar: "Perluas sidebar",
+    collapseSidebar: "Ciutkan sidebar",
+    emptyStateTitle: "Mulai percakapan",
+    emptyStateHint: "Ketik pesan di bawah atau pilih saran cepat untuk memulai.",
     errors: {
       generic: "Gagal mendapatkan respons. Coba lagi.",
       rateLimit: "Terlalu banyak permintaan. Tunggu sebentar.",
@@ -77,6 +85,10 @@ export const COPY: Record<
     sessionsLabel: "Chat sessions",
     noSessions: "No conversations yet",
     openSessions: "Open chat sessions",
+    expandSidebar: "Expand sidebar",
+    collapseSidebar: "Collapse sidebar",
+    emptyStateTitle: "Start a conversation",
+    emptyStateHint: "Type a message below or pick a quick suggestion to begin.",
     errors: {
       generic: "Failed to get a response. Please try again.",
       rateLimit: "Too many requests. Please wait a moment.",
@@ -104,6 +116,10 @@ export const COPY: Record<
     sessionsLabel: "对话列表",
     noSessions: "暂无对话",
     openSessions: "打开对话列表",
+    expandSidebar: "展开侧边栏",
+    collapseSidebar: "收起侧边栏",
+    emptyStateTitle: "开始对话",
+    emptyStateHint: "在下方输入消息或选择快捷建议开始。",
     errors: {
       generic: "获取回复失败，请重试。",
       rateLimit: "请求过多，请稍后再试。",

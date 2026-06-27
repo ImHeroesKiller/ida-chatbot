@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Sparkles, User } from "lucide-react";
 
+import { MarkdownContent } from "@/components/chat/markdown-content";
 import type { Locale } from "@/lib/config";
 import type { IdaMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -39,7 +40,7 @@ export function MessageBubble({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
       className={cn(
-        "flex w-full gap-2",
+        "flex w-full gap-2.5",
         isUser ? "flex-row-reverse" : "flex-row",
       )}
     >
@@ -61,24 +62,28 @@ export function MessageBubble({
 
       <div
         className={cn(
-          "flex min-w-0 max-w-[calc(100%-2.5rem)] flex-col gap-1",
+          "flex min-w-0 max-w-[min(85%,32rem)] flex-col gap-1",
           isUser ? "items-end" : "items-start",
         )}
       >
         <div
           className={cn(
-            "rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:px-4",
+            "rounded-2xl px-3.5 py-2.5 sm:px-4",
             isUser
               ? "rounded-br-md bg-primary text-primary-foreground"
               : "rounded-bl-md border bg-card text-card-foreground shadow-sm",
           )}
         >
-          <p className="whitespace-pre-wrap break-words">
-            {message.content}
-            {isStreaming && message.content.length > 0 && (
-              <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-primary align-middle" />
-            )}
-          </p>
+          {isUser ? (
+            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+              {message.content}
+            </p>
+          ) : (
+            <MarkdownContent
+              content={message.content}
+              isStreaming={isStreaming}
+            />
+          )}
         </div>
 
         {timestamp && (

@@ -126,15 +126,13 @@ export function getQuickReplies(locale: Locale): string[] {
       "Apa yang bisa kamu bantu?",
       "Jelaskan fitur IDA",
       "Butuh bantuan lanjutan",
-      "Hubungi tim manusia",
     ],
     en: [
       "What can you help with?",
       "Explain IDA features",
       "Need further assistance",
-      "Talk to a human",
     ],
-    zh: ["你能帮我什么？", "介绍 IDA 功能", "需要进一步帮助", "联系人工客服"],
+    zh: ["你能帮我什么？", "介绍 IDA 功能", "需要进一步帮助"],
   };
 
   return replies[locale];

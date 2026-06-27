@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Send, Sparkles } from "lucide-react";
+import { Menu, MessageSquare, Send, Sparkles } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -18,7 +18,6 @@ import { ChatSidebar } from "@/components/chat/sidebar";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { useChatContext } from "@/components/chat/chat-provider";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
   SheetContent,
@@ -31,6 +30,7 @@ import { useChatStore, WELCOME_MESSAGE_ID } from "@/lib/chat-store";
 import { IDA_CONFIG } from "@/lib/config";
 import { buildHandoffPrefill, getQuickReplies } from "@/lib/handoff";
 import { COPY } from "@/lib/i18n";
+import { useSidebarExpanded } from "@/lib/sidebar-prefs";
 import type { IdaMessage } from "@/lib/types";
 import type { IdaSseMetaPayload } from "@/lib/sse";
 import { cn } from "@/lib/utils";
@@ -49,6 +49,8 @@ export function ChatRoom() {
   const { locale, openHandoff } = useChatContext();
   const copy = COPY[locale];
   const inputId = useId();
+  const { expanded: sidebarExpanded, toggle: toggleSidebar } =
+    useSidebarExpanded();
 
   const {
     hydrated,
@@ -71,6 +73,7 @@ export function ChatRoom() {
   );
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const activeChatIdRef = useRef<string | null>(null);
@@ -82,13 +85,20 @@ export function ChatRoom() {
     isLoading &&
     (!streamingMessageId || !streamingMessage?.content.length);
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const hasUserMessages = messages.some((message) => message.role === "user");
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.scrollTo({ top: container.scrollHeight, behavior });
+      return;
+    }
+    messagesEndRef.current?.scrollIntoView({ behavior });
   }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, showTypingIndicator, scrollToBottom]);
+    scrollToBottom(isLoading ? "auto" : "smooth");
+  }, [messages, showTypingIndicator, isLoading, scrollToBottom]);
 
   useEffect(() => {
     if (!hydrated || !currentChat) return;
@@ -111,7 +121,7 @@ export function ChatRoom() {
   }, [messages, quickReplies, hydrated, isLoading, persistCurrentChat]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => inputRef.current?.focus(), 150);
+    const timer = window.setTimeout(() => inputRef.current?.focus(), 200);
     return () => window.clearTimeout(timer);
   }, [currentChat?.id]);
 
@@ -249,12 +259,7 @@ export function ChatRoom() {
     }
   };
 
-  const handleQuickReply = (message: string, isHandoff?: boolean) => {
-    if (isHandoff) {
-      handleSmartHandoff();
-      return;
-    }
-
+  const handleQuickReply = (message: string) => {
     void sendMessage(message);
   };
 
@@ -287,11 +292,13 @@ export function ChatRoom() {
       >
         <ChatSidebar
           {...sidebarProps}
-          className="hidden w-[260px] shrink-0 border-r md:flex"
+          expanded={sidebarExpanded}
+          onToggleExpanded={toggleSidebar}
+          className="hidden shrink-0 border-r md:flex"
         />
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex shrink-0 items-center gap-2 border-b px-3 py-3 sm:gap-3 sm:px-4">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <header className="flex shrink-0 items-center gap-2.5 border-b px-3 py-3 sm:gap-3 sm:px-5">
             <Button
               type="button"
               variant="ghost"
@@ -315,21 +322,34 @@ export function ChatRoom() {
                 {copy.subtitle}
               </p>
             </div>
-          </header>
 
-          <div className="shrink-0 border-b px-3 py-2 sm:px-4 sm:py-2.5">
             <Button
               size="sm"
               variant="outline"
-              className="h-8 w-full text-xs sm:w-auto sm:px-4"
+              className="hidden h-8 shrink-0 text-xs sm:inline-flex"
               onClick={handleSmartHandoff}
             >
               {copy.handoff}
             </Button>
-          </div>
+          </header>
 
-          <ScrollArea className="flex-1 px-3 py-3 sm:px-4 sm:py-4">
-            <div className="mx-auto w-full max-w-3xl space-y-4">
+          <div
+            ref={scrollContainerRef}
+            className="flex-1 overflow-y-auto overscroll-y-contain px-3 py-4 sm:px-5"
+          >
+            <div className="mx-auto w-full max-w-2xl space-y-5">
+              {!hasUserMessages && (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/20 px-6 py-10 text-center">
+                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/15">
+                    <MessageSquare className="h-5 w-5 text-primary" />
+                  </div>
+                  <p className="text-sm font-medium">{copy.emptyStateTitle}</p>
+                  <p className="mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">
+                    {copy.emptyStateHint}
+                  </p>
+                </div>
+              )}
+
               {messages.map((message) => {
                 const isStreaming = message.id === streamingMessageId;
                 const isEmptyStreaming =
@@ -349,12 +369,12 @@ export function ChatRoom() {
 
               {showTypingIndicator && <TypingIndicator locale={locale} />}
 
-              <div ref={messagesEndRef} className="h-px" />
+              <div ref={messagesEndRef} className="h-px" aria-hidden />
             </div>
-          </ScrollArea>
+          </div>
 
           {error && (
-            <p className="shrink-0 px-3 pb-2 text-center text-xs text-destructive sm:px-4">
+            <p className="shrink-0 px-3 pb-2 text-center text-xs text-destructive sm:px-5">
               {error}
             </p>
           )}
@@ -363,20 +383,19 @@ export function ChatRoom() {
             onSubmit={handleSubmit}
             className={cn(
               "shrink-0 border-t bg-muted/30 px-3 pt-3",
-              "pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-3",
+              "pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-5 sm:pb-4",
             )}
           >
-            <div className="mx-auto w-full max-w-3xl">
-              <div className="mb-2.5 -mx-0.5 px-0.5">
+            <div className="mx-auto w-full max-w-2xl">
+              <div className="mb-3">
                 <QuickReplies
                   replies={quickReplies}
                   disabled={isLoading}
-                  handoffLabel={copy.handoff}
                   onSelect={handleQuickReply}
                 />
               </div>
 
-              <div className="flex items-end gap-2">
+              <div className="flex items-end gap-2.5">
                 <label htmlFor={inputId} className="sr-only">
                   {copy.inputLabel}
                 </label>
@@ -389,7 +408,11 @@ export function ChatRoom() {
                   placeholder={copy.inputPlaceholder}
                   rows={1}
                   disabled={isLoading}
-                  className="max-h-24 min-h-10 flex-1 resize-none rounded-2xl text-base sm:text-sm"
+                  autoFocus
+                  className={cn(
+                    "max-h-28 min-h-10 flex-1 resize-none rounded-2xl text-base sm:text-sm",
+                    "focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/20",
+                  )}
                 />
                 <Button
                   type="submit"
@@ -401,7 +424,7 @@ export function ChatRoom() {
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
-              <p className="mt-2 text-center text-[10px] leading-relaxed text-muted-foreground">
+              <p className="mt-2.5 text-center text-[10px] leading-relaxed text-muted-foreground">
                 {copy.disclaimer}
               </p>
             </div>
@@ -414,7 +437,11 @@ export function ChatRoom() {
           <SheetHeader className="border-b px-4 py-3">
             <SheetTitle className="text-sm">{copy.sessionsLabel}</SheetTitle>
           </SheetHeader>
-          <ChatSidebar {...sidebarProps} className="h-[calc(100%-3.5rem)]" />
+          <ChatSidebar
+            {...sidebarProps}
+            expanded
+            className="h-[calc(100%-3.5rem)] w-full"
+          />
         </SheetContent>
       </Sheet>
 
