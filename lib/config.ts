@@ -12,6 +12,8 @@ export const IDA_CONFIG = {
   memoryWindowK: 10,
   rateLimitPoints: 10,
   rateLimitDurationSec: 60,
+  maxUploadBytes: 10 * 1024 * 1024,
+  maxUploadPreviewDimension: 320,
 } as const;
 
 export const LOCALES = ["id", "en", "zh"] as const;

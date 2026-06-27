@@ -55,6 +55,26 @@ export const COPY: Record<
     scrollToBottom: string;
     emptyStateSubtitle: string;
     clearAllConfirm: string;
+    attachFile: string;
+    uploadUnsupported: string;
+    uploadTooLarge: string;
+    uploadSuccess: string;
+    extractingFile: string;
+    extractedTextLabel: string;
+    removeAttachment: string;
+    listening: string;
+    listeningPlaceholder: string;
+    startListening: string;
+    stopListening: string;
+    voiceError: string;
+    voiceNoteLabel: string;
+    speakMessage: string;
+    stopSpeaking: string;
+    autoSpeak: string;
+    voiceSettings: string;
+    voiceLanguage: string;
+    speechRate: string;
+    sendAsVoiceNote: string;
     errors: {
       generic: string;
       rateLimit: string;
@@ -120,6 +140,26 @@ export const COPY: Record<
     reactionFeedback: "Masukan dicatat, terima kasih!",
     scrollToBottom: "Ke bawah",
     clearAllConfirm: "Hapus semua percakapan? Tindakan ini tidak dapat dibatalkan.",
+    attachFile: "Lampirkan gambar atau PDF",
+    uploadUnsupported: "Format file tidak didukung. Gunakan JPG, PNG, WebP, GIF, atau PDF.",
+    uploadTooLarge: "File terlalu besar. Maksimal 10 MB.",
+    uploadSuccess: "File berhasil diproses",
+    extractingFile: "Mengekstrak teks dari file...",
+    extractedTextLabel: "Teks diekstrak",
+    removeAttachment: "Hapus lampiran",
+    listening: "Mendengarkan...",
+    listeningPlaceholder: "Bicara sekarang...",
+    startListening: "Mulai rekaman suara",
+    stopListening: "Hentikan rekaman",
+    voiceError: "Gagal mengenali suara. Coba lagi.",
+    voiceNoteLabel: "Pesan suara",
+    speakMessage: "Dengarkan pesan",
+    stopSpeaking: "Hentikan suara",
+    autoSpeak: "Suara otomatis",
+    voiceSettings: "Pengaturan suara",
+    voiceLanguage: "Bahasa suara",
+    speechRate: "Kecepatan bicara",
+    sendAsVoiceNote: "Kirim sebagai voice note",
     errors: {
       generic: "Gagal mendapatkan respons. Coba lagi.",
       rateLimit: "Terlalu banyak permintaan. Tunggu sebentar.",
@@ -184,6 +224,26 @@ export const COPY: Record<
     reactionFeedback: "Feedback noted, thank you!",
     scrollToBottom: "Scroll down",
     clearAllConfirm: "Delete all conversations? This cannot be undone.",
+    attachFile: "Attach image or PDF",
+    uploadUnsupported: "Unsupported file type. Use JPG, PNG, WebP, GIF, or PDF.",
+    uploadTooLarge: "File is too large. Maximum 10 MB.",
+    uploadSuccess: "File processed successfully",
+    extractingFile: "Extracting text from file...",
+    extractedTextLabel: "Extracted text",
+    removeAttachment: "Remove attachment",
+    listening: "Listening...",
+    listeningPlaceholder: "Speak now...",
+    startListening: "Start voice input",
+    stopListening: "Stop recording",
+    voiceError: "Voice recognition failed. Please try again.",
+    voiceNoteLabel: "Voice note",
+    speakMessage: "Listen to message",
+    stopSpeaking: "Stop speaking",
+    autoSpeak: "Auto-speak",
+    voiceSettings: "Voice settings",
+    voiceLanguage: "Voice language",
+    speechRate: "Speech rate",
+    sendAsVoiceNote: "Send as voice note",
     errors: {
       generic: "Failed to get a response. Please try again.",
       rateLimit: "Too many requests. Please wait a moment.",
@@ -248,6 +308,26 @@ export const COPY: Record<
     reactionFeedback: "已记录反馈，谢谢！",
     scrollToBottom: "回到底部",
     clearAllConfirm: "删除所有对话？此操作无法撤销。",
+    attachFile: "附加图片或 PDF",
+    uploadUnsupported: "不支持的文件格式。请使用 JPG、PNG、WebP、GIF 或 PDF。",
+    uploadTooLarge: "文件过大。最大 10 MB。",
+    uploadSuccess: "文件处理成功",
+    extractingFile: "正在从文件中提取文本...",
+    extractedTextLabel: "提取的文本",
+    removeAttachment: "移除附件",
+    listening: "正在聆听...",
+    listeningPlaceholder: "请说话...",
+    startListening: "开始语音输入",
+    stopListening: "停止录音",
+    voiceError: "语音识别失败，请重试。",
+    voiceNoteLabel: "语音消息",
+    speakMessage: "播放消息",
+    stopSpeaking: "停止播放",
+    autoSpeak: "自动朗读",
+    voiceSettings: "语音设置",
+    voiceLanguage: "语音语言",
+    speechRate: "语速",
+    sendAsVoiceNote: "作为语音消息发送",
     errors: {
       generic: "获取回复失败，请重试。",
       rateLimit: "请求过多，请稍后再试。",

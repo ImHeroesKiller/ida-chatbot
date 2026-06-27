@@ -3,10 +3,12 @@
 import {
   Check,
   Copy,
+  Pause,
   RefreshCw,
   Share2,
   ThumbsDown,
   ThumbsUp,
+  Volume2,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import toast from "react-hot-toast";
@@ -18,6 +20,7 @@ import {
   type MessageReaction,
   useMessageReactions,
 } from "@/lib/message-reactions";
+import { useSpeechSynthesis } from "@/lib/voice/use-speech-synthesis";
 import { cn } from "@/lib/utils";
 
 interface MessageActionsProps {
@@ -43,6 +46,8 @@ export function MessageActions({
   const [copied, setCopied] = useState(false);
   const { getReaction, toggleReaction } = useMessageReactions();
   const reaction = getReaction(messageId);
+  const { isSupported, speakingMessageId, toggle } = useSpeechSynthesis();
+  const isSpeaking = speakingMessageId === messageId;
 
   if (!content.trim()) return null;
 
@@ -102,6 +107,20 @@ export function MessageActions({
       <ActionButton label={copy.shareMessage} onClick={handleShare}>
         <Share2 className="h-3.5 w-3.5" />
       </ActionButton>
+
+      {isAssistant && isSupported && (
+        <ActionButton
+          label={isSpeaking ? copy.stopSpeaking : copy.speakMessage}
+          onClick={() => toggle(messageId, content)}
+          active={isSpeaking}
+        >
+          {isSpeaking ? (
+            <Pause className="h-3.5 w-3.5" />
+          ) : (
+            <Volume2 className="h-3.5 w-3.5" />
+          )}
+        </ActionButton>
+      )}
 
       {isAssistant && showRegenerate && onRegenerate && (
         <ActionButton label={copy.regenerate} onClick={onRegenerate}>

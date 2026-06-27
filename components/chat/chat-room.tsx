@@ -1,17 +1,15 @@
 "use client";
 
-import { Menu, Send, Sparkles } from "lucide-react";
+import { Menu, Sparkles, Volume2, VolumeX } from "lucide-react";
 import {
   useCallback,
   useEffect,
-  useId,
   useMemo,
   useRef,
   useState,
-  type FormEvent,
-  type KeyboardEvent,
 } from "react";
 
+import { ChatComposer } from "@/components/chat/chat-composer";
 import { ChatEmptyState } from "@/components/chat/chat-empty-state";
 import { HandoffDialog } from "@/components/chat/handoff-dialog";
 import { MessageBubble } from "@/components/chat/message-bubble";
@@ -27,7 +25,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Textarea } from "@/components/ui/textarea";
 import { consumeIdaSseStream } from "@/lib/client/parse-sse";
 import { useChatStore, WELCOME_MESSAGE_ID } from "@/lib/chat-store";
 import { IDA_CONFIG } from "@/lib/config";
@@ -35,9 +32,13 @@ import { buildHandoffPrefill, getQuickReplies } from "@/lib/handoff";
 import { COPY } from "@/lib/i18n";
 import { MessageReactionsProvider } from "@/lib/message-reactions";
 import { useSidebarExpanded } from "@/lib/sidebar-prefs";
-import type { IdaMessage } from "@/lib/types";
+import type { IdaAttachment, IdaMessage } from "@/lib/types";
 import type { IdaSseMetaPayload } from "@/lib/sse";
-import { cn } from "@/lib/utils";
+import {
+  SpeechSynthesisProvider,
+  useSpeechSynthesis,
+} from "@/lib/voice/use-speech-synthesis";
+import { useVoicePrefs } from "@/lib/voice/voice-prefs";
 
 function createMessageId() {
   return `ida-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -49,12 +50,13 @@ function toApiMessages(messages: IdaMessage[]) {
     .map(({ role, content }) => ({ role, content }));
 }
 
-export function ChatRoom() {
+function ChatRoomContent() {
   const { locale, openHandoff, closeHandoff } = useChatContext();
   const copy = COPY[locale];
-  const inputId = useId();
   const { expanded: sidebarExpanded, toggle: toggleSidebar } =
     useSidebarExpanded();
+  const { prefs, setPrefs } = useVoicePrefs();
+  const { speak } = useSpeechSynthesis();
 
   const {
     hydrated,
@@ -84,7 +86,6 @@ export function ChatRoom() {
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
   const activeChatIdRef = useRef<string | null>(null);
 
   const hasUserMessages = messages.some((message) => message.role === "user");
@@ -150,11 +151,6 @@ export function ChatRoom() {
 
     persistCurrentChat({ messages, quickReplies });
   }, [messages, quickReplies, hydrated, isLoading, persistCurrentChat]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => inputRef.current?.focus(), 200);
-    return () => window.clearTimeout(timer);
-  }, [currentChat?.id]);
 
   useEffect(() => {
     const handleEscape = (event: globalThis.KeyboardEvent) => {
@@ -265,6 +261,13 @@ export function ChatRoom() {
         if (activeChatIdRef.current !== chatIdAtSend) {
           persistCurrentChat({ messages: finalMessages });
         }
+
+        const assistantReply = finalMessages.find(
+          (message) => message.id === streamId,
+        );
+        if (prefs.autoSpeak && assistantReply?.content.trim()) {
+          speak(streamId, assistantReply.content);
+        }
       } catch (err) {
         if (activeChatIdRef.current === chatIdAtSend) {
           setMessages((prev) =>
@@ -278,12 +281,19 @@ export function ChatRoom() {
         throw err;
       }
     },
-    [copy.errors, locale, openHandoff, persistCurrentChat],
+    [copy.errors, locale, openHandoff, persistCurrentChat, prefs.autoSpeak, speak],
   );
 
-  const sendMessage = async (rawText: string) => {
+  const sendMessage = async (
+    rawText: string,
+    options?: {
+      attachment?: IdaAttachment;
+      isVoiceNote?: boolean;
+      caption?: string;
+    },
+  ) => {
     const text = rawText.trim();
-    if (!text || isLoading || !currentChat) return;
+    if ((!text && !options?.attachment) || isLoading || !currentChat) return;
 
     if (text.length > IDA_CONFIG.maxMessageLength) {
       setError(copy.errors.tooLong);
@@ -296,6 +306,9 @@ export function ChatRoom() {
       id: createMessageId(),
       role: "user",
       content: text,
+      caption: options?.caption,
+      attachment: options?.attachment,
+      isVoiceNote: options?.isVoiceNote,
       createdAt: Date.now(),
     };
 
@@ -383,18 +396,6 @@ export function ChatRoom() {
     void sendMessage(message);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    void sendMessage(input);
-  };
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-      event.preventDefault();
-      void sendMessage(input);
-    }
-  };
-
   const sidebarProps = {
     sessions,
     currentChatId: currentChat?.id ?? "",
@@ -447,6 +448,22 @@ export function ChatRoom() {
                 {copy.subtitle}
               </p>
             </div>
+
+            <Button
+              type="button"
+              variant={prefs.autoSpeak ? "default" : "outline"}
+              size="icon-sm"
+              className="shrink-0 transition-transform hover:scale-105 active:scale-95"
+              aria-label={copy.autoSpeak}
+              title={copy.autoSpeak}
+              onClick={() => setPrefs({ autoSpeak: !prefs.autoSpeak })}
+            >
+              {prefs.autoSpeak ? (
+                <Volume2 className="h-4 w-4" />
+              ) : (
+                <VolumeX className="h-4 w-4" />
+              )}
+            </Button>
 
             <Button
               size="sm"
@@ -505,59 +522,26 @@ export function ChatRoom() {
             </p>
           )}
 
-          <form
-            onSubmit={handleSubmit}
-            className={cn(
-              "shrink-0 border-t bg-muted/30 px-3 pt-3 dark:bg-muted/20",
-              "pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-5 sm:pb-4",
-            )}
-          >
-            <div className="mx-auto w-full max-w-2xl">
-              <div className="mb-3">
+          <div className="shrink-0">
+            <div className="mx-auto w-full max-w-2xl px-3 sm:px-5">
+              <div className="mb-3 pt-3">
                 <QuickReplies
                   replies={quickReplies}
                   disabled={isLoading}
                   onSelect={handleQuickReply}
                 />
               </div>
-
-              <div className="flex items-end gap-2.5">
-                <label htmlFor={inputId} className="sr-only">
-                  {copy.inputLabel}
-                </label>
-                <Textarea
-                  id={inputId}
-                  ref={inputRef}
-                  value={input}
-                  onChange={(event) => setInput(event.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={copy.inputPlaceholder}
-                  rows={1}
-                  disabled={isLoading}
-                  className={cn(
-                    "chat-input max-h-28 min-h-11 flex-1 resize-none rounded-2xl",
-                    "focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/20",
-                    "dark:bg-background/60",
-                  )}
-                />
-                <Button
-                  type="submit"
-                  size="icon"
-                  disabled={isLoading || !input.trim()}
-                  aria-label={copy.send}
-                  className="h-11 w-11 shrink-0 transition-transform hover:scale-105 active:scale-95"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-              <p className="mt-2 text-center text-[11px] text-muted-foreground">
-                {copy.sendShortcut}
-              </p>
-              <p className="mt-1 text-center text-[11px] leading-relaxed text-muted-foreground">
-                {copy.disclaimer}
-              </p>
             </div>
-          </form>
+
+            <ChatComposer
+              locale={locale}
+              sessionId={currentChat?.apiSessionId}
+              input={input}
+              isLoading={isLoading}
+              onInputChange={setInput}
+              onSend={(content, options) => void sendMessage(content, options)}
+            />
+          </div>
         </div>
       </div>
 
@@ -576,5 +560,13 @@ export function ChatRoom() {
 
       <HandoffDialog />
     </MessageReactionsProvider>
+  );
+}
+
+export function ChatRoom() {
+  return (
+    <SpeechSynthesisProvider>
+      <ChatRoomContent />
+    </SpeechSynthesisProvider>
   );
 }

@@ -1,11 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, User } from "lucide-react";
+import { Mic, Sparkles, User } from "lucide-react";
 
+import { AttachmentPreview } from "@/components/chat/attachment-preview";
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { MessageActions } from "@/components/chat/message-actions";
 import type { Locale } from "@/lib/config";
+import { COPY } from "@/lib/i18n";
 import type { IdaMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -36,10 +38,18 @@ export function MessageBubble({
   isLastAssistant,
   onRegenerate,
 }: MessageBubbleProps) {
+  const copy = COPY[locale];
   const isUser = message.role === "user";
   const timestamp = message.createdAt
     ? formatMessageTime(message.createdAt, locale)
     : null;
+
+  const displayText = isUser
+    ? (message.caption ?? message.content)
+    : message.content;
+
+  const showActions =
+    !isStreaming && message.content.trim() && !isWelcome;
 
   return (
     <motion.div
@@ -75,30 +85,50 @@ export function MessageBubble({
           isUser ? "items-end" : "items-start",
         )}
       >
-        <div
-          className={cn(
-            "rounded-2xl px-4 py-3 transition-shadow duration-200",
-            "group-hover/message:shadow-md",
-            isUser
-              ? "rounded-br-md bg-primary text-primary-foreground shadow-sm"
-              : "rounded-bl-md border bg-card text-card-foreground shadow-sm dark:border-border/80",
-            isWelcome && "ring-1 ring-primary/15",
-          )}
-        >
-          {isUser ? (
-            <p className="chat-text leading-relaxed whitespace-pre-wrap break-words">
-              {message.content}
-            </p>
-          ) : (
-            <MarkdownContent
-              content={message.content}
-              isStreaming={isStreaming}
-              className="chat-text"
-            />
-          )}
-        </div>
+        {message.attachment && (
+          <AttachmentPreview
+            attachment={message.attachment}
+            extractedLabel={copy.extractedTextLabel}
+            compact
+            className={cn(isUser ? "w-full" : "")}
+          />
+        )}
 
-        {!isStreaming && message.content.trim() && !isWelcome && (
+        {(displayText.trim() || message.isVoiceNote) && (
+          <div
+            className={cn(
+              "rounded-2xl px-4 py-3 transition-shadow duration-200",
+              "group-hover/message:shadow-md",
+              isUser
+                ? "rounded-br-md bg-primary text-primary-foreground shadow-sm"
+                : "rounded-bl-md border bg-card text-card-foreground shadow-sm dark:border-border/80",
+              isWelcome && "ring-1 ring-primary/15",
+            )}
+          >
+            {message.isVoiceNote && (
+              <div className="mb-1.5 flex items-center gap-1.5 text-[11px] opacity-80">
+                <Mic className="h-3 w-3" />
+                <span>{copy.voiceNoteLabel}</span>
+              </div>
+            )}
+
+            {isUser ? (
+              displayText.trim() ? (
+                <p className="chat-text leading-relaxed whitespace-pre-wrap break-words">
+                  {displayText}
+                </p>
+              ) : null
+            ) : (
+              <MarkdownContent
+                content={message.content}
+                isStreaming={isStreaming}
+                className="chat-text"
+              />
+            )}
+          </div>
+        )}
+
+        {showActions && (
           <MessageActions
             messageId={message.id}
             content={message.content}
