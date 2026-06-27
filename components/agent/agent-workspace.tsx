@@ -14,6 +14,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
+import { AgentGraphProgress } from "@/components/agent/agent-graph-progress";
 import { AgentMermaid } from "@/components/agent/agent-mermaid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { AGENT_COPY } from "@/lib/agent/content";
+import { AGENTFLOW_TECH_STACK } from "@/lib/agent/spec-diagram";
 import type {
   AgentApiDocumentPayload,
   AgentWorkflowRun,
@@ -55,6 +57,14 @@ interface AgentWorkspaceProps {
     documents: AgentApiDocumentPayload[],
   ) => Promise<void>;
   onApprove: () => Promise<void>;
+  onUploadTemplates: (
+    templates: Array<{
+      fileName: string;
+      fileType: "docx" | "pdf";
+      base64: string;
+      sizeBytes: number;
+    }>,
+  ) => Promise<void>;
   onExecute: () => Promise<void>;
   onCancel: () => Promise<void>;
   onEditWorkflow: (steps: AgentWorkflowStep[]) => Promise<void>;
@@ -106,6 +116,7 @@ export function AgentWorkspace({
   executing,
   onAnalyze,
   onApprove,
+  onUploadTemplates,
   onExecute,
   onCancel,
   onEditWorkflow,
@@ -115,7 +126,9 @@ export function AgentWorkspace({
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [editing, setEditing] = useState(false);
   const [editSteps, setEditSteps] = useState<AgentWorkflowStep[]>([]);
+  const [pendingTemplates, setPendingTemplates] = useState<PendingFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const templateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (run?.instruction) {
@@ -130,6 +143,7 @@ export function AgentWorkspace({
   const showResults = Boolean(run?.analysis || run?.proposal);
   const canApprove =
     run?.status === "awaiting_approval" || run?.status === "proposed";
+  const canUploadTemplates = run?.status === "awaiting_templates";
   const canExecute = run?.status === "approved";
   const isCompleted = run?.status === "completed";
   const isCancelled = run?.status === "cancelled";
@@ -220,8 +234,16 @@ export function AgentWorkspace({
                 <Shield className="size-3" aria-hidden />
                 {copy.sandboxBadge}
               </Badge>
+              <Badge variant="secondary" className="gap-1">
+                {copy.e2bBadge}
+              </Badge>
             </div>
             <p className="text-sm text-muted-foreground">{copy.subtitle}</p>
+            {run?.correlationId && (
+              <p className="font-mono text-[10px] text-muted-foreground">
+                {copy.correlationIdLabel}: {run.correlationId}
+              </p>
+            )}
           </div>
         </div>
         <p className="mt-3 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
@@ -232,6 +254,30 @@ export function AgentWorkspace({
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
         <div className="mx-auto max-w-3xl space-y-6">
+          <Card size="sm">
+            <CardHeader>
+              <CardTitle className="text-sm">{copy.techStackTitle}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {AGENTFLOW_TECH_STACK.map((item) => (
+                  <li
+                    key={item.layer}
+                    className="rounded-lg border bg-muted/20 px-3 py-2 text-xs"
+                  >
+                    <p className="font-medium">{item.layer}</p>
+                    <p className="text-primary">{item.tech}</p>
+                    <p className="text-muted-foreground">{item.role}</p>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          {run && (
+            <AgentGraphProgress run={run} title={copy.graphProgressTitle} />
+          )}
+
           {!showResults && (
             <Card>
               <CardHeader>
@@ -338,6 +384,34 @@ export function AgentWorkspace({
                   </Badge>
                 </div>
 
+                {run.analysis.documentTypes.length > 0 && (
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+                      {copy.documentTypesLabel}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {run.analysis.documentTypes.map((type) => (
+                        <Badge key={type} variant="outline">
+                          {type}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {run.analysis.ruleBasedChecks.length > 0 && (
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+                      {copy.ruleChecksLabel}
+                    </p>
+                    <ul className="space-y-1 text-xs text-muted-foreground">
+                      {run.analysis.ruleBasedChecks.map((check) => (
+                        <li key={check}>• {check}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 {run.analysis.keyEntities.length > 0 && (
                   <div>
                     <p className="mb-1.5 text-xs font-medium text-muted-foreground">
@@ -402,7 +476,15 @@ export function AgentWorkspace({
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">{copy.proposalTitle}</CardTitle>
-                <CardDescription>{run.proposal.summary}</CardDescription>
+                <CardDescription>
+                  {run.proposal.summary}
+                  {run.proposal.estimatedTotalMinutes > 0 && (
+                    <span className="mt-1 block text-xs">
+                      {copy.estimatedDuration}: ~{run.proposal.estimatedTotalMinutes}{" "}
+                      {copy.minutesShort}
+                    </span>
+                  )}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
                 {editing ? (
@@ -466,10 +548,25 @@ export function AgentWorkspace({
                                 {copy.stepApproval}
                               </Badge>
                             )}
+                            {step.toolCategory && (
+                              <Badge variant="secondary" className="text-[10px]">
+                                {step.toolCategory}
+                              </Badge>
+                            )}
+                            {step.estimatedDurationMinutes != null && (
+                              <Badge variant="ghost" className="text-[10px]">
+                                ~{step.estimatedDurationMinutes} {copy.minutesShort}
+                              </Badge>
+                            )}
                           </div>
                           <p className="mt-1 text-sm text-muted-foreground">
                             {step.description}
                           </p>
+                          {step.leadTimeType && step.leadTimeType !== "none" && (
+                            <p className="mt-1 text-[10px] text-amber-600 dark:text-amber-400">
+                              Lead time: {step.leadTimeType}
+                            </p>
+                          )}
                           {step.agent && (
                             <p className="mt-1 font-mono text-[10px] text-muted-foreground/70">
                               {step.agent}
@@ -479,6 +576,30 @@ export function AgentWorkspace({
                       </li>
                     ))}
                   </ol>
+                )}
+
+                {run.proposal.branches.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-sm font-medium">{copy.branchesTitle}</p>
+                    <ul className="space-y-2">
+                      {run.proposal.branches.map((branch) => (
+                        <li
+                          key={branch.id}
+                          className="rounded-lg border bg-muted/20 px-3 py-2 text-xs"
+                        >
+                          <p className="font-medium">{branch.label}</p>
+                          {branch.condition && (
+                            <p className="text-muted-foreground">
+                              if {branch.condition}
+                            </p>
+                          )}
+                          <p className="text-muted-foreground">
+                            {branch.stepIds.length} steps
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
 
                 <AgentMermaid
@@ -512,11 +633,123 @@ export function AgentWorkspace({
                               <span className="text-[10px] text-muted-foreground/70">
                                 ({ph.source})
                               </span>
+                              {"fidelityOk" in ph && (
+                                <Badge
+                                  variant={ph.fidelityOk ? "default" : "secondary"}
+                                  className="text-[9px]"
+                                >
+                                  {copy.fidelityLabel}: {ph.fidelityOk ? "OK" : "?"}
+                                </Badge>
+                              )}
                             </li>
                           ))}
                         </ul>
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {canUploadTemplates && (
+                  <div className="space-y-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4">
+                    <p className="text-sm font-medium">{copy.templateUploadLabel}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {copy.templateUploadHint}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => templateInputRef.current?.click()}
+                      disabled={loading}
+                    >
+                      <Upload className="size-4" />
+                      {copy.templateUploadLabel}
+                    </Button>
+                    <input
+                      ref={templateInputRef}
+                      type="file"
+                      multiple
+                      accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      className="hidden"
+                      onChange={(event) => {
+                        const files = event.target.files;
+                        if (!files) return;
+                        const next: PendingFile[] = [];
+                        for (const file of Array.from(files)) {
+                          const lower = file.name.toLowerCase();
+                          if (
+                            !lower.endsWith(".docx") &&
+                            !lower.endsWith(".pdf")
+                          ) {
+                            toast.error(copy.uploadUnsupported);
+                            continue;
+                          }
+                          next.push({
+                            id: `tpl-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                            file,
+                          });
+                        }
+                        setPendingTemplates((prev) =>
+                          [...prev, ...next].slice(0, 5),
+                        );
+                        event.target.value = "";
+                      }}
+                    />
+                    {pendingTemplates.length > 0 && (
+                      <ul className="space-y-2">
+                        {pendingTemplates.map((item) => (
+                          <li
+                            key={item.id}
+                            className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
+                          >
+                            <span className="truncate">{item.file.name}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() =>
+                                setPendingTemplates((prev) =>
+                                  prev.filter((f) => f.id !== item.id),
+                                )
+                              }
+                            >
+                              <X className="size-3.5" />
+                            </Button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={loading || pendingTemplates.length === 0}
+                      onClick={() =>
+                        void (async () => {
+                          try {
+                            const templates = await Promise.all(
+                              pendingTemplates.map(async (item) => {
+                                const lower = item.file.name.toLowerCase();
+                                return {
+                                  fileName: item.file.name,
+                                  fileType: lower.endsWith(".pdf")
+                                    ? ("pdf" as const)
+                                    : ("docx" as const),
+                                  base64: await readFileBase64(item.file),
+                                  sizeBytes: item.file.size,
+                                };
+                              }),
+                            );
+                            await onUploadTemplates(templates);
+                            setPendingTemplates([]);
+                          } catch {
+                            toast.error(copy.uploadError);
+                          }
+                        })()
+                      }
+                    >
+                      {copy.injectTemplatesButton}
+                    </Button>
                   </div>
                 )}
 
@@ -530,7 +763,7 @@ export function AgentWorkspace({
                         disabled={loading || executing}
                       >
                         <CheckCircle2 className="size-4" />
-                        Approve
+                        {copy.approveWorkflow}
                       </Button>
                     )}
                     {canExecute && (
@@ -548,9 +781,14 @@ export function AgentWorkspace({
                         {executing ? copy.executing : copy.approveExecute}
                       </Button>
                     )}
-                    {canApprove && !canExecute && (
+                    {canApprove && (
                       <p className="w-full text-xs text-muted-foreground">
                         {copy.approveFirst}
+                      </p>
+                    )}
+                    {canUploadTemplates && (
+                      <p className="w-full text-xs text-muted-foreground">
+                        {copy.templateUploadHint}
                       </p>
                     )}
                     {!editing && canApprove && (
@@ -601,6 +839,49 @@ export function AgentWorkspace({
                           </p>
                         )}
                       </div>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {(run?.auditLogs.length ?? 0) > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{copy.auditLogTitle}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="max-h-48 space-y-2 overflow-y-auto text-xs">
+                  {run!.auditLogs.map((entry) => (
+                    <li
+                      key={entry.id}
+                      className="rounded-lg border bg-muted/20 px-3 py-2 font-mono"
+                    >
+                      <span className="text-muted-foreground">
+                        {new Date(entry.timestamp).toLocaleTimeString()}
+                      </span>{" "}
+                      [{entry.actor}] {entry.node}: {entry.action}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {(run?.notifications.length ?? 0) > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{copy.notificationTitle}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  {run!.notifications.map((notif) => (
+                    <li
+                      key={notif.id}
+                      className="rounded-lg border px-3 py-2 text-muted-foreground"
+                    >
+                      {notif.message}
                     </li>
                   ))}
                 </ul>

@@ -7,9 +7,12 @@ import { findModelDefinition } from "@/lib/admin/models";
 import type { Locale } from "@/lib/config";
 import { retrieveContext } from "@/lib/rag/retriever";
 
+import { summarizeDocumentTypes } from "./document-validator";
+import { AGENTFLOW_SPEC_MERMAID } from "./spec-diagram";
 import type {
   AgentDocumentAnalysis,
   AgentUploadedDocument,
+  AgentWorkflowBranch,
   AgentWorkflowProposal,
   AgentWorkflowStep,
 } from "./types";
@@ -18,29 +21,36 @@ function createStepId(order: number): string {
   return `step-${order}`;
 }
 
-function buildMermaidDiagram(steps: AgentWorkflowStep[]): string {
-  const lines = ["flowchart TD", "  start([Start])"];
+function buildSpecBranches(steps: AgentWorkflowStep[]): AgentWorkflowBranch[] {
+  const docSteps = steps
+    .filter((s) => s.toolCategory === "document")
+    .map((s) => s.id);
+  const browserSteps = steps
+    .filter((s) => s.toolCategory === "playwright")
+    .map((s) => s.id);
 
-  steps.forEach((step, index) => {
-    const nodeId = `s${index + 1}`;
-    const safeTitle = step.title.replace(/"/g, "'");
-    lines.push(`  ${nodeId}["${safeTitle}"]`);
-
-    if (index === 0) {
-      lines.push(`  start --> ${nodeId}`);
-    } else {
-      lines.push(`  s${index} --> ${nodeId}`);
-    }
-  });
-
-  const last = steps.length;
-  lines.push(`  s${last} --> gate{Human Approval}`);
-  lines.push("  gate -->|Approve| exec[Sandbox Execute]");
-  lines.push("  gate -->|Edit| edit[Revise Workflow]");
-  lines.push("  edit --> s1");
-  lines.push("  exec --> done([Artifacts])");
-
-  return lines.join("\n");
+  return [
+    {
+      id: "branch-main",
+      label: "Main sequential path",
+      stepIds: steps.map((s) => s.id),
+    },
+    {
+      id: "branch-doc",
+      label: "Document processing branch",
+      condition: "toolCategory === document",
+      stepIds: docSteps.length > 0 ? docSteps : [steps[0]?.id].filter(Boolean),
+    },
+    {
+      id: "branch-browser",
+      label: "Playwright automation branch",
+      condition: "requires web interaction",
+      stepIds:
+        browserSteps.length > 0
+          ? browserSteps
+          : [steps[steps.length - 1]?.id].filter(Boolean),
+    },
+  ];
 }
 
 function buildMockProposal(options: {
@@ -55,9 +65,14 @@ function buildMockProposal(options: {
     {
       id: createStepId(1),
       order: 1,
-      title: "Parse & Index Documents",
-      description: `Ekstrak dan validasi ${documents.length} dokumen (${docNames}).`,
-      agent: "ingest-agent",
+      title: "LLM Semantic Analysis & Rule Validation",
+      description:
+        "Analisis semantik dokumen + validasi rule-based (mandatory fields, tipe dokumen).",
+      agent: "analysis-agent",
+      toolCategory: "document",
+      branchType: "sequential",
+      leadTimeType: "none",
+      estimatedDurationMinutes: 2,
       requiresApproval: false,
     },
     {
@@ -65,76 +80,145 @@ function buildMockProposal(options: {
       order: 2,
       title: "Context Enrichment (RAG)",
       description: analysis.ragContextUsed
-        ? "Gabungkan konteks knowledge base perusahaan dengan instruksi pengguna."
-        : "Gunakan instruksi dan ringkasan dokumen sebagai konteks utama.",
+        ? "Gabungkan konteks knowledge base perusahaan."
+        : "Gunakan instruksi dan ringkasan dokumen sebagai konteks.",
       agent: "rag-agent",
+      toolCategory: "custom",
+      branchType: "sequential",
+      leadTimeType: "none",
+      estimatedDurationMinutes: 1,
       requiresApproval: false,
     },
     {
       id: createStepId(3),
       order: 3,
-      title: "Workflow Planning",
-      description: `Rancang alur otomatis untuk: "${instruction.slice(0, 120)}${instruction.length > 120 ? "…" : ""}"`,
+      title: "Workflow Planning (LangGraph)",
+      description: `Rancang alur untuk: "${instruction.slice(0, 100)}${instruction.length > 100 ? "…" : ""}"`,
       agent: "planner-agent",
+      toolCategory: "custom",
+      branchType: "conditional",
+      leadTimeType: "none",
+      estimatedDurationMinutes: 3,
       requiresApproval: false,
     },
     {
       id: createStepId(4),
       order: 4,
       title: "Human Approval Gate",
-      description:
-        "Tinjau proposal workflow sebelum eksekusi di sandbox terisolasi.",
+      description: "Tinjau proposal sebelum template upload dan eksekusi.",
       agent: "approval-gate",
+      toolCategory: "custom",
+      branchType: "conditional",
+      leadTimeType: "none",
+      estimatedDurationMinutes: 0,
       requiresApproval: true,
     },
     {
       id: createStepId(5),
       order: 5,
-      title: "Sandbox Execution",
+      title: "Template Upload & Placeholder Injection",
       description:
-        "Jalankan langkah-langkah yang disetujui di lingkungan terisolasi.",
-      agent: "executor-agent",
-      requiresApproval: true,
+        "Upload template perusahaan (DOCX/PDF), injeksi {{placeholder}} dengan fidelity validation.",
+      agent: "template-agent",
+      toolCategory: "placeholder",
+      branchType: "sequential",
+      leadTimeType: "none",
+      estimatedDurationMinutes: 5,
+      requiresApproval: false,
     },
     {
       id: createStepId(6),
       order: 6,
-      title: "Artifact Generation",
-      description: "Hasilkan dokumen/laporan output dan simpan sebagai artifact.",
+      title: "Document Processing (python-docx, openpyxl, pypdf)",
+      description: `Proses ${documents.length} dokumen (${docNames}) di sandbox E2B.`,
+      agent: "document-agent",
+      toolCategory: "document",
+      branchType: "parallel",
+      leadTimeType: "none",
+      estimatedDurationMinutes: 8,
+      requiresApproval: false,
+    },
+    {
+      id: createStepId(7),
+      order: 7,
+      title: "Playwright Browser Automation",
+      description:
+        "Automasi browser pada aplikasi internal — auth, form submit, data extraction.",
+      agent: "playwright-agent",
+      toolCategory: "playwright",
+      branchType: "parallel",
+      leadTimeType: "polling",
+      estimatedDurationMinutes: 10,
+      requiresApproval: true,
+    },
+    {
+      id: createStepId(8),
+      order: 8,
+      title: "Branched Execution + Lead Time",
+      description:
+        "Conditional routing, parallel branches, polling/webhook untuk lead time.",
+      agent: "branch-agent",
+      toolCategory: "custom",
+      branchType: "conditional",
+      leadTimeType: "webhook",
+      estimatedDurationMinutes: 15,
+      requiresApproval: false,
+    },
+    {
+      id: createStepId(9),
+      order: 9,
+      title: "Generate Artifacts & Notify",
+      description: "Hasilkan dokumen final, laporan, audit log, notifikasi chat.",
       agent: "artifact-agent",
+      toolCategory: "document",
+      branchType: "sequential",
+      leadTimeType: "none",
+      estimatedDurationMinutes: 3,
       requiresApproval: false,
     },
   ];
+
+  const branches = buildSpecBranches(steps);
+  const estimatedTotalMinutes = steps.reduce(
+    (sum, s) => sum + (s.estimatedDurationMinutes ?? 0),
+    0,
+  );
 
   return {
     title: "AgentFlow Workflow Proposal",
     summary: analysis.summary,
     steps,
-    mermaidDiagram: buildMermaidDiagram(steps),
+    branches,
+    mermaidDiagram: AGENTFLOW_SPEC_MERMAID,
     placeholders: [
       {
-        templateName: "workflow-output.md",
+        templateName: "company-template.docx",
         placeholders: [
           {
             key: "{{instruction}}",
             value: instruction.slice(0, 200),
             source: "user instruction",
-          },
-          {
-            key: "{{document_count}}",
-            value: String(documents.length),
-            source: "uploaded documents",
+            fidelityOk: true,
           },
           {
             key: "{{analysis_summary}}",
             value: analysis.summary.slice(0, 300),
             source: "document analysis",
+            fidelityOk: true,
+          },
+          {
+            key: "{{date}}",
+            value: new Date().toISOString().slice(0, 10),
+            source: "system",
+            fidelityOk: true,
           },
         ],
       },
     ],
+    estimatedTotalMinutes,
+    sandboxProvider: "e2b",
     sandboxNote:
-      "Eksekusi berjalan di sandbox terisolasi. Tidak ada akses langsung ke sistem produksi tanpa persetujuan eksplisit.",
+      "Eksekusi di E2B Firecracker microVM (prototype). Credentials via env vars only. Human approval gate wajib sebelum eksekusi sensitif.",
   };
 }
 
@@ -166,35 +250,24 @@ async function generateWithLlm(options: {
     maxOutputTokens: 4096,
   });
 
-  const docSummary = options.documents
-    .map(
-      (doc) =>
-        `- ${doc.fileName} (${doc.fileType}): ${doc.extractedPreview.slice(0, 400)}`,
-    )
-    .join("\n");
-
-  const systemPrompt = `You are AgentFlow AI, a workflow automation planner for IDA.
-Return ONLY valid JSON matching this schema:
+  const systemPrompt = `You are AgentFlow AI planner. Return ONLY valid JSON:
 {
   "title": string,
   "summary": string,
-  "steps": [{ "order": number, "title": string, "description": string, "agent": string, "requiresApproval": boolean }],
-  "placeholders": [{ "templateName": string, "placeholders": [{ "key": string, "value": string, "source": string }] }]
+  "steps": [{
+    "order": number, "title": string, "description": string,
+    "agent": string, "toolCategory": "document"|"playwright"|"placeholder"|"custom",
+    "branchType": "sequential"|"parallel"|"conditional",
+    "leadTimeType": "none"|"polling"|"webhook"|"recurring",
+    "estimatedDurationMinutes": number, "requiresApproval": boolean
+  }]
 }
-Include 4-7 steps. Always include human approval before execution. Locale: ${options.locale}.`;
+Include human approval, template injection, Playwright, and branching. Locale: ${options.locale}.`;
 
   const userPrompt = `Instruction: ${options.instruction}
-
-Document analysis:
-${options.analysis.summary}
-
-Entities: ${options.analysis.keyEntities.join(", ")}
-
-Documents:
-${docSummary}
-
-Company RAG context:
-${options.ragContext || "No RAG context available."}`;
+Analysis: ${options.analysis.summary}
+Document types: ${options.analysis.documentTypes.join(", ")}
+RAG: ${options.ragContext || "none"}`;
 
   try {
     const response = await model.invoke([
@@ -218,9 +291,12 @@ ${options.ragContext || "No RAG context available."}`;
         title: string;
         description: string;
         agent?: string;
+        toolCategory?: AgentWorkflowStep["toolCategory"];
+        branchType?: AgentWorkflowStep["branchType"];
+        leadTimeType?: AgentWorkflowStep["leadTimeType"];
+        estimatedDurationMinutes?: number;
         requiresApproval?: boolean;
       }>;
-      placeholders?: AgentWorkflowProposal["placeholders"];
     };
 
     if (!parsed.steps?.length) return null;
@@ -231,17 +307,29 @@ ${options.ragContext || "No RAG context available."}`;
       title: step.title,
       description: step.description,
       agent: step.agent,
+      toolCategory: step.toolCategory ?? "custom",
+      branchType: step.branchType ?? "sequential",
+      leadTimeType: step.leadTimeType ?? "none",
+      estimatedDurationMinutes: step.estimatedDurationMinutes ?? 5,
       requiresApproval: Boolean(step.requiresApproval),
     }));
+
+    const estimatedTotalMinutes = steps.reduce(
+      (sum, s) => sum + (s.estimatedDurationMinutes ?? 0),
+      0,
+    );
 
     return {
       title: parsed.title ?? "AgentFlow Workflow Proposal",
       summary: parsed.summary ?? options.analysis.summary,
       steps,
-      mermaidDiagram: buildMermaidDiagram(steps),
-      placeholders: parsed.placeholders ?? [],
+      branches: buildSpecBranches(steps),
+      mermaidDiagram: AGENTFLOW_SPEC_MERMAID,
+      placeholders: buildMockProposal(options).placeholders,
+      estimatedTotalMinutes,
+      sandboxProvider: "e2b",
       sandboxNote:
-        "Eksekusi berjalan di sandbox terisolasi. Semua langkah kritis memerlukan persetujuan manusia.",
+        "Eksekusi di E2B sandbox terisolasi. Semua langkah sensitif memerlukan persetujuan manusia.",
     };
   } catch (error) {
     console.error("[AgentFlow] LLM workflow generation failed", error);
@@ -278,23 +366,38 @@ export async function buildDocumentAnalysis(options: {
     .filter((part) => part.length > 2)
     .slice(0, 8);
 
+  const documentTypes = summarizeDocumentTypes(documents);
   const validationIssues = documents.flatMap((doc) => doc.validationNotes);
+
+  const ruleBasedChecks = documents.flatMap((doc) => {
+    const checks: string[] = [
+      `${doc.fileName}: type=${doc.documentCategory}, status=${doc.validationStatus}`,
+    ];
+    if (doc.mandatoryFieldsMissing.length > 0) {
+      checks.push(
+        `${doc.fileName}: missing fields — ${doc.mandatoryFieldsMissing.join(", ")}`,
+      );
+    }
+    return checks;
+  });
 
   const summaryParts = [
     `Instruksi: ${instruction.slice(0, 200)}${instruction.length > 200 ? "…" : ""}`,
-    `${documents.length} dokumen dianalisis.`,
-    documents.length > 0
-      ? `File: ${documents.map((d) => d.fileName).join(", ")}.`
-      : "Tidak ada dokumen — workflow berbasis instruksi saja.",
+    `${documents.length} dokumen dianalisis dengan validasi rule-based + LLM.`,
+    documentTypes.length > 0
+      ? `Tipe dokumen: ${documentTypes.join(", ")}.`
+      : "Tipe dokumen: general.",
     ragContextUsed
-      ? "Konteks knowledge base perusahaan digabungkan via RAG."
+      ? "Konteks RAG perusahaan digabungkan."
       : "RAG tidak digunakan atau tidak ada konteks relevan.",
   ];
 
   return {
     summary: summaryParts.join(" "),
     keyEntities: entities.length > 0 ? entities : ["workflow", "automation"],
+    documentTypes,
     validationIssues,
+    ruleBasedChecks,
     ragContextUsed,
     ragSnippet,
   };
@@ -318,11 +421,7 @@ export async function generateWorkflowProposal(options: {
     ragContext = retrieval.context;
   }
 
-  const llmProposal = await generateWithLlm({
-    ...options,
-    ragContext,
-  });
-
+  const llmProposal = await generateWithLlm({ ...options, ragContext });
   if (llmProposal) return llmProposal;
 
   return buildMockProposal(options);

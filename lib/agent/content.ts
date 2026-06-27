@@ -54,6 +54,25 @@ export const AGENT_COPY: Record<
     statusExecuting: string;
     statusCompleted: string;
     statusCancelled: string;
+    statusAwaitingTemplates: string;
+    statusInjecting: string;
+    templateUploadLabel: string;
+    templateUploadHint: string;
+    injectTemplatesButton: string;
+    branchesTitle: string;
+    estimatedDuration: string;
+    techStackTitle: string;
+    graphProgressTitle: string;
+    auditLogTitle: string;
+    correlationIdLabel: string;
+    documentTypesLabel: string;
+    ruleChecksLabel: string;
+    e2bBadge: string;
+    approveWorkflow: string;
+    minutesShort: string;
+    notificationTitle: string;
+    workflowComplete: string;
+    fidelityLabel: string;
   }
 > = {
   id: {
@@ -111,6 +130,25 @@ export const AGENT_COPY: Record<
     statusExecuting: "Eksekusi",
     statusCompleted: "Selesai",
     statusCancelled: "Dibatalkan",
+    statusAwaitingTemplates: "Menunggu Template",
+    statusInjecting: "Injeksi Placeholder",
+    templateUploadLabel: "Upload Template Perusahaan",
+    templateUploadHint: "DOCX atau PDF — template dengan placeholder {{variable}}",
+    injectTemplatesButton: "Validate & Inject Placeholders",
+    branchesTitle: "Cabang Workflow",
+    estimatedDuration: "Estimasi durasi",
+    techStackTitle: "Technology Stack",
+    graphProgressTitle: "LangGraph Orchestration Progress",
+    auditLogTitle: "Audit Log",
+    correlationIdLabel: "Correlation ID",
+    documentTypesLabel: "Tipe dokumen",
+    ruleChecksLabel: "Rule-based checks",
+    e2bBadge: "E2B Sandbox",
+    approveWorkflow: "Approve Workflow",
+    minutesShort: "mnt",
+    notificationTitle: "Notifikasi",
+    workflowComplete: "Workflow selesai dieksekusi di sandbox.",
+    fidelityLabel: "Fidelity",
   },
   en: {
     navChat: "Chat",
@@ -166,6 +204,25 @@ export const AGENT_COPY: Record<
     statusExecuting: "Executing",
     statusCompleted: "Completed",
     statusCancelled: "Cancelled",
+    statusAwaitingTemplates: "Awaiting Templates",
+    statusInjecting: "Injecting Placeholders",
+    templateUploadLabel: "Upload Company Templates",
+    templateUploadHint: "DOCX or PDF — templates with {{placeholder}} syntax",
+    injectTemplatesButton: "Validate & Inject Placeholders",
+    branchesTitle: "Workflow Branches",
+    estimatedDuration: "Estimated duration",
+    techStackTitle: "Technology Stack",
+    graphProgressTitle: "LangGraph Orchestration Progress",
+    auditLogTitle: "Audit Log",
+    correlationIdLabel: "Correlation ID",
+    documentTypesLabel: "Document types",
+    ruleChecksLabel: "Rule-based checks",
+    e2bBadge: "E2B Sandbox",
+    approveWorkflow: "Approve Workflow",
+    minutesShort: "min",
+    notificationTitle: "Notifications",
+    workflowComplete: "Workflow completed in sandbox.",
+    fidelityLabel: "Fidelity",
   },
   zh: {
     navChat: "聊天",
@@ -221,5 +278,24 @@ export const AGENT_COPY: Record<
     statusExecuting: "执行中",
     statusCompleted: "已完成",
     statusCancelled: "已取消",
+    statusAwaitingTemplates: "等待模板",
+    statusInjecting: "注入占位符",
+    templateUploadLabel: "上传公司模板",
+    templateUploadHint: "DOCX 或 PDF — 带 {{placeholder}} 语法的模板",
+    injectTemplatesButton: "验证并注入占位符",
+    branchesTitle: "工作流分支",
+    estimatedDuration: "预计时长",
+    techStackTitle: "技术栈",
+    graphProgressTitle: "LangGraph 编排进度",
+    auditLogTitle: "审计日志",
+    correlationIdLabel: "关联 ID",
+    documentTypesLabel: "文档类型",
+    ruleChecksLabel: "规则检查",
+    e2bBadge: "E2B 沙箱",
+    approveWorkflow: "批准工作流",
+    minutesShort: "分钟",
+    notificationTitle: "通知",
+    workflowComplete: "工作流已在沙箱中完成。",
+    fidelityLabel: "保真度",
   },
 };

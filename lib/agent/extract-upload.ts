@@ -2,6 +2,7 @@ import type { Locale } from "@/lib/config";
 import { extractDocumentText } from "@/lib/rag/extract-document";
 import type { KbFileType } from "@/lib/rag/kb-types";
 
+import { validateDocumentRules } from "./document-validator";
 import type { AgentFileType } from "./types";
 
 const MAX_EXTRACT_CHARS = 12_000;
@@ -91,29 +92,24 @@ export async function extractAgentDocumentText(options: {
 
 export function validateExtractedDocument(options: {
   fileName: string;
+  fileType: AgentFileType;
   text: string;
-}): { status: "valid" | "warning" | "invalid"; notes: string[] } {
-  const notes: string[] = [];
-  const { text, fileName } = options;
+}) {
+  const result = validateDocumentRules(options);
+  const notes = [...result.notes];
 
-  if (!text.trim()) {
-    return {
-      status: "invalid",
-      notes: [`${fileName}: tidak ada teks yang dapat diekstrak.`],
-    };
-  }
-
-  if (text.length < 80) {
-    notes.push(`${fileName}: konten sangat pendek — verifikasi manual disarankan.`);
-  }
-
-  if (text.includes("[...truncated")) {
-    notes.push(`${fileName}: dokumen dipotong untuk analisis — bagian awal digunakan.`);
+  if (options.text.includes("[...truncated")) {
+    notes.push(
+      `${options.fileName}: dokumen dipotong untuk analisis — bagian awal digunakan.`,
+    );
   }
 
   return {
-    status: notes.length > 0 ? "warning" : "valid",
+    status: result.status,
     notes,
+    category: result.category,
+    mandatoryFieldsFound: result.mandatoryFieldsFound,
+    mandatoryFieldsMissing: result.mandatoryFieldsMissing,
   };
 }
 

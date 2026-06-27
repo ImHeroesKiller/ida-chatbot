@@ -115,6 +115,7 @@ export function AgentRoom() {
         existingRun: currentRun,
       });
       upsertRun(run);
+      toast.success(copy.templateUploadLabel);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : copy.apiError,
@@ -122,7 +123,43 @@ export function AgentRoom() {
     } finally {
       setLoading(false);
     }
-  }, [currentRun, upsertRun, copy.apiError]);
+  }, [currentRun, upsertRun, copy.apiError, copy.templateUploadLabel]);
+
+  const handleUploadTemplates = useCallback(
+    async (
+      templates: Array<{
+        fileName: string;
+        fileType: "docx" | "pdf";
+        base64: string;
+        sizeBytes: number;
+      }>,
+    ) => {
+      if (!currentRun) return;
+      setLoading(true);
+      try {
+        const uploaded = await callAgentApi({
+          action: "upload_templates",
+          runId: currentRun.id,
+          templates,
+          existingRun: currentRun,
+        });
+        const run = await callAgentApi({
+          action: "inject_templates",
+          runId: uploaded.id,
+          existingRun: uploaded,
+        });
+        upsertRun(run);
+        toast.success(copy.injectTemplatesButton);
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : copy.apiError,
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentRun, upsertRun, copy.apiError, copy.injectTemplatesButton],
+  );
 
   const handleExecute = useCallback(async () => {
     if (!currentRun) return;
@@ -134,6 +171,7 @@ export function AgentRoom() {
         existingRun: currentRun,
       });
       upsertRun(run);
+      toast.success(copy.workflowComplete);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : copy.apiError,
@@ -141,7 +179,7 @@ export function AgentRoom() {
     } finally {
       setExecuting(false);
     }
-  }, [currentRun, upsertRun, copy.apiError]);
+  }, [currentRun, upsertRun, copy.apiError, copy.workflowComplete]);
 
   const handleCancel = useCallback(async () => {
     if (!currentRun) {
@@ -256,6 +294,7 @@ export function AgentRoom() {
           executing={executing}
           onAnalyze={handleAnalyze}
           onApprove={handleApprove}
+          onUploadTemplates={handleUploadTemplates}
           onExecute={handleExecute}
           onCancel={handleCancel}
           onEditWorkflow={handleEditWorkflow}

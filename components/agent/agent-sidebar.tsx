@@ -45,6 +45,8 @@ function statusLabel(
     analyzing: copy.statusAnalyzing,
     proposed: copy.statusProposed,
     awaiting_approval: copy.statusAwaiting,
+    awaiting_templates: copy.statusAwaitingTemplates,
+    injecting_placeholders: copy.statusInjecting,
     approved: copy.statusApproved,
     executing: copy.statusExecuting,
     completed: copy.statusCompleted,

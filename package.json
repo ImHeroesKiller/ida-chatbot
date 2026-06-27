@@ -19,6 +19,7 @@
     "@langchain/classic": "^1.0.38",
     "@langchain/core": "^1.2.1",
     "@langchain/google-genai": "^2.2.0",
+    "@langchain/langgraph": "^1.4.7",
     "@langchain/textsplitters": "^1.0.1",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
