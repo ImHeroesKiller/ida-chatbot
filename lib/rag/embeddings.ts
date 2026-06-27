@@ -1,30 +1,36 @@
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import { IDA_CONFIG } from "@/lib/config";
 
 export const EMBEDDING_DIMENSIONS = 768;
 
-let embeddingsModel: GoogleGenerativeAIEmbeddings | null = null;
+let genAiClient: GoogleGenerativeAI | null = null;
 
-function getEmbeddingsModel(): GoogleGenerativeAIEmbeddings {
+function getGenAiClient(): GoogleGenerativeAI {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not configured.");
   }
 
-  if (!embeddingsModel) {
-    embeddingsModel = new GoogleGenerativeAIEmbeddings({
-      apiKey,
-      model: IDA_CONFIG.embeddingModel,
-    });
+  if (!genAiClient) {
+    genAiClient = new GoogleGenerativeAI(apiKey);
   }
 
-  return embeddingsModel;
+  return genAiClient;
 }
 
 export async function embedText(text: string): Promise<number[]> {
-  const values = await getEmbeddingsModel().embedQuery(text);
+  const model = getGenAiClient().getGenerativeModel({
+    model: IDA_CONFIG.embeddingModel,
+  });
+
+  const result = await model.embedContent({
+    content: { role: "user", parts: [{ text }] },
+    outputDimensionality: EMBEDDING_DIMENSIONS,
+  });
+
+  const values = result.embedding.values;
 
   if (!values?.length) {
     throw new Error("Empty embedding returned from model.");

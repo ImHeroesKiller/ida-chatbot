@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "vercel-build": "npm run index:ida && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "index:ida": "node scripts/seed-ida-chunks.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
