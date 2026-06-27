@@ -19,6 +19,25 @@ const nextConfig: NextConfig = {
   },
   headers: async () => [
     {
+      source: "/",
+      headers: [
+        {
+          key: "Cache-Control",
+          value:
+            "public, s-maxage=3600, stale-while-revalidate=86400",
+        },
+      ],
+    },
+    {
+      source: "/ida-logo-small.webp",
+      headers: [
+        {
+          key: "Cache-Control",
+          value: "public, max-age=31536000, immutable",
+        },
+      ],
+    },
+    {
       source: "/sw.js",
       headers: [
         {

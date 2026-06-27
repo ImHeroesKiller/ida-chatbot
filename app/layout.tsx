@@ -1,15 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
 import { contrastForeground, normalizeHexColor } from "@/lib/ui-config/color";
-import { Geist_Mono, Inter } from "next/font/google";
-import { Toaster } from "react-hot-toast";
+import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-import { AuthProvider } from "@/components/auth/auth-provider";
-import { DeferredPwa } from "@/components/performance/deferred-pwa";
-import { PreconnectLinks } from "@/components/performance/preconnect-links";
+import { LCP_LOGO_PATH } from "@/components/landing/landing-lcp-logo";
 import { WebVitalsReporter } from "@/components/performance/web-vitals-reporter";
+import { PreconnectLinks } from "@/components/performance/preconnect-links";
 import { StructuredData } from "@/components/seo/structured-data";
 import { GlobalUiProvider } from "@/components/global-ui-provider";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -20,20 +18,12 @@ import {
   SEO_KEYWORDS,
   SEO_LOCALES,
 } from "@/lib/seo/config";
+import { DEFAULT_UI_CONFIG } from "@/lib/ui-config/defaults";
 import { buildUiInitScript } from "@/lib/ui-config/init-script";
-import { loadUiConfig } from "@/lib/ui-config/server";
 import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-  preload: true,
-  adjustFontFallback: true,
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
   preload: true,
@@ -128,12 +118,12 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const uiConfig = await loadUiConfig();
+  const uiConfig = DEFAULT_UI_CONFIG;
   const uiInitScript = buildUiInitScript(uiConfig);
   const primaryColor =
     normalizeHexColor(uiConfig.primaryColor) ?? uiConfig.primaryColor;
@@ -142,7 +132,7 @@ export default async function RootLayout({
     <html
       lang="id"
       suppressHydrationWarning
-      className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} h-full antialiased`}
       data-ida-font-size={uiConfig.fontSize}
       data-ida-density={uiConfig.density}
       data-ida-animation={uiConfig.animationLevel}
@@ -157,28 +147,24 @@ export default async function RootLayout({
       <head>
         <PreconnectLinks />
         <StructuredData />
+        <link
+          rel="preload"
+          href={LCP_LOGO_PATH}
+          as="image"
+          type="image/webp"
+          fetchPriority="high"
+        />
         <script dangerouslySetInnerHTML={{ __html: uiInitScript }} />
       </head>
       <body className="h-dvh overflow-hidden bg-background font-sans text-foreground">
-        <AuthProvider>
-          <GlobalUiProvider initialConfig={uiConfig}>
-            <ThemeProvider>
-              {children}
-              <DeferredPwa />
-              <WebVitalsReporter />
-              <Analytics />
-              <SpeedInsights />
-              <Toaster
-                position="top-center"
-                toastOptions={{
-                  duration: 3000,
-                  className:
-                    "!bg-card !text-card-foreground !border !border-border !shadow-lg",
-                }}
-              />
-            </ThemeProvider>
-          </GlobalUiProvider>
-        </AuthProvider>
+        <GlobalUiProvider initialConfig={uiConfig}>
+          <ThemeProvider>
+            {children}
+            <WebVitalsReporter />
+            <Analytics />
+            <SpeedInsights />
+          </ThemeProvider>
+        </GlobalUiProvider>
       </body>
     </html>
   );
