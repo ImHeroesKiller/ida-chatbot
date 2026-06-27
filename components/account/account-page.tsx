@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LegalFooterLinks } from "@/components/legal/legal-page";
 import type { IdaUserProfile } from "@/lib/auth/user-service";
 import { COPY } from "@/lib/i18n";
 
@@ -112,6 +113,8 @@ export function AccountPage() {
                 {copy.logout}
               </Button>
             </div>
+
+            <LegalFooterLinks className="justify-start pt-2" />
           </CardContent>
         </Card>
       </main>

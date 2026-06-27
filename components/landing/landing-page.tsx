@@ -1,6 +1,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -15,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LegalFooterLinks } from "@/components/legal/legal-page";
 import { IDA_CONFIG } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 
@@ -75,7 +77,8 @@ export function LandingPage() {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-12">
+    <div className="flex min-h-dvh flex-col bg-background">
+      <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
       <div className="mx-auto w-full max-w-md space-y-8 text-center">
         <div className="flex flex-col items-center gap-4">
           <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
@@ -113,9 +116,28 @@ export function LandingPage() {
               <GoogleIcon />
               {signingIn ? "Redirecting..." : copy.loginWithGoogle}
             </Button>
+            <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
+              Dengan masuk, Anda menyetujui{" "}
+              <Link href="/terms" className="underline hover:text-foreground">
+                Syarat Layanan
+              </Link>{" "}
+              dan{" "}
+              <Link href="/privacy" className="underline hover:text-foreground">
+                Kebijakan Privasi
+              </Link>
+              .
+            </p>
           </CardContent>
         </Card>
       </div>
+      </div>
+
+      <footer className="shrink-0 border-t px-4 py-5">
+        <LegalFooterLinks />
+        <p className="mt-2 text-center text-xs text-muted-foreground">
+          © {new Date().getFullYear()} {IDA_CONFIG.name}
+        </p>
+      </footer>
     </div>
   );
 }
