@@ -1,4 +1,5 @@
--- Return chunk metadata from vector search for richer RAG context
+-- Fix: recreate match_ida_chunks when return type changed (001 → 002).
+-- Safe to run on existing databases.
 
 drop function if exists match_ida_chunks(vector, text, integer, double precision);
 drop function if exists match_ida_chunks(vector, text, int, float);

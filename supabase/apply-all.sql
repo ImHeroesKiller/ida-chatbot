@@ -44,6 +44,10 @@ create index if not exists ida_chat_sessions_session_id_idx
   on ida_chat_sessions (session_id);
 
 -- RPC used by lib/rag/vector-store.ts (includes metadata for RAG context)
+-- Must drop first when return type changes (migration 001 → 002).
+drop function if exists match_ida_chunks(vector, text, integer, double precision);
+drop function if exists match_ida_chunks(vector, text, int, float);
+
 create or replace function match_ida_chunks(
   query_embedding vector(768),
   match_locale text,
