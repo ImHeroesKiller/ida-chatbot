@@ -87,7 +87,10 @@ export function ChatComposer({
     toggleListening,
     stopListening,
     resetTranscript,
-  } = useVoiceInput(locale);
+    isTranscribing,
+    hasVoiceInput,
+    mode: voiceMode,
+  } = useVoiceInput(locale, sessionId);
 
   const voiceErrorMessage = getVoiceErrorMessage(locale, speechError);
 
@@ -115,12 +118,12 @@ export function ChatComposer({
   };
 
   const handleSend = async () => {
-    const text = isListening ? displayTranscript : input;
+    const text = isListening || isTranscribing ? displayTranscript : input;
 
     if (!text.trim() && !pendingUpload) return;
-    if (isLoading || isExtracting) return;
+    if (isLoading || isExtracting || isTranscribing) return;
 
-    if (isListening) stopListening();
+    if (isListening) await stopListening();
 
     let attachment: IdaAttachment | undefined;
 
@@ -160,7 +163,7 @@ export function ChatComposer({
 
     onSend(content, {
       attachment,
-      isVoiceNote: prefs.sendAsVoiceNote && isListening,
+      isVoiceNote: prefs.sendAsVoiceNote && hasVoiceInput,
       caption: attachment ? text.trim() : undefined,
     });
 
@@ -225,7 +228,10 @@ export function ChatComposer({
       }
     : null;
 
-  const textareaValue = isListening ? displayTranscript || input : input;
+  const textareaValue =
+    isListening || isTranscribing || hasVoiceInput
+      ? displayTranscript || input
+      : input;
 
   return (
     <form
@@ -236,7 +242,7 @@ export function ChatComposer({
       )}
     >
       <div className="mx-auto w-full max-w-2xl space-y-2.5">
-        {isListening && (
+        {(isListening || isTranscribing) && (
           <div className="flex items-center justify-between rounded-xl border border-primary/20 bg-primary/5 px-3 py-2">
             <div className="flex items-center gap-3">
               <span className="relative flex h-2.5 w-2.5">
@@ -245,7 +251,13 @@ export function ChatComposer({
               </span>
               <VoiceWaveform levels={waveformLevels} />
             </div>
-            <p className="text-xs text-muted-foreground">{copy.listening}</p>
+            <p className="text-xs text-muted-foreground">
+              {isTranscribing
+                ? copy.voiceTranscribing
+                : voiceMode === "recorder"
+                  ? copy.voiceRecorderMode
+                  : copy.listening}
+            </p>
           </div>
         )}
 
@@ -314,7 +326,7 @@ export function ChatComposer({
                 isListening ? copy.listeningPlaceholder : copy.inputPlaceholder
               }
               rows={1}
-              disabled={isLoading || isExtracting}
+              disabled={isLoading || isExtracting || isTranscribing}
               className={cn(
                 "chat-input max-h-28 min-h-11 resize-none rounded-2xl",
                 "focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/20",
@@ -327,7 +339,9 @@ export function ChatComposer({
             type="button"
             variant={isListening ? "default" : "outline"}
             size="icon"
-            disabled={isLoading || isExtracting || !speechSupported}
+            disabled={
+              isLoading || isExtracting || isTranscribing || !speechSupported
+            }
             aria-label={isListening ? copy.stopListening : copy.startListening}
             title={
               speechSupported
@@ -352,6 +366,7 @@ export function ChatComposer({
             disabled={
               isLoading ||
               isExtracting ||
+              isTranscribing ||
               (!textareaValue.trim() && !pendingUpload)
             }
             aria-label={copy.send}

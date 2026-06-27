@@ -7,7 +7,7 @@ export function getVoiceErrorMessage(
   locale: Locale,
   code: VoiceInputErrorCode | null,
 ): string | null {
-  if (!code || code === "aborted") return null;
+  if (!code) return null;
 
   const copy = COPY[locale];
 
@@ -16,12 +16,12 @@ export function getVoiceErrorMessage(
       return copy.voiceErrorNotAllowed;
     case "no-speech":
       return copy.voiceErrorNoSpeech;
-    case "network":
-      return copy.voiceErrorNetwork;
     case "unsupported":
       return copy.voiceErrorUnsupported;
     case "mic-failed":
       return copy.voiceErrorMic;
+    case "transcribe-failed":
+      return copy.voiceErrorTranscribe;
     default:
       return copy.voiceError;
   }

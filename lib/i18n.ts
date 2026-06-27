@@ -78,6 +78,9 @@ export const COPY: Record<
     voiceErrorNetwork: string;
     voiceErrorUnsupported: string;
     voiceErrorMic: string;
+    voiceErrorTranscribe: string;
+    voiceTranscribing: string;
+    voiceRecorderMode: string;
     voiceNoteLabel: string;
     speakMessage: string;
     stopSpeaking: string;
@@ -174,6 +177,9 @@ export const COPY: Record<
     voiceErrorNetwork: "Koneksi gagal saat transkripsi suara.",
     voiceErrorUnsupported: "Browser ini tidak mendukung input suara.",
     voiceErrorMic: "Tidak dapat mengakses mikrofon. Periksa perangkat Anda.",
+    voiceErrorTranscribe: "Gagal mentranskripsikan rekaman. Coba rekam ulang.",
+    voiceTranscribing: "Mentranskripsikan rekaman...",
+    voiceRecorderMode: "Mode rekaman — bicara lalu hentikan",
     voiceNoteLabel: "Pesan suara",
     speakMessage: "Dengarkan pesan",
     stopSpeaking: "Hentikan suara",
@@ -269,6 +275,9 @@ export const COPY: Record<
     voiceErrorNetwork: "Network error during voice transcription.",
     voiceErrorUnsupported: "This browser does not support voice input.",
     voiceErrorMic: "Cannot access microphone. Check your device.",
+    voiceErrorTranscribe: "Failed to transcribe recording. Try recording again.",
+    voiceTranscribing: "Transcribing recording...",
+    voiceRecorderMode: "Recording mode — speak then stop",
     voiceNoteLabel: "Voice note",
     speakMessage: "Listen to message",
     stopSpeaking: "Stop speaking",
@@ -364,6 +373,9 @@ export const COPY: Record<
     voiceErrorNetwork: "语音转录时网络错误。",
     voiceErrorUnsupported: "此浏览器不支持语音输入。",
     voiceErrorMic: "无法访问麦克风。请检查设备。",
+    voiceErrorTranscribe: "转录失败。请重新录音。",
+    voiceTranscribing: "正在转录录音...",
+    voiceRecorderMode: "录音模式 — 说话后停止",
     voiceNoteLabel: "语音消息",
     speakMessage: "播放消息",
     stopSpeaking: "停止播放",
