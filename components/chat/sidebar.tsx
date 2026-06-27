@@ -148,7 +148,7 @@ export function ChatSidebar({
               )}
               title={IDA_CONFIG.name}
             >
-              <IdaLogo size={expanded ? 32 : 28} />
+              <IdaLogo size={expanded ? "sm" : "xs"} />
               {expanded && (
                 <span className="truncate text-sm font-semibold tracking-tight">
                   {IDA_CONFIG.name}

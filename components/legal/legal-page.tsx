@@ -32,7 +32,7 @@ export function LegalPage({
             <ArrowLeft className="size-4" />
           </Link>
           <Link href="/" className="flex items-center gap-2 hover:opacity-90">
-            <IdaLogo size={28} />
+            <IdaLogo size="xs" />
             <span className="text-sm font-semibold">{IDA_CONFIG.name}</span>
           </Link>
         </div>

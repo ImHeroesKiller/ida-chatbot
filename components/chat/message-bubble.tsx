@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mic, Sparkles, User } from "lucide-react";
+import { Mic, User } from "lucide-react";
 
+import { IdaLogo } from "@/components/brand/ida-logo";
 import { AttachmentPreview } from "@/components/chat/attachment-preview";
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { MessageActions } from "@/components/chat/message-actions";
@@ -62,22 +63,24 @@ export function MessageBubble({
         isUser ? "flex-row-reverse" : "flex-row",
       )}
     >
-      <div
-        className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform duration-200",
-          "group-hover/message:scale-105",
-          isUser
-            ? "bg-primary text-primary-foreground shadow-sm"
-            : "bg-primary/10 text-primary ring-1 ring-primary/15 dark:bg-primary/15",
-        )}
-        aria-hidden
-      >
-        {isUser ? (
+      {isUser ? (
+        <div
+          className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm",
+            "transition-transform duration-200 group-hover/message:scale-105",
+          )}
+          aria-hidden
+        >
           <User className="h-4 w-4" />
-        ) : (
-          <Sparkles className="h-4 w-4" />
-        )}
-      </div>
+        </div>
+      ) : (
+        <IdaLogo
+          size="md"
+          variant="avatar"
+          className="transition-transform duration-200 group-hover/message:scale-105"
+          aria-hidden
+        />
+      )}
 
       <div
         className={cn(

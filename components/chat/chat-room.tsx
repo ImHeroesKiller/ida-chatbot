@@ -1,7 +1,5 @@
 "use client";
 
-import { Menu, User } from "lucide-react";
-import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -10,8 +8,8 @@ import {
   useState,
 } from "react";
 
-import { IdaLogo } from "@/components/brand/ida-logo";
 import { ChatComposer } from "@/components/chat/chat-composer";
+import { ChatHeader } from "@/components/chat/header";
 import { ChatEmptyState } from "@/components/chat/chat-empty-state";
 import { HandoffDialog } from "@/components/chat/handoff-dialog";
 import { MessageBubble } from "@/components/chat/message-bubble";
@@ -20,7 +18,6 @@ import { QuickReplies } from "@/components/chat/quick-replies";
 import { ScrollToBottomButton } from "@/components/chat/scroll-to-bottom";
 import { ChatSidebar } from "@/components/chat/sidebar";
 import { useChatContext } from "@/components/chat/chat-provider";
-import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -440,41 +437,13 @@ function ChatRoomContent() {
         />
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <header className="flex shrink-0 items-center gap-2.5 border-b px-3 py-3 sm:gap-3 sm:px-5">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              className="shrink-0 transition-transform hover:scale-105 active:scale-95 md:hidden"
-              aria-label={copy.openSessions}
-              onClick={() => setMobileSidebarOpen(true)}
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-
-            <IdaLogo
-              size={36}
-              className="shrink-0 rounded-2xl sm:size-10"
-            />
-
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold tracking-tight">
-                {currentChat?.title ?? IDA_CONFIG.name}
-              </p>
-              <p className="truncate text-[11px] text-muted-foreground">
-                {copy.subtitle}
-              </p>
-            </div>
-
-            <Link
-              href="/account"
-              className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              aria-label={copy.account}
-              title={copy.account}
-            >
-              <User className="h-4 w-4" />
-            </Link>
-          </header>
+          <ChatHeader
+            title={currentChat?.title ?? IDA_CONFIG.name}
+            subtitle={copy.subtitle}
+            openSessionsLabel={copy.openSessions}
+            accountLabel={copy.account}
+            onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
+          />
 
           <div className="relative min-h-0 flex-1">
             <div

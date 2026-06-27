@@ -1,7 +1,6 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
-
+import { IdaLogo } from "@/components/brand/ida-logo";
 import { cn } from "@/lib/utils";
 
 interface MessageSkeletonProps {
@@ -16,9 +15,7 @@ export function MessageSkeleton({ className }: MessageSkeletonProps) {
       aria-busy="true"
       aria-label="Loading message"
     >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/15">
-        <Sparkles className="h-4 w-4 text-primary/60" aria-hidden />
-      </div>
+      <IdaLogo size="md" variant="avatar" className="opacity-70" aria-hidden />
 
       <div className="min-w-0 max-w-[min(85%,32rem)] flex-1 rounded-2xl rounded-bl-md border bg-card px-4 py-3.5 shadow-sm">
         <div className="space-y-2.5">

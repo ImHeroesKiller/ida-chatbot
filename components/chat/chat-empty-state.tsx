@@ -1,7 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Lightbulb, Sparkles, Zap } from "lucide-react";
+import { Lightbulb, Zap } from "lucide-react";
+
+import { IdaLogo } from "@/components/brand/ida-logo";
 
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
@@ -37,9 +39,9 @@ export function ChatEmptyState({ locale, className }: ChatEmptyStateProps) {
         <motion.div
           animate={{ scale: [1, 1.04, 1] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/25 shadow-sm dark:bg-primary/15"
+          className="mb-4"
         >
-          <Sparkles className="h-7 w-7 text-primary" />
+          <IdaLogo size="xl" />
         </motion.div>
 
         <p className="text-base font-semibold tracking-tight">

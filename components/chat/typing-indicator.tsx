@@ -1,8 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
-
+import { IdaLogo } from "@/components/brand/ida-logo";
 import type { Locale } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
@@ -25,9 +24,7 @@ export function TypingIndicator({ locale, className }: TypingIndicatorProps) {
       aria-live="polite"
       aria-label={TYPING_LABEL[locale]}
     >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/15 dark:bg-primary/15">
-        <Sparkles className="h-4 w-4 text-primary" aria-hidden />
-      </div>
+      <IdaLogo size="md" variant="avatar" aria-hidden />
 
       <div className="rounded-2xl rounded-bl-md border bg-card px-4 py-3 shadow-sm dark:border-border/80">
         <div className="flex items-center gap-1.5">

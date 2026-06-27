@@ -66,7 +66,7 @@ export function AccountPage() {
             <ArrowLeft className="size-4" />
           </Link>
           <div className="flex items-center gap-2">
-            <IdaLogo size={28} />
+            <IdaLogo size="xs" />
             <h1 className="text-base font-semibold">{copy.profileTitle}</h1>
           </div>
         </div>

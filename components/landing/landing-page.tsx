@@ -82,7 +82,7 @@ export function LandingPage() {
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
       <div className="mx-auto w-full max-w-md space-y-8 text-center">
         <div className="flex flex-col items-center gap-4">
-          <IdaLogo size={64} priority className="rounded-2xl" />
+          <IdaLogo size="xl" priority />
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
               {IDA_CONFIG.name}
