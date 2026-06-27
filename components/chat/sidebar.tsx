@@ -17,6 +17,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { IdaLogo } from "@/components/brand/ida-logo";
+import { SidebarNav } from "@/components/chat/sidebar-nav";
 import { ConfirmDialog } from "@/components/chat/confirm-dialog";
 import { RenameDialog } from "@/components/chat/rename-dialog";
 import { SidebarSettings } from "@/components/chat/sidebar-settings";
@@ -155,6 +156,10 @@ export function ChatSidebar({
                 </span>
               )}
             </Link>
+          </div>
+
+          <div className="border-b py-2">
+            <SidebarNav locale={locale} expanded={expanded} />
           </div>
 
           <div className="p-2 pb-3">

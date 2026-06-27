@@ -37,7 +37,9 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isProtected =
-    pathname.startsWith("/chat") || pathname.startsWith("/account");
+    pathname.startsWith("/chat") ||
+    pathname.startsWith("/agent") ||
+    pathname.startsWith("/account");
 
   if (!user && isProtected) {
     const redirectUrl = request.nextUrl.clone();
