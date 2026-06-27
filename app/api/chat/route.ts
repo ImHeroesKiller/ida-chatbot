@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { loadAppConfig } from "@/lib/admin/config";
+import { logRequest } from "@/lib/admin/request-logs";
 import {
   prepareIdaChatContext,
   streamIdaChatResponse,
@@ -86,11 +88,20 @@ export async function POST(request: Request) {
   }
 
   try {
+    const appConfig = await loadAppConfig();
     const context = await prepareIdaChatContext({
       messages,
       locale,
       sessionId,
       userId,
+    });
+
+    void logRequest({
+      userId: userId ?? null,
+      sessionId: sessionId ?? null,
+      model: context.modelId,
+      provider: context.provider,
+      route: "chat",
     });
 
     if (context.meta.handoffTriggered) {
@@ -108,7 +119,7 @@ export async function POST(request: Request) {
         reason: context.meta.ragFallbackReason ?? "unknown",
         maxSimilarity: context.meta.maxSimilarity ?? 0,
         retrievedChunks: context.meta.retrievedChunks,
-        threshold: IDA_CONFIG.ragConfidenceThreshold,
+        threshold: appConfig.rag.confidenceThreshold,
         locale,
         sessionId: sessionId ?? null,
       });
@@ -116,7 +127,7 @@ export async function POST(request: Request) {
       console.log("[IDA chat] RAG active", {
         retrievedChunks: context.meta.retrievedChunks,
         maxSimilarity: context.meta.maxSimilarity ?? 0,
-        threshold: IDA_CONFIG.ragConfidenceThreshold,
+        threshold: appConfig.rag.confidenceThreshold,
         locale,
         sessionId: sessionId ?? null,
       });

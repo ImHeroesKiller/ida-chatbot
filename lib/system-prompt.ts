@@ -9,12 +9,17 @@ const LOCALE_INSTRUCTIONS: Record<Locale, string> = {
 interface PromptContext {
   retrievedContext?: string;
   conversationMemory?: string;
+  basePromptOverride?: string | null;
 }
 
 export function buildIdaSystemPrompt(
   locale: Locale,
   context: PromptContext = {},
 ): string {
+  if (context.basePromptOverride?.trim()) {
+    return context.basePromptOverride.trim();
+  }
+
   const languageRule = LOCALE_INSTRUCTIONS[locale];
   const { retrievedContext, conversationMemory } = context;
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { loadAppConfig } from "@/lib/admin/config";
 import { LOCALES } from "@/lib/config";
 import { extractTextWithGeminiVision } from "@/lib/vision/gemini-vision";
 import {
@@ -42,6 +43,14 @@ export async function POST(request: Request) {
   }
 
   const { data, mimeType, fileName, locale, sessionId } = parsed.data;
+  const appConfig = await loadAppConfig();
+
+  if (!appConfig.features.ocr) {
+    return NextResponse.json(
+      { error: "OCR is disabled by administrator." },
+      { status: 403 },
+    );
+  }
 
   try {
     await enforceIdaRateLimit(

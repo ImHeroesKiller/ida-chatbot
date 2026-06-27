@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { loadAppConfig } from "@/lib/admin/config";
 import { LOCALES } from "@/lib/config";
 import {
   buildRateLimitKey,
@@ -35,6 +36,14 @@ export async function POST(request: Request) {
   }
 
   const { data, mimeType, locale, sessionId } = parsed.data;
+  const appConfig = await loadAppConfig();
+
+  if (!appConfig.features.voice) {
+    return NextResponse.json(
+      { error: "Voice input is disabled by administrator." },
+      { status: 403 },
+    );
+  }
 
   try {
     await enforceIdaRateLimit(

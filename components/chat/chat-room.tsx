@@ -26,6 +26,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { consumeIdaSseStream } from "@/lib/client/parse-sse";
+import { useAppFeatures } from "@/lib/client/use-app-features";
 import { useChatStore, WELCOME_MESSAGE_ID } from "@/lib/chat-store";
 import { IDA_CONFIG } from "@/lib/config";
 import { buildHandoffPrefill, getQuickReplies } from "@/lib/handoff";
@@ -57,6 +58,7 @@ function ChatRoomContent() {
     useSidebarExpanded();
   const { prefs, setPrefs } = useVoicePrefs();
   const { speak } = useSpeechSynthesis();
+  const appFeatures = useAppFeatures();
 
   const {
     hydrated,
@@ -268,7 +270,11 @@ function ChatRoomContent() {
         const assistantReply = finalMessages.find(
           (message) => message.id === streamId,
         );
-        if (prefs.autoSpeak && assistantReply?.content.trim()) {
+        if (
+          appFeatures?.autoSpeak !== false &&
+          prefs.autoSpeak &&
+          assistantReply?.content.trim()
+        ) {
           speak(streamId, assistantReply.content);
         }
       } catch (err) {
@@ -289,6 +295,7 @@ function ChatRoomContent() {
       locale,
       openHandoff,
       persistCurrentChat,
+      appFeatures?.autoSpeak,
       prefs.autoSpeak,
       speak,
     ],

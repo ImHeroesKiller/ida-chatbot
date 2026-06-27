@@ -78,10 +78,28 @@ function buildFallbackResult(options: {
   };
 }
 
-export async function retrieveContext(options: {
+export interface RetrievalOptions {
   query: string;
   locale: Locale;
-}): Promise<RetrievalResult> {
+  enabled?: boolean;
+  topK?: number;
+  retrievalThreshold?: number;
+  confidenceThreshold?: number;
+}
+
+export async function retrieveContext(
+  options: RetrievalOptions,
+): Promise<RetrievalResult> {
+  const topK = options.topK ?? IDA_CONFIG.retrievalTopK;
+  const retrievalThreshold =
+    options.retrievalThreshold ?? IDA_CONFIG.retrievalThreshold;
+  const confidenceThreshold =
+    options.confidenceThreshold ?? IDA_CONFIG.ragConfidenceThreshold;
+
+  if (options.enabled === false) {
+    return buildFallbackResult({ fallbackReason: "no_chunks" });
+  }
+
   if (!isSupabaseConfigured()) {
     return buildFallbackResult({ fallbackReason: "supabase_unconfigured" });
   }
@@ -90,8 +108,8 @@ export async function retrieveContext(options: {
     const chunks = await searchDocumentChunks({
       query: options.query,
       locale: options.locale,
-      matchCount: IDA_CONFIG.retrievalTopK,
-      matchThreshold: IDA_CONFIG.retrievalThreshold,
+      matchCount: topK,
+      matchThreshold: retrievalThreshold,
     });
 
     const retrievedChunkCount = chunks.length;
@@ -108,7 +126,7 @@ export async function retrieveContext(options: {
       });
     }
 
-    if (maxSimilarity < IDA_CONFIG.ragConfidenceThreshold) {
+    if (maxSimilarity < confidenceThreshold) {
       return buildFallbackResult({
         fallbackReason: "low_confidence",
         maxSimilarity,
@@ -117,14 +135,14 @@ export async function retrieveContext(options: {
     }
 
     const confidentChunks = chunks.filter(
-      (chunk) => chunk.similarity >= IDA_CONFIG.ragConfidenceThreshold,
+      (chunk) => chunk.similarity >= confidenceThreshold,
     );
 
     console.log("[IDA retrieval] RAG active", {
       retrievedChunkCount,
       usedChunks: confidentChunks.length,
       maxSimilarity,
-      threshold: IDA_CONFIG.ragConfidenceThreshold,
+      threshold: confidenceThreshold,
     });
 
     return {

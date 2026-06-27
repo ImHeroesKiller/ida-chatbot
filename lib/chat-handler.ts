@@ -5,8 +5,14 @@ import {
   SystemMessage,
 } from "@langchain/core/messages";
 
+import { streamOpenAiCompatibleChat } from "@/lib/admin/chat-stream";
+import { loadAppConfig } from "@/lib/admin/config";
+import {
+  findModelDefinition,
+  isProviderConfigured,
+  type ModelProvider,
+} from "@/lib/admin/models";
 import type { Locale } from "@/lib/config";
-import { IDA_CONFIG } from "@/lib/config";
 import { buildHandoffPrefill, getQuickReplies } from "@/lib/handoff";
 import {
   detectHandoffKeyword,
@@ -34,7 +40,13 @@ export interface IdaChatHandlerInput {
 }
 
 export interface IdaChatPreparedContext {
-  model: ChatGoogleGenerativeAI;
+  model: ChatGoogleGenerativeAI | null;
+  modelId: string;
+  provider: ModelProvider;
+  openAiMessages: Array<{
+    role: "system" | "user" | "assistant";
+    content: string;
+  }>;
   messages: (HumanMessage | AIMessage | SystemMessage)[];
   meta: IdaSseMetaPayload;
   sessionMessages: ConversationMessage[];
@@ -96,9 +108,25 @@ export async function resolveHandoffTool(options: {
 export async function prepareIdaChatContext(
   input: IdaChatHandlerInput,
 ): Promise<IdaChatPreparedContext> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const appConfig = await loadAppConfig();
+  const selectedModel = appConfig.defaultModel;
+  const modelDefinition = findModelDefinition(
+    selectedModel.id,
+    selectedModel.provider,
+  );
 
-  if (!apiKey) {
+  if (!modelDefinition?.capabilities.includes("chat")) {
+    throw new Error("Chat service is not configured.");
+  }
+
+  if (!isProviderConfigured(selectedModel.provider)) {
+    throw new Error("Chat service is not configured.");
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  const useGoogle = selectedModel.provider === "google";
+
+  if (useGoogle && !apiKey) {
     throw new Error("Chat service is not configured.");
   }
 
@@ -110,13 +138,21 @@ export async function prepareIdaChatContext(
   }
 
   const [retrieval, memoryContext] = await Promise.all([
-    retrieveContext({ query: lastMessage.content, locale }),
+    retrieveContext({
+      query: lastMessage.content,
+      locale,
+      enabled: appConfig.features.rag,
+      topK: appConfig.rag.topK,
+      retrievalThreshold: appConfig.rag.retrievalThreshold,
+      confidenceThreshold: appConfig.rag.confidenceThreshold,
+    }),
     buildConversationMemoryContext(messages),
   ]);
 
   const systemInstruction = buildIdaSystemPrompt(locale, {
     retrievedContext: retrieval.usedRag ? retrieval.context : "",
     conversationMemory: memoryContext,
+    basePromptOverride: appConfig.systemPromptOverride,
   });
 
   const handoffPrefill = buildHandoffPrefill(messages, locale);
@@ -131,12 +167,22 @@ export async function prepareIdaChatContext(
     new HumanMessage(lastMessage.content),
   ];
 
-  const model = new ChatGoogleGenerativeAI({
-    apiKey,
-    model: IDA_CONFIG.model,
-    temperature: 0.7,
-    streaming: true,
-  });
+  const openAiMessages = [
+    { role: "system" as const, content: systemInstruction },
+    ...messages.map((message) => ({
+      role: message.role,
+      content: message.content,
+    })),
+  ];
+
+  const model = useGoogle
+    ? new ChatGoogleGenerativeAI({
+        apiKey: apiKey!,
+        model: selectedModel.id,
+        temperature: 0.7,
+        streaming: true,
+      })
+    : null;
 
   const handoffExecution = await resolveHandoffTool({
     lastMessage: lastMessage.content,
@@ -158,6 +204,9 @@ export async function prepareIdaChatContext(
 
   return {
     model,
+    modelId: selectedModel.id,
+    provider: selectedModel.provider,
+    openAiMessages,
     messages: langchainMessages,
     meta,
     sessionMessages: messages,
@@ -177,32 +226,52 @@ export async function* streamIdaChatResponse(
     return;
   }
 
-  const stream = await context.model
-    .bindTools([handoffToolDefinition])
-    .stream(context.messages);
+  if (context.provider === "google" && context.model) {
+    const stream = await context.model
+      .bindTools([handoffToolDefinition])
+      .stream(context.messages);
+
+    let fullText = "";
+
+    for await (const chunk of stream) {
+      const text =
+        typeof chunk.content === "string"
+          ? chunk.content
+          : Array.isArray(chunk.content)
+            ? chunk.content
+                .map((part) =>
+                  typeof part === "string" ? part : (part.text ?? ""),
+                )
+                .join("")
+            : "";
+
+      if (text) {
+        fullText += text;
+        yield text;
+      }
+    }
+
+    const finalText = fullText.trim();
+    if (!finalText) {
+      throw new Error("Empty response from model.");
+    }
+
+    await persistAssistantMessage(context, finalText);
+    return;
+  }
 
   let fullText = "";
 
-  for await (const chunk of stream) {
-    const text =
-      typeof chunk.content === "string"
-        ? chunk.content
-        : Array.isArray(chunk.content)
-          ? chunk.content
-              .map((part) =>
-                typeof part === "string" ? part : (part.text ?? ""),
-              )
-              .join("")
-          : "";
-
-    if (text) {
-      fullText += text;
-      yield text;
-    }
+  for await (const token of streamOpenAiCompatibleChat({
+    provider: context.provider,
+    modelId: context.modelId,
+    messages: context.openAiMessages,
+  })) {
+    fullText += token;
+    yield token;
   }
 
   const finalText = fullText.trim();
-
   if (!finalText) {
     throw new Error("Empty response from model.");
   }

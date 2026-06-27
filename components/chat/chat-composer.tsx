@@ -26,6 +26,7 @@ import {
   isAcceptedUploadType,
   readFileAsBase64,
 } from "@/lib/client/file-utils";
+import { useAppFeatures } from "@/lib/client/use-app-features";
 import { IDA_CONFIG, type Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import type { IdaAttachment, IdaAttachmentType } from "@/lib/types";
@@ -84,6 +85,9 @@ export function ChatComposer({
   const skipVoiceAutoSendRef = useRef(false);
 
   const { prefs } = useVoicePrefs();
+  const features = useAppFeatures();
+  const voiceEnabled = features?.voice !== false;
+  const ocrEnabled = features?.ocr !== false;
 
   const resolveOcrError = useCallback(
     (err: unknown): string => {
@@ -381,18 +385,20 @@ export function ChatComposer({
             }}
           />
 
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            disabled={isLoading || isExtracting || isTranscribing}
-            aria-label={copy.attachFile}
-            title={copy.attachFile}
-            className="h-11 w-11 shrink-0"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Paperclip className="h-4 w-4" />
-          </Button>
+          {ocrEnabled && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              disabled={isLoading || isExtracting || isTranscribing}
+              aria-label={copy.attachFile}
+              title={copy.attachFile}
+              className="h-11 w-11 shrink-0"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+          )}
 
           <div className="min-w-0 flex-1">
             <label htmlFor={inputId} className="sr-only">
@@ -424,32 +430,34 @@ export function ChatComposer({
             />
           </div>
 
-          <Button
-            type="button"
-            variant={isListening ? "default" : "outline"}
-            size="icon"
-            disabled={
-              isLoading || isExtracting || isTranscribing || !speechSupported
-            }
-            aria-label={isListening ? copy.stopListening : copy.startListening}
-            title={
-              speechSupported
-                ? isListening
-                  ? copy.stopListening
-                  : copy.startListening
-                : copy.voiceErrorUnsupported
-            }
-            className="h-11 w-11 shrink-0"
-            onClick={toggleListening}
-          >
-            {isListening ? (
-              <MicOff className="h-4 w-4" />
-            ) : isTranscribing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Mic className="h-4 w-4" />
-            )}
-          </Button>
+          {voiceEnabled && (
+            <Button
+              type="button"
+              variant={isListening ? "default" : "outline"}
+              size="icon"
+              disabled={
+                isLoading || isExtracting || isTranscribing || !speechSupported
+              }
+              aria-label={isListening ? copy.stopListening : copy.startListening}
+              title={
+                speechSupported
+                  ? isListening
+                    ? copy.stopListening
+                    : copy.startListening
+                  : copy.voiceErrorUnsupported
+              }
+              className="h-11 w-11 shrink-0"
+              onClick={toggleListening}
+            >
+              {isListening ? (
+                <MicOff className="h-4 w-4" />
+              ) : isTranscribing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Mic className="h-4 w-4" />
+              )}
+            </Button>
+          )}
 
           <Button
             type="submit"
