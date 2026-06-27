@@ -6,6 +6,9 @@ export interface IdaSseMetaPayload {
   ragFallbackReason?: string;
   maxSimilarity?: number;
   quickReplies?: string[];
+  handoffTriggered?: boolean;
+  toolCall?: string;
+  toolCallReason?: string;
   handoffPrefill?: {
     topic: string;
     description: string;

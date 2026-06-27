@@ -22,6 +22,16 @@ const TOPIC_RULES: { topic: string; keywords: string[] }[] = [
     ],
   },
   {
+    topic: "consultation",
+    keywords: [
+      "konsultasi",
+      "consultation",
+      "咨询",
+      "mulai konsultasi",
+      "start consultation",
+    ],
+  },
+  {
     topic: "business",
     keywords: [
       "business",

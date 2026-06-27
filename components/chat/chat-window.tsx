@@ -190,6 +190,11 @@ export function ChatWindow({ isOpen, onClose }: ChatWindowProps) {
           if (meta.quickReplies?.length) {
             setQuickReplies(meta.quickReplies);
           }
+
+          if (meta.handoffTriggered && meta.handoffPrefill) {
+            onClose();
+            openHandoff(meta.handoffPrefill);
+          }
         },
       );
     } catch (err) {

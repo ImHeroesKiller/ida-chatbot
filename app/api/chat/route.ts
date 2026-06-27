@@ -79,6 +79,16 @@ export async function POST(request: Request) {
   try {
     const context = await prepareIdaChatContext({ messages, locale, sessionId });
 
+    if (context.meta.handoffTriggered) {
+      console.log("[IDA chat] Tool call: trigger_handoff", {
+        toolCall: context.meta.toolCall,
+        reason: context.meta.toolCallReason,
+        locale,
+        sessionId: sessionId ?? null,
+        topic: context.meta.handoffPrefill?.topic,
+      });
+    }
+
     if (!context.meta.usedRag) {
       console.log("[IDA chat] RAG fallback", {
         reason: context.meta.ragFallbackReason ?? "unknown",
