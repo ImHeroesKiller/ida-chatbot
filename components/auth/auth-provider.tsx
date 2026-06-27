@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { getSupabasePublicConfig } from "@/lib/supabase/env";
 import { getSupabaseBrowser, isSupabaseBrowserConfigured } from "@/lib/supabase/client";
 
 interface AuthContextValue {
@@ -54,12 +55,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error("Supabase auth is not configured.");
     }
 
+    const config = getSupabasePublicConfig();
+    if (!config) {
+      throw new Error("Supabase auth is not configured.");
+    }
+
     const supabase = getSupabaseBrowser();
     const redirectTo = `${window.location.origin}/auth/callback?next=/chat`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo },
+      options: {
+        redirectTo,
+        // Browser redirect to /authorize cannot send headers — apikey must be in URL.
+        queryParams: { apikey: config.anonKey },
+      },
     });
 
     if (error) throw error;

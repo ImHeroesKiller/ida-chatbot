@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import { useAuth } from "@/components/auth/auth-provider";
+import { isSupabaseBrowserConfigured } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -52,12 +53,22 @@ export function LandingPage() {
     }
   }, [searchParams, copy.authError]);
 
+  const supabaseReady = isSupabaseBrowserConfigured();
+
   const handleLogin = async () => {
+    if (!supabaseReady) {
+      toast.error(
+        "Supabase belum dikonfigurasi. Set NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+      );
+      return;
+    }
+
     setSigningIn(true);
 
     try {
       await signInWithGoogle();
-    } catch {
+    } catch (error) {
+      console.error("[IDA login]", error);
       toast.error(copy.authError);
       setSigningIn(false);
     }
@@ -87,11 +98,17 @@ export function LandingPage() {
             <CardDescription>{copy.loginSubtitle}</CardDescription>
           </CardHeader>
           <CardContent>
+            {!supabaseReady && (
+              <p className="mb-3 text-xs text-amber-600">
+                NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY belum
+                diset. Login tidak tersedia.
+              </p>
+            )}
             <Button
               className="w-full gap-2"
               size="lg"
               onClick={() => void handleLogin()}
-              disabled={signingIn || authLoading}
+              disabled={signingIn || authLoading || !supabaseReady}
             >
               <GoogleIcon />
               {signingIn ? "Redirecting..." : copy.loginWithGoogle}
