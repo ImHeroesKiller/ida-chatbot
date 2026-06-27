@@ -6,7 +6,6 @@ import { useThemeContext } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
-import { useUiPrefs } from "@/lib/ui-prefs";
 import { cn } from "@/lib/utils";
 
 interface SidebarSettingsProps {
@@ -22,7 +21,6 @@ export function SidebarSettings({
 }: SidebarSettingsProps) {
   const copy = COPY[locale];
   const { theme, hydrated: themeHydrated, toggleTheme } = useThemeContext();
-  const { prefs, toggleCompactMode } = useUiPrefs();
 
   if (!expanded) {
     return (
@@ -31,7 +29,7 @@ export function SidebarSettings({
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="h-9 w-full"
+          className="h-9 w-full transition-transform hover:scale-105 active:scale-95"
           onClick={toggleTheme}
           title={copy.toggleTheme}
           aria-label={copy.toggleTheme}
@@ -58,7 +56,7 @@ export function SidebarSettings({
           type="button"
           variant="ghost"
           size="sm"
-          className="h-8 w-full justify-start gap-2 text-xs"
+          className="h-8 w-full justify-start gap-2 text-xs transition-colors hover:bg-muted/80"
           onClick={toggleTheme}
         >
           {themeHydrated && theme === "dark" ? (
@@ -68,16 +66,6 @@ export function SidebarSettings({
           )}
           {copy.toggleTheme}
         </Button>
-
-        <label className="flex h-8 cursor-pointer items-center justify-between gap-2 rounded-lg px-2 text-xs hover:bg-muted/50">
-          <span>{copy.compactMode}</span>
-          <input
-            type="checkbox"
-            checked={prefs.compactMode}
-            onChange={toggleCompactMode}
-            className="h-3.5 w-3.5 rounded border-input accent-primary"
-          />
-        </label>
 
         <Button
           type="button"

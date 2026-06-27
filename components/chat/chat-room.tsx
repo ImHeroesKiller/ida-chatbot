@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
   type FormEvent,
@@ -16,6 +17,7 @@ import { HandoffDialog } from "@/components/chat/handoff-dialog";
 import { MessageBubble } from "@/components/chat/message-bubble";
 import { MessageSkeleton } from "@/components/chat/message-skeleton";
 import { QuickReplies } from "@/components/chat/quick-replies";
+import { ScrollToBottomButton } from "@/components/chat/scroll-to-bottom";
 import { ChatSidebar } from "@/components/chat/sidebar";
 import { useChatContext } from "@/components/chat/chat-provider";
 import { Button } from "@/components/ui/button";
@@ -31,8 +33,8 @@ import { useChatStore, WELCOME_MESSAGE_ID } from "@/lib/chat-store";
 import { IDA_CONFIG } from "@/lib/config";
 import { buildHandoffPrefill, getQuickReplies } from "@/lib/handoff";
 import { COPY } from "@/lib/i18n";
+import { MessageReactionsProvider } from "@/lib/message-reactions";
 import { useSidebarExpanded } from "@/lib/sidebar-prefs";
-import { useUiPrefs } from "@/lib/ui-prefs";
 import type { IdaMessage } from "@/lib/types";
 import type { IdaSseMetaPayload } from "@/lib/sse";
 import { cn } from "@/lib/utils";
@@ -53,7 +55,6 @@ export function ChatRoom() {
   const inputId = useId();
   const { expanded: sidebarExpanded, toggle: toggleSidebar } =
     useSidebarExpanded();
-  const { prefs: uiPrefs } = useUiPrefs();
 
   const {
     hydrated,
@@ -79,6 +80,7 @@ export function ChatRoom() {
     getQuickReplies(locale),
   );
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -86,6 +88,20 @@ export function ChatRoom() {
   const activeChatIdRef = useRef<string | null>(null);
 
   const hasUserMessages = messages.some((message) => message.role === "user");
+
+  const lastAssistantMessageId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      const message = messages[i];
+      if (
+        message?.role === "assistant" &&
+        message.id !== WELCOME_MESSAGE_ID &&
+        message.content.trim()
+      ) {
+        return message.id;
+      }
+    }
+    return null;
+  }, [messages]);
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
     const container = scrollContainerRef.current;
@@ -99,6 +115,21 @@ export function ChatRoom() {
   useEffect(() => {
     scrollToBottom(isLoading ? "auto" : "smooth");
   }, [messages, isLoading, scrollToBottom]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const distanceFromBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight;
+      setShowScrollButton(distanceFromBottom > 120);
+    };
+
+    handleScroll();
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [hydrated, currentChat?.id]);
 
   useEffect(() => {
     if (!hydrated || !currentChat) return;
@@ -156,6 +187,100 @@ export function ChatRoom() {
     setMobileSidebarOpen(false);
   }, [createChat]);
 
+  const streamAssistantReply = useCallback(
+    async (
+      contextMessages: IdaMessage[],
+      streamId: string,
+      chatIdAtSend: string,
+      apiSessionId: string,
+    ) => {
+      const streamingPlaceholder: IdaMessage = {
+        id: streamId,
+        role: "assistant",
+        content: "",
+        createdAt: Date.now(),
+      };
+
+      let finalMessages = [...contextMessages, streamingPlaceholder];
+
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            locale,
+            sessionId: apiSessionId,
+            messages: toApiMessages(contextMessages),
+          }),
+        });
+
+        if (!response.ok) {
+          const data = (await response.json().catch(() => ({}))) as {
+            error?: string;
+          };
+
+          if (response.status === 429) {
+            throw new Error(copy.errors.rateLimit);
+          }
+
+          throw new Error(data.error ?? copy.errors.generic);
+        }
+
+        const contentType = response.headers.get("content-type") ?? "";
+
+        if (!contentType.includes("text/event-stream")) {
+          throw new Error(copy.errors.generic);
+        }
+
+        await consumeIdaSseStream(
+          response,
+          (token) => {
+            finalMessages = finalMessages.map((message) =>
+              message.id === streamId
+                ? { ...message, content: message.content + token }
+                : message,
+            );
+
+            if (activeChatIdRef.current === chatIdAtSend) {
+              setMessages(finalMessages);
+            } else {
+              persistCurrentChat({ messages: finalMessages });
+            }
+          },
+          (meta: IdaSseMetaPayload) => {
+            if (meta.quickReplies?.length) {
+              if (activeChatIdRef.current === chatIdAtSend) {
+                setQuickReplies(meta.quickReplies);
+              } else {
+                persistCurrentChat({ quickReplies: meta.quickReplies });
+              }
+            }
+
+            if (meta.handoffTriggered && meta.handoffPrefill) {
+              openHandoff(meta.handoffPrefill);
+            }
+          },
+        );
+
+        if (activeChatIdRef.current !== chatIdAtSend) {
+          persistCurrentChat({ messages: finalMessages });
+        }
+      } catch (err) {
+        if (activeChatIdRef.current === chatIdAtSend) {
+          setMessages((prev) =>
+            prev.filter((message) => message.id !== streamId),
+          );
+        }
+
+        const message =
+          err instanceof Error ? err.message : copy.errors.generic;
+        setError(message);
+        throw err;
+      }
+    },
+    [copy.errors, locale, openHandoff, persistCurrentChat],
+  );
+
   const sendMessage = async (rawText: string) => {
     const text = rawText.trim();
     if (!text || isLoading || !currentChat) return;
@@ -176,14 +301,16 @@ export function ChatRoom() {
 
     const nextMessages = [...messages, userMessage];
     const streamId = createMessageId();
-    const streamingPlaceholder: IdaMessage = {
-      id: streamId,
-      role: "assistant",
-      content: "",
-      createdAt: Date.now(),
-    };
 
-    setMessages([...nextMessages, streamingPlaceholder]);
+    setMessages([
+      ...nextMessages,
+      {
+        id: streamId,
+        role: "assistant",
+        content: "",
+        createdAt: Date.now(),
+      },
+    ]);
     setStreamingMessageId(streamId);
     setInput("");
     setIsLoading(true);
@@ -191,78 +318,12 @@ export function ChatRoom() {
     const chatIdAtSend = currentChat.id;
 
     try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          locale,
-          sessionId: currentChat.apiSessionId,
-          messages: toApiMessages(nextMessages),
-        }),
-      });
-
-      if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as {
-          error?: string;
-        };
-
-        if (response.status === 429) {
-          throw new Error(copy.errors.rateLimit);
-        }
-
-        throw new Error(data.error ?? copy.errors.generic);
-      }
-
-      const contentType = response.headers.get("content-type") ?? "";
-
-      if (!contentType.includes("text/event-stream")) {
-        throw new Error(copy.errors.generic);
-      }
-
-      let finalMessages = [...nextMessages, streamingPlaceholder];
-
-      await consumeIdaSseStream(
-        response,
-        (token) => {
-          finalMessages = finalMessages.map((message) =>
-            message.id === streamId
-              ? { ...message, content: message.content + token }
-              : message,
-          );
-
-          if (activeChatIdRef.current === chatIdAtSend) {
-            setMessages(finalMessages);
-          } else {
-            persistCurrentChat({ messages: finalMessages });
-          }
-        },
-        (meta: IdaSseMetaPayload) => {
-          if (meta.quickReplies?.length) {
-            if (activeChatIdRef.current === chatIdAtSend) {
-              setQuickReplies(meta.quickReplies);
-            } else {
-              persistCurrentChat({ quickReplies: meta.quickReplies });
-            }
-          }
-
-          if (meta.handoffTriggered && meta.handoffPrefill) {
-            openHandoff(meta.handoffPrefill);
-          }
-        },
+      await streamAssistantReply(
+        nextMessages,
+        streamId,
+        chatIdAtSend,
+        currentChat.apiSessionId,
       );
-
-      if (activeChatIdRef.current !== chatIdAtSend) {
-        persistCurrentChat({ messages: finalMessages });
-      }
-    } catch (err) {
-      if (activeChatIdRef.current === chatIdAtSend) {
-        setMessages((prev) =>
-          prev.filter((message) => message.id !== streamId),
-        );
-      }
-
-      const message = err instanceof Error ? err.message : copy.errors.generic;
-      setError(message);
     } finally {
       if (activeChatIdRef.current === chatIdAtSend) {
         setStreamingMessageId(null);
@@ -270,6 +331,53 @@ export function ChatRoom() {
       }
     }
   };
+
+  const handleRegenerate = useCallback(
+    async (assistantMessageId: string) => {
+      if (isLoading || !currentChat) return;
+
+      const assistantIndex = messages.findIndex(
+        (message) => message.id === assistantMessageId,
+      );
+      if (assistantIndex <= 0) return;
+
+      const contextMessages = messages.slice(0, assistantIndex);
+      const lastMessage = contextMessages[contextMessages.length - 1];
+      if (!lastMessage || lastMessage.role !== "user") return;
+
+      setError(null);
+      const streamId = createMessageId();
+
+      setMessages([
+        ...contextMessages,
+        {
+          id: streamId,
+          role: "assistant",
+          content: "",
+          createdAt: Date.now(),
+        },
+      ]);
+      setStreamingMessageId(streamId);
+      setIsLoading(true);
+
+      const chatIdAtSend = currentChat.id;
+
+      try {
+        await streamAssistantReply(
+          contextMessages,
+          streamId,
+          chatIdAtSend,
+          currentChat.apiSessionId,
+        );
+      } finally {
+        if (activeChatIdRef.current === chatIdAtSend) {
+          setStreamingMessageId(null);
+          setIsLoading(false);
+        }
+      }
+    },
+    [currentChat, isLoading, messages, streamAssistantReply],
+  );
 
   const handleQuickReply = (message: string) => {
     void sendMessage(message);
@@ -301,7 +409,7 @@ export function ChatRoom() {
   };
 
   return (
-    <>
+    <MessageReactionsProvider>
       <div
         className="flex h-dvh w-full overflow-hidden bg-background"
         role="application"
@@ -320,7 +428,7 @@ export function ChatRoom() {
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="shrink-0 md:hidden"
+              className="shrink-0 transition-transform hover:scale-105 active:scale-95 md:hidden"
               aria-label={copy.openSessions}
               onClick={() => setMobileSidebarOpen(true)}
             >
@@ -343,46 +451,52 @@ export function ChatRoom() {
             <Button
               size="sm"
               variant="outline"
-              className="hidden h-8 shrink-0 text-xs sm:inline-flex"
+              className="hidden h-8 shrink-0 text-xs transition-colors sm:inline-flex"
               onClick={handleSmartHandoff}
             >
               {copy.handoff}
             </Button>
           </header>
 
-          <div
-            ref={scrollContainerRef}
-            className="flex-1 overflow-y-auto overscroll-y-contain px-3 py-4 sm:px-5"
-          >
+          <div className="relative min-h-0 flex-1">
             <div
-              className={cn(
-                "mx-auto w-full max-w-2xl",
-                uiPrefs.compactMode ? "space-y-4" : "space-y-6",
-              )}
+              ref={scrollContainerRef}
+              className="h-full overflow-y-auto overscroll-y-contain px-3 py-4 sm:px-5"
             >
-              {!hasUserMessages && <ChatEmptyState locale={locale} />}
+              <div className="mx-auto w-full max-w-2xl space-y-6">
+                {!hasUserMessages && <ChatEmptyState locale={locale} />}
 
-              {messages.map((message) => {
-                const isStreaming = message.id === streamingMessageId;
-                const isEmptyStreaming =
-                  isStreaming && message.content.length === 0;
+                {messages.map((message) => {
+                  const isStreaming = message.id === streamingMessageId;
+                  const isEmptyStreaming =
+                    isStreaming && message.content.length === 0;
 
-                if (isEmptyStreaming) {
-                  return <MessageSkeleton key={message.id} />;
-                }
+                  if (isEmptyStreaming) {
+                    return <MessageSkeleton key={message.id} />;
+                  }
 
-                return (
-                  <MessageBubble
-                    key={message.id}
-                    message={message}
-                    locale={locale}
-                    isStreaming={isStreaming}
-                  />
-                );
-              })}
+                  return (
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                      locale={locale}
+                      isStreaming={isStreaming}
+                      isWelcome={message.id === WELCOME_MESSAGE_ID}
+                      isLastAssistant={message.id === lastAssistantMessageId}
+                      onRegenerate={handleRegenerate}
+                    />
+                  );
+                })}
 
-              <div ref={messagesEndRef} className="h-px" aria-hidden />
+                <div ref={messagesEndRef} className="h-px" aria-hidden />
+              </div>
             </div>
+
+            <ScrollToBottomButton
+              visible={showScrollButton}
+              locale={locale}
+              onClick={() => scrollToBottom("smooth")}
+            />
           </div>
 
           {error && (
@@ -421,7 +535,7 @@ export function ChatRoom() {
                   rows={1}
                   disabled={isLoading}
                   className={cn(
-                    "max-h-28 min-h-10 flex-1 resize-none rounded-2xl text-base sm:text-sm",
+                    "chat-input max-h-28 min-h-11 flex-1 resize-none rounded-2xl",
                     "focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/20",
                     "dark:bg-background/60",
                   )}
@@ -431,15 +545,15 @@ export function ChatRoom() {
                   size="icon"
                   disabled={isLoading || !input.trim()}
                   aria-label={copy.send}
-                  className="h-10 w-10 shrink-0"
+                  className="h-11 w-11 shrink-0 transition-transform hover:scale-105 active:scale-95"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
-              <p className="mt-2 text-center text-[10px] text-muted-foreground">
+              <p className="mt-2 text-center text-[11px] text-muted-foreground">
                 {copy.sendShortcut}
               </p>
-              <p className="mt-1 text-center text-[10px] leading-relaxed text-muted-foreground">
+              <p className="mt-1 text-center text-[11px] leading-relaxed text-muted-foreground">
                 {copy.disclaimer}
               </p>
             </div>
@@ -461,6 +575,6 @@ export function ChatRoom() {
       </Sheet>
 
       <HandoffDialog />
-    </>
+    </MessageReactionsProvider>
   );
 }

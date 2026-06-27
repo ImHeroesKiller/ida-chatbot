@@ -81,6 +81,9 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --ida-font-chat: 15.5px;
+  --ida-font-chat-input: 16px;
+  --ida-line-height-chat: 1.6;
 }
 
 .dark {
@@ -126,5 +129,17 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  .chat-text {
+    font-size: var(--ida-font-chat);
+    line-height: var(--ida-line-height-chat);
+  }
+
+  .chat-input {
+    font-size: var(--ida-font-chat-input);
+    line-height: var(--ida-line-height-chat);
   }
 }

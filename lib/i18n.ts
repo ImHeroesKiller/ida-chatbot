@@ -44,8 +44,16 @@ export const COPY: Record<
     deleteSession: string;
     deleteConfirm: string;
     settings: string;
-    compactMode: string;
     clearAllChats: string;
+    shareMessage: string;
+    shareSuccess: string;
+    regenerate: string;
+    thumbsUp: string;
+    thumbsDown: string;
+    reactionThanks: string;
+    reactionFeedback: string;
+    scrollToBottom: string;
+    emptyStateSubtitle: string;
     clearAllConfirm: string;
     errors: {
       generic: string;
@@ -56,7 +64,7 @@ export const COPY: Record<
 > = {
   id: {
     welcome:
-      "Halo! Saya IDA — asisten AI mandiri yang siap membantu. Ada yang bisa saya bantu hari ini?",
+      "Halo! Saya **IDA** — Intelligent Digital Assistant yang siap membantu Anda.\n\nSaya bisa membantu dengan:\n- Pertanyaan umum & penjelasan\n- Brainstorming ide\n- Panduan langkah demi langkah\n\nApa yang ingin Anda tanyakan hari ini?",
     subtitle: "Intelligent Digital Assistant",
     windowLabel: "Jendela chat IDA",
     open: "Buka chat IDA",
@@ -77,8 +85,9 @@ export const COPY: Record<
     openSessions: "Buka daftar percakapan",
     expandSidebar: "Perluas sidebar",
     collapseSidebar: "Ciutkan sidebar",
-    emptyStateTitle: "Mulai percakapan",
-    emptyStateHint: "Ketik pesan di bawah atau pilih saran cepat untuk memulai.",
+    emptyStateTitle: "Selamat datang di IDA",
+    emptyStateSubtitle: "Asisten AI mandiri, multilingual, siap 24/7",
+    emptyStateHint: "Ketik pesan di bawah atau pilih saran cepat untuk memulai percakapan.",
     emptyStateTipsTitle: "Tips",
     emptyStateTips: [
       "Tanyakan apa saja — IDA mendukung Bahasa Indonesia, Inggris, dan Mandarin.",
@@ -101,8 +110,15 @@ export const COPY: Record<
     deleteSession: "Hapus",
     deleteConfirm: "Hapus percakapan ini? Tindakan tidak dapat dibatalkan.",
     settings: "Pengaturan",
-    compactMode: "Mode ringkas",
     clearAllChats: "Hapus semua chat",
+    shareMessage: "Bagikan",
+    shareSuccess: "Pesan disalin untuk dibagikan",
+    regenerate: "Buat ulang",
+    thumbsUp: "Membantu",
+    thumbsDown: "Kurang membantu",
+    reactionThanks: "Terima kasih atas masukannya!",
+    reactionFeedback: "Masukan dicatat, terima kasih!",
+    scrollToBottom: "Ke bawah",
     clearAllConfirm: "Hapus semua percakapan? Tindakan ini tidak dapat dibatalkan.",
     errors: {
       generic: "Gagal mendapatkan respons. Coba lagi.",
@@ -112,7 +128,7 @@ export const COPY: Record<
   },
   en: {
     welcome:
-      "Hello! I'm IDA — an independent AI assistant ready to help. What can I do for you today?",
+      "Hello! I'm **IDA** — your Intelligent Digital Assistant.\n\nI can help with:\n- General questions & explanations\n- Idea brainstorming\n- Step-by-step guidance\n\nWhat would you like to ask today?",
     subtitle: "Intelligent Digital Assistant",
     windowLabel: "IDA chat window",
     open: "Open IDA chat",
@@ -133,8 +149,9 @@ export const COPY: Record<
     openSessions: "Open chat sessions",
     expandSidebar: "Expand sidebar",
     collapseSidebar: "Collapse sidebar",
-    emptyStateTitle: "Start a conversation",
-    emptyStateHint: "Type a message below or pick a quick suggestion to begin.",
+    emptyStateTitle: "Welcome to IDA",
+    emptyStateSubtitle: "Independent, multilingual AI assistant — available 24/7",
+    emptyStateHint: "Type a message below or pick a quick suggestion to get started.",
     emptyStateTipsTitle: "Tips",
     emptyStateTips: [
       "Ask anything — IDA supports Indonesian, English, and Chinese.",
@@ -157,8 +174,15 @@ export const COPY: Record<
     deleteSession: "Delete",
     deleteConfirm: "Delete this conversation? This cannot be undone.",
     settings: "Settings",
-    compactMode: "Compact mode",
     clearAllChats: "Clear all chats",
+    shareMessage: "Share",
+    shareSuccess: "Message copied for sharing",
+    regenerate: "Regenerate",
+    thumbsUp: "Helpful",
+    thumbsDown: "Not helpful",
+    reactionThanks: "Thanks for your feedback!",
+    reactionFeedback: "Feedback noted, thank you!",
+    scrollToBottom: "Scroll down",
     clearAllConfirm: "Delete all conversations? This cannot be undone.",
     errors: {
       generic: "Failed to get a response. Please try again.",
@@ -168,7 +192,7 @@ export const COPY: Record<
   },
   zh: {
     welcome:
-      "你好！我是 IDA — 独立的 AI 助手，随时为你提供帮助。今天有什么可以帮你的？",
+      "你好！我是 **IDA** — 你的智能数字助手。\n\n我可以帮助你：\n- 解答常见问题\n- 头脑风暴创意\n- 提供分步指导\n\n今天想问我什么？",
     subtitle: "智能数字助手",
     windowLabel: "IDA 聊天窗口",
     open: "打开 IDA 聊天",
@@ -189,8 +213,9 @@ export const COPY: Record<
     openSessions: "打开对话列表",
     expandSidebar: "展开侧边栏",
     collapseSidebar: "收起侧边栏",
-    emptyStateTitle: "开始对话",
-    emptyStateHint: "在下方输入消息或选择快捷建议开始。",
+    emptyStateTitle: "欢迎使用 IDA",
+    emptyStateSubtitle: "独立多语言 AI 助手，全天候在线",
+    emptyStateHint: "在下方输入消息或选择快捷建议开始对话。",
     emptyStateTipsTitle: "小贴士",
     emptyStateTips: [
       "随意提问 — IDA 支持印尼语、英语和中文。",
@@ -213,8 +238,15 @@ export const COPY: Record<
     deleteSession: "删除",
     deleteConfirm: "删除此对话？此操作无法撤销。",
     settings: "设置",
-    compactMode: "紧凑模式",
     clearAllChats: "清除所有对话",
+    shareMessage: "分享",
+    shareSuccess: "消息已复制，可分享",
+    regenerate: "重新生成",
+    thumbsUp: "有帮助",
+    thumbsDown: "没帮助",
+    reactionThanks: "感谢你的反馈！",
+    reactionFeedback: "已记录反馈，谢谢！",
+    scrollToBottom: "回到底部",
     clearAllConfirm: "删除所有对话？此操作无法撤销。",
     errors: {
       generic: "获取回复失败，请重试。",

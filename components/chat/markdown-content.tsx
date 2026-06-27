@@ -19,7 +19,7 @@ export function MarkdownContent({
   return (
     <div
       className={cn(
-        "ida-markdown text-sm leading-relaxed",
+        "ida-markdown",
         "[&_p]:mb-2 [&_p:last-child]:mb-0",
         "[&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1",
         "[&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1",

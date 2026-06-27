@@ -1,6 +1,7 @@
 "use client";
 
-import { Lightbulb, MessageSquare, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
+import { Lightbulb, Sparkles, Zap } from "lucide-react";
 
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
@@ -15,54 +16,63 @@ export function ChatEmptyState({ locale, className }: ChatEmptyStateProps) {
   const copy = COPY[locale];
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
       className={cn(
         "relative overflow-hidden rounded-2xl border border-dashed",
-        "bg-gradient-to-b from-muted/40 via-muted/20 to-transparent",
+        "bg-gradient-to-br from-primary/5 via-muted/30 to-transparent",
         "px-5 py-8 text-center sm:px-8 sm:py-10",
-        "dark:from-muted/30 dark:via-muted/10",
+        "dark:from-primary/10 dark:via-muted/15",
         className,
       )}
     >
       <div
-        className="pointer-events-none absolute -top-8 left-1/2 h-32 w-32 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl dark:bg-primary/20"
+        className="pointer-events-none absolute -top-10 left-1/2 h-36 w-36 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl"
         aria-hidden
       />
 
-      <div className="relative mx-auto flex max-w-sm flex-col items-center">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20 dark:bg-primary/15">
-          <MessageSquare className="h-6 w-6 text-primary" />
-        </div>
+      <div className="relative mx-auto flex max-w-md flex-col items-center">
+        <motion.div
+          animate={{ scale: [1, 1.04, 1] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/25 shadow-sm dark:bg-primary/15"
+        >
+          <Sparkles className="h-7 w-7 text-primary" />
+        </motion.div>
 
-        <div className="mb-1 flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-primary" />
-          <p className="text-sm font-semibold tracking-tight">
-            {copy.emptyStateTitle}
-          </p>
-        </div>
-
-        <p className="text-xs leading-relaxed text-muted-foreground">
+        <p className="text-base font-semibold tracking-tight">
+          {copy.emptyStateTitle}
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {copy.emptyStateSubtitle}
+        </p>
+        <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
           {copy.emptyStateHint}
         </p>
 
-        <div className="mt-5 w-full rounded-xl border bg-background/70 p-3 text-left dark:bg-background/50">
-          <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-            <Lightbulb className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
+        <div className="mt-6 w-full rounded-xl border bg-background/80 p-4 text-left shadow-sm backdrop-blur-sm dark:bg-background/60">
+          <div className="mb-3 flex items-center gap-2 text-xs font-medium text-muted-foreground">
+            <Lightbulb className="h-4 w-4 text-amber-500 dark:text-amber-400" />
             {copy.emptyStateTipsTitle}
           </div>
-          <ul className="space-y-1.5">
-            {copy.emptyStateTips.map((tip) => (
-              <li
+          <ul className="space-y-2.5">
+            {copy.emptyStateTips.map((tip, index) => (
+              <motion.li
                 key={tip}
-                className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"
+                initial={{ opacity: 0, x: -6 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 + index * 0.06 }}
+                className="flex items-start gap-2.5 text-sm leading-relaxed text-muted-foreground"
               >
-                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary/60" />
+                <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary/70" />
                 <span>{tip}</span>
-              </li>
+              </motion.li>
             ))}
           </ul>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
