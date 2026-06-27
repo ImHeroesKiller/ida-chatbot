@@ -132,7 +132,7 @@ export default function RootLayout({
     <html
       lang="id"
       suppressHydrationWarning
-      className={`${inter.variable} h-full antialiased`}
+      className={`${inter.variable} min-h-full antialiased`}
       data-ida-font-size={uiConfig.fontSize}
       data-ida-density={uiConfig.density}
       data-ida-animation={uiConfig.animationLevel}
@@ -156,7 +156,7 @@ export default function RootLayout({
         />
         <script dangerouslySetInnerHTML={{ __html: uiInitScript }} />
       </head>
-      <body className="h-dvh overflow-hidden bg-background font-sans text-foreground">
+      <body className="min-h-dvh bg-background font-sans text-foreground">
         <GlobalUiProvider initialConfig={uiConfig}>
           <ThemeProvider>
             {children}

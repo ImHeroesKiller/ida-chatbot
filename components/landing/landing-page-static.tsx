@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Brain, Globe2, MessageSquare, Shield } from "lucide-react";
 
+import { LandingFooter } from "@/components/landing/footer";
 import { LandingLcpLogo } from "@/components/landing/landing-lcp-logo";
 import { LandingLoginLazy } from "@/components/landing/landing-login-lazy";
-import { LegalFooterLinks } from "@/components/legal/legal-page";
 import { IDA_CONFIG } from "@/lib/config";
 import { LANDING_COPY, LANDING_FEATURES } from "@/lib/landing/content";
 
@@ -11,9 +11,9 @@ const FEATURE_ICONS = [Brain, MessageSquare, Globe2, Shield] as const;
 
 export function LandingPageStatic() {
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
-      <header className="border-b px-4 py-4 sm:px-6">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
             <LandingLcpLogo />
             <span className="text-sm font-semibold tracking-tight">
@@ -24,10 +24,16 @@ export function LandingPageStatic() {
             className="flex items-center gap-4 text-sm text-muted-foreground"
             aria-label="Legal"
           >
-            <Link href="/privacy" className="hover:text-foreground hover:underline">
+            <Link
+              href="/privacy"
+              className="hover:text-foreground hover:underline"
+            >
               {LANDING_COPY.privacyLink}
             </Link>
-            <Link href="/terms" className="hover:text-foreground hover:underline">
+            <Link
+              href="/terms"
+              className="hover:text-foreground hover:underline"
+            >
               {LANDING_COPY.termsLink}
             </Link>
           </nav>
@@ -82,7 +88,7 @@ export function LandingPageStatic() {
 
         <section
           id="sign-in"
-          className="border-t bg-muted/20 px-4 py-12 sm:px-6 sm:py-16"
+          className="border-t bg-muted/20 px-4 py-12 dark:bg-muted/10 sm:px-6 sm:py-16"
         >
           <div className="mx-auto max-w-md space-y-6 text-center">
             <div className="space-y-2">
@@ -109,13 +115,7 @@ export function LandingPageStatic() {
         </section>
       </main>
 
-      <footer className="shrink-0 border-t px-4 py-5">
-        <LegalFooterLinks />
-        <p className="mt-2 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} {IDA_CONFIG.name} — Intelligent Digital
-          Assistant
-        </p>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }

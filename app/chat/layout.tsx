@@ -16,7 +16,7 @@ export default function ChatLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={geistMono.variable}>
+    <div className={`${geistMono.variable} h-dvh overflow-hidden`}>
       <AuthProvider>
         <AppChrome>{children}</AppChrome>
       </AuthProvider>
