@@ -8,6 +8,7 @@ export const IDA_CONFIG = {
   chunkOverlap: 150,
   retrievalTopK: 6,
   retrievalThreshold: 0.35,
+  ragConfidenceThreshold: 0.75,
   memoryWindowK: 10,
   rateLimitPoints: 10,
   rateLimitDurationSec: 60,

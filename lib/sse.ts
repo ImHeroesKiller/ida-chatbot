@@ -3,6 +3,8 @@ export type IdaSseEventType = "meta" | "token" | "done" | "error";
 export interface IdaSseMetaPayload {
   retrievedChunks: number;
   usedRag: boolean;
+  ragFallbackReason?: string;
+  maxSimilarity?: number;
   quickReplies?: string[];
   handoffPrefill?: {
     topic: string;

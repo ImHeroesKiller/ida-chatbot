@@ -79,6 +79,25 @@ export async function POST(request: Request) {
   try {
     const context = await prepareIdaChatContext({ messages, locale, sessionId });
 
+    if (!context.meta.usedRag) {
+      console.log("[IDA chat] RAG fallback", {
+        reason: context.meta.ragFallbackReason ?? "unknown",
+        maxSimilarity: context.meta.maxSimilarity ?? 0,
+        retrievedChunks: context.meta.retrievedChunks,
+        threshold: IDA_CONFIG.ragConfidenceThreshold,
+        locale,
+        sessionId: sessionId ?? null,
+      });
+    } else {
+      console.log("[IDA chat] RAG active", {
+        retrievedChunks: context.meta.retrievedChunks,
+        maxSimilarity: context.meta.maxSimilarity ?? 0,
+        threshold: IDA_CONFIG.ragConfidenceThreshold,
+        locale,
+        sessionId: sessionId ?? null,
+      });
+    }
+
     const stream = createSseStream(async (send) => {
       send("meta", context.meta);
 

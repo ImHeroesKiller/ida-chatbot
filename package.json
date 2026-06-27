@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "index:ida": "node scripts/seed-ida-chunks.mjs",
-    "test:rag": "node scripts/test-rag-precision.mjs"
+    "test:rag": "node scripts/test-rag-precision.mjs",
+    "test:rag-confidence": "node scripts/test-rag-confidence.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

@@ -5,6 +5,21 @@ import { isSupabaseConfigured } from "@/lib/supabase/admin";
 import { searchDocumentChunks } from "./vector-store";
 import type { RetrievedChunk } from "./types";
 
+export type RagFallbackReason =
+  | "supabase_unconfigured"
+  | "retrieval_error"
+  | "no_chunks"
+  | "low_confidence";
+
+export interface RetrievalResult {
+  chunks: RetrievedChunk[];
+  context: string;
+  usedRag: boolean;
+  fallbackReason?: RagFallbackReason;
+  maxSimilarity: number;
+  retrievedChunkCount: number;
+}
+
 function resolveChunkLabel(chunk: RetrievedChunk): {
   source: string;
   section: string;
@@ -32,12 +47,43 @@ ${chunk.content}`;
     .join("\n\n");
 }
 
+function buildFallbackResult(options: {
+  fallbackReason: RagFallbackReason;
+  maxSimilarity?: number;
+  retrievedChunkCount?: number;
+  error?: unknown;
+}): RetrievalResult {
+  const {
+    fallbackReason,
+    maxSimilarity = 0,
+    retrievedChunkCount = 0,
+    error,
+  } = options;
+
+  console.log("[IDA retrieval] RAG fallback", {
+    reason: fallbackReason,
+    maxSimilarity,
+    retrievedChunkCount,
+    threshold: IDA_CONFIG.ragConfidenceThreshold,
+    ...(error instanceof Error ? { error: error.message } : {}),
+  });
+
+  return {
+    chunks: [],
+    context: "",
+    usedRag: false,
+    fallbackReason,
+    maxSimilarity,
+    retrievedChunkCount,
+  };
+}
+
 export async function retrieveContext(options: {
   query: string;
   locale: Locale;
-}): Promise<{ chunks: RetrievedChunk[]; context: string }> {
+}): Promise<RetrievalResult> {
   if (!isSupabaseConfigured()) {
-    return { chunks: [], context: "" };
+    return buildFallbackResult({ fallbackReason: "supabase_unconfigured" });
   }
 
   try {
@@ -48,12 +94,51 @@ export async function retrieveContext(options: {
       matchThreshold: IDA_CONFIG.retrievalThreshold,
     });
 
+    const retrievedChunkCount = chunks.length;
+    const maxSimilarity = chunks.reduce(
+      (max, chunk) => Math.max(max, chunk.similarity),
+      0,
+    );
+
+    if (retrievedChunkCount === 0) {
+      return buildFallbackResult({
+        fallbackReason: "no_chunks",
+        retrievedChunkCount: 0,
+        maxSimilarity: 0,
+      });
+    }
+
+    if (maxSimilarity < IDA_CONFIG.ragConfidenceThreshold) {
+      return buildFallbackResult({
+        fallbackReason: "low_confidence",
+        maxSimilarity,
+        retrievedChunkCount,
+      });
+    }
+
+    const confidentChunks = chunks.filter(
+      (chunk) => chunk.similarity >= IDA_CONFIG.ragConfidenceThreshold,
+    );
+
+    console.log("[IDA retrieval] RAG active", {
+      retrievedChunkCount,
+      usedChunks: confidentChunks.length,
+      maxSimilarity,
+      threshold: IDA_CONFIG.ragConfidenceThreshold,
+    });
+
     return {
-      chunks,
-      context: formatRetrievedContext(chunks),
+      chunks: confidentChunks,
+      context: formatRetrievedContext(confidentChunks),
+      usedRag: true,
+      maxSimilarity,
+      retrievedChunkCount,
     };
   } catch (error) {
     console.error("[IDA retrieval]", error);
-    return { chunks: [], context: "" };
+    return buildFallbackResult({
+      fallbackReason: "retrieval_error",
+      error,
+    });
   }
 }

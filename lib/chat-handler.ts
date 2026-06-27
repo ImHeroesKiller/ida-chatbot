@@ -55,7 +55,7 @@ export async function prepareIdaChatContext(
   ]);
 
   const systemInstruction = buildIdaSystemPrompt(locale, {
-    retrievedContext: retrieval.context,
+    retrievedContext: retrieval.usedRag ? retrieval.context : "",
     conversationMemory: memoryContext,
   });
 
@@ -82,8 +82,10 @@ export async function prepareIdaChatContext(
     model,
     messages: langchainMessages,
     meta: {
-      retrievedChunks: retrieval.chunks.length,
-      usedRag: retrieval.chunks.length > 0,
+      retrievedChunks: retrieval.retrievedChunkCount,
+      usedRag: retrieval.usedRag,
+      ragFallbackReason: retrieval.fallbackReason,
+      maxSimilarity: retrieval.maxSimilarity,
       quickReplies: getQuickReplies(locale),
       handoffPrefill,
     },
