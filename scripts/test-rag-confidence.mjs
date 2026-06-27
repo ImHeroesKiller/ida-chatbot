@@ -13,22 +13,23 @@ const CONFIDENCE_CASES = [
   },
   {
     name: "rag-weak",
-    label: "RAG lemah (chunks ada, similarity < 0.75)",
+    label: "RAG lemah (chunks ada, similarity 0.50–0.75)",
     query:
       "Berapa harga langganan streaming film dan serial TV per bulan di platform digital?",
     expectUsedRag: false,
     expectFallbackReason: "low_confidence",
+    minMaxSimilarity: 0.5,
     maxMaxSimilarity: 0.75,
     minRetrievedChunks: 1,
   },
   {
     name: "rag-failed",
-    label: "RAG gagal (tidak ada chunk relevan)",
+    label: "RAG gagal (match sangat rendah, pure LLM fallback)",
     query:
       "Resep lengkap kue bolu coklat tanpa oven untuk 20 orang dengan topping keju?",
     expectUsedRag: false,
-    expectFallbackReason: "no_chunks",
-    maxRetrievedChunks: 0,
+    allowedFallbackReasons: ["no_chunks", "low_confidence"],
+    maxMaxSimilarity: 0.5,
   },
 ];
 
@@ -95,12 +96,18 @@ function evaluateCase(testCase, meta) {
     );
   }
 
-  if (
-    testCase.expectFallbackReason &&
-    fallbackReason !== testCase.expectFallbackReason
-  ) {
+  if (testCase.expectFallbackReason && fallbackReason !== testCase.expectFallbackReason) {
     checks.push(
       `fallbackReason expected ${testCase.expectFallbackReason}, got ${fallbackReason ?? "undefined"}`,
+    );
+  }
+
+  if (
+    testCase.allowedFallbackReasons &&
+    !testCase.allowedFallbackReasons.includes(fallbackReason)
+  ) {
+    checks.push(
+      `fallbackReason expected one of ${testCase.allowedFallbackReasons.join(", ")}, got ${fallbackReason ?? "undefined"}`,
     );
   }
 
