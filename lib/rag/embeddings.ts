@@ -1,36 +1,40 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
 import { IDA_CONFIG } from "@/lib/config";
 
 export const EMBEDDING_DIMENSIONS = 768;
 
-let genAiClient: GoogleGenerativeAI | null = null;
-
-function getGenAiClient(): GoogleGenerativeAI {
+export async function embedText(text: string): Promise<number[]> {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not configured.");
   }
 
-  if (!genAiClient) {
-    genAiClient = new GoogleGenerativeAI(apiKey);
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${IDA_CONFIG.embeddingModel}:embedContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: `models/${IDA_CONFIG.embeddingModel}`,
+        content: { parts: [{ text }] },
+        outputDimensionality: EMBEDDING_DIMENSIONS,
+      }),
+    },
+  );
+
+  const payload = (await response.json()) as {
+    embedding?: { values?: number[] };
+    error?: { message?: string };
+  };
+
+  if (!response.ok) {
+    throw new Error(
+      payload.error?.message ??
+        `Embedding request failed with status ${response.status}`,
+    );
   }
 
-  return genAiClient;
-}
-
-export async function embedText(text: string): Promise<number[]> {
-  const model = getGenAiClient().getGenerativeModel({
-    model: IDA_CONFIG.embeddingModel,
-  });
-
-  const result = await model.embedContent({
-    content: { role: "user", parts: [{ text }] },
-    outputDimensionality: EMBEDDING_DIMENSIONS,
-  });
-
-  const values = result.embedding.values;
+  const values = payload.embedding?.values;
 
   if (!values?.length) {
     throw new Error("Empty embedding returned from model.");
