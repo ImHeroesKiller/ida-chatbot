@@ -2,10 +2,15 @@ import type { Metadata } from "next";
 
 import { LegalPage, LegalSection } from "@/components/legal/legal-page";
 import { IDA_CONFIG } from "@/lib/config";
+import { getCanonicalUrl } from "@/lib/seo/config";
 
 export const metadata: Metadata = {
   title: `Syarat Layanan — ${IDA_CONFIG.name}`,
   description: `Syarat dan ketentuan penggunaan ${IDA_CONFIG.name}.`,
+  alternates: {
+    canonical: getCanonicalUrl("/terms"),
+  },
+  robots: { index: true, follow: true },
 };
 
 const LAST_UPDATED = "27 Juni 2026";

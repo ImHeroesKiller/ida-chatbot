@@ -2,10 +2,15 @@ import type { Metadata } from "next";
 
 import { LegalPage, LegalSection } from "@/components/legal/legal-page";
 import { IDA_CONFIG } from "@/lib/config";
+import { getCanonicalUrl } from "@/lib/seo/config";
 
 export const metadata: Metadata = {
   title: `Kebijakan Privasi — ${IDA_CONFIG.name}`,
   description: `Kebijakan privasi ${IDA_CONFIG.name} Intelligent Digital Assistant.`,
+  alternates: {
+    canonical: getCanonicalUrl("/privacy"),
+  },
+  robots: { index: true, follow: true },
 };
 
 const LAST_UPDATED = "27 Juni 2026";

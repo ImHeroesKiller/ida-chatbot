@@ -1,8 +1,9 @@
 "use client";
 
-import { Download, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { Share, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { IdaLogo } from "@/components/brand/ida-logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -11,17 +12,58 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 }
 
-const DISMISS_KEY = "ida-pwa-install-dismissed";
+const DISMISS_KEY = "ida-pwa-install-dismissed-at";
+const DISMISS_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+function isDismissedRecently(): boolean {
+  try {
+    const raw = localStorage.getItem(DISMISS_KEY);
+    if (!raw) return false;
+    const dismissedAt = Number(raw);
+    return Number.isFinite(dismissedAt) && Date.now() - dismissedAt < DISMISS_TTL_MS;
+  } catch {
+    return false;
+  }
+}
+
+function isIosSafari(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const isIos = /iphone|ipad|ipod/i.test(ua);
+  const isSafari = /safari/i.test(ua) && !/crios|fxios|edgios/i.test(ua);
+  return isIos && isSafari;
+}
+
+function isStandalone(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    ("standalone" in navigator &&
+      (navigator as Navigator & { standalone?: boolean }).standalone === true)
+  );
+}
 
 export function PwaInstallPrompt({ className }: { className?: string }) {
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
+  const [iosMode, setIosMode] = useState(false);
+
+  const canShow = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return !isStandalone() && !isDismissedRecently();
+  }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.matchMedia("(display-mode: standalone)").matches) return;
-    if (localStorage.getItem(DISMISS_KEY) === "1") return;
+    if (!canShow) return;
+
+    if (isIosSafari()) {
+      const timer = window.setTimeout(() => {
+        setIosMode(true);
+        setVisible(true);
+      }, 2500);
+      return () => window.clearTimeout(timer);
+    }
 
     const handleBeforeInstall = (event: Event) => {
       event.preventDefault();
@@ -32,12 +74,17 @@ export function PwaInstallPrompt({ className }: { className?: string }) {
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
     return () =>
       window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
-  }, []);
+  }, [canShow]);
 
   const dismiss = useCallback(() => {
-    localStorage.setItem(DISMISS_KEY, "1");
+    try {
+      localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    } catch {
+      // ignore storage errors
+    }
     setVisible(false);
     setDeferredPrompt(null);
+    setIosMode(false);
   }, []);
 
   const install = useCallback(async () => {
@@ -60,29 +107,43 @@ export function PwaInstallPrompt({ className }: { className?: string }) {
       role="region"
       aria-label="Install IDA"
       className={cn(
-        "fixed inset-x-4 bottom-4 z-50 mx-auto max-w-md rounded-xl border border-border bg-card p-4 shadow-lg sm:inset-x-auto sm:right-4",
+        "fixed inset-x-4 bottom-4 z-50 mx-auto max-w-md rounded-xl border border-border bg-card/95 p-4 shadow-xl backdrop-blur-sm sm:inset-x-auto sm:right-4",
         className,
       )}
     >
       <div className="flex items-start gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
-          <Download className="size-5 text-primary" aria-hidden />
-        </div>
+        <IdaLogo size="sm" className="mt-0.5" />
+
         <div className="min-w-0 flex-1 space-y-2">
           <p className="text-sm font-semibold">Pasang IDA</p>
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            Tambahkan IDA ke layar utama untuk akses cepat seperti aplikasi
-            native.
-          </p>
+
+          {iosMode ? (
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Di Safari, ketuk{" "}
+              <Share className="inline size-3.5 align-text-bottom" />{" "}
+              <strong>Share</strong>, lalu pilih{" "}
+              <strong>Add to Home Screen</strong> untuk mengakses IDA seperti
+              aplikasi native.
+            </p>
+          ) : (
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Tambahkan IDA ke layar utama untuk akses cepat, notifikasi, dan
+              pengalaman fullscreen.
+            </p>
+          )}
+
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => void install()}>
-              Pasang
-            </Button>
+            {!iosMode && deferredPrompt && (
+              <Button size="sm" onClick={() => void install()}>
+                Pasang sekarang
+              </Button>
+            )}
             <Button size="sm" variant="ghost" onClick={dismiss}>
               Nanti
             </Button>
           </div>
         </div>
+
         <button
           type="button"
           onClick={dismiss}

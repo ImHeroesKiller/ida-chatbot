@@ -7,7 +7,6 @@ import toast from "react-hot-toast";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import { IdaLogo } from "@/components/brand/ida-logo";
-import { PwaInstallPrompt } from "@/components/brand/pwa-install-prompt";
 import { isSupabaseBrowserConfigured } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -138,7 +137,6 @@ export function LandingPage() {
         </p>
       </footer>
 
-      <PwaInstallPrompt />
     </div>
   );
 }
