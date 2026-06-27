@@ -3,7 +3,7 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 import { loadAppConfig } from "@/lib/admin/config";
 import { isModelConfigured } from "@/lib/admin/model-selection";
-import { findModelDefinition } from "@/lib/admin/models";
+import { findModelDefinition, getProviderApiKey } from "@/lib/admin/models";
 import type { Locale } from "@/lib/config";
 import { retrieveContext } from "@/lib/rag/retriever";
 
@@ -236,15 +236,19 @@ async function generateWithLlm(options: {
     modelSelection.provider,
   );
 
+  const apiKey = getProviderApiKey("google");
+
   if (
     !modelDef ||
     modelSelection.provider !== "google" ||
-    !isModelConfigured(modelSelection)
+    !isModelConfigured(modelSelection) ||
+    !apiKey
   ) {
     return null;
   }
 
   const model = new ChatGoogleGenerativeAI({
+    apiKey,
     model: modelSelection.id,
     temperature: 0.3,
     maxOutputTokens: 4096,

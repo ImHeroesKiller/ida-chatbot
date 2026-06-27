@@ -307,7 +307,11 @@ export function findModelDefinition(
   );
 }
 
-export function isProviderConfigured(provider: ModelProvider): boolean {
+export function getProviderApiKey(provider: ModelProvider): string | undefined {
   const envKey = MODEL_PROVIDERS[provider].envKey;
-  return Boolean(process.env[envKey]?.trim());
+  return process.env[envKey]?.trim() || undefined;
+}
+
+export function isProviderConfigured(provider: ModelProvider): boolean {
+  return Boolean(getProviderApiKey(provider));
 }
