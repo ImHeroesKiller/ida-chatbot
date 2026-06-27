@@ -411,7 +411,7 @@ export function ChatRoom() {
   return (
     <MessageReactionsProvider>
       <div
-        className="flex h-dvh w-full overflow-hidden bg-background"
+        className="flex h-dvh w-full overflow-hidden bg-background font-sans"
         role="application"
         aria-label={copy.windowLabel}
       >
