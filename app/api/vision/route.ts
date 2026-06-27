@@ -76,7 +76,10 @@ export async function POST(request: Request) {
       error instanceof Error &&
       error.message === "GEMINI_API_KEY is not configured."
         ? "Vision service is not configured."
-        : "Failed to extract text from file.";
+        : error instanceof Error &&
+            error.message === "Gemini vision returned empty content."
+          ? "No readable text found in the file."
+          : "Failed to extract text from file.";
 
     const status =
       error instanceof Error &&

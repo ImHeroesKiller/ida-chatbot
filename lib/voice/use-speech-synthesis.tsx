@@ -10,14 +10,10 @@ import {
   type ReactNode,
 } from "react";
 
-import type { Locale } from "@/lib/config";
+import { detectSpeechLanguage } from "@/lib/voice/detect-language";
+import { getLocaleTag, pickBestVoice } from "@/lib/voice/pick-voice";
+import { stripMarkdownForSpeech } from "@/lib/voice/strip-markdown";
 import { useVoicePrefs } from "@/lib/voice/voice-prefs";
-
-const LOCALE_TAGS: Record<Locale, string> = {
-  id: "id-ID",
-  en: "en-US",
-  zh: "zh-CN",
-};
 
 interface SpeechSynthesisContextValue {
   isSupported: boolean;
@@ -30,18 +26,57 @@ interface SpeechSynthesisContextValue {
 const SpeechSynthesisContext =
   createContext<SpeechSynthesisContextValue | null>(null);
 
+function waitForVoices(): Promise<SpeechSynthesisVoice[]> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      resolve([]);
+      return;
+    }
+
+    const synth = window.speechSynthesis;
+    const existing = synth.getVoices();
+    if (existing.length > 0) {
+      resolve(existing);
+      return;
+    }
+
+    const onVoicesChanged = () => {
+      const voices = synth.getVoices();
+      if (voices.length > 0) {
+        synth.removeEventListener("voiceschanged", onVoicesChanged);
+        resolve(voices);
+      }
+    };
+
+    synth.addEventListener("voiceschanged", onVoicesChanged);
+
+    window.setTimeout(() => {
+      synth.removeEventListener("voiceschanged", onVoicesChanged);
+      resolve(synth.getVoices());
+    }, 1500);
+  });
+}
+
 export function SpeechSynthesisProvider({ children }: { children: ReactNode }) {
   const { prefs } = useVoicePrefs();
   const [isSupported, setIsSupported] = useState(false);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(
     null,
   );
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
-    setIsSupported(
-      typeof window !== "undefined" && "speechSynthesis" in window,
-    );
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+
+    setIsSupported(true);
+
+    void waitForVoices().then(setVoices);
+
+    const synth = window.speechSynthesis;
+    const refresh = () => setVoices(synth.getVoices());
+    synth.addEventListener("voiceschanged", refresh);
+    return () => synth.removeEventListener("voiceschanged", refresh);
   }, []);
 
   const stop = useCallback(() => {
@@ -57,9 +92,17 @@ export function SpeechSynthesisProvider({ children }: { children: ReactNode }) {
 
       stop();
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = LOCALE_TAGS[prefs.voiceLanguage];
+      const plainText = stripMarkdownForSpeech(text);
+      if (!plainText) return;
+
+      const detectedLocale = detectSpeechLanguage(plainText);
+      const lang = getLocaleTag(detectedLocale);
+      const voice = pickBestVoice(voices, detectedLocale);
+
+      const utterance = new SpeechSynthesisUtterance(plainText);
+      utterance.lang = lang;
       utterance.rate = prefs.speechRate;
+      if (voice) utterance.voice = voice;
 
       utterance.onstart = () => setSpeakingMessageId(messageId);
       utterance.onend = () => setSpeakingMessageId(null);
@@ -68,7 +111,7 @@ export function SpeechSynthesisProvider({ children }: { children: ReactNode }) {
       utteranceRef.current = utterance;
       window.speechSynthesis.speak(utterance);
     },
-    [isSupported, prefs.speechRate, prefs.voiceLanguage, stop],
+    [isSupported, prefs.speechRate, stop, voices],
   );
 
   const toggle = useCallback(

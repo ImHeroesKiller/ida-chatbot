@@ -59,14 +59,25 @@ export const COPY: Record<
     uploadUnsupported: string;
     uploadTooLarge: string;
     uploadSuccess: string;
+    fileAttached: string;
+    pendingOcrHint: string;
     extractingFile: string;
     extractedTextLabel: string;
     removeAttachment: string;
+    ocrFailed: string;
+    ocrEmpty: string;
+    ocrNetworkError: string;
+    ocrUnavailable: string;
     listening: string;
     listeningPlaceholder: string;
     startListening: string;
     stopListening: string;
     voiceError: string;
+    voiceErrorNotAllowed: string;
+    voiceErrorNoSpeech: string;
+    voiceErrorNetwork: string;
+    voiceErrorUnsupported: string;
+    voiceErrorMic: string;
     voiceNoteLabel: string;
     speakMessage: string;
     stopSpeaking: string;
@@ -144,14 +155,25 @@ export const COPY: Record<
     uploadUnsupported: "Format file tidak didukung. Gunakan JPG, PNG, WebP, GIF, atau PDF.",
     uploadTooLarge: "File terlalu besar. Maksimal 10 MB.",
     uploadSuccess: "File berhasil diproses",
+    fileAttached: "File dilampirkan — OCR saat kirim",
+    pendingOcrHint: "Teks akan diekstrak saat Anda mengirim pesan",
     extractingFile: "Mengekstrak teks dari file...",
     extractedTextLabel: "Teks diekstrak",
     removeAttachment: "Hapus lampiran",
+    ocrFailed: "Gagal mengekstrak teks. Coba file lain atau kirim ulang.",
+    ocrEmpty: "Tidak ada teks yang terbaca di file ini.",
+    ocrNetworkError: "Koneksi gagal saat OCR. Periksa internet lalu coba lagi.",
+    ocrUnavailable: "Layanan OCR belum tersedia. Coba lagi nanti.",
     listening: "Mendengarkan...",
     listeningPlaceholder: "Bicara sekarang...",
     startListening: "Mulai rekaman suara",
     stopListening: "Hentikan rekaman",
     voiceError: "Gagal mengenali suara. Coba lagi.",
+    voiceErrorNotAllowed: "Akses mikrofon ditolak. Izinkan di pengaturan browser.",
+    voiceErrorNoSpeech: "Tidak terdengar suara. Coba bicara lebih dekat ke mic.",
+    voiceErrorNetwork: "Koneksi gagal saat transkripsi suara.",
+    voiceErrorUnsupported: "Browser ini tidak mendukung input suara.",
+    voiceErrorMic: "Tidak dapat mengakses mikrofon. Periksa perangkat Anda.",
     voiceNoteLabel: "Pesan suara",
     speakMessage: "Dengarkan pesan",
     stopSpeaking: "Hentikan suara",
@@ -228,14 +250,25 @@ export const COPY: Record<
     uploadUnsupported: "Unsupported file type. Use JPG, PNG, WebP, GIF, or PDF.",
     uploadTooLarge: "File is too large. Maximum 10 MB.",
     uploadSuccess: "File processed successfully",
+    fileAttached: "File attached — OCR runs on send",
+    pendingOcrHint: "Text will be extracted when you send the message",
     extractingFile: "Extracting text from file...",
     extractedTextLabel: "Extracted text",
     removeAttachment: "Remove attachment",
+    ocrFailed: "Failed to extract text. Try another file or resend.",
+    ocrEmpty: "No readable text found in this file.",
+    ocrNetworkError: "Network error during OCR. Check your connection and retry.",
+    ocrUnavailable: "OCR service is unavailable. Please try again later.",
     listening: "Listening...",
     listeningPlaceholder: "Speak now...",
     startListening: "Start voice input",
     stopListening: "Stop recording",
     voiceError: "Voice recognition failed. Please try again.",
+    voiceErrorNotAllowed: "Microphone access denied. Allow it in browser settings.",
+    voiceErrorNoSpeech: "No speech detected. Try speaking closer to the mic.",
+    voiceErrorNetwork: "Network error during voice transcription.",
+    voiceErrorUnsupported: "This browser does not support voice input.",
+    voiceErrorMic: "Cannot access microphone. Check your device.",
     voiceNoteLabel: "Voice note",
     speakMessage: "Listen to message",
     stopSpeaking: "Stop speaking",
@@ -312,14 +345,25 @@ export const COPY: Record<
     uploadUnsupported: "不支持的文件格式。请使用 JPG、PNG、WebP、GIF 或 PDF。",
     uploadTooLarge: "文件过大。最大 10 MB。",
     uploadSuccess: "文件处理成功",
+    fileAttached: "文件已附加 — 发送时进行 OCR",
+    pendingOcrHint: "发送消息时将提取文本",
     extractingFile: "正在从文件中提取文本...",
     extractedTextLabel: "提取的文本",
     removeAttachment: "移除附件",
+    ocrFailed: "文本提取失败。请换文件或重试。",
+    ocrEmpty: "文件中未找到可读文本。",
+    ocrNetworkError: "OCR 时网络错误。请检查连接后重试。",
+    ocrUnavailable: "OCR 服务暂不可用，请稍后再试。",
     listening: "正在聆听...",
     listeningPlaceholder: "请说话...",
     startListening: "开始语音输入",
     stopListening: "停止录音",
     voiceError: "语音识别失败，请重试。",
+    voiceErrorNotAllowed: "麦克风权限被拒绝。请在浏览器设置中允许。",
+    voiceErrorNoSpeech: "未检测到语音。请靠近麦克风说话。",
+    voiceErrorNetwork: "语音转录时网络错误。",
+    voiceErrorUnsupported: "此浏览器不支持语音输入。",
+    voiceErrorMic: "无法访问麦克风。请检查设备。",
     voiceNoteLabel: "语音消息",
     speakMessage: "播放消息",
     stopSpeaking: "停止播放",

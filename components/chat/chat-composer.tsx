@@ -16,20 +16,33 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { buildAttachmentMessageContent } from "@/lib/client/build-attachment-message";
 import {
+  VisionExtractError,
+  extractVisionFromFile,
+} from "@/lib/client/extract-vision";
+import {
   createImagePreview,
   isAcceptedUploadType,
   readFileAsBase64,
 } from "@/lib/client/file-utils";
 import { IDA_CONFIG, type Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
-import { useAudioWaveform } from "@/lib/voice/use-audio-waveform";
-import { useSpeechRecognition } from "@/lib/voice/use-speech-recognition";
+import type { IdaAttachment, IdaAttachmentType } from "@/lib/types";
+import { getVoiceErrorMessage } from "@/lib/voice/voice-error-copy";
+import { useVoiceInput } from "@/lib/voice/use-voice-input";
 import { useVoicePrefs } from "@/lib/voice/voice-prefs";
-import type { IdaAttachment } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 function createAttachmentId() {
   return `att-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+interface PendingUpload {
+  id: string;
+  type: IdaAttachmentType;
+  fileName: string;
+  mimeType: string;
+  previewDataUrl?: string;
+  dataBase64: string;
 }
 
 interface ChatComposerProps {
@@ -45,6 +58,10 @@ interface ChatComposerProps {
   }) => void;
 }
 
+function inferFileType(mimeType: string): IdaAttachmentType {
+  return mimeType === "application/pdf" ? "pdf" : "image";
+}
+
 export function ChatComposer({
   locale,
   sessionId,
@@ -57,8 +74,7 @@ export function ChatComposer({
   const inputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [pendingAttachment, setPendingAttachment] =
-    useState<IdaAttachment | null>(null);
+  const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
 
   const { prefs } = useVoicePrefs();
@@ -67,38 +83,89 @@ export function ChatComposer({
     isListening,
     displayTranscript,
     error: speechError,
+    waveformLevels,
     toggleListening,
     stopListening,
     resetTranscript,
-  } = useSpeechRecognition(locale);
+  } = useVoiceInput(locale);
 
-  const waveformLevels = useAudioWaveform(isListening);
+  const voiceErrorMessage = getVoiceErrorMessage(locale, speechError);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     void handleSend();
   };
 
+  const resolveOcrError = (err: unknown): string => {
+    if (err instanceof VisionExtractError) {
+      switch (err.code) {
+        case "rate_limit":
+          return copy.errors.rateLimit;
+        case "empty":
+          return copy.ocrEmpty;
+        case "network":
+          return copy.ocrNetworkError;
+        case "config":
+          return copy.ocrUnavailable;
+        default:
+          return copy.ocrFailed;
+      }
+    }
+    return copy.ocrFailed;
+  };
+
   const handleSend = async () => {
     const text = isListening ? displayTranscript : input;
 
-    if (!text.trim() && !pendingAttachment) return;
+    if (!text.trim() && !pendingUpload) return;
     if (isLoading || isExtracting) return;
 
     if (isListening) stopListening();
 
-    const content = pendingAttachment
-      ? buildAttachmentMessageContent(text, pendingAttachment, locale)
+    let attachment: IdaAttachment | undefined;
+
+    if (pendingUpload) {
+      setIsExtracting(true);
+
+      try {
+        const result = await extractVisionFromFile({
+          data: pendingUpload.dataBase64,
+          mimeType: pendingUpload.mimeType,
+          fileName: pendingUpload.fileName,
+          locale,
+          sessionId,
+        });
+
+        attachment = {
+          id: pendingUpload.id,
+          type: result.fileType,
+          fileName: result.fileName,
+          mimeType: pendingUpload.mimeType,
+          previewDataUrl: pendingUpload.previewDataUrl,
+          extractedText: result.extractedText,
+          summary: result.summary,
+        };
+      } catch (err) {
+        toast.error(resolveOcrError(err), { duration: 5000 });
+        setIsExtracting(false);
+        return;
+      } finally {
+        setIsExtracting(false);
+      }
+    }
+
+    const content = attachment
+      ? buildAttachmentMessageContent(text, attachment, locale)
       : text.trim();
 
     onSend(content, {
-      attachment: pendingAttachment ?? undefined,
+      attachment,
       isVoiceNote: prefs.sendAsVoiceNote && isListening,
-      caption: pendingAttachment ? text.trim() : undefined,
+      caption: attachment ? text.trim() : undefined,
     });
 
     onInputChange("");
-    setPendingAttachment(null);
+    setPendingUpload(null);
     resetTranscript();
   };
 
@@ -120,8 +187,6 @@ export function ChatComposer({
       return;
     }
 
-    setIsExtracting(true);
-
     try {
       const base64 = await readFileAsBase64(file);
       let previewDataUrl: string | undefined;
@@ -133,52 +198,32 @@ export function ChatComposer({
         );
       }
 
-      const response = await fetch("/api/vision", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          data: base64,
-          mimeType: file.type,
-          fileName: file.name,
-          locale,
-          sessionId,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as {
-          error?: string;
-        };
-        throw new Error(data.error ?? copy.errors.generic);
-      }
-
-      const result = (await response.json()) as {
-        extractedText: string;
-        summary: string;
-        fileType: "image" | "pdf";
-        fileName: string;
-      };
-
-      setPendingAttachment({
+      setPendingUpload({
         id: createAttachmentId(),
-        type: result.fileType,
-        fileName: result.fileName,
+        type: inferFileType(file.type),
+        fileName: file.name,
         mimeType: file.type,
         previewDataUrl,
-        extractedText: result.extractedText,
-        summary: result.summary,
+        dataBase64: base64,
       });
 
-      toast.success(copy.uploadSuccess);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : copy.errors.generic;
-      toast.error(message);
+      toast.success(copy.fileAttached);
+    } catch {
+      toast.error(copy.errors.generic);
     } finally {
-      setIsExtracting(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
+
+  const pendingPreview: IdaAttachment | null = pendingUpload
+    ? {
+        id: pendingUpload.id,
+        type: pendingUpload.type,
+        fileName: pendingUpload.fileName,
+        mimeType: pendingUpload.mimeType,
+        previewDataUrl: pendingUpload.previewDataUrl,
+      }
+    : null;
 
   const textareaValue = isListening ? displayTranscript || input : input;
 
@@ -204,25 +249,30 @@ export function ChatComposer({
           </div>
         )}
 
-        {speechError && speechError !== "aborted" && (
+        {voiceErrorMessage && (
           <p className="text-center text-xs text-destructive">
-            {copy.voiceError}
+            {voiceErrorMessage}
           </p>
         )}
 
         {isExtracting && (
-          <div className="flex items-center gap-2 rounded-xl border bg-background/80 px-3 py-2.5 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            {copy.extractingFile}
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm text-foreground"
+          >
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+            <span>{copy.extractingFile}</span>
           </div>
         )}
 
-        {pendingAttachment && !isExtracting && (
+        {pendingPreview && !isExtracting && (
           <AttachmentPreview
-            attachment={pendingAttachment}
+            attachment={pendingPreview}
             extractedLabel={copy.extractedTextLabel}
             removeLabel={copy.removeAttachment}
-            onRemove={() => setPendingAttachment(null)}
+            pendingHint={copy.pendingOcrHint}
+            onRemove={() => setPendingUpload(null)}
           />
         )}
 
@@ -279,7 +329,13 @@ export function ChatComposer({
             size="icon"
             disabled={isLoading || isExtracting || !speechSupported}
             aria-label={isListening ? copy.stopListening : copy.startListening}
-            title={isListening ? copy.stopListening : copy.startListening}
+            title={
+              speechSupported
+                ? isListening
+                  ? copy.stopListening
+                  : copy.startListening
+                : copy.voiceErrorUnsupported
+            }
             className="h-11 w-11 shrink-0"
             onClick={toggleListening}
           >
@@ -296,12 +352,16 @@ export function ChatComposer({
             disabled={
               isLoading ||
               isExtracting ||
-              (!textareaValue.trim() && !pendingAttachment)
+              (!textareaValue.trim() && !pendingUpload)
             }
             aria-label={copy.send}
             className="h-11 w-11 shrink-0 transition-transform hover:scale-105 active:scale-95"
           >
-            <Send className="h-4 w-4" />
+            {isExtracting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
           </Button>
         </div>
 

@@ -4,30 +4,48 @@ import type { VisionExtractResult, VisionFileType } from "./types";
 
 const EXTRACTION_PROMPTS: Record<Locale, string> = {
   id: `Kamu adalah asisten OCR dan analisis dokumen IDA.
-Ekstrak SEMUA teks yang terbaca dari file ini (gambar atau PDF).
-Kemudian berikan ringkasan singkat (2-3 kalimat) tentang isi dokumen.
 
-Format jawaban WAJIB seperti ini:
+Tugas:
+1. Ekstrak SEMUA teks yang terbaca dari file (foto, scan, screenshot, atau PDF).
+2. Untuk PDF multi-halaman: proses setiap halaman, pisahkan dengan "--- Halaman N ---".
+3. Pertahankan struktur: paragraf, heading, bullet/numbered list, tabel (format baris dengan |), label form, dan urutan baca.
+4. Jika ada teks tangan, stempel, watermark, atau teks kecil — tetap ekstrak sebisa mungkin; tandai [tidak terbaca] jika benar-benar tidak jelas.
+5. Jangan menerjemahkan; pertahankan bahasa asli dokumen.
+6. Berikan ringkasan 2-3 kalimat tentang jenis dokumen dan isi utamanya.
+
+Format jawaban WAJIB:
 ---TEKS---
-(teks lengkap hasil ekstraksi, pertahankan struktur jika memungkinkan)
+(teks lengkap hasil ekstraksi)
 ---RINGKASAN---
 (ringkasan singkat dalam Bahasa Indonesia)`,
   en: `You are IDA's OCR and document analysis assistant.
-Extract ALL readable text from this file (image or PDF).
-Then provide a brief summary (2-3 sentences) of the document content.
+
+Tasks:
+1. Extract ALL readable text from the file (photo, scan, screenshot, or PDF).
+2. For multi-page PDFs: process every page and separate sections with "--- Page N ---".
+3. Preserve structure: paragraphs, headings, bullet/numbered lists, tables (row format with |), form labels, and reading order.
+4. For handwriting, stamps, watermarks, or small text — extract as much as possible; mark [illegible] when truly unclear.
+5. Do not translate; keep the document's original language.
+6. Provide a 2-3 sentence summary of document type and main content.
 
 Response format MUST be:
 ---TEKS---
-(full extracted text, preserve structure when possible)
+(full extracted text)
 ---RINGKASAN---
 (brief summary in English)`,
   zh: `你是 IDA 的 OCR 和文档分析助手。
-提取此文件（图片或 PDF）中所有可读文本。
-然后提供简短摘要（2-3 句）。
+
+任务：
+1. 提取文件中所有可读文本（照片、扫描件、截图或 PDF）。
+2. 多页 PDF：处理每一页，用 "--- 第 N 页 ---" 分隔。
+3. 保留结构：段落、标题、列表、表格（用 | 分隔行）、表单标签和阅读顺序。
+4. 手写、印章、水印或小字——尽量提取；确实无法辨认时标注 [无法辨认]。
+5. 不要翻译；保留文档原文语言。
+6. 用 2-3 句话概括文档类型和主要内容。
 
 回复格式必须为：
 ---TEKS---
-（完整提取文本，尽可能保留结构）
+（完整提取文本）
 ---RINGKASAN---
 （中文简短摘要）`,
 };

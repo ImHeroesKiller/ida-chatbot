@@ -10,6 +10,7 @@ interface AttachmentPreviewProps {
   attachment: IdaAttachment;
   extractedLabel: string;
   removeLabel?: string;
+  pendingHint?: string;
   onRemove?: () => void;
   compact?: boolean;
   className?: string;
@@ -19,6 +20,7 @@ export function AttachmentPreview({
   attachment,
   extractedLabel,
   removeLabel = "Remove attachment",
+  pendingHint,
   onRemove,
   compact,
   className,
@@ -56,11 +58,15 @@ export function AttachmentPreview({
 
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{attachment.fileName}</p>
-          {attachment.summary && (
+          {attachment.summary ? (
             <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
               {attachment.summary}
             </p>
-          )}
+          ) : pendingHint ? (
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {pendingHint}
+            </p>
+          ) : null}
         </div>
 
         {onRemove && (
