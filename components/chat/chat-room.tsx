@@ -499,7 +499,7 @@ function ChatRoomContent() {
               ref={scrollContainerRef}
               className="h-full overflow-y-auto overscroll-y-contain px-3 py-4 sm:px-5"
             >
-              <div className="mx-auto w-full max-w-2xl space-y-6">
+              <div className="ida-message-width mx-auto flex w-full flex-col gap-[calc(1.5rem*var(--ida-gap-scale))]">
                 {!hasUserMessages && <ChatEmptyState locale={locale} />}
 
                 {messages.map((message) => {
@@ -542,7 +542,7 @@ function ChatRoomContent() {
           )}
 
           <div className="shrink-0">
-            <div className="mx-auto w-full max-w-2xl px-3 sm:px-5">
+            <div className="ida-message-width mx-auto w-full px-3 sm:px-5">
               <div className="mb-3 pt-3">
                 <QuickReplies
                   replies={quickReplies}

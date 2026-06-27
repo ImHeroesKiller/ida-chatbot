@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
+import { contrastForeground, normalizeHexColor } from "@/lib/ui-config/color";
 import { Geist_Mono, Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 
+import { GlobalUiProvider } from "@/components/global-ui-provider";
 import { ThemeProvider } from "@/components/theme-provider";
+import { buildUiInitScript } from "@/lib/ui-config/init-script";
+import { loadUiConfig } from "@/lib/ui-config/server";
 import "./globals.css";
 
 const inter = Inter({
@@ -23,43 +28,49 @@ export const metadata: Metadata = {
     "IDA — Intelligent Digital Assistant. Standalone AI chatbot with RAG, memory, and multilingual support.",
 };
 
-const themeInitScript = `
-(() => {
-  try {
-    const stored = localStorage.getItem('ida-theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const isDark = stored === 'dark' || (!stored && prefersDark);
-    if (isDark) document.documentElement.classList.add('dark');
-  } catch {}
-})();
-`;
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const uiConfig = await loadUiConfig();
+  const uiInitScript = buildUiInitScript(uiConfig);
+  const primaryColor =
+    normalizeHexColor(uiConfig.primaryColor) ?? uiConfig.primaryColor;
+
   return (
     <html
       lang="id"
       suppressHydrationWarning
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
+      data-ida-font-size={uiConfig.fontSize}
+      data-ida-density={uiConfig.density}
+      data-ida-animation={uiConfig.animationLevel}
+      style={
+        {
+          "--ida-message-max-width": uiConfig.messageMaxWidth,
+          "--primary": primaryColor,
+          "--primary-foreground": contrastForeground(primaryColor),
+        } as CSSProperties
+      }
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: uiInitScript }} />
       </head>
       <body className="h-dvh overflow-hidden bg-background font-sans text-foreground">
-        <ThemeProvider>
-          {children}
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              duration: 3000,
-              className:
-                "!bg-card !text-card-foreground !border !border-border !shadow-lg",
-            }}
-          />
-        </ThemeProvider>
+        <GlobalUiProvider initialConfig={uiConfig}>
+          <ThemeProvider>
+            {children}
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                duration: 3000,
+                className:
+                  "!bg-card !text-card-foreground !border !border-border !shadow-lg",
+              }}
+            />
+          </ThemeProvider>
+        </GlobalUiProvider>
       </body>
     </html>
   );

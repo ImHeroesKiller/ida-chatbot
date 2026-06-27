@@ -7,11 +7,13 @@ import {
   type ReactNode,
 } from "react";
 
+import { useGlobalUi } from "@/components/global-ui-provider";
 import { type Theme, useTheme } from "@/lib/theme-prefs";
 
 interface ThemeContextValue {
   theme: Theme;
   hydrated: boolean;
+  themeLocked: boolean;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
 }
@@ -19,11 +21,14 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const { theme, hydrated, setTheme, toggleTheme } = useTheme();
+  const { config } = useGlobalUi();
+  const { theme, hydrated, setTheme, toggleTheme, themeLocked } = useTheme(
+    config.theme,
+  );
 
   const value = useMemo(
-    () => ({ theme, hydrated, setTheme, toggleTheme }),
-    [theme, hydrated, setTheme, toggleTheme],
+    () => ({ theme, hydrated, themeLocked, setTheme, toggleTheme }),
+    [theme, hydrated, themeLocked, setTheme, toggleTheme],
   );
 
   return (

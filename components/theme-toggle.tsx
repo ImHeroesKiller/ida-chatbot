@@ -12,8 +12,10 @@ interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ locale }: ThemeToggleProps) {
-  const { theme, hydrated, toggleTheme } = useThemeContext();
+  const { theme, hydrated, toggleTheme, themeLocked } = useThemeContext();
   const copy = COPY[locale];
+
+  if (themeLocked) return null;
 
   return (
     <Button

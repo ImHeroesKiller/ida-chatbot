@@ -318,7 +318,7 @@ export function ChatComposer({
         "pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-5 sm:pb-4",
       )}
     >
-      <div className="mx-auto w-full max-w-2xl space-y-2.5">
+      <div className="ida-message-width mx-auto w-full space-y-2.5">
         {(isListening || isTranscribing) && (
           <div
             role="status"

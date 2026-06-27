@@ -1,10 +1,18 @@
 "use client";
 
-import { LayoutDashboard, LogOut, ScrollText, Settings, Sparkles } from "lucide-react";
+import {
+  LayoutDashboard,
+  LogOut,
+  Palette,
+  ScrollText,
+  Settings,
+  Sparkles,
+} from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
 import { AdminLogin } from "@/components/admin/admin-login";
+import { AppearanceTab } from "@/components/admin/appearance-tab";
 import { DashboardTab } from "@/components/admin/dashboard-tab";
 import { LogsTab } from "@/components/admin/logs-tab";
 import { ModelsTab } from "@/components/admin/models-tab";
@@ -55,7 +63,7 @@ export function AdminPanel({
             <div>
               <h1 className="text-base font-semibold">IDA Admin</h1>
               <p className="text-xs text-muted-foreground">
-                Dashboard, models, settings & logs
+                Dashboard, models, appearance, settings & logs
               </p>
             </div>
           </div>
@@ -77,6 +85,10 @@ export function AdminPanel({
               <Sparkles className="size-4" />
               Models
             </TabsTrigger>
+            <TabsTrigger value="appearance">
+              <Palette className="size-4" />
+              Appearance
+            </TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="size-4" />
               Settings
@@ -92,6 +104,9 @@ export function AdminPanel({
           </TabsContent>
           <TabsContent value="models" className="mt-6">
             <ModelsTab />
+          </TabsContent>
+          <TabsContent value="appearance" className="mt-6">
+            <AppearanceTab />
           </TabsContent>
           <TabsContent value="settings" className="mt-6">
             <SettingsTab />
