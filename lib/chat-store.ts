@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import {
+  fetchRemoteChatStore,
+  persistRemoteChatStore,
+} from "@/lib/client/sync-sessions";
+import { getOrCreateAnonymousUserId } from "@/lib/client/user-id";
 import type { Locale } from "@/lib/config";
 import { getQuickReplies } from "@/lib/handoff";
 import { COPY } from "@/lib/i18n";
@@ -140,24 +145,66 @@ export function saveChatStore(state: ChatStoreState): void {
   localStorage.setItem(CHAT_STORE_KEY, JSON.stringify(state));
 }
 
+const REMOTE_SYNC_DEBOUNCE_MS = 1200;
+
 export function useChatStore(locale: Locale) {
   const [store, setStore] = useState<ChatStoreState>(() =>
     createInitialStore(locale),
   );
   const [hydrated, setHydrated] = useState(false);
+  const [userId, setUserId] = useState("");
 
   useEffect(() => {
-    const loaded = loadChatStore();
-    if (loaded) {
-      setStore(loaded);
+    let cancelled = false;
+
+    async function hydrate() {
+      const id = getOrCreateAnonymousUserId();
+      if (!cancelled) setUserId(id);
+
+      const local = loadChatStore();
+
+      try {
+        const remote = await fetchRemoteChatStore(id, locale);
+        if (cancelled) return;
+
+        if (remote) {
+          setStore(remote);
+        } else if (local) {
+          setStore(local);
+          void persistRemoteChatStore(id, local, locale).catch((error) => {
+            console.error("[IDA chat-store sync]", error);
+          });
+        }
+      } catch (error) {
+        console.error("[IDA chat-store hydrate]", error);
+        if (!cancelled && local) setStore(local);
+      }
+
+      if (!cancelled) setHydrated(true);
     }
-    setHydrated(true);
-  }, []);
+
+    void hydrate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [locale]);
 
   useEffect(() => {
     if (!hydrated) return;
+
     saveChatStore(store);
-  }, [store, hydrated]);
+
+    if (!userId) return;
+
+    const timer = window.setTimeout(() => {
+      void persistRemoteChatStore(userId, store, locale).catch((error) => {
+        console.error("[IDA chat-store persist]", error);
+      });
+    }, REMOTE_SYNC_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [store, hydrated, userId, locale]);
 
   const currentChat = store.chats[store.currentChatId];
 
@@ -306,6 +353,7 @@ export function useChatStore(locale: Locale) {
 
   return {
     hydrated,
+    userId,
     currentChat,
     sessions,
     switchChat,

@@ -55,21 +55,23 @@ export async function persistSessionMessages(options: {
   sessionId: string;
   locale: Locale;
   messages: ConversationMessage[];
+  userId?: string;
 }): Promise<void> {
   if (!isSupabaseConfigured() || !options.sessionId) return;
 
   try {
     const supabase = getSupabaseAdmin();
+    const row = {
+      session_id: options.sessionId,
+      locale: options.locale,
+      messages: options.messages,
+      updated_at: new Date().toISOString(),
+      ...(options.userId ? { user_id: options.userId } : {}),
+    };
 
-    await supabase.from("ida_chat_sessions").upsert(
-      {
-        session_id: options.sessionId,
-        locale: options.locale,
-        messages: options.messages,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "session_id" },
-    );
+    await supabase.from("ida_chat_sessions").upsert(row, {
+      onConflict: options.userId ? "user_id,session_id" : "session_id",
+    });
   } catch (error) {
     console.error("[IDA session memory]", error);
   }
@@ -77,16 +79,22 @@ export async function persistSessionMessages(options: {
 
 export async function loadSessionMessages(
   sessionId: string,
+  userId?: string,
 ): Promise<ConversationMessage[]> {
   if (!isSupabaseConfigured() || !sessionId) return [];
 
   try {
     const supabase = getSupabaseAdmin();
-    const { data, error } = await supabase
+    let query = supabase
       .from("ida_chat_sessions")
       .select("messages")
-      .eq("session_id", sessionId)
-      .maybeSingle();
+      .eq("session_id", sessionId);
+
+    if (userId) {
+      query = query.eq("user_id", userId);
+    }
+
+    const { data, error } = await query.maybeSingle();
 
     if (error || !data) return [];
 

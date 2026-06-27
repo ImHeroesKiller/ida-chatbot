@@ -30,6 +30,7 @@ export interface IdaChatHandlerInput {
   messages: ConversationMessage[];
   locale: Locale;
   sessionId?: string;
+  userId?: string;
 }
 
 export interface IdaChatPreparedContext {
@@ -39,6 +40,7 @@ export interface IdaChatPreparedContext {
   sessionMessages: ConversationMessage[];
   locale: Locale;
   sessionId?: string;
+  userId?: string;
   handoffResponse?: string;
 }
 
@@ -100,7 +102,7 @@ export async function prepareIdaChatContext(
     throw new Error("Chat service is not configured.");
   }
 
-  const { messages, locale, sessionId } = input;
+  const { messages, locale, sessionId, userId } = input;
   const lastMessage = messages[messages.length - 1];
 
   if (!lastMessage || lastMessage.role !== "user") {
@@ -161,6 +163,7 @@ export async function prepareIdaChatContext(
     sessionMessages: messages,
     locale,
     sessionId,
+    userId,
     handoffResponse: handoffExecution.responseMessage,
   };
 }
@@ -222,5 +225,6 @@ async function persistAssistantMessage(
     sessionId: context.sessionId,
     locale: context.locale,
     messages: updatedMessages,
+    userId: context.userId,
   });
 }

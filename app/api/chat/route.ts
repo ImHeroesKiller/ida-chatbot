@@ -12,6 +12,7 @@ import {
   getClientIp,
   IdaRateLimitError,
 } from "@/lib/rate-limit";
+import { isValidAnonymousUserId } from "@/lib/user-id";
 import { createSseStream, sseResponse } from "@/lib/sse";
 import type { IdaChatErrorResponse } from "@/lib/types";
 
@@ -30,6 +31,7 @@ const chatRequestSchema = z.object({
     .max(IDA_CONFIG.maxMessages),
   locale: z.enum(LOCALES),
   sessionId: z.string().min(8).max(64).optional(),
+  userId: z.string().uuid().optional(),
 });
 
 export async function POST(request: Request) {
@@ -53,13 +55,20 @@ export async function POST(request: Request) {
     );
   }
 
-  const { messages, locale, sessionId } = parsed.data;
+  const { messages, locale, sessionId, userId } = parsed.data;
+
+  if (userId && !isValidAnonymousUserId(userId)) {
+    return NextResponse.json<IdaChatErrorResponse>(
+      { error: "Invalid user id." },
+      { status: 400 },
+    );
+  }
 
   try {
     await enforceIdaRateLimit(
       buildRateLimitKey({
         ip: getClientIp(request),
-        sessionId,
+        sessionId: userId ?? sessionId,
       }),
     );
   } catch (error) {
@@ -77,7 +86,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const context = await prepareIdaChatContext({ messages, locale, sessionId });
+    const context = await prepareIdaChatContext({
+      messages,
+      locale,
+      sessionId,
+      userId,
+    });
 
     if (context.meta.handoffTriggered) {
       console.log("[IDA chat] Tool call: trigger_handoff", {
