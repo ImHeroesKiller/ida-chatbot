@@ -18,6 +18,10 @@ export const COPY: Record<
     handoffDescription: string;
     handoffClose: string;
     handoffCopy: string;
+    newChat: string;
+    sessionsLabel: string;
+    noSessions: string;
+    openSessions: string;
     errors: {
       generic: string;
       rateLimit: string;
@@ -42,6 +46,10 @@ export const COPY: Record<
     handoffDescription: "Ringkasan percakapan",
     handoffClose: "Tutup",
     handoffCopy: "Salin ringkasan",
+    newChat: "Chat Baru",
+    sessionsLabel: "Daftar percakapan",
+    noSessions: "Belum ada percakapan",
+    openSessions: "Buka daftar percakapan",
     errors: {
       generic: "Gagal mendapatkan respons. Coba lagi.",
       rateLimit: "Terlalu banyak permintaan. Tunggu sebentar.",
@@ -65,6 +73,10 @@ export const COPY: Record<
     handoffDescription: "Conversation summary",
     handoffClose: "Close",
     handoffCopy: "Copy summary",
+    newChat: "New Chat",
+    sessionsLabel: "Chat sessions",
+    noSessions: "No conversations yet",
+    openSessions: "Open chat sessions",
     errors: {
       generic: "Failed to get a response. Please try again.",
       rateLimit: "Too many requests. Please wait a moment.",
@@ -88,6 +100,10 @@ export const COPY: Record<
     handoffDescription: "对话摘要",
     handoffClose: "关闭",
     handoffCopy: "复制摘要",
+    newChat: "新对话",
+    sessionsLabel: "对话列表",
+    noSessions: "暂无对话",
+    openSessions: "打开对话列表",
     errors: {
       generic: "获取回复失败，请重试。",
       rateLimit: "请求过多，请稍后再试。",
