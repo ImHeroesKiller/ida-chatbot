@@ -33,7 +33,7 @@ export function IdaLogo({
         width={size}
         height={size}
         priority={priority}
-        className={cn("size-full object-cover", imageClassName)}
+        className={cn("size-full object-contain", imageClassName)}
       />
     </span>
   );

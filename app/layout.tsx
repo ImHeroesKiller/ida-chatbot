@@ -34,8 +34,8 @@ export const metadata: Metadata = {
   applicationName: BRAND.shortName,
   manifest: "/manifest.json",
   icons: {
-    icon: [{ url: "/ida-logo.png", sizes: "512x512", type: "image/png" }],
-    apple: [{ url: "/ida-logo.png", sizes: "512x512", type: "image/png" }],
+    icon: [{ url: "/ida-logo.png", sizes: "528x530", type: "image/png" }],
+    apple: [{ url: "/ida-logo.png", sizes: "528x530", type: "image/png" }],
   },
   openGraph: {
     type: "website",
@@ -46,8 +46,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: BRAND.logoSrc,
-        width: 512,
-        height: 512,
+        width: 528,
+        height: 530,
         alt: BRAND.name,
       },
     ],

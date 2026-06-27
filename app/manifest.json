@@ -10,7 +10,7 @@
   "icons": [
     {
       "src": "/ida-logo.png",
-      "sizes": "512x512",
+      "sizes": "528x530",
       "type": "image/png",
       "purpose": "any"
     },
