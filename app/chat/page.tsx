@@ -1,10 +1,10 @@
 import { ChatProvider } from "@/components/chat/chat-provider";
-import { ChatRoom } from "@/components/chat/chat-room";
+import { ChatRoomLazy } from "@/components/chat/chat-room-lazy";
 
 export default function ChatPage() {
   return (
     <ChatProvider defaultLocale="id">
-      <ChatRoom />
+      <ChatRoomLazy />
     </ChatProvider>
   );
 }

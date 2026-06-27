@@ -1,6 +1,22 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
+  compress: true,
+  images: {
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [36, 40, 64, 96, 128, 256, 384, 528],
+    imageSizes: [16, 28, 32, 36, 40, 48, 64, 96, 128],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+  },
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "framer-motion",
+      "react-markdown",
+      "react-hot-toast",
+    ],
+  },
   headers: async () => [
     {
       source: "/sw.js",

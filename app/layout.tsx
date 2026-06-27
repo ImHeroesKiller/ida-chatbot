@@ -3,9 +3,13 @@ import type { CSSProperties } from "react";
 import { contrastForeground, normalizeHexColor } from "@/lib/ui-config/color";
 import { Geist_Mono, Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import { AuthProvider } from "@/components/auth/auth-provider";
-import { PwaRoot } from "@/components/seo/pwa-root";
+import { DeferredPwa } from "@/components/performance/deferred-pwa";
+import { PreconnectLinks } from "@/components/performance/preconnect-links";
+import { WebVitalsReporter } from "@/components/performance/web-vitals-reporter";
 import { StructuredData } from "@/components/seo/structured-data";
 import { GlobalUiProvider } from "@/components/global-ui-provider";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -24,12 +28,16 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
+  preload: true,
+  adjustFontFallback: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
+  preload: true,
+  adjustFontFallback: true,
 });
 
 export const metadata: Metadata = {
@@ -147,13 +155,8 @@ export default async function RootLayout({
       }
     >
       <head>
+        <PreconnectLinks />
         <StructuredData />
-        <link
-          rel="preload"
-          href="/ida-logo.png"
-          as="image"
-          type="image/png"
-        />
         <script dangerouslySetInnerHTML={{ __html: uiInitScript }} />
       </head>
       <body className="h-dvh overflow-hidden bg-background font-sans text-foreground">
@@ -161,7 +164,10 @@ export default async function RootLayout({
           <GlobalUiProvider initialConfig={uiConfig}>
             <ThemeProvider>
               {children}
-              <PwaRoot />
+              <DeferredPwa />
+              <WebVitalsReporter />
+              <Analytics />
+              <SpeedInsights />
               <Toaster
                 position="top-center"
                 toastOptions={{

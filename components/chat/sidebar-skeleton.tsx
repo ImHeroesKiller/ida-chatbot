@@ -13,6 +13,12 @@ export function SidebarSkeleton({
 }: SidebarSkeletonProps) {
   return (
     <div className={cn("flex h-full flex-col gap-2 p-2", className)}>
+      <div
+        className={cn(
+          "shrink-0 rounded-xl bg-muted/80",
+          expanded ? "mx-1 h-10" : "mx-auto size-9",
+        )}
+      />
       <div className="h-9 animate-pulse rounded-lg bg-muted" />
       {expanded && (
         <div className="h-8 animate-pulse rounded-lg bg-muted/80" />

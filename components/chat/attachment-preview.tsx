@@ -43,6 +43,8 @@ export function AttachmentPreview({
               alt={attachment.fileName}
               fill
               unoptimized
+              sizes="64px"
+              loading="lazy"
               className="object-cover"
             />
           ) : (

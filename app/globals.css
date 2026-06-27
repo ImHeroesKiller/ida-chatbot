@@ -213,4 +213,22 @@ html[data-ida-animation="none"] *::after {
     letter-spacing: 0.01em;
     -webkit-font-smoothing: antialiased;
   }
+
+  .ida-chat-shell {
+    contain: layout style;
+  }
+
+  .ida-skeleton-pulse {
+    animation: ida-pulse 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes ida-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
 }

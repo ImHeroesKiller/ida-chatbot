@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import {
   useCallback,
   useEffect,
@@ -8,15 +9,49 @@ import {
   useState,
 } from "react";
 
-import { ChatComposer } from "@/components/chat/chat-composer";
 import { ChatHeader } from "@/components/chat/header";
-import { ChatEmptyState } from "@/components/chat/chat-empty-state";
-import { HandoffDialog } from "@/components/chat/handoff-dialog";
 import { MessageBubble } from "@/components/chat/message-bubble";
 import { MessageSkeleton } from "@/components/chat/message-skeleton";
 import { QuickReplies } from "@/components/chat/quick-replies";
 import { ScrollToBottomButton } from "@/components/chat/scroll-to-bottom";
-import { ChatSidebar } from "@/components/chat/sidebar";
+import { SidebarSkeleton } from "@/components/chat/sidebar-skeleton";
+
+const ChatSidebar = dynamic(
+  () =>
+    import("@/components/chat/sidebar").then((mod) => ({
+      default: mod.ChatSidebar,
+    })),
+  { loading: () => <SidebarSkeleton expanded={false} className="h-full w-14" /> },
+);
+
+const ChatComposer = dynamic(
+  () =>
+    import("@/components/chat/chat-composer").then((mod) => ({
+      default: mod.ChatComposer,
+    })),
+  {
+    loading: () => (
+      <div className="shrink-0 border-t px-3 py-3 sm:px-5">
+        <div className="ida-message-width mx-auto h-12 rounded-2xl bg-muted/40" />
+      </div>
+    ),
+  },
+);
+
+const ChatEmptyState = dynamic(
+  () =>
+    import("@/components/chat/chat-empty-state").then((mod) => ({
+      default: mod.ChatEmptyState,
+    })),
+);
+
+const HandoffDialog = dynamic(
+  () =>
+    import("@/components/chat/handoff-dialog").then((mod) => ({
+      default: mod.HandoffDialog,
+    })),
+  { ssr: false },
+);
 import { useChatContext } from "@/components/chat/chat-provider";
 import {
   Sheet,
@@ -425,7 +460,7 @@ function ChatRoomContent() {
   return (
     <MessageReactionsProvider>
       <div
-        className="flex h-dvh w-full overflow-hidden bg-background font-sans"
+        className="ida-chat-shell flex h-dvh w-full overflow-hidden bg-background font-sans"
         role="application"
         aria-label={copy.windowLabel}
       >
