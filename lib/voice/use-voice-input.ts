@@ -44,7 +44,15 @@ async function probeMicrophonePermission(): Promise<void> {
   stream.getTracks().forEach((track) => track.stop());
 }
 
-export function useVoiceInput(locale: Locale, sessionId?: string) {
+interface UseVoiceInputOptions {
+  onTranscriptionComplete?: (text: string) => void;
+}
+
+export function useVoiceInput(
+  locale: Locale,
+  sessionId?: string,
+  options?: UseVoiceInputOptions,
+) {
   const [isListening, setIsListening] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -54,6 +62,12 @@ export function useVoiceInput(locale: Locale, sessionId?: string) {
   const [recorderLevels, setRecorderLevels] = useState<number[]>(
     Array(12).fill(0.15),
   );
+
+  const onCompleteRef = useRef(options?.onTranscriptionComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = options?.onTranscriptionComplete;
+  }, [options?.onTranscriptionComplete]);
 
   const wantListeningRef = useRef(false);
   const streamRef = useRef<MediaStream | null>(null);
@@ -133,19 +147,25 @@ export function useVoiceInput(locale: Locale, sessionId?: string) {
   }, []);
 
   const transcribeRecording = useCallback(
-    async (blob: Blob) => {
+    async (blob: Blob): Promise<string> => {
       setIsTranscribing(true);
       setError(null);
 
       try {
         const text = await transcribeAudioBlob({ blob, locale, sessionId });
         if (text) {
-          setTranscript((prev) => `${prev} ${text}`.trim());
-        } else {
-          setError("no-speech");
+          const combined = text.trim();
+          setTranscript(combined);
+          setHasVoiceInput(true);
+          onCompleteRef.current?.(combined);
+          return combined;
         }
+
+        setError("no-speech");
+        return "";
       } catch {
         setError("transcribe-failed");
+        return "";
       } finally {
         setIsTranscribing(false);
       }
@@ -190,14 +210,15 @@ export function useVoiceInput(locale: Locale, sessionId?: string) {
     }
   }, [startWaveform, stopWaveform]);
 
-  const stopListening = useCallback(async () => {
+  const stopListening = useCallback(async (): Promise<string> => {
     wantListeningRef.current = false;
 
     const blob = await stopRecorder();
     stopWaveform();
     setIsListening(false);
 
-    if (blob) await transcribeRecording(blob);
+    if (blob) return transcribeRecording(blob);
+    return "";
   }, [stopRecorder, stopWaveform, transcribeRecording]);
 
   const startListening = useCallback(async () => {

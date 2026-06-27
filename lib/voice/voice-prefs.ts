@@ -11,6 +11,7 @@ export interface VoicePrefs {
   speechRate: number;
   voiceLanguage: Locale;
   sendAsVoiceNote: boolean;
+  reviewVoiceBeforeSend: boolean;
 }
 
 const DEFAULT_PREFS: VoicePrefs = {
@@ -18,6 +19,7 @@ const DEFAULT_PREFS: VoicePrefs = {
   speechRate: 1,
   voiceLanguage: "id",
   sendAsVoiceNote: false,
+  reviewVoiceBeforeSend: false,
 };
 
 function readPrefs(): VoicePrefs {

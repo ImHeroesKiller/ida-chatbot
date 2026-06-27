@@ -2,6 +2,8 @@
 
 import { Loader2, Mic, MicOff, Paperclip, Send } from "lucide-react";
 import {
+  useCallback,
+  useEffect,
   useId,
   useRef,
   useState,
@@ -73,103 +75,167 @@ export function ChatComposer({
   const copy = COPY[locale];
   const inputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [hasVoiceInput, setHasVoiceInput] = useState(false);
+  const sendingRef = useRef(false);
+  const skipVoiceAutoSendRef = useRef(false);
 
   const { prefs } = useVoicePrefs();
+
+  const resolveOcrError = useCallback(
+    (err: unknown): string => {
+      if (err instanceof VisionExtractError) {
+        switch (err.code) {
+          case "rate_limit":
+            return copy.errors.rateLimit;
+          case "empty":
+            return copy.ocrEmpty;
+          case "network":
+            return copy.ocrNetworkError;
+          case "config":
+            return copy.ocrUnavailable;
+          default:
+            return copy.ocrFailed;
+        }
+      }
+      return copy.ocrFailed;
+    },
+    [copy],
+  );
+
+  const performSend = useCallback(
+    async (rawText: string) => {
+      if (sendingRef.current) return;
+
+      const text = rawText.trim();
+      if (!text && !pendingUpload) return;
+      if (isLoading || isExtracting) return;
+
+      sendingRef.current = true;
+
+      let attachment: IdaAttachment | undefined;
+
+      if (pendingUpload) {
+        setIsExtracting(true);
+
+        try {
+          const result = await extractVisionFromFile({
+            data: pendingUpload.dataBase64,
+            mimeType: pendingUpload.mimeType,
+            fileName: pendingUpload.fileName,
+            locale,
+            sessionId,
+          });
+
+          attachment = {
+            id: pendingUpload.id,
+            type: result.fileType,
+            fileName: result.fileName,
+            mimeType: pendingUpload.mimeType,
+            previewDataUrl: pendingUpload.previewDataUrl,
+            extractedText: result.extractedText,
+            summary: result.summary,
+          };
+        } catch (err) {
+          toast.error(resolveOcrError(err), { duration: 5000 });
+          sendingRef.current = false;
+          setIsExtracting(false);
+          return;
+        } finally {
+          setIsExtracting(false);
+        }
+      }
+
+      const content = attachment
+        ? buildAttachmentMessageContent(text, attachment, locale)
+        : text;
+
+      onSend(content, {
+        attachment,
+        isVoiceNote: prefs.sendAsVoiceNote && hasVoiceInput,
+        caption: attachment ? text : undefined,
+      });
+
+      onInputChange("");
+      setPendingUpload(null);
+      setHasVoiceInput(false);
+      sendingRef.current = false;
+
+      window.setTimeout(() => textareaRef.current?.focus(), 50);
+    },
+    [
+      hasVoiceInput,
+      isExtracting,
+      isLoading,
+      locale,
+      onInputChange,
+      onSend,
+      pendingUpload,
+      prefs.sendAsVoiceNote,
+      resolveOcrError,
+      sessionId,
+    ],
+  );
+
+  const handleTranscriptionComplete = useCallback(
+    (text: string) => {
+      onInputChange(text);
+      setHasVoiceInput(true);
+
+      if (!prefs.reviewVoiceBeforeSend && !skipVoiceAutoSendRef.current) {
+        void performSend(text);
+        return;
+      }
+
+      window.setTimeout(() => {
+        textareaRef.current?.focus();
+        const length = text.length;
+        textareaRef.current?.setSelectionRange(length, length);
+      }, 50);
+    },
+    [onInputChange, performSend, prefs.reviewVoiceBeforeSend],
+  );
+
   const {
     isSupported: speechSupported,
     isListening,
-    displayTranscript,
     error: speechError,
     waveformLevels,
     toggleListening,
     stopListening,
-    resetTranscript,
     isTranscribing,
-    hasVoiceInput,
     mode: voiceMode,
-  } = useVoiceInput(locale, sessionId);
+  } = useVoiceInput(locale, sessionId, {
+    onTranscriptionComplete: handleTranscriptionComplete,
+  });
 
   const voiceErrorMessage = getVoiceErrorMessage(locale, speechError);
+
+  const handleSend = async () => {
+    if (isTranscribing) return;
+
+    let text = input.trim();
+
+    if (isListening) {
+      skipVoiceAutoSendRef.current = true;
+      const transcribed = await stopListening();
+      skipVoiceAutoSendRef.current = false;
+      text = transcribed.trim() || text;
+      if (transcribed.trim()) {
+        onInputChange(transcribed.trim());
+        setHasVoiceInput(true);
+      }
+    }
+
+    await performSend(text);
+  };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     void handleSend();
-  };
-
-  const resolveOcrError = (err: unknown): string => {
-    if (err instanceof VisionExtractError) {
-      switch (err.code) {
-        case "rate_limit":
-          return copy.errors.rateLimit;
-        case "empty":
-          return copy.ocrEmpty;
-        case "network":
-          return copy.ocrNetworkError;
-        case "config":
-          return copy.ocrUnavailable;
-        default:
-          return copy.ocrFailed;
-      }
-    }
-    return copy.ocrFailed;
-  };
-
-  const handleSend = async () => {
-    const text = isListening || isTranscribing ? displayTranscript : input;
-
-    if (!text.trim() && !pendingUpload) return;
-    if (isLoading || isExtracting || isTranscribing) return;
-
-    if (isListening) await stopListening();
-
-    let attachment: IdaAttachment | undefined;
-
-    if (pendingUpload) {
-      setIsExtracting(true);
-
-      try {
-        const result = await extractVisionFromFile({
-          data: pendingUpload.dataBase64,
-          mimeType: pendingUpload.mimeType,
-          fileName: pendingUpload.fileName,
-          locale,
-          sessionId,
-        });
-
-        attachment = {
-          id: pendingUpload.id,
-          type: result.fileType,
-          fileName: result.fileName,
-          mimeType: pendingUpload.mimeType,
-          previewDataUrl: pendingUpload.previewDataUrl,
-          extractedText: result.extractedText,
-          summary: result.summary,
-        };
-      } catch (err) {
-        toast.error(resolveOcrError(err), { duration: 5000 });
-        setIsExtracting(false);
-        return;
-      } finally {
-        setIsExtracting(false);
-      }
-    }
-
-    const content = attachment
-      ? buildAttachmentMessageContent(text, attachment, locale)
-      : text.trim();
-
-    onSend(content, {
-      attachment,
-      isVoiceNote: prefs.sendAsVoiceNote && hasVoiceInput,
-      caption: attachment ? text.trim() : undefined,
-    });
-
-    onInputChange("");
-    setPendingUpload(null);
-    resetTranscript();
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -228,10 +294,17 @@ export function ChatComposer({
       }
     : null;
 
-  const textareaValue =
-    isListening || isTranscribing || hasVoiceInput
-      ? displayTranscript || input
-      : input;
+  const canSend =
+    !isLoading &&
+    !isExtracting &&
+    !isTranscribing &&
+    (Boolean(input.trim()) || Boolean(pendingUpload));
+
+  useEffect(() => {
+    if (!isLoading && !isTranscribing) {
+      textareaRef.current?.focus();
+    }
+  }, [isLoading, isTranscribing]);
 
   return (
     <form
@@ -243,12 +316,20 @@ export function ChatComposer({
     >
       <div className="mx-auto w-full max-w-2xl space-y-2.5">
         {(isListening || isTranscribing) && (
-          <div className="flex items-center justify-between rounded-xl border border-primary/20 bg-primary/5 px-3 py-2">
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center justify-between rounded-xl border border-primary/20 bg-primary/5 px-3 py-2"
+          >
             <div className="flex items-center gap-3">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
-              </span>
+              {isTranscribing ? (
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              ) : (
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+                </span>
+              )}
               <VoiceWaveform levels={waveformLevels} />
             </div>
             <p className="text-xs text-muted-foreground">
@@ -304,7 +385,7 @@ export function ChatComposer({
             type="button"
             variant="outline"
             size="icon"
-            disabled={isLoading || isExtracting}
+            disabled={isLoading || isExtracting || isTranscribing}
             aria-label={copy.attachFile}
             title={copy.attachFile}
             className="h-11 w-11 shrink-0"
@@ -319,14 +400,22 @@ export function ChatComposer({
             </label>
             <Textarea
               id={inputId}
-              value={textareaValue}
-              onChange={(event) => onInputChange(event.target.value)}
+              ref={textareaRef}
+              value={input}
+              onChange={(event) => {
+                onInputChange(event.target.value);
+                if (hasVoiceInput) setHasVoiceInput(false);
+              }}
               onKeyDown={handleKeyDown}
               placeholder={
-                isListening ? copy.listeningPlaceholder : copy.inputPlaceholder
+                isListening
+                  ? copy.listeningPlaceholder
+                  : isTranscribing
+                    ? copy.voiceTranscribing
+                    : copy.inputPlaceholder
               }
               rows={1}
-              disabled={isLoading || isExtracting || isTranscribing}
+              disabled={isLoading || isExtracting || isTranscribing || isListening}
               className={cn(
                 "chat-input max-h-28 min-h-11 resize-none rounded-2xl",
                 "focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/20",
@@ -355,6 +444,8 @@ export function ChatComposer({
           >
             {isListening ? (
               <MicOff className="h-4 w-4" />
+            ) : isTranscribing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Mic className="h-4 w-4" />
             )}
@@ -363,16 +454,11 @@ export function ChatComposer({
           <Button
             type="submit"
             size="icon"
-            disabled={
-              isLoading ||
-              isExtracting ||
-              isTranscribing ||
-              (!textareaValue.trim() && !pendingUpload)
-            }
+            disabled={!canSend}
             aria-label={copy.send}
             className="h-11 w-11 shrink-0 transition-transform hover:scale-105 active:scale-95"
           >
-            {isExtracting ? (
+            {isExtracting || isTranscribing ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Send className="h-4 w-4" />

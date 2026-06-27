@@ -86,6 +86,8 @@ export const COPY: Record<
     stopSpeaking: string;
     autoSpeak: string;
     voiceSettings: string;
+    appLanguage: string;
+    reviewVoiceBeforeSend: string;
     voiceLanguage: string;
     speechRate: string;
     sendAsVoiceNote: string;
@@ -185,6 +187,8 @@ export const COPY: Record<
     stopSpeaking: "Hentikan suara",
     autoSpeak: "Suara otomatis",
     voiceSettings: "Pengaturan suara",
+    appLanguage: "Bahasa antarmuka",
+    reviewVoiceBeforeSend: "Edit suara sebelum kirim",
     voiceLanguage: "Bahasa suara",
     speechRate: "Kecepatan bicara",
     sendAsVoiceNote: "Kirim sebagai voice note",
@@ -283,6 +287,8 @@ export const COPY: Record<
     stopSpeaking: "Stop speaking",
     autoSpeak: "Auto-speak",
     voiceSettings: "Voice settings",
+    appLanguage: "Interface language",
+    reviewVoiceBeforeSend: "Edit voice before sending",
     voiceLanguage: "Voice language",
     speechRate: "Speech rate",
     sendAsVoiceNote: "Send as voice note",
@@ -381,6 +387,8 @@ export const COPY: Record<
     stopSpeaking: "停止播放",
     autoSpeak: "自动朗读",
     voiceSettings: "语音设置",
+    appLanguage: "界面语言",
+    reviewVoiceBeforeSend: "发送前编辑语音",
     voiceLanguage: "语音语言",
     speechRate: "语速",
     sendAsVoiceNote: "作为语音消息发送",
