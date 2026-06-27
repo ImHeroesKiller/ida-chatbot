@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IDA Chatbot",
+  title: "IDA — Intelligent Digital Assistant",
   description:
     "IDA — Intelligent Digital Assistant. Standalone AI chatbot with RAG, memory, and multilingual support.",
 };
@@ -30,7 +30,7 @@ export default function RootLayout({
       lang="id"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">
+      <body className="h-dvh overflow-hidden">
         {children}
         <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
       </body>
