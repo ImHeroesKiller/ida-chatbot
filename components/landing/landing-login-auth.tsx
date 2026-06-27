@@ -7,14 +7,8 @@ import toast from "react-hot-toast";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { isSupabaseBrowserConfigured } from "@/lib/supabase/client";
+import { LANDING_COPY } from "@/lib/landing/content";
 import { COPY } from "@/lib/i18n";
 
 function GoogleIcon() {
@@ -42,11 +36,13 @@ function GoogleIcon() {
 
 export function LandingLoginAuth() {
   const copy = COPY.id;
-  const { signInWithGoogle, loading: authLoading } = useAuth();
+  const { user, signInWithGoogle, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
   const [signingIn, setSigningIn] = useState(false);
   const supabaseReady = isSupabaseBrowserConfigured();
   const authError = searchParams.get("error") === "auth";
+  const nextPath = searchParams.get("next");
+  const chatHref = nextPath?.startsWith("/chat") ? nextPath : "/chat";
 
   useEffect(() => {
     if (authError) {
@@ -73,45 +69,45 @@ export function LandingLoginAuth() {
     }
   };
 
-  return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-base">Masuk untuk melanjutkan</CardTitle>
-        <CardDescription>{copy.loginSubtitle}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {authError && (
-          <p className="mb-3 text-center text-xs text-destructive">
-            {copy.authError}
-          </p>
-        )}
-        {!supabaseReady && (
-          <p className="mb-3 text-xs text-amber-600">
-            NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY belum diset.
-            Login tidak tersedia.
-          </p>
-        )}
-        <Button
-          className="w-full gap-2"
-          size="lg"
-          onClick={() => void handleLogin()}
-          disabled={signingIn || authLoading || !supabaseReady}
-        >
-          <GoogleIcon />
-          {signingIn ? "Redirecting..." : copy.loginWithGoogle}
-        </Button>
-        <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
-          Dengan masuk, Anda menyetujui{" "}
-          <Link href="/terms" className="underline hover:text-foreground">
-            Syarat Layanan
-          </Link>{" "}
-          dan{" "}
-          <Link href="/privacy" className="underline hover:text-foreground">
-            Kebijakan Privasi
-          </Link>
-          .
+  if (user) {
+    return (
+      <div className="space-y-3 rounded-xl border bg-card p-6 shadow-sm">
+        <p className="text-sm text-muted-foreground">
+          Anda sudah masuk. Lanjutkan ke chat room IDA.
         </p>
-      </CardContent>
-    </Card>
+        <Link
+          href={chatHref}
+          className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          {LANDING_COPY.continueToChat}
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 rounded-xl border bg-card p-6 shadow-sm">
+      {authError && (
+        <p className="text-center text-xs text-destructive">{copy.authError}</p>
+      )}
+      {!supabaseReady && (
+        <p className="text-xs text-amber-600">
+          NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY belum diset.
+          Login tidak tersedia.
+        </p>
+      )}
+      <Button
+        className="w-full gap-2"
+        size="lg"
+        onClick={() => void handleLogin()}
+        disabled={signingIn || authLoading || !supabaseReady}
+      >
+        <GoogleIcon />
+        {signingIn ? "Redirecting..." : LANDING_COPY.googleSignInLabel}
+      </Button>
+      <p className="text-center text-xs text-muted-foreground">
+        {copy.loginSubtitle}
+      </p>
+    </div>
   );
 }
