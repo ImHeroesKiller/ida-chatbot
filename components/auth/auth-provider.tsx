@@ -61,18 +61,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const supabase = getSupabaseBrowser();
-    const redirectTo = `${window.location.origin}/auth/callback?next=/chat`;
+    const origin = window.location.origin;
+    const redirectTo = `${origin}/auth/callback`;
 
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo,
-        // Browser redirect to /authorize cannot send headers — apikey must be in URL.
+        // Browser GET to /authorize cannot send headers — apikey must be a URL param.
         queryParams: { apikey: config.anonKey },
       },
     });
 
     if (error) throw error;
+
+    if (data?.url?.includes("/rest/v1/auth/")) {
+      throw new Error(
+        "Invalid Supabase project URL. Set NEXT_PUBLIC_SUPABASE_URL to https://<ref>.supabase.co (without /rest/v1).",
+      );
+    }
   }, []);
 
   const signOut = useCallback(async () => {

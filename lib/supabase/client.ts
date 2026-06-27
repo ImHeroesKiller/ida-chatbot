@@ -9,6 +9,7 @@ import {
 } from "@/lib/supabase/env";
 
 let browserClient: SupabaseClient | null = null;
+let browserClientKey: string | null = null;
 
 export function isSupabaseBrowserConfigured(): boolean {
   return isSupabasePublicConfigured();
@@ -24,8 +25,13 @@ export function getSupabaseBrowser(): SupabaseClient {
     );
   }
 
-  if (!browserClient) {
-    browserClient = createBrowserClient(config.url, config.anonKey);
+  const nextKey = `${config.url}::${config.anonKey}`;
+
+  if (!browserClient || browserClientKey !== nextKey) {
+    browserClient = createBrowserClient(config.url, config.anonKey, {
+      isSingleton: false,
+    });
+    browserClientKey = nextKey;
   }
 
   return browserClient;
