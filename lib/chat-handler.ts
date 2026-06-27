@@ -5,7 +5,15 @@ import {
   SystemMessage,
 } from "@langchain/core/messages";
 
-import { streamOpenAiCompatibleChat } from "@/lib/admin/chat-stream";
+import {
+  streamOpenAiCompatibleChat,
+  type StreamChatResult,
+} from "@/lib/admin/chat-stream";
+import type { TokenUsage } from "@/lib/admin/token-utils";
+import {
+  estimateUsageFromMessages,
+  mergeTokenUsage,
+} from "@/lib/admin/token-utils";
 import { loadAppConfig } from "@/lib/admin/config";
 import {
   findModelDefinition,
@@ -43,6 +51,7 @@ export interface IdaChatPreparedContext {
   model: ChatGoogleGenerativeAI | null;
   modelId: string;
   provider: ModelProvider;
+  systemPrompt: string;
   openAiMessages: Array<{
     role: "system" | "user" | "assistant";
     content: string;
@@ -54,6 +63,10 @@ export interface IdaChatPreparedContext {
   sessionId?: string;
   userId?: string;
   handoffResponse?: string;
+}
+
+export interface IdaChatStreamResult extends StreamChatResult {
+  usage: TokenUsage;
 }
 
 export interface HandoffToolExecution {
@@ -206,6 +219,7 @@ export async function prepareIdaChatContext(
     model,
     modelId: selectedModel.id,
     provider: selectedModel.provider,
+    systemPrompt: systemInstruction,
     openAiMessages,
     messages: langchainMessages,
     meta,
@@ -217,13 +231,46 @@ export async function prepareIdaChatContext(
   };
 }
 
-export async function* streamIdaChatResponse(
+function extractGeminiUsage(chunk: unknown): TokenUsage | null {
+  if (!chunk || typeof chunk !== "object") return null;
+
+  const metadata = (chunk as { usage_metadata?: Record<string, number> })
+    .usage_metadata;
+
+  if (!metadata) return null;
+
+  const promptTokens = metadata.input_tokens ?? metadata.prompt_tokens ?? 0;
+  const completionTokens =
+    metadata.output_tokens ?? metadata.completion_tokens ?? 0;
+  const totalTokens =
+    metadata.total_tokens ?? promptTokens + completionTokens;
+
+  if (totalTokens <= 0) return null;
+
+  return { promptTokens, completionTokens, totalTokens };
+}
+
+function buildEstimatedUsage(
   context: IdaChatPreparedContext,
-): AsyncGenerator<string> {
+  completion: string,
+): TokenUsage {
+  return estimateUsageFromMessages({
+    systemPrompt: context.systemPrompt,
+    messages: context.sessionMessages,
+    completion,
+  });
+}
+
+export async function runIdaChatStream(
+  context: IdaChatPreparedContext,
+  onToken?: (token: string) => void,
+): Promise<IdaChatStreamResult> {
   if (context.handoffResponse) {
-    yield context.handoffResponse;
+    onToken?.(context.handoffResponse);
     await persistAssistantMessage(context, context.handoffResponse);
-    return;
+
+    const usage = buildEstimatedUsage(context, context.handoffResponse);
+    return { fullText: context.handoffResponse, usage };
   }
 
   if (context.provider === "google" && context.model) {
@@ -232,6 +279,7 @@ export async function* streamIdaChatResponse(
       .stream(context.messages);
 
     let fullText = "";
+    let usage: TokenUsage | null = null;
 
     for await (const chunk of stream) {
       const text =
@@ -247,8 +295,11 @@ export async function* streamIdaChatResponse(
 
       if (text) {
         fullText += text;
-        yield text;
+        onToken?.(text);
       }
+
+      const chunkUsage = extractGeminiUsage(chunk);
+      if (chunkUsage) usage = chunkUsage;
     }
 
     const finalText = fullText.trim();
@@ -257,26 +308,36 @@ export async function* streamIdaChatResponse(
     }
 
     await persistAssistantMessage(context, finalText);
-    return;
+
+    return {
+      fullText: finalText,
+      usage: mergeTokenUsage(
+        usage ?? { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        buildEstimatedUsage(context, finalText),
+      ),
+    };
   }
 
-  let fullText = "";
-
-  for await (const token of streamOpenAiCompatibleChat({
+  const result = await streamOpenAiCompatibleChat({
     provider: context.provider,
     modelId: context.modelId,
     messages: context.openAiMessages,
-  })) {
-    fullText += token;
-    yield token;
-  }
+    onToken,
+  });
 
-  const finalText = fullText.trim();
-  if (!finalText) {
+  if (!result.fullText) {
     throw new Error("Empty response from model.");
   }
 
-  await persistAssistantMessage(context, finalText);
+  await persistAssistantMessage(context, result.fullText);
+
+  return {
+    fullText: result.fullText,
+    usage: mergeTokenUsage(
+      result.usage,
+      buildEstimatedUsage(context, result.fullText),
+    ),
+  };
 }
 
 async function persistAssistantMessage(

@@ -7,7 +7,12 @@ import {
   saveAppConfig,
 } from "@/lib/admin/config";
 import { requireAdmin } from "@/lib/admin/guard";
-import { isProviderConfigured, MODEL_LIBRARY } from "@/lib/admin/models";
+import {
+  getModelAvailability,
+  isProviderConfigured,
+  MODEL_LIBRARY,
+  MODEL_PROVIDERS,
+} from "@/lib/admin/models";
 import type { IdaAppConfig } from "@/lib/admin/types";
 
 const modelProviderSchema = z.enum(["google", "groq", "xai", "huggingface"]);
@@ -43,11 +48,20 @@ export async function GET() {
     ]),
   );
 
+  const modelAvailability = Object.fromEntries(
+    MODEL_LIBRARY.map((model) => [
+      `${model.provider}:${model.id}`,
+      getModelAvailability(model),
+    ]),
+  );
+
   return NextResponse.json({
     config,
     defaults: DEFAULT_APP_CONFIG,
     models: MODEL_LIBRARY,
     providerStatus,
+    modelAvailability,
+    providerDocs: MODEL_PROVIDERS,
   });
 }
 

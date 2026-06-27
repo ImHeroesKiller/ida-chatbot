@@ -5,7 +5,7 @@ import { loadAppConfig } from "@/lib/admin/config";
 import { logRequest } from "@/lib/admin/request-logs";
 import {
   prepareIdaChatContext,
-  streamIdaChatResponse,
+  runIdaChatStream,
 } from "@/lib/chat-handler";
 import { IDA_CONFIG, LOCALES } from "@/lib/config";
 import {
@@ -75,6 +75,18 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     if (error instanceof IdaRateLimitError) {
+      const appConfig = await loadAppConfig();
+
+      void logRequest({
+        userId: userId ?? null,
+        sessionId: sessionId ?? null,
+        model: appConfig.defaultModel.id,
+        provider: appConfig.defaultModel.provider,
+        route: "chat",
+        status: "rate_limit",
+        errorMessage: "Rate limit exceeded.",
+      });
+
       return NextResponse.json<IdaChatErrorResponse>(
         { error: "Rate limit exceeded. Please try again later." },
         {
@@ -87,6 +99,8 @@ export async function POST(request: Request) {
     throw error;
   }
 
+  let preparedModel: { modelId: string; provider: string } | null = null;
+
   try {
     const appConfig = await loadAppConfig();
     const context = await prepareIdaChatContext({
@@ -96,13 +110,10 @@ export async function POST(request: Request) {
       userId,
     });
 
-    void logRequest({
-      userId: userId ?? null,
-      sessionId: sessionId ?? null,
-      model: context.modelId,
+    preparedModel = {
+      modelId: context.modelId,
       provider: context.provider,
-      route: "chat",
-    });
+    };
 
     if (context.meta.handoffTriggered) {
       console.log("[IDA chat] Tool call: trigger_handoff", {
@@ -136,14 +147,40 @@ export async function POST(request: Request) {
     const stream = createSseStream(async (send) => {
       send("meta", context.meta);
 
-      let fullMessage = "";
+      try {
+        const result = await runIdaChatStream(context, (token) => {
+          send("token", { text: token });
+        });
 
-      for await (const token of streamIdaChatResponse(context)) {
-        fullMessage += token;
-        send("token", { text: token });
+        send("done", { message: result.fullText });
+
+        void logRequest({
+          userId: userId ?? null,
+          sessionId: sessionId ?? null,
+          model: context.modelId,
+          provider: context.provider,
+          route: "chat",
+          usage: result.usage,
+          status: "success",
+        });
+      } catch (streamError) {
+        const errorMessage =
+          streamError instanceof Error
+            ? streamError.message
+            : "Stream failed.";
+
+        void logRequest({
+          userId: userId ?? null,
+          sessionId: sessionId ?? null,
+          model: context.modelId,
+          provider: context.provider,
+          route: "chat",
+          status: "error",
+          errorMessage,
+        });
+
+        throw streamError;
       }
-
-      send("done", { message: fullMessage.trim() });
     });
 
     return sseResponse(stream);
@@ -159,6 +196,18 @@ export async function POST(request: Request) {
       error.message === "Chat service is not configured."
         ? 503
         : 500;
+
+    if (preparedModel) {
+      void logRequest({
+        userId: userId ?? null,
+        sessionId: sessionId ?? null,
+        model: preparedModel.modelId,
+        provider: preparedModel.provider,
+        route: "chat",
+        status: "error",
+        errorMessage: error instanceof Error ? error.message : message,
+      });
+    }
 
     console.error("[IDA chat]", error);
 

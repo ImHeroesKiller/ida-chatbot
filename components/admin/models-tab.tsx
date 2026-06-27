@@ -14,7 +14,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { IdaAppConfig } from "@/lib/admin/types";
-import type { ModelDefinition, ModelProvider } from "@/lib/admin/models";
+import type {
+  ModelAvailability,
+  ModelDefinition,
+  ModelProvider,
+} from "@/lib/admin/models";
 import { MODEL_PROVIDERS } from "@/lib/admin/models";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +26,16 @@ interface ConfigResponse {
   config: IdaAppConfig;
   models: ModelDefinition[];
   providerStatus: Record<ModelProvider, boolean>;
+  modelAvailability: Record<string, ModelAvailability>;
+  providerDocs: typeof MODEL_PROVIDERS;
 }
+
+const AVAILABILITY_LABELS: Record<ModelAvailability, string> = {
+  available: "Available",
+  preview: "Preview",
+  unconfigured: "No API key",
+  deprecated: "Deprecated",
+};
 
 export function ModelsTab() {
   const [data, setData] = useState<ConfigResponse | null>(null);
@@ -77,7 +90,7 @@ export function ModelsTab() {
       : chatModels.filter((model) => model.provider === filter);
 
   const providers = Object.entries(MODEL_PROVIDERS) as Array<
-    [ModelProvider, { label: string }]
+    [ModelProvider, (typeof MODEL_PROVIDERS)[ModelProvider]]
   >;
 
   return (
@@ -89,8 +102,7 @@ export function ModelsTab() {
             Model Library
           </CardTitle>
           <CardDescription>
-            Select the default chat model for /api/chat. Provider API keys must
-            be configured in environment variables.
+            Synced with official provider docs. API keys required per provider.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -108,6 +120,7 @@ export function ModelsTab() {
                 size="sm"
                 variant={filter === provider ? "default" : "outline"}
                 onClick={() => setFilter(provider)}
+                title={meta.docsUrl}
               >
                 {meta.label}
                 {data?.providerStatus[provider] ? (
@@ -124,7 +137,9 @@ export function ModelsTab() {
               const isSelected =
                 selected?.id === model.id &&
                 selected.provider === model.provider;
-              const configured = data?.providerStatus[model.provider];
+              const availability =
+                data?.modelAvailability[`${model.provider}:${model.id}`] ??
+                "unconfigured";
 
               return (
                 <button
@@ -135,7 +150,8 @@ export function ModelsTab() {
                     isSelected
                       ? "border-primary bg-primary/5"
                       : "hover:bg-muted/50",
-                    !configured && "opacity-60",
+                    availability === "unconfigured" && "opacity-60",
+                    availability === "deprecated" && "opacity-50",
                   )}
                   onClick={() =>
                     setSelected({ id: model.id, provider: model.provider })
@@ -153,9 +169,14 @@ export function ModelsTab() {
                   </p>
                   <div className="mt-3 flex flex-wrap gap-1">
                     <Badge variant="outline">{model.provider}</Badge>
-                    {!configured && (
-                      <Badge variant="outline">API key missing</Badge>
-                    )}
+                    <Badge variant="outline">{model.releaseStatus}</Badge>
+                    <Badge
+                      variant={
+                        availability === "available" ? "default" : "outline"
+                      }
+                    >
+                      {AVAILABILITY_LABELS[availability]}
+                    </Badge>
                   </div>
                 </button>
               );

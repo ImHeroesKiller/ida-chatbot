@@ -10,57 +10,77 @@ const CHART_COLORS = [
   "bg-chart-5",
 ];
 
+export type ChartMetric = "requests" | "tokens";
+
 export function SimpleBarChart({
   days,
   modelKeys,
+  metric = "requests",
   className,
 }: {
   days: Array<{
     label: string;
     byModel: Record<string, number>;
+    byModelTokens?: Record<string, number>;
     total: number;
+    totalTokens?: number;
   }>;
   modelKeys: string[];
+  metric?: ChartMetric;
   className?: string;
 }) {
-  const maxTotal = Math.max(...days.map((day) => day.total), 1);
+  const getDayTotal = (day: (typeof days)[number]) =>
+    metric === "tokens" ? (day.totalTokens ?? 0) : day.total;
+
+  const getModelValue = (day: (typeof days)[number], modelKey: string) =>
+    metric === "tokens"
+      ? (day.byModelTokens?.[modelKey] ?? 0)
+      : (day.byModel[modelKey] ?? 0);
+
+  const maxTotal = Math.max(...days.map(getDayTotal), 1);
 
   return (
     <div className={cn("space-y-3", className)}>
       <div className="flex h-52 items-end gap-2 border-b border-border pb-2">
-        {days.map((day) => (
-          <div
-            key={day.label}
-            className="flex min-w-0 flex-1 flex-col items-center gap-1"
-          >
-            <div className="flex h-40 w-full items-end justify-center gap-0.5">
-              {day.total === 0 ? (
-                <div className="h-1 w-full rounded-full bg-muted" />
-              ) : (
-                modelKeys.map((modelKey, index) => {
-                  const value = day.byModel[modelKey] ?? 0;
-                  if (!value) return null;
+        {days.map((day) => {
+          const dayTotal = getDayTotal(day);
 
-                  const height = Math.max((value / maxTotal) * 100, 8);
+          return (
+            <div
+              key={day.label}
+              className="flex min-w-0 flex-1 flex-col items-center gap-1"
+            >
+              <div className="flex h-40 w-full items-end justify-center gap-0.5">
+                {dayTotal === 0 ? (
+                  <div className="h-1 w-full rounded-full bg-muted" />
+                ) : (
+                  modelKeys.map((modelKey, index) => {
+                    const value = getModelValue(day, modelKey);
+                    if (!value) return null;
 
-                  return (
-                    <div
-                      key={modelKey}
-                      title={`${modelKey}: ${value}`}
-                      className={cn(
-                        "w-full min-w-[4px] max-w-3 rounded-t",
-                        CHART_COLORS[index % CHART_COLORS.length],
-                      )}
-                      style={{ height: `${height}%` }}
-                    />
-                  );
-                })
-              )}
+                    const height = Math.max((value / maxTotal) * 100, 8);
+
+                    return (
+                      <div
+                        key={modelKey}
+                        title={`${modelKey}: ${value}`}
+                        className={cn(
+                          "w-full min-w-[4px] max-w-3 rounded-t",
+                          CHART_COLORS[index % CHART_COLORS.length],
+                        )}
+                        style={{ height: `${height}%` }}
+                      />
+                    );
+                  })
+                )}
+              </div>
+              <span className="text-[10px] text-muted-foreground">
+                {day.label}
+              </span>
+              <span className="text-[10px] font-medium">{dayTotal}</span>
             </div>
-            <span className="text-[10px] text-muted-foreground">{day.label}</span>
-            <span className="text-[10px] font-medium">{day.total}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {modelKeys.length > 0 && (
