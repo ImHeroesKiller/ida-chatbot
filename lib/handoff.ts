@@ -2,6 +2,13 @@ import type { Locale } from "@/lib/config";
 import type { IdaHandoffPrefill } from "@/lib/types";
 
 import type { ConversationMessage } from "./memory/conversation-memory";
+import {
+  filterQuickReplies,
+  inferQuickReplies,
+  isHandoffQuickReply,
+} from "./quick-replies";
+
+export { filterQuickReplies, isHandoffQuickReply };
 
 const TOPIC_RULES: { topic: string; keywords: string[] }[] = [
   {
@@ -120,36 +127,9 @@ export function buildHandoffPrefill(
   };
 }
 
-const HANDOFF_REPLY_PATTERNS = [
-  /hubungi\s+tim\s+manusia/i,
-  /talk\s+to\s+a\s+human/i,
-  /联系人工客服/,
-  /human\s+handoff/i,
-  /handoff/i,
-];
-
-export function isHandoffQuickReply(reply: string): boolean {
-  return HANDOFF_REPLY_PATTERNS.some((pattern) => pattern.test(reply.trim()));
-}
-
-export function filterQuickReplies(replies: string[]): string[] {
-  return replies.filter((reply) => !isHandoffQuickReply(reply));
-}
-
-export function getQuickReplies(locale: Locale): string[] {
-  const replies: Record<Locale, string[]> = {
-    id: [
-      "Apa yang bisa kamu bantu?",
-      "Jelaskan fitur IDA",
-      "Butuh bantuan lanjutan",
-    ],
-    en: [
-      "What can you help with?",
-      "Explain IDA features",
-      "Need further assistance",
-    ],
-    zh: ["你能帮我什么？", "介绍 IDA 功能", "需要进一步帮助"],
-  };
-
-  return filterQuickReplies(replies[locale]);
+export function getQuickReplies(
+  locale: Locale,
+  messages: ConversationMessage[] = [],
+): string[] {
+  return inferQuickReplies({ locale, messages });
 }

@@ -279,6 +279,16 @@ function ChatRoomContent() {
           }
         };
 
+        const applyQuickReplies = (replies?: string[]) => {
+          if (!replies?.length) return;
+
+          const filtered = filterQuickReplies(replies);
+          if (activeChatIdRef.current === chatIdAtSend) {
+            setQuickReplies(filtered);
+          }
+          persistCurrentChat({ quickReplies: filtered });
+        };
+
         await consumeIdaSseStream(
           response,
           (token) => {
@@ -309,9 +319,11 @@ function ChatRoomContent() {
             }
 
             applyWebSearchSources(meta.webSearchSources);
+            applyQuickReplies(meta.quickReplies);
           },
           (done) => {
             applyWebSearchSources(done.webSearchSources);
+            applyQuickReplies(done.quickReplies);
           },
         );
 

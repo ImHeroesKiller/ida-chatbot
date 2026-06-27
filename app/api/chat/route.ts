@@ -192,8 +192,21 @@ export async function POST(request: Request) {
           });
         }
 
+        send("meta", {
+          ...activeContext.meta,
+          quickReplies: result.quickReplies,
+          usedWebSearch: result.usedWebSearch ?? activeContext.meta.usedWebSearch,
+          webSearchSources:
+            result.webSearchSources ?? activeContext.meta.webSearchSources,
+          webSearchQueries:
+            result.webSearchQueries ?? activeContext.meta.webSearchQueries,
+          activeModel: activeContext.modelId,
+          activeProvider: activeContext.provider,
+        });
+
         send("done", {
           message: result.fullText,
+          quickReplies: result.quickReplies,
           usedWebSearch: result.usedWebSearch,
           webSearchSources: result.webSearchSources,
         });

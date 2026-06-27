@@ -33,6 +33,7 @@ export interface IdaSseTokenPayload {
 
 export interface IdaSseDonePayload {
   message: string;
+  quickReplies?: string[];
   usedWebSearch?: boolean;
   webSearchSources?: IdaWebSearchSourcePayload[];
 }

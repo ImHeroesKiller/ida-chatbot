@@ -13,6 +13,7 @@
     "test:rag-confidence": "node scripts/test-rag-confidence.mjs",
     "test:handoff": "node scripts/test-handoff-tool.mjs",
     "test:web-search": "node scripts/test-web-search.mjs",
+    "test:quick-replies": "node scripts/test-quick-replies.mjs",
     "test:sessions": "node scripts/test-chat-store.mjs"
   },
   "dependencies": {

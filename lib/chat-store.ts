@@ -10,7 +10,7 @@ import {
 } from "@/lib/client/sync-sessions";
 import { getOrCreateAnonymousUserId } from "@/lib/client/user-id";
 import type { Locale } from "@/lib/config";
-import { getQuickReplies } from "@/lib/handoff";
+import { inferQuickReplies } from "@/lib/quick-replies";
 import { COPY } from "@/lib/i18n";
 import type { IdaMessage } from "@/lib/types";
 
@@ -89,12 +89,13 @@ export function sortSessions(sessions: ChatSession[]): ChatSession[] {
 
 export function createChatSession(locale: Locale): ChatSession {
   const now = Date.now();
+  const welcomeMessage = createWelcomeMessage(locale);
 
   return {
     id: createId("chat"),
     title: locale === "zh" ? "新对话" : locale === "en" ? "New chat" : "Chat baru",
-    messages: [createWelcomeMessage(locale)],
-    quickReplies: getQuickReplies(locale),
+    messages: [welcomeMessage],
+    quickReplies: inferQuickReplies({ locale, messages: [] }),
     apiSessionId: createId("ida"),
     pinned: false,
     createdAt: now,
