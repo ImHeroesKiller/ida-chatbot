@@ -17,7 +17,13 @@ export function QuickReplies({
   handoffLabel,
 }: QuickRepliesProps) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div
+      className={cn(
+        "flex gap-2 overflow-x-auto overscroll-x-contain pb-0.5",
+        "snap-x snap-mandatory scroll-smooth",
+        "[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
+      )}
+    >
       {replies.map((reply, index) => {
         const isHandoff = index === replies.length - 1;
 
@@ -28,13 +34,14 @@ export function QuickReplies({
             disabled={disabled}
             onClick={() => onSelect(isHandoff ? "" : reply, isHandoff)}
             className={cn(
-              "transition-colors disabled:pointer-events-none disabled:opacity-50",
+              "shrink-0 snap-start transition-colors",
+              "disabled:pointer-events-none disabled:opacity-50",
             )}
           >
             <Badge
               variant={isHandoff ? "default" : "secondary"}
               className={cn(
-                "cursor-pointer px-2.5 py-1 text-[10px] font-normal",
+                "cursor-pointer whitespace-nowrap px-3 py-1.5 text-[11px] font-normal sm:text-xs",
                 isHandoff && "bg-primary/90 hover:bg-primary",
               )}
             >

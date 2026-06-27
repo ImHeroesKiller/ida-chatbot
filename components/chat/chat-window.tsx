@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Send, Sparkles, X } from "lucide-react";
+import { Send, Sparkles, X } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -14,6 +14,7 @@ import {
 import { HandoffDialog } from "@/components/chat/handoff-dialog";
 import { MessageBubble } from "@/components/chat/message-bubble";
 import { QuickReplies } from "@/components/chat/quick-replies";
+import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { useChatContext } from "@/components/chat/chat-provider";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -77,13 +78,20 @@ export function ChatWindow({ isOpen, onClose }: ChatWindowProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  const streamingMessage = messages.find(
+    (message) => message.id === streamingMessageId,
+  );
+  const showTypingIndicator =
+    isLoading &&
+    (!streamingMessageId || !streamingMessage?.content.length);
+
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading, streamingMessageId, scrollToBottom]);
+  }, [messages, showTypingIndicator, scrollToBottom]);
 
   useEffect(() => {
     if (isOpen && !hasWelcomed) {
@@ -92,6 +100,7 @@ export function ChatWindow({ isOpen, onClose }: ChatWindowProps) {
           id: WELCOME_MESSAGE_ID,
           role: "assistant",
           content: copy.welcome,
+          createdAt: Date.now(),
         },
       ]);
       setHasWelcomed(true);
@@ -131,6 +140,7 @@ export function ChatWindow({ isOpen, onClose }: ChatWindowProps) {
       id: createMessageId(),
       role: "user",
       content: text,
+      createdAt: Date.now(),
     };
 
     const nextMessages = [...messages, userMessage];
@@ -139,6 +149,7 @@ export function ChatWindow({ isOpen, onClose }: ChatWindowProps) {
       id: streamId,
       role: "assistant",
       content: "",
+      createdAt: Date.now(),
     };
 
     setMessages([...nextMessages, streamingPlaceholder]);
@@ -236,35 +247,38 @@ export function ChatWindow({ isOpen, onClose }: ChatWindowProps) {
       <div
         className={cn(
           "fixed z-50 flex flex-col overflow-hidden rounded-3xl border bg-background shadow-2xl",
-          "inset-x-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] h-[min(70dvh,520px)]",
+          "inset-x-3 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] h-[min(72dvh,540px)]",
+          "max-sm:rounded-2xl",
           "sm:inset-x-auto sm:bottom-24 sm:right-5 sm:h-[min(72dvh,560px)] sm:w-[min(100vw-2rem,400px)]",
         )}
         role="dialog"
         aria-label={copy.windowLabel}
       >
-        <header className="flex items-start justify-between gap-3 border-b px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
-              <Sparkles className="h-5 w-5 text-primary" />
+        <header className="flex items-start justify-between gap-2 border-b px-3 py-3 sm:gap-3 sm:px-4">
+          <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20 sm:h-10 sm:w-10">
+              <Sparkles className="h-4 w-4 text-primary sm:h-5 sm:w-5" />
             </div>
-            <div>
-              <p className="text-sm font-semibold tracking-tight">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold tracking-tight">
                 {IDA_CONFIG.name}
               </p>
-              <p className="text-[11px] text-muted-foreground">{copy.subtitle}</p>
+              <p className="truncate text-[11px] text-muted-foreground">
+                {copy.subtitle}
+              </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             aria-label={copy.close}
           >
             <X className="h-4 w-4" />
           </button>
         </header>
 
-        <div className="border-b px-4 py-2.5">
+        <div className="border-b px-3 py-2 sm:px-4 sm:py-2.5">
           <Button
             size="sm"
             variant="outline"
@@ -275,32 +289,45 @@ export function ChatWindow({ isOpen, onClose }: ChatWindowProps) {
           </Button>
         </div>
 
-        <ScrollArea className="flex-1 px-4 py-4">
-          <div className="space-y-3">
-            {messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                isStreaming={message.id === streamingMessageId}
-              />
-            ))}
-            {isLoading && !streamingMessageId && (
-              <div className="flex justify-start">
-                <div className="rounded-2xl rounded-bl-md border bg-card px-4 py-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
+        <ScrollArea className="flex-1 px-3 py-3 sm:px-4 sm:py-4">
+          <div className="space-y-4">
+            {messages.map((message) => {
+              const isStreaming = message.id === streamingMessageId;
+              const isEmptyStreaming =
+                isStreaming && message.content.length === 0;
+
+              if (isEmptyStreaming) return null;
+
+              return (
+                <MessageBubble
+                  key={message.id}
+                  message={message}
+                  locale={locale}
+                  isStreaming={isStreaming}
+                />
+              );
+            })}
+
+            {showTypingIndicator && <TypingIndicator locale={locale} />}
+
+            <div ref={messagesEndRef} className="h-px" />
           </div>
         </ScrollArea>
 
         {error && (
-          <p className="px-4 pb-2 text-center text-xs text-destructive">{error}</p>
+          <p className="px-3 pb-2 text-center text-xs text-destructive sm:px-4">
+            {error}
+          </p>
         )}
 
-        <form onSubmit={handleSubmit} className="border-t bg-muted/30 p-3">
-          <div className="mb-2">
+        <form
+          onSubmit={handleSubmit}
+          className={cn(
+            "border-t bg-muted/30 px-3 pt-3",
+            "pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-3",
+          )}
+        >
+          <div className="mb-2.5 -mx-0.5 px-0.5">
             <QuickReplies
               replies={quickReplies}
               disabled={isLoading}
@@ -322,7 +349,7 @@ export function ChatWindow({ isOpen, onClose }: ChatWindowProps) {
               placeholder={copy.inputPlaceholder}
               rows={1}
               disabled={isLoading}
-              className="max-h-24 min-h-10 flex-1 resize-none rounded-2xl"
+              className="max-h-24 min-h-10 flex-1 resize-none rounded-2xl text-base sm:text-sm"
             />
             <Button
               type="submit"
@@ -331,14 +358,10 @@ export function ChatWindow({ isOpen, onClose }: ChatWindowProps) {
               aria-label={copy.send}
               className="h-10 w-10 shrink-0"
             >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
+              <Send className="h-4 w-4" />
             </Button>
           </div>
-          <p className="mt-2 text-center text-[10px] text-muted-foreground">
+          <p className="mt-2 text-center text-[10px] leading-relaxed text-muted-foreground">
             {copy.disclaimer}
           </p>
         </form>

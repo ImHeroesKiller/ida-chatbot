@@ -43,7 +43,7 @@ function FloatingChatInner({ defaultLocale = "id" }: FloatingChatProps) {
         whileTap={{ scale: 0.95 }}
         className={cn(
           "fixed z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-colors",
-          "bottom-[calc(5rem+env(safe-area-inset-bottom))] right-5 sm:bottom-6",
+          "bottom-[calc(5rem+env(safe-area-inset-bottom))] right-3 sm:bottom-6 sm:right-5",
           isOpen
             ? "bg-muted text-foreground ring-1 ring-border"
             : "bg-primary text-primary-foreground hover:bg-primary/90",
