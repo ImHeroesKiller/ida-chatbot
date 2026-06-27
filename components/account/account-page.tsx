@@ -1,10 +1,11 @@
 "use client";
 
-import { ArrowLeft, LogOut, Sparkles } from "lucide-react";
+import { ArrowLeft, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/components/auth/auth-provider";
+import { IdaLogo } from "@/components/brand/ida-logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,7 +66,7 @@ export function AccountPage() {
             <ArrowLeft className="size-4" />
           </Link>
           <div className="flex items-center gap-2">
-            <Sparkles className="size-4 text-primary" />
+            <IdaLogo size={28} />
             <h1 className="text-base font-semibold">{copy.profileTitle}</h1>
           </div>
         </div>

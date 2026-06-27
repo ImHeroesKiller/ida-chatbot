@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Sparkles, User } from "lucide-react";
+import { Menu, User } from "lucide-react";
 import Link from "next/link";
 import {
   useCallback,
@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 
+import { IdaLogo } from "@/components/brand/ida-logo";
 import { ChatComposer } from "@/components/chat/chat-composer";
 import { ChatEmptyState } from "@/components/chat/chat-empty-state";
 import { HandoffDialog } from "@/components/chat/handoff-dialog";
@@ -451,9 +452,10 @@ function ChatRoomContent() {
               <Menu className="h-4 w-4" />
             </Button>
 
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20 dark:bg-primary/15 sm:h-10 sm:w-10">
-              <Sparkles className="h-4 w-4 text-primary sm:h-5 sm:w-5" />
-            </div>
+            <IdaLogo
+              size={36}
+              className="shrink-0 rounded-2xl sm:size-10"
+            />
 
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold tracking-tight">

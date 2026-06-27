@@ -1,12 +1,13 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import { useAuth } from "@/components/auth/auth-provider";
+import { IdaLogo } from "@/components/brand/ida-logo";
+import { PwaInstallPrompt } from "@/components/brand/pwa-install-prompt";
 import { isSupabaseBrowserConfigured } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -81,9 +82,7 @@ export function LandingPage() {
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
       <div className="mx-auto w-full max-w-md space-y-8 text-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
-            <Sparkles className="size-8 text-primary" />
-          </div>
+          <IdaLogo size={64} priority className="rounded-2xl" />
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
               {IDA_CONFIG.name}
@@ -138,6 +137,8 @@ export function LandingPage() {
           © {new Date().getFullYear()} {IDA_CONFIG.name}
         </p>
       </footer>
+
+      <PwaInstallPrompt />
     </div>
   );
 }

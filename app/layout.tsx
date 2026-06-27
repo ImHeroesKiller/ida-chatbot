@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
 import { contrastForeground, normalizeHexColor } from "@/lib/ui-config/color";
 import { Geist_Mono, Inter } from "next/font/google";
@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { GlobalUiProvider } from "@/components/global-ui-provider";
 import { ThemeProvider } from "@/components/theme-provider";
+import { BRAND, getMetadataBase } from "@/lib/brand";
 import { buildUiInitScript } from "@/lib/ui-config/init-script";
 import { loadUiConfig } from "@/lib/ui-config/server";
 import "./globals.css";
@@ -24,9 +25,51 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IDA — Intelligent Digital Assistant",
-  description:
-    "IDA — Intelligent Digital Assistant. Standalone AI chatbot with RAG, memory, and multilingual support.",
+  metadataBase: getMetadataBase(),
+  title: {
+    default: BRAND.fullName,
+    template: `%s · ${BRAND.name}`,
+  },
+  description: BRAND.description,
+  applicationName: BRAND.shortName,
+  manifest: "/manifest.json",
+  icons: {
+    icon: [{ url: "/ida-logo.png", sizes: "512x512", type: "image/png" }],
+    apple: [{ url: "/ida-logo.png", sizes: "512x512", type: "image/png" }],
+  },
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    siteName: BRAND.name,
+    title: BRAND.fullName,
+    description: BRAND.description,
+    images: [
+      {
+        url: BRAND.logoSrc,
+        width: 512,
+        height: 512,
+        alt: BRAND.name,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: BRAND.fullName,
+    description: BRAND.description,
+    images: [BRAND.logoSrc],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: BRAND.shortName,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: BRAND.backgroundColor },
+    { media: "(prefers-color-scheme: dark)", color: BRAND.themeColor },
+  ],
 };
 
 export default async function RootLayout({

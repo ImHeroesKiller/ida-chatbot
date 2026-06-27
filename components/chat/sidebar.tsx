@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   ChevronLeft,
   ChevronRight,
@@ -15,6 +16,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { IdaLogo } from "@/components/brand/ida-logo";
 import { ConfirmDialog } from "@/components/chat/confirm-dialog";
 import { RenameDialog } from "@/components/chat/rename-dialog";
 import { SidebarSettings } from "@/components/chat/sidebar-settings";
@@ -24,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ChatSession } from "@/lib/chat-store";
 import type { Locale } from "@/lib/config";
+import { IDA_CONFIG } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -131,6 +134,29 @@ export function ChatSidebar({
         aria-label={copy.sessionsLabel}
       >
         <div className="sticky top-0 z-10 shrink-0 border-b bg-muted/20 backdrop-blur-sm dark:bg-muted/10">
+          <div
+            className={cn(
+              "flex items-center border-b border-border/50",
+              expanded ? "gap-2.5 px-3 py-2.5" : "justify-center px-2 py-2.5",
+            )}
+          >
+            <Link
+              href="/chat"
+              className={cn(
+                "flex min-w-0 items-center text-foreground transition-opacity hover:opacity-90",
+                expanded ? "gap-2.5" : "justify-center",
+              )}
+              title={IDA_CONFIG.name}
+            >
+              <IdaLogo size={expanded ? 32 : 28} />
+              {expanded && (
+                <span className="truncate text-sm font-semibold tracking-tight">
+                  {IDA_CONFIG.name}
+                </span>
+              )}
+            </Link>
+          </div>
+
           <div className="p-2 pb-3">
             <Button
               type="button"

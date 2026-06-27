@@ -1,7 +1,8 @@
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { IdaLogo } from "@/components/brand/ida-logo";
 import { IDA_CONFIG } from "@/lib/config";
 
 interface LegalPageProps {
@@ -30,10 +31,10 @@ export function LegalPage({
           >
             <ArrowLeft className="size-4" />
           </Link>
-          <div className="flex items-center gap-2">
-            <Sparkles className="size-4 text-primary" />
+          <Link href="/" className="flex items-center gap-2 hover:opacity-90">
+            <IdaLogo size={28} />
             <span className="text-sm font-semibold">{IDA_CONFIG.name}</span>
-          </div>
+          </Link>
         </div>
       </header>
 
