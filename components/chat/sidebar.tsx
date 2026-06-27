@@ -131,7 +131,7 @@ export function ChatSidebar({
         aria-label={copy.sessionsLabel}
       >
         <div className="sticky top-0 z-10 shrink-0 border-b bg-muted/20 backdrop-blur-sm dark:bg-muted/10">
-          <div className="p-2">
+          <div className="p-2 pb-3">
             <Button
               type="button"
               size="sm"
@@ -150,17 +150,20 @@ export function ChatSidebar({
           </div>
 
           {expanded && (
-            <div className="px-2 pb-2">
-              <div className="relative">
-                <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder={copy.searchSessions}
-                  className="h-8 pl-8 text-xs"
-                />
+            <>
+              <div className="mx-3 border-t" role="separator" />
+              <div className="px-2 pt-3 pb-2">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder={copy.searchSessions}
+                    className="h-8 pl-8 text-xs"
+                  />
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
 

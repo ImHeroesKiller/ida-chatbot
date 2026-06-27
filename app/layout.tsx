@@ -4,6 +4,7 @@ import { contrastForeground, normalizeHexColor } from "@/lib/ui-config/color";
 import { Geist_Mono, Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 
+import { AuthProvider } from "@/components/auth/auth-provider";
 import { GlobalUiProvider } from "@/components/global-ui-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { buildUiInitScript } from "@/lib/ui-config/init-script";
@@ -58,19 +59,21 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: uiInitScript }} />
       </head>
       <body className="h-dvh overflow-hidden bg-background font-sans text-foreground">
-        <GlobalUiProvider initialConfig={uiConfig}>
-          <ThemeProvider>
-            {children}
-            <Toaster
-              position="top-center"
-              toastOptions={{
-                duration: 3000,
-                className:
-                  "!bg-card !text-card-foreground !border !border-border !shadow-lg",
-              }}
-            />
-          </ThemeProvider>
-        </GlobalUiProvider>
+        <AuthProvider>
+          <GlobalUiProvider initialConfig={uiConfig}>
+            <ThemeProvider>
+              {children}
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  duration: 3000,
+                  className:
+                    "!bg-card !text-card-foreground !border !border-border !shadow-lg",
+                }}
+              />
+            </ThemeProvider>
+          </GlobalUiProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -120,6 +120,22 @@ export function buildHandoffPrefill(
   };
 }
 
+const HANDOFF_REPLY_PATTERNS = [
+  /hubungi\s+tim\s+manusia/i,
+  /talk\s+to\s+a\s+human/i,
+  /联系人工客服/,
+  /human\s+handoff/i,
+  /handoff/i,
+];
+
+export function isHandoffQuickReply(reply: string): boolean {
+  return HANDOFF_REPLY_PATTERNS.some((pattern) => pattern.test(reply.trim()));
+}
+
+export function filterQuickReplies(replies: string[]): string[] {
+  return replies.filter((reply) => !isHandoffQuickReply(reply));
+}
+
 export function getQuickReplies(locale: Locale): string[] {
   const replies: Record<Locale, string[]> = {
     id: [
@@ -135,5 +151,5 @@ export function getQuickReplies(locale: Locale): string[] {
     zh: ["你能帮我什么？", "介绍 IDA 功能", "需要进一步帮助"],
   };
 
-  return replies[locale];
+  return filterQuickReplies(replies[locale]);
 }

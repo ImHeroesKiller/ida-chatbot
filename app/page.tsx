@@ -1,10 +1,11 @@
-import { ChatProvider } from "@/components/chat/chat-provider";
-import { ChatRoom } from "@/components/chat/chat-room";
+import { Suspense } from "react";
+
+import { LandingPage } from "@/components/landing/landing-page";
 
 export default function Home() {
   return (
-    <ChatProvider defaultLocale="id">
-      <ChatRoom />
-    </ChatProvider>
+    <Suspense fallback={null}>
+      <LandingPage />
+    </Suspense>
   );
 }

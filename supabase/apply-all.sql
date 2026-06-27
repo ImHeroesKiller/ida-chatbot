@@ -204,3 +204,17 @@ create index if not exists ida_kb_documents_page_slug_idx
 
 create index if not exists ida_kb_documents_updated_at_idx
   on ida_kb_documents (updated_at desc);
+
+-- Migration 009: authenticated users (Google OAuth)
+
+create table if not exists ida_users (
+  id uuid primary key references auth.users(id) on delete cascade,
+  email text,
+  full_name text,
+  avatar_url text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  last_login_at timestamptz
+);
+
+create index if not exists ida_users_email_idx on ida_users (email);

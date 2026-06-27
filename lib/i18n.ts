@@ -85,6 +85,17 @@ export const COPY: Record<
     speakMessage: string;
     stopSpeaking: string;
     autoSpeak: string;
+    account: string;
+    loginWithGoogle: string;
+    loginSubtitle: string;
+    loginTagline: string;
+    logout: string;
+    profileTitle: string;
+    profileEmail: string;
+    profileName: string;
+    profileUserId: string;
+    backToChat: string;
+    authError: string;
     voiceSettings: string;
     appLanguage: string;
     reviewVoiceBeforeSend: string;
@@ -187,6 +198,17 @@ export const COPY: Record<
     speakMessage: "Dengarkan pesan",
     stopSpeaking: "Hentikan suara",
     autoSpeak: "Suara otomatis",
+    account: "Akun",
+    loginWithGoogle: "Masuk dengan Google",
+    loginSubtitle: "Masuk untuk menyimpan riwayat chat di semua perangkat.",
+    loginTagline: "Asisten AI cerdas dengan RAG, memori, dan dukungan multibahasa.",
+    logout: "Keluar",
+    profileTitle: "Profil Akun",
+    profileEmail: "Email",
+    profileName: "Nama",
+    profileUserId: "User ID",
+    backToChat: "Kembali ke chat",
+    authError: "Gagal masuk. Silakan coba lagi.",
     voiceSettings: "Pengaturan suara",
     appLanguage: "Bahasa antarmuka",
     reviewVoiceBeforeSend: "Edit suara sebelum kirim",
@@ -288,6 +310,17 @@ export const COPY: Record<
     speakMessage: "Listen to message",
     stopSpeaking: "Stop speaking",
     autoSpeak: "Auto-speak",
+    account: "Account",
+    loginWithGoogle: "Sign in with Google",
+    loginSubtitle: "Sign in to sync chat history across all your devices.",
+    loginTagline: "Smart AI assistant with RAG, memory, and multilingual support.",
+    logout: "Sign out",
+    profileTitle: "Account Profile",
+    profileEmail: "Email",
+    profileName: "Name",
+    profileUserId: "User ID",
+    backToChat: "Back to chat",
+    authError: "Sign-in failed. Please try again.",
     voiceSettings: "Voice settings",
     appLanguage: "Interface language",
     reviewVoiceBeforeSend: "Edit voice before sending",
@@ -389,6 +422,17 @@ export const COPY: Record<
     speakMessage: "播放消息",
     stopSpeaking: "停止播放",
     autoSpeak: "自动朗读",
+    account: "账户",
+    loginWithGoogle: "使用 Google 登录",
+    loginSubtitle: "登录后可在所有设备同步聊天记录。",
+    loginTagline: "具备 RAG、记忆和多语言支持的智能 AI 助手。",
+    logout: "退出登录",
+    profileTitle: "账户资料",
+    profileEmail: "邮箱",
+    profileName: "姓名",
+    profileUserId: "用户 ID",
+    backToChat: "返回聊天",
+    authError: "登录失败，请重试。",
     voiceSettings: "语音设置",
     appLanguage: "界面语言",
     reviewVoiceBeforeSend: "发送前编辑语音",

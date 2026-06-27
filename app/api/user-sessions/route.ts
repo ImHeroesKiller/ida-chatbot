@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { getSessionUser } from "@/lib/auth/session";
 import type { ChatStoreState } from "@/lib/chat-store";
 import { LOCALES } from "@/lib/config";
-import { isValidAnonymousUserId } from "@/lib/user-id";
 import {
   buildRateLimitKey,
   enforceIdaRateLimit,
@@ -17,10 +17,7 @@ import {
 } from "@/lib/session-store/server";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
 
-const userIdSchema = z.string().uuid();
-
 const putBodySchema = z.object({
-  userId: userIdSchema,
   locale: z.enum(LOCALES),
   store: z.object({
     currentChatId: z.string().min(1),
@@ -29,14 +26,18 @@ const putBodySchema = z.object({
   }),
 });
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get("userId");
-  const locale = searchParams.get("locale");
+const initBodySchema = z.object({
+  locale: z.enum(LOCALES),
+});
 
-  if (!userId || !isValidAnonymousUserId(userId)) {
-    return NextResponse.json({ error: "Invalid user id." }, { status: 400 });
+export async function GET(request: Request) {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
+
+  const { searchParams } = new URL(request.url);
+  const locale = searchParams.get("locale");
 
   if (!locale || !LOCALES.includes(locale as (typeof LOCALES)[number])) {
     return NextResponse.json({ error: "Invalid locale." }, { status: 400 });
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
 
   try {
     await enforceIdaRateLimit(
-      `${buildRateLimitKey({ ip: getClientIp(request), sessionId: userId })}:user-sessions`,
+      `${buildRateLimitKey({ ip: getClientIp(request), sessionId: user.id })}:user-sessions`,
     );
   } catch (error) {
     if (error instanceof IdaRateLimitError) {
@@ -64,7 +65,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const store = await loadUserChatStore(userId);
+    const store = await loadUserChatStore(user.id);
 
     if (!store) {
       return NextResponse.json({ store: null }, { status: 404 });
@@ -81,6 +82,11 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
   let body: unknown;
 
   try {
@@ -95,7 +101,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Invalid session payload." }, { status: 400 });
   }
 
-  const { userId, locale, store } = parsed.data;
+  const { locale, store } = parsed.data;
 
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ ok: true, persisted: false });
@@ -103,7 +109,7 @@ export async function PUT(request: Request) {
 
   try {
     await enforceIdaRateLimit(
-      `${buildRateLimitKey({ ip: getClientIp(request), sessionId: userId })}:user-sessions`,
+      `${buildRateLimitKey({ ip: getClientIp(request), sessionId: user.id })}:user-sessions`,
     );
   } catch (error) {
     if (error instanceof IdaRateLimitError) {
@@ -119,11 +125,7 @@ export async function PUT(request: Request) {
   }
 
   try {
-    await saveUserChatStore(
-      userId,
-      store as ChatStoreState,
-      locale,
-    );
+    await saveUserChatStore(user.id, store as ChatStoreState, locale);
 
     return NextResponse.json({ ok: true, persisted: true });
   } catch (error) {
@@ -136,6 +138,11 @@ export async function PUT(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
   let body: unknown;
 
   try {
@@ -144,12 +151,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const parsed = z
-    .object({
-      userId: userIdSchema,
-      locale: z.enum(LOCALES),
-    })
-    .safeParse(body);
+  const parsed = initBodySchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
@@ -160,7 +162,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const store = await ensureUserChatStore(parsed.data.userId, parsed.data.locale);
+    const store = await ensureUserChatStore(user.id, parsed.data.locale);
     return NextResponse.json({ store });
   } catch (error) {
     console.error("[IDA user-sessions POST]", error);

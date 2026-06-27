@@ -1,6 +1,7 @@
 "use client";
 
-import { Menu, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { Menu, Sparkles, User } from "lucide-react";
+import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -29,7 +30,7 @@ import { consumeIdaSseStream } from "@/lib/client/parse-sse";
 import { useAppFeatures } from "@/lib/client/use-app-features";
 import { useChatStore, WELCOME_MESSAGE_ID } from "@/lib/chat-store";
 import { IDA_CONFIG } from "@/lib/config";
-import { buildHandoffPrefill, getQuickReplies } from "@/lib/handoff";
+import { filterQuickReplies, getQuickReplies } from "@/lib/handoff";
 import { COPY } from "@/lib/i18n";
 import { MessageReactionsProvider } from "@/lib/message-reactions";
 import { useSidebarExpanded } from "@/lib/sidebar-prefs";
@@ -56,7 +57,7 @@ function ChatRoomContent() {
   const copy = COPY[locale];
   const { expanded: sidebarExpanded, toggle: toggleSidebar } =
     useSidebarExpanded();
-  const { prefs, setPrefs } = useVoicePrefs();
+  const { prefs } = useVoicePrefs();
   const { speak } = useSpeechSynthesis();
   const appFeatures = useAppFeatures();
 
@@ -82,7 +83,7 @@ function ChatRoomContent() {
   const [messages, setMessages] = useState<IdaMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [quickReplies, setQuickReplies] = useState<string[]>(
-    getQuickReplies(locale),
+    filterQuickReplies(getQuickReplies(locale)),
   );
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -142,7 +143,7 @@ function ChatRoomContent() {
 
     activeChatIdRef.current = currentChat.id;
     setMessages(currentChat.messages);
-    setQuickReplies(currentChat.quickReplies);
+    setQuickReplies(filterQuickReplies(currentChat.quickReplies));
     setInput("");
     setError(null);
     setStreamingMessageId(null);
@@ -166,12 +167,6 @@ function ChatRoomContent() {
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, [closeHandoff]);
-
-  const handleSmartHandoff = useCallback(() => {
-    const apiMessages = toApiMessages(messages);
-    const handoff = buildHandoffPrefill(apiMessages, locale);
-    openHandoff(handoff);
-  }, [locale, messages, openHandoff]);
 
   const handleSelectChat = useCallback(
     (chatId: string) => {
@@ -250,10 +245,11 @@ function ChatRoomContent() {
           },
           (meta: IdaSseMetaPayload) => {
             if (meta.quickReplies?.length) {
+              const filtered = filterQuickReplies(meta.quickReplies);
               if (activeChatIdRef.current === chatIdAtSend) {
-                setQuickReplies(meta.quickReplies);
+                setQuickReplies(filtered);
               } else {
-                persistCurrentChat({ quickReplies: meta.quickReplies });
+                persistCurrentChat({ quickReplies: filtered });
               }
             }
 
@@ -468,30 +464,14 @@ function ChatRoomContent() {
               </p>
             </div>
 
-            <Button
-              type="button"
-              variant={prefs.autoSpeak ? "default" : "outline"}
-              size="icon-sm"
-              className="shrink-0 transition-transform hover:scale-105 active:scale-95"
-              aria-label={copy.autoSpeak}
-              title={copy.autoSpeak}
-              onClick={() => setPrefs({ autoSpeak: !prefs.autoSpeak })}
+            <Link
+              href="/account"
+              className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label={copy.account}
+              title={copy.account}
             >
-              {prefs.autoSpeak ? (
-                <Volume2 className="h-4 w-4" />
-              ) : (
-                <VolumeX className="h-4 w-4" />
-              )}
-            </Button>
-
-            <Button
-              size="sm"
-              variant="outline"
-              className="hidden h-8 shrink-0 text-xs transition-colors sm:inline-flex"
-              onClick={handleSmartHandoff}
-            >
-              {copy.handoff}
-            </Button>
+              <User className="h-4 w-4" />
+            </Link>
           </header>
 
           <div className="relative min-h-0 flex-1">
