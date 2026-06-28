@@ -7,8 +7,11 @@ import {
   FileText,
   Loader2,
   PanelRightClose,
+  Pencil,
   RefreshCw,
+  Save,
   Trash2,
+  X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -17,7 +20,9 @@ import { MarkdownContent } from "@/components/chat/markdown-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
 import type { Locale } from "@/lib/config";
+import { exportWorksheetToPdf } from "@/lib/pdf-export";
 import { COPY } from "@/lib/i18n";
 import {
   sanitizeWorksheetFilename,
@@ -33,6 +38,7 @@ interface WorksheetPanelProps {
   isGenerating?: boolean;
   canRegenerate?: boolean;
   onTitleChange: (title: string) => void;
+  onContentSave?: (content: string) => void;
   onRetry?: () => void;
   onRegenerate?: () => void;
   onClear?: () => void;
@@ -49,6 +55,7 @@ export function WorksheetPanel({
   isGenerating = false,
   canRegenerate = false,
   onTitleChange,
+  onContentSave,
   onRetry,
   onRegenerate,
   onClear,
@@ -58,14 +65,30 @@ export function WorksheetPanel({
 }: WorksheetPanelProps) {
   const copy = COPY[locale];
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftContent, setDraftContent] = useState(content);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   const hasContent = Boolean(content.trim());
+  const hasUnsavedChanges = isEditing && draftContent !== content;
 
   useEffect(() => {
     if (!embedded) return;
     panelRef.current?.focus({ preventScroll: true });
   }, [embedded]);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setDraftContent(content);
+    }
+  }, [content, isEditing]);
+
+  useEffect(() => {
+    if (!isEditing) return;
+    editTextareaRef.current?.focus();
+  }, [isEditing]);
 
   const errorMessage = useMemo(() => {
     if (!error) return null;
@@ -82,8 +105,13 @@ export function WorksheetPanel({
     }
   }, [copy, error]);
 
+  const actionButtonClass = cn(
+    "gap-1.5 text-xs",
+    embedded ? "h-10 min-h-10" : "h-9",
+  );
+
   const handleCopy = useCallback(async () => {
-    if (!hasContent) return;
+    if (!hasContent || isEditing) return;
 
     try {
       await navigator.clipboard.writeText(content);
@@ -93,10 +121,10 @@ export function WorksheetPanel({
     } catch {
       toast.error(copy.errors.generic);
     }
-  }, [content, copy.errors.generic, copy.worksheetCopied, hasContent]);
+  }, [content, copy.errors.generic, copy.worksheetCopied, hasContent, isEditing]);
 
   const handleDownload = useCallback(() => {
-    if (!hasContent) return;
+    if (!hasContent || isEditing) return;
 
     const filename = `${sanitizeWorksheetFilename(title)}.md`;
     const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
@@ -107,13 +135,82 @@ export function WorksheetPanel({
     anchor.click();
     URL.revokeObjectURL(url);
     toast.success(copy.worksheetDownloaded);
-  }, [content, copy.worksheetDownloaded, hasContent, title]);
+  }, [content, copy.worksheetDownloaded, hasContent, isEditing, title]);
+
+  const handleExportPdf = useCallback(async () => {
+    if (!hasContent || isEditing || isExportingPdf) return;
+
+    setIsExportingPdf(true);
+    try {
+      await exportWorksheetToPdf({ title, content });
+      toast.success(copy.worksheetExportPdfSuccess);
+    } catch {
+      toast.error(copy.worksheetExportPdfError);
+    } finally {
+      setIsExportingPdf(false);
+    }
+  }, [
+    content,
+    copy.worksheetExportPdfError,
+    copy.worksheetExportPdfSuccess,
+    hasContent,
+    isEditing,
+    isExportingPdf,
+    title,
+  ]);
+
+  const handleStartEdit = useCallback(() => {
+    if (!hasContent || isGenerating) return;
+    setDraftContent(content);
+    setIsEditing(true);
+  }, [content, hasContent, isGenerating]);
+
+  const handleCancelEdit = useCallback(() => {
+    if (hasUnsavedChanges && !window.confirm(copy.worksheetDiscardChanges)) {
+      return;
+    }
+    setDraftContent(content);
+    setIsEditing(false);
+  }, [content, copy.worksheetDiscardChanges, hasUnsavedChanges]);
+
+  const handleSaveEdit = useCallback(() => {
+    const trimmed = draftContent.trim();
+    if (!trimmed) {
+      toast.error(copy.worksheetErrorEmptyDocument);
+      return;
+    }
+
+    onContentSave?.(draftContent);
+    setIsEditing(false);
+    toast.success(copy.worksheetSaved);
+  }, [
+    copy.worksheetErrorEmptyDocument,
+    copy.worksheetSaved,
+    draftContent,
+    onContentSave,
+  ]);
 
   const handleClear = useCallback(() => {
+    if (isEditing) return;
     if (!hasContent && !error) return;
     if (!window.confirm(copy.worksheetClearConfirm)) return;
     onClear?.();
-  }, [copy.worksheetClearConfirm, error, hasContent, onClear]);
+  }, [copy.worksheetClearConfirm, error, hasContent, isEditing, onClear]);
+
+  const handleClose = useCallback(() => {
+    if (isEditing && hasUnsavedChanges) {
+      if (!window.confirm(copy.worksheetDiscardChanges)) return;
+      setDraftContent(content);
+      setIsEditing(false);
+    }
+    onClose();
+  }, [
+    content,
+    copy.worksheetDiscardChanges,
+    hasUnsavedChanges,
+    isEditing,
+    onClose,
+  ]);
 
   return (
     <aside
@@ -139,11 +236,16 @@ export function WorksheetPanel({
         <h2 className="min-w-0 flex-1 truncate text-sm font-semibold">
           {copy.toolsWorksheet}
         </h2>
+        {hasUnsavedChanges ? (
+          <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
+            {copy.worksheetUnsavedChanges}
+          </span>
+        ) : null}
         <Button
           type="button"
           variant="ghost"
           size="icon-sm"
-          onClick={onClose}
+          onClick={handleClose}
           aria-label={copy.rightSidebarClose}
           title={copy.rightSidebarClose}
           className="h-8 w-8 shrink-0"
@@ -191,7 +293,7 @@ export function WorksheetPanel({
           onChange={(event) => onTitleChange(event.target.value)}
           placeholder={copy.worksheetTitlePlaceholder}
           className="h-9 text-sm"
-          disabled={isGenerating}
+          disabled={isGenerating || isEditing}
         />
       </div>
 
@@ -206,6 +308,19 @@ export function WorksheetPanel({
               <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
                 {copy.worksheetGeneratingSubtext}
               </p>
+            </div>
+          ) : isEditing ? (
+            <div className="space-y-2">
+              <p className="text-[11px] font-medium text-muted-foreground">
+                Markdown
+              </p>
+              <Textarea
+                ref={editTextareaRef}
+                value={draftContent}
+                onChange={(event) => setDraftContent(event.target.value)}
+                className="min-h-[min(60vh,28rem)] font-mono text-sm leading-relaxed"
+                spellCheck={false}
+              />
             </div>
           ) : hasContent ? (
             <div className="rounded-xl border bg-card p-3 shadow-sm">
@@ -227,6 +342,9 @@ export function WorksheetPanel({
               <pre className="mt-4 max-w-xs whitespace-pre-wrap text-left text-[11px] leading-relaxed text-muted-foreground">
                 {copy.worksheetEmptySteps}
               </pre>
+              <p className="mt-4 max-w-xs text-left text-[11px] leading-relaxed text-muted-foreground/90">
+                {copy.worksheetEmptyEditHint}
+              </p>
             </div>
           )}
         </div>
@@ -240,72 +358,119 @@ export function WorksheetPanel({
             : "p-3",
         )}
       >
-        {(canRegenerate || onClear) && !isGenerating ? (
+        {isEditing ? (
           <div className="flex gap-2">
-            {canRegenerate && onRegenerate ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "flex-1 gap-1.5 text-xs",
-                  embedded ? "h-10 min-h-10" : "h-8",
-                )}
-                onClick={onRegenerate}
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                {copy.worksheetRegenerate}
-              </Button>
-            ) : null}
-            {onClear ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "flex-1 gap-1.5 text-xs text-destructive hover:text-destructive",
-                  embedded ? "h-10 min-h-10" : "h-8",
-                )}
-                disabled={!hasContent && !error}
-                onClick={handleClear}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                {copy.worksheetClear}
-              </Button>
-            ) : null}
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              className={cn("flex-1", actionButtonClass)}
+              onClick={handleSaveEdit}
+            >
+              <Save className="h-3.5 w-3.5" />
+              {copy.worksheetSave}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className={cn("flex-1", actionButtonClass)}
+              onClick={handleCancelEdit}
+            >
+              <X className="h-3.5 w-3.5" />
+              {copy.worksheetCancel}
+            </Button>
           </div>
-        ) : null}
+        ) : (
+          <>
+            {(canRegenerate || onClear) && !isGenerating ? (
+              <div className="flex gap-2">
+                {canRegenerate && onRegenerate ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={cn("flex-1", embedded ? "h-10 min-h-10" : "h-8")}
+                    onClick={onRegenerate}
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    {copy.worksheetRegenerate}
+                  </Button>
+                ) : null}
+                {onClear ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "flex-1 gap-1.5 text-xs text-destructive hover:text-destructive",
+                      embedded ? "h-10 min-h-10" : "h-8",
+                    )}
+                    disabled={!hasContent && !error}
+                    onClick={handleClear}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    {copy.worksheetClear}
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
 
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={cn(
-              "flex-1 gap-1.5 text-xs",
-              embedded ? "h-10 min-h-10" : "h-9",
-            )}
-            disabled={!hasContent || isGenerating}
-            onClick={() => void handleCopy()}
-          >
-            <Copy className="h-3.5 w-3.5" />
-            {copied ? copy.worksheetCopied : copy.worksheetCopy}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={cn(
-              "flex-1 gap-1.5 text-xs",
-              embedded ? "h-10 min-h-10" : "h-9",
-            )}
-            disabled={!hasContent || isGenerating}
-            onClick={handleDownload}
-          >
-            <Download className="h-3.5 w-3.5" />
-            {copy.worksheetDownload}
-          </Button>
-        </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={cn("flex-1", actionButtonClass)}
+                disabled={!hasContent || isGenerating}
+                onClick={handleStartEdit}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                {copy.worksheetEdit}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={cn("flex-1", actionButtonClass)}
+                disabled={!hasContent || isGenerating}
+                onClick={() => void handleCopy()}
+              >
+                <Copy className="h-3.5 w-3.5" />
+                {copied ? copy.worksheetCopied : copy.worksheetCopy}
+              </Button>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={cn("flex-1", actionButtonClass)}
+                disabled={!hasContent || isGenerating}
+                onClick={handleDownload}
+              >
+                <Download className="h-3.5 w-3.5" />
+                {copy.worksheetDownload}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={cn("flex-1", actionButtonClass)}
+                disabled={!hasContent || isGenerating || isExportingPdf}
+                onClick={() => void handleExportPdf()}
+              >
+                {isExportingPdf ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <FileText className="h-3.5 w-3.5" />
+                )}
+                {copy.worksheetExportPdf}
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </aside>
   );

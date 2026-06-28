@@ -807,6 +807,11 @@ function ChatRoomContent() {
     setWorksheetTitle(title);
   }, []);
 
+  const handleWorksheetContentSave = useCallback((content: string) => {
+    setWorksheetContent(content);
+    setWorksheetError(null);
+  }, []);
+
   const handleWorksheetClear = useCallback(() => {
     const empty = createEmptyWorksheet(locale);
     setWorksheetTitle(empty.title);
@@ -960,6 +965,7 @@ function ChatRoomContent() {
 
           {rightPanel ? (
             <RightSidebar
+              key={currentChat?.id}
               locale={locale}
               panel={rightPanel}
               worksheetTitle={worksheetTitle}
@@ -968,6 +974,7 @@ function ChatRoomContent() {
               worksheetGenerating={isLoading && rightPanel === "worksheet"}
               worksheetCanRegenerate={Boolean(lastWorksheetPrompt.trim())}
               onWorksheetTitleChange={handleWorksheetTitleChange}
+              onWorksheetContentSave={handleWorksheetContentSave}
               onWorksheetRetry={handleWorksheetRetry}
               onWorksheetRegenerate={handleWorksheetRegenerate}
               onWorksheetClear={handleWorksheetClear}
@@ -992,6 +999,7 @@ function ChatRoomContent() {
         >
           {rightPanel ? (
             <RightSidebar
+              key={currentChat?.id}
               locale={locale}
               panel={rightPanel}
               worksheetTitle={worksheetTitle}
@@ -1000,6 +1008,7 @@ function ChatRoomContent() {
               worksheetGenerating={isLoading && rightPanel === "worksheet"}
               worksheetCanRegenerate={Boolean(lastWorksheetPrompt.trim())}
               onWorksheetTitleChange={handleWorksheetTitleChange}
+              onWorksheetContentSave={handleWorksheetContentSave}
               onWorksheetRetry={handleWorksheetRetry}
               onWorksheetRegenerate={handleWorksheetRegenerate}
               onWorksheetClear={handleWorksheetClear}

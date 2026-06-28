@@ -152,6 +152,16 @@ export const COPY: Record<
     worksheetOverwriteDescription: string;
     worksheetOverwriteConfirm: string;
     worksheetEmptySteps: string;
+    worksheetEmptyEditHint: string;
+    worksheetEdit: string;
+    worksheetSave: string;
+    worksheetCancel: string;
+    worksheetUnsavedChanges: string;
+    worksheetSaved: string;
+    worksheetDiscardChanges: string;
+    worksheetExportPdf: string;
+    worksheetExportPdfSuccess: string;
+    worksheetExportPdfError: string;
     mapPlaceholderDesc: string;
     mapPlaceholderContent: string;
     researchPlaceholderDesc: string;
@@ -300,7 +310,7 @@ export const COPY: Record<
     worksheetTitlePlaceholder: "Mis. Proposal Proyek PLTS",
     worksheetEmptyTitle: "Belum ada dokumen",
     worksheetEmptyHint:
-      "Ketik permintaan di chat untuk membuat dokumen. Hasilnya akan muncul di sini.",
+      "Minta IDA membuat dokumen lewat chat. Setelah dibuat, Anda bisa mengedit langsung di sini dan mengekspor ke PDF.",
     worksheetCopy: "Salin",
     worksheetDownload: "Unduh .md",
     worksheetCopied: "Dokumen disalin",
@@ -324,7 +334,19 @@ export const COPY: Record<
       "Worksheet sudah berisi dokumen. Permintaan baru akan menimpa konten yang ada.",
     worksheetOverwriteConfirm: "Ganti dokumen",
     worksheetEmptySteps:
-      "1. Ketik permintaan di chat (mis. \"Buat proposal PLTS\")\n2. IDA akan membuat dokumen Markdown\n3. Salin atau unduh dari panel ini",
+      "1. Ketik permintaan di chat (mis. \"Buat proposal PLTS\")\n2. IDA membuat dokumen di panel ini\n3. Klik Edit untuk mengubah, lalu Save\n4. Unduh .md atau Export PDF",
+    worksheetEmptyEditHint:
+      "Tip: Setelah dokumen dibuat, gunakan tombol Edit untuk menyempurnakan isi sebelum diunduh.",
+    worksheetEdit: "Edit",
+    worksheetSave: "Simpan",
+    worksheetCancel: "Batal",
+    worksheetUnsavedChanges: "Perubahan belum disimpan",
+    worksheetSaved: "Perubahan disimpan",
+    worksheetDiscardChanges:
+      "Buang perubahan yang belum disimpan dan tutup mode edit?",
+    worksheetExportPdf: "Export PDF",
+    worksheetExportPdfSuccess: "PDF berhasil diunduh",
+    worksheetExportPdfError: "Gagal membuat PDF. Coba lagi.",
     mapPlaceholderDesc:
       "Peta interaktif akan ditampilkan di sini untuk pertanyaan berbasis lokasi.",
     mapPlaceholderContent:
@@ -476,7 +498,7 @@ export const COPY: Record<
     worksheetTitlePlaceholder: "e.g. Rooftop Solar Proposal",
     worksheetEmptyTitle: "No document yet",
     worksheetEmptyHint:
-      "Type a request in chat to generate a document. The result will appear here.",
+      "Ask IDA to create a document in chat. Once ready, edit it here and export to PDF.",
     worksheetCopy: "Copy",
     worksheetDownload: "Download .md",
     worksheetCopied: "Document copied",
@@ -500,7 +522,19 @@ export const COPY: Record<
       "The Worksheet already has a document. A new request will overwrite the existing content.",
     worksheetOverwriteConfirm: "Replace document",
     worksheetEmptySteps:
-      "1. Type a request in chat (e.g. \"Create a solar proposal\")\n2. IDA will generate a Markdown document\n3. Copy or download from this panel",
+      "1. Type a request in chat (e.g. \"Create a solar proposal\")\n2. IDA generates the document in this panel\n3. Click Edit to refine, then Save\n4. Download .md or Export PDF",
+    worksheetEmptyEditHint:
+      "Tip: After the document is created, use Edit to refine the content before downloading.",
+    worksheetEdit: "Edit",
+    worksheetSave: "Save",
+    worksheetCancel: "Cancel",
+    worksheetUnsavedChanges: "Unsaved changes",
+    worksheetSaved: "Changes saved",
+    worksheetDiscardChanges:
+      "Discard unsaved changes and exit edit mode?",
+    worksheetExportPdf: "Export PDF",
+    worksheetExportPdfSuccess: "PDF downloaded successfully",
+    worksheetExportPdfError: "Failed to generate PDF. Please try again.",
     mapPlaceholderDesc:
       "An interactive map will appear here for location-based questions.",
     mapPlaceholderContent:
@@ -651,7 +685,8 @@ export const COPY: Record<
     worksheetTitleLabel: "文档标题",
     worksheetTitlePlaceholder: "例如：屋顶光伏项目提案",
     worksheetEmptyTitle: "尚无文档",
-    worksheetEmptyHint: "在聊天中输入请求以生成文档，结果将显示在此处。",
+    worksheetEmptyHint:
+      "在聊天中请求 IDA 创建文档。生成后可直接在此编辑并导出 PDF。",
     worksheetCopy: "复制",
     worksheetDownload: "下载 .md",
     worksheetCopied: "文档已复制",
@@ -672,7 +707,18 @@ export const COPY: Record<
       "Worksheet 已有文档。新请求将覆盖现有内容。",
     worksheetOverwriteConfirm: "替换文档",
     worksheetEmptySteps:
-      "1. 在聊天中输入请求（如「创建光伏提案」）\n2. IDA 将生成 Markdown 文档\n3. 在此面板复制或下载",
+      "1. 在聊天中输入请求（如「创建光伏提案」）\n2. IDA 在此面板生成文档\n3. 点击编辑修改后保存\n4. 下载 .md 或导出 PDF",
+    worksheetEmptyEditHint:
+      "提示：文档生成后，可先点击编辑完善内容再下载。",
+    worksheetEdit: "编辑",
+    worksheetSave: "保存",
+    worksheetCancel: "取消",
+    worksheetUnsavedChanges: "有未保存的更改",
+    worksheetSaved: "更改已保存",
+    worksheetDiscardChanges: "放弃未保存的更改并退出编辑模式？",
+    worksheetExportPdf: "导出 PDF",
+    worksheetExportPdfSuccess: "PDF 下载成功",
+    worksheetExportPdfError: "PDF 生成失败，请重试。",
     mapPlaceholderDesc: "交互式地图将在此显示，用于位置相关问题。",
     mapPlaceholderContent: "[ 地图 ]\n\n地图预览将显示在此面板。",
     researchPlaceholderDesc: "深度研究结果将显示在此面板。",

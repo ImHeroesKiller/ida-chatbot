@@ -20,6 +20,7 @@ interface RightSidebarProps {
   worksheetGenerating?: boolean;
   worksheetCanRegenerate?: boolean;
   onWorksheetTitleChange: (title: string) => void;
+  onWorksheetContentSave?: (content: string) => void;
   onWorksheetRetry?: () => void;
   onWorksheetRegenerate?: () => void;
   onWorksheetClear?: () => void;
@@ -43,6 +44,7 @@ export function RightSidebar({
   worksheetGenerating = false,
   worksheetCanRegenerate = false,
   onWorksheetTitleChange,
+  onWorksheetContentSave,
   onWorksheetRetry,
   onWorksheetRegenerate,
   onWorksheetClear,
@@ -62,6 +64,7 @@ export function RightSidebar({
         isGenerating={worksheetGenerating}
         canRegenerate={worksheetCanRegenerate}
         onTitleChange={onWorksheetTitleChange}
+        onContentSave={onWorksheetContentSave}
         onRetry={onWorksheetRetry}
         onRegenerate={onWorksheetRegenerate}
         onClear={onWorksheetClear}
