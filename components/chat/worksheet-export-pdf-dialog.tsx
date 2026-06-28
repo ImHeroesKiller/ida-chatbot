@@ -10,10 +10,14 @@ import { Label } from "@/components/ui/label";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import type { PdfOrientation, PdfPaperFormat } from "@/lib/pdf-export";
+import { cn } from "@/lib/utils";
 
 export interface WorksheetPdfExportSettings {
   paper: PdfPaperFormat;
   orientation: PdfOrientation;
+  includeBranding: boolean;
+  showPageNumbers: boolean;
+  showExportDate: boolean;
 }
 
 interface WorksheetExportPdfDialogProps {
@@ -22,6 +26,40 @@ interface WorksheetExportPdfDialogProps {
   isExporting?: boolean;
   onConfirm: (settings: WorksheetPdfExportSettings) => void;
   onCancel: () => void;
+}
+
+function BrandingToggle({
+  id,
+  label,
+  checked,
+  disabled,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label
+      htmlFor={id}
+      className={cn(
+        "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs",
+        disabled && "cursor-not-allowed opacity-60",
+      )}
+    >
+      <input
+        id={id}
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.checked)}
+        className="h-3.5 w-3.5 rounded border-input"
+      />
+      <span>{label}</span>
+    </label>
+  );
 }
 
 export function WorksheetExportPdfDialog({
@@ -34,6 +72,9 @@ export function WorksheetExportPdfDialog({
   const copy = COPY[locale];
   const [paper, setPaper] = useState<PdfPaperFormat>("a4");
   const [orientation, setOrientation] = useState<PdfOrientation>("portrait");
+  const [includeBranding, setIncludeBranding] = useState(true);
+  const [showPageNumbers, setShowPageNumbers] = useState(true);
+  const [showExportDate, setShowExportDate] = useState(true);
 
   return (
     <AnimatePresence>
@@ -101,6 +142,35 @@ export function WorksheetExportPdfDialog({
                   </select>
                 </div>
 
+                <div className="space-y-2">
+                  <Label className="text-xs">
+                    {copy.worksheetExportPdfBranding}
+                  </Label>
+                  <div className="space-y-2">
+                    <BrandingToggle
+                      id="worksheet-pdf-branding"
+                      label={copy.worksheetExportPdfIncludeBranding}
+                      checked={includeBranding}
+                      disabled={isExporting}
+                      onChange={setIncludeBranding}
+                    />
+                    <BrandingToggle
+                      id="worksheet-pdf-page-numbers"
+                      label={copy.worksheetExportPdfPageNumbers}
+                      checked={showPageNumbers}
+                      disabled={isExporting || !includeBranding}
+                      onChange={setShowPageNumbers}
+                    />
+                    <BrandingToggle
+                      id="worksheet-pdf-export-date"
+                      label={copy.worksheetExportPdfExportDate}
+                      checked={showExportDate}
+                      disabled={isExporting || !includeBranding}
+                      onChange={setShowExportDate}
+                    />
+                  </div>
+                </div>
+
                 {isExporting ? (
                   <p className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -120,7 +190,15 @@ export function WorksheetExportPdfDialog({
                   <Button
                     className="flex-1 gap-1.5"
                     disabled={isExporting}
-                    onClick={() => onConfirm({ paper, orientation })}
+                    onClick={() =>
+                      onConfirm({
+                        paper,
+                        orientation,
+                        includeBranding,
+                        showPageNumbers,
+                        showExportDate,
+                      })
+                    }
                   >
                     {isExporting ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

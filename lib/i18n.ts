@@ -185,6 +185,15 @@ export const COPY: Record<
     worksheetTemplatesDescription: string;
     worksheetTemplateApplied: string;
     worksheetTemplateOverwriteConfirm: string;
+    worksheetPrintPreview: string;
+    worksheetPrintPreviewTitle: string;
+    worksheetPrintPreviewDescription: string;
+    worksheetPrint: string;
+    worksheetPrintPreviewError: string;
+    worksheetExportPdfBranding: string;
+    worksheetExportPdfIncludeBranding: string;
+    worksheetExportPdfPageNumbers: string;
+    worksheetExportPdfExportDate: string;
     mapPlaceholderDesc: string;
     mapPlaceholderContent: string;
     researchPlaceholderDesc: string;
@@ -396,6 +405,17 @@ export const COPY: Record<
     worksheetTemplateApplied: "Template diterapkan",
     worksheetTemplateOverwriteConfirm:
       "Terapkan template ini? Konten dokumen saat ini akan diganti.",
+    worksheetPrintPreview: "Pratinjau cetak",
+    worksheetPrintPreviewTitle: "Pratinjau cetak",
+    worksheetPrintPreviewDescription:
+      "Lihat tampilan dokumen dengan header/footer sebelum mencetak.",
+    worksheetPrint: "Cetak",
+    worksheetPrintPreviewError:
+      "Tidak dapat membuka pratinjau cetak. Izinkan pop-up lalu coba lagi.",
+    worksheetExportPdfBranding: "Branding PDF",
+    worksheetExportPdfIncludeBranding: "Header & footer IDA",
+    worksheetExportPdfPageNumbers: "Nomor halaman",
+    worksheetExportPdfExportDate: "Tanggal ekspor",
     mapPlaceholderDesc:
       "Peta interaktif akan ditampilkan di sini untuk pertanyaan berbasis lokasi.",
     mapPlaceholderContent:
@@ -611,6 +631,17 @@ export const COPY: Record<
     worksheetTemplateApplied: "Template applied",
     worksheetTemplateOverwriteConfirm:
       "Apply this template? Current document content will be replaced.",
+    worksheetPrintPreview: "Print preview",
+    worksheetPrintPreviewTitle: "Print preview",
+    worksheetPrintPreviewDescription:
+      "See how the document looks with header and footer before printing.",
+    worksheetPrint: "Print",
+    worksheetPrintPreviewError:
+      "Could not open print preview. Allow pop-ups and try again.",
+    worksheetExportPdfBranding: "PDF branding",
+    worksheetExportPdfIncludeBranding: "IDA header & footer",
+    worksheetExportPdfPageNumbers: "Page numbers",
+    worksheetExportPdfExportDate: "Export date",
     mapPlaceholderDesc:
       "An interactive map will appear here for location-based questions.",
     mapPlaceholderContent:
@@ -819,6 +850,15 @@ export const COPY: Record<
       "从现成结构开始，然后编辑或通过聊天让 IDA 补充内容。",
     worksheetTemplateApplied: "模板已应用",
     worksheetTemplateOverwriteConfirm: "应用此模板？当前文档内容将被替换。",
+    worksheetPrintPreview: "打印预览",
+    worksheetPrintPreviewTitle: "打印预览",
+    worksheetPrintPreviewDescription: "打印前查看带页眉页脚的文档效果。",
+    worksheetPrint: "打印",
+    worksheetPrintPreviewError: "无法打开打印预览。请允许弹窗后重试。",
+    worksheetExportPdfBranding: "PDF 品牌样式",
+    worksheetExportPdfIncludeBranding: "IDA 页眉和页脚",
+    worksheetExportPdfPageNumbers: "页码",
+    worksheetExportPdfExportDate: "导出日期",
     mapPlaceholderDesc: "交互式地图将在此显示，用于位置相关问题。",
     mapPlaceholderContent: "[ 地图 ]\n\n地图预览将显示在此面板。",
     researchPlaceholderDesc: "深度研究结果将显示在此面板。",

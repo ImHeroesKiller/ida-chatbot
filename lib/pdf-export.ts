@@ -1,7 +1,17 @@
 import { jsPDF } from "jspdf";
 
+import type { Locale } from "@/lib/config";
+
 export type PdfPaperFormat = "a4" | "letter";
 export type PdfOrientation = "portrait" | "landscape";
+
+export interface PdfBrandingOptions {
+  enabled?: boolean;
+  brandName?: string;
+  showPageNumbers?: boolean;
+  showExportDate?: boolean;
+  locale?: Locale;
+}
 
 export interface WorksheetPdfExportOptions {
   title: string;
@@ -9,6 +19,7 @@ export interface WorksheetPdfExportOptions {
   filename?: string;
   paper?: PdfPaperFormat;
   orientation?: PdfOrientation;
+  branding?: PdfBrandingOptions;
 }
 
 type MarkdownBlock =
@@ -22,6 +33,8 @@ type MarkdownBlock =
   | { kind: "hr" };
 
 const MARGIN_MM = 20;
+const HEADER_ZONE_MM = 14;
+const FOOTER_ZONE_MM = 12;
 const CELL_PADDING_MM = 2;
 const PT_TO_MM = 0.352778;
 
@@ -199,6 +212,23 @@ export function parseMarkdownBlocks(markdown: string): MarkdownBlock[] {
   return blocks;
 }
 
+export function formatPdfExportDate(locale: Locale): string {
+  return new Intl.DateTimeFormat(
+    locale === "zh" ? "zh-CN" : locale === "en" ? "en-US" : "id-ID",
+    { dateStyle: "medium" },
+  ).format(new Date());
+}
+
+export function formatPdfPageLabel(
+  page: number,
+  total: number,
+  locale: Locale,
+): string {
+  if (locale === "zh") return `第 ${page} / ${total} 页`;
+  if (locale === "en") return `Page ${page} of ${total}`;
+  return `Halaman ${page} dari ${total}`;
+}
+
 export function buildWorksheetPdfFilename(title: string): string {
   const slug =
     title
@@ -216,11 +246,13 @@ export function buildWorksheetPdfFilename(title: string): string {
 
 class WorksheetPdfRenderer {
   private readonly pdf: jsPDF;
-  private y = MARGIN_MM;
+  private y: number;
   private readonly margin = MARGIN_MM;
+  private readonly marginTop: number;
   private readonly pageWidth: number;
   private readonly pageHeight: number;
   private readonly contentWidth: number;
+  private readonly branding: Required<PdfBrandingOptions>;
 
   constructor(private readonly options: WorksheetPdfExportOptions) {
     this.pdf = new jsPDF({
@@ -229,9 +261,19 @@ class WorksheetPdfRenderer {
       format: options.paper ?? "a4",
     });
 
+    this.branding = {
+      enabled: options.branding?.enabled !== false,
+      brandName: options.branding?.brandName?.trim() || "IDA",
+      showPageNumbers: options.branding?.showPageNumbers !== false,
+      showExportDate: options.branding?.showExportDate !== false,
+      locale: options.branding?.locale ?? "en",
+    };
+
     this.pageWidth = this.pdf.internal.pageSize.getWidth();
     this.pageHeight = this.pdf.internal.pageSize.getHeight();
     this.contentWidth = this.pageWidth - this.margin * 2;
+    this.marginTop = this.margin + (this.branding.enabled ? HEADER_ZONE_MM : 0);
+    this.y = this.marginTop;
   }
 
   render(): void {
@@ -241,6 +283,10 @@ class WorksheetPdfRenderer {
     const blocks = parseMarkdownBlocks(this.options.content.trim());
     for (const block of blocks) {
       this.renderBlock(block);
+    }
+
+    if (this.branding.enabled) {
+      this.applyBrandingToAllPages();
     }
   }
 
@@ -252,12 +298,95 @@ class WorksheetPdfRenderer {
   }
 
   private pageBottom(): number {
-    return this.pageHeight - this.margin;
+    const footerReserve = this.branding.enabled ? FOOTER_ZONE_MM : 0;
+    return this.pageHeight - this.margin - footerReserve;
   }
 
   private addPage(): void {
     this.pdf.addPage();
-    this.y = this.margin;
+    this.y = this.marginTop;
+  }
+
+  private applyBrandingToAllPages(): void {
+    const totalPages = this.pdf.getNumberOfPages();
+    const docTitle = stripInlineMarkdown(
+      this.options.title.trim() || "Document",
+    );
+    const exportDate = formatPdfExportDate(this.branding.locale);
+    const headerTextY = this.margin + 8;
+    const footerTextY = this.pageHeight - this.margin - 4;
+    const headerLineY = this.margin + HEADER_ZONE_MM - 2;
+    const footerLineY = this.pageHeight - this.margin - FOOTER_ZONE_MM + 2;
+
+    for (let page = 1; page <= totalPages; page += 1) {
+      this.pdf.setPage(page);
+
+      this.pdf.setDrawColor(200, 200, 200);
+      this.pdf.setLineWidth(0.2);
+      this.pdf.line(
+        this.margin,
+        headerLineY,
+        this.pageWidth - this.margin,
+        headerLineY,
+      );
+      this.pdf.line(
+        this.margin,
+        footerLineY,
+        this.pageWidth - this.margin,
+        footerLineY,
+      );
+
+      this.pdf.setFont("helvetica", "bold");
+      this.pdf.setFontSize(8);
+      this.pdf.setTextColor(90, 90, 90);
+      this.pdf.text(this.branding.brandName, this.margin, headerTextY);
+
+      const truncatedTitle = this.truncateHeaderTitle(docTitle);
+      this.pdf.text(truncatedTitle, this.pageWidth - this.margin, headerTextY, {
+        align: "right",
+      });
+
+      this.pdf.setFont("helvetica", "normal");
+      this.pdf.setFontSize(8);
+
+      if (this.branding.showExportDate) {
+        this.pdf.text(exportDate, this.margin, footerTextY);
+      }
+
+      if (this.branding.showPageNumbers) {
+        const pageLabel = formatPdfPageLabel(
+          page,
+          totalPages,
+          this.branding.locale,
+        );
+        this.pdf.text(pageLabel, this.pageWidth - this.margin, footerTextY, {
+          align: "right",
+        });
+      }
+    }
+
+    this.pdf.setTextColor(24, 24, 24);
+  }
+
+  private truncateHeaderTitle(title: string): string {
+    const maxWidth = this.contentWidth * 0.58;
+    let truncated = title;
+
+    this.pdf.setFont("helvetica", "bold");
+    this.pdf.setFontSize(8);
+
+    while (
+      truncated.length > 1 &&
+      (this.pdf.getTextWidth(truncated) as number) > maxWidth
+    ) {
+      truncated = truncated.slice(0, -1);
+    }
+
+    if (truncated !== title) {
+      truncated = `${truncated.slice(0, Math.max(0, truncated.length - 1))}…`;
+    }
+
+    return truncated;
   }
 
   private ensureSpace(height: number): void {

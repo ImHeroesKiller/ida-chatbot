@@ -10,6 +10,7 @@ import {
   Loader2,
   PanelRightClose,
   Pencil,
+  Printer,
   RefreshCw,
   Save,
   Trash2,
@@ -19,14 +20,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import { MarkdownContent } from "@/components/chat/markdown-content";
-import { WorksheetExportPdfDialog } from "@/components/chat/worksheet-export-pdf-dialog";
+import {
+  WorksheetExportPdfDialog,
+  type WorksheetPdfExportSettings,
+} from "@/components/chat/worksheet-export-pdf-dialog";
+import { WorksheetPrintPreviewDialog } from "@/components/chat/worksheet-print-preview-dialog";
 import { WorksheetTemplateDialog } from "@/components/chat/worksheet-template-dialog";
 import { WorksheetVersionHistoryDialog } from "@/components/chat/worksheet-version-history-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import type { Locale } from "@/lib/config";
+import { IDA_CONFIG, type Locale } from "@/lib/config";
 import { exportWorksheetToPdf } from "@/lib/pdf-export";
 import { COPY } from "@/lib/i18n";
 import {
@@ -84,6 +89,7 @@ export function WorksheetPanel({
   const [exportPdfDialogOpen, setExportPdfDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const pendingTemplateEditRef = useRef(false);
@@ -170,7 +176,7 @@ export function WorksheetPanel({
   }, [hasContent, isEditing, isExportingPdf]);
 
   const handleExportPdfConfirm = useCallback(
-    async (settings: { paper: "a4" | "letter"; orientation: "portrait" | "landscape" }) => {
+    async (settings: WorksheetPdfExportSettings) => {
       if (!hasContent || isEditing || isExportingPdf) return;
 
       setIsExportingPdf(true);
@@ -180,6 +186,13 @@ export function WorksheetPanel({
           content,
           paper: settings.paper,
           orientation: settings.orientation,
+          branding: {
+            enabled: settings.includeBranding,
+            brandName: IDA_CONFIG.name,
+            showPageNumbers: settings.showPageNumbers,
+            showExportDate: settings.showExportDate,
+            locale,
+          },
         });
         toast.success(copy.worksheetExportPdfSuccess);
         setExportPdfDialogOpen(false);
@@ -196,6 +209,7 @@ export function WorksheetPanel({
       hasContent,
       isEditing,
       isExportingPdf,
+      locale,
       title,
     ],
   );
@@ -534,6 +548,31 @@ export function WorksheetPanel({
             </div>
 
             <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={cn("flex-1", actionButtonClass)}
+                disabled={!hasContent || isGenerating}
+                onClick={handleDownload}
+              >
+                <Download className="h-3.5 w-3.5" />
+                {copy.worksheetDownload}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={cn("flex-1", actionButtonClass)}
+                disabled={!hasContent || isGenerating}
+                onClick={() => setPrintPreviewOpen(true)}
+              >
+                <Printer className="h-3.5 w-3.5" />
+                {copy.worksheetPrintPreview}
+              </Button>
+            </div>
+
+            <div className="flex gap-2">
               {versions.length > 0 ? (
                 <Button
                   type="button"
@@ -547,20 +586,6 @@ export function WorksheetPanel({
                   {copy.worksheetHistory}
                 </Button>
               ) : null}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className={cn(
-                  versions.length > 0 ? "flex-1" : "flex-1",
-                  actionButtonClass,
-                )}
-                disabled={!hasContent || isGenerating}
-                onClick={handleDownload}
-              >
-                <Download className="h-3.5 w-3.5" />
-                {copy.worksheetDownload}
-              </Button>
               <Button
                 type="button"
                 variant="outline"
@@ -589,6 +614,14 @@ export function WorksheetPanel({
         onCancel={() => {
           if (!isExportingPdf) setExportPdfDialogOpen(false);
         }}
+      />
+
+      <WorksheetPrintPreviewDialog
+        open={printPreviewOpen}
+        locale={locale}
+        title={title}
+        content={content}
+        onClose={() => setPrintPreviewOpen(false)}
       />
 
       <WorksheetTemplateDialog

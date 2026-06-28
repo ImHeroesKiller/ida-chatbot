@@ -126,10 +126,22 @@ function testFilename() {
   return { pass: checks.length === 0, checks };
 }
 
+function testPageLabels() {
+  const checks = [];
+  const id = `Halaman 2 dari 5`;
+  const en = `Page 2 of 5`;
+  const zh = `第 2 / 5 页`;
+  if (!id.includes("Halaman")) checks.push("expected Indonesian page label pattern");
+  if (!en.includes("Page")) checks.push("expected English page label pattern");
+  if (!zh.includes("页")) checks.push("expected Chinese page label pattern");
+  return { pass: checks.length === 0, checks };
+}
+
 async function main() {
   const tests = [
     ["mixed-document-blocks", testMixedDocument()],
     ["filename-slug", testFilename()],
+    ["page-label-patterns", testPageLabels()],
   ];
 
   console.log("PDF export tests\n");
