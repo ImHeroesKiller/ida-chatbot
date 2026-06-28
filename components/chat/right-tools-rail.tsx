@@ -8,6 +8,7 @@ import {
   TOOL_DISPLAY_ORDER,
   TOOL_UI_CONFIG,
 } from "@/components/chat/tools";
+import { webSearchTool } from "@/components/chat/tools/web-search/web-search-tool";
 import { worksheetTool } from "@/components/chat/tools/worksheet/worksheet-tool";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/config";
@@ -19,7 +20,10 @@ interface RightToolsRailProps {
   locale: Locale;
   activePanel: RightSidebarPanel | null;
   worksheetEnabled: boolean;
+  webSearchEnabled: boolean;
+  webSearchAvailable: boolean;
   onSelectPanel: (panel: RightSidebarPanel) => void;
+  onWebSearchChange: (enabled: boolean) => void;
   className?: string;
 }
 
@@ -27,7 +31,10 @@ export function RightToolsRail({
   locale,
   activePanel,
   worksheetEnabled,
+  webSearchEnabled,
+  webSearchAvailable,
   onSelectPanel,
+  onWebSearchChange,
   className,
 }: RightToolsRailProps) {
   const copy = COPY[locale];
@@ -47,6 +54,19 @@ export function RightToolsRail({
     [],
   );
 
+  const handleRailClick = (toolId: string, panel: RightSidebarPanel) => {
+    if (toolId === webSearchTool.id) {
+      if (!webSearchAvailable) return;
+      if (!webSearchEnabled) {
+        onWebSearchChange(true);
+      }
+      onSelectPanel(panel);
+      return;
+    }
+
+    onSelectPanel(panel);
+  };
+
   return (
     <aside
       className={cn(
@@ -62,6 +82,13 @@ export function RightToolsRail({
         const isExpanded = activePanel === panel;
         const isWorksheetArmed =
           tool.id === worksheetTool.id && worksheetEnabled && !isExpanded;
+        const isWebSearchArmed =
+          tool.id === webSearchTool.id &&
+          webSearchEnabled &&
+          !isExpanded &&
+          webSearchAvailable;
+        const isDisabled =
+          tool.id === webSearchTool.id && !webSearchAvailable;
 
         return (
           <Button
@@ -69,17 +96,19 @@ export function RightToolsRail({
             type="button"
             variant={isExpanded ? "default" : "ghost"}
             size="icon"
+            disabled={isDisabled}
             className={cn(
               "relative h-11 w-11",
               isExpanded && "shadow-sm",
+              isDisabled && "opacity-50",
             )}
             aria-label={copy[config.labelKey]}
             aria-pressed={isExpanded}
             title={copy[config.labelKey]}
-            onClick={() => onSelectPanel(panel)}
+            onClick={() => handleRailClick(tool.id, panel)}
           >
             <Icon className="h-4 w-4" />
-            {isWorksheetArmed ? (
+            {isWorksheetArmed || isWebSearchArmed ? (
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
             ) : null}
           </Button>

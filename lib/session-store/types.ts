@@ -15,6 +15,7 @@ export interface UserChatSessionRow {
   worksheet: WorksheetDocument | null;
   active_right_panel: RightSidebarPanel | null;
   worksheet_tool_enabled: boolean;
+  web_search_enabled: boolean;
   chat_created_at: string;
   chat_updated_at: string;
   updated_at: string;

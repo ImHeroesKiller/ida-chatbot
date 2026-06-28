@@ -32,6 +32,7 @@ export interface ChatSession {
   apiSessionId: string;
   activeRightPanel?: RightSidebarPanel | null;
   worksheetToolEnabled?: boolean;
+  webSearchEnabled?: boolean;
   worksheet?: WorksheetDocument | null;
   pinned?: boolean;
   createdAt: number;
@@ -267,6 +268,7 @@ export function createChatSession(locale: Locale): ChatSession {
     apiSessionId: createId("ida"),
     activeRightPanel: null,
     worksheetToolEnabled: false,
+    webSearchEnabled: false,
     worksheet: createEmptyWorksheet(),
     pinned: false,
     createdAt: now,
@@ -299,6 +301,8 @@ function normalizeSession(
     activeRightPanel: panel,
     worksheetToolEnabled:
       rest.worksheetToolEnabled ?? panel === "worksheet",
+    webSearchEnabled:
+      rest.webSearchEnabled ?? panel === "web-search",
     worksheet: rest.worksheet ?? null,
     pinned: Boolean(session.pinned),
   };
@@ -812,6 +816,7 @@ export function useChatStore(locale: Locale) {
           | "title"
           | "activeRightPanel"
           | "worksheetToolEnabled"
+          | "webSearchEnabled"
           | "worksheet"
         >
       >,
@@ -838,6 +843,10 @@ export function useChatStore(locale: Locale) {
             patch.worksheetToolEnabled !== undefined
               ? patch.worksheetToolEnabled
               : Boolean(chat.worksheetToolEnabled),
+          webSearchEnabled:
+            patch.webSearchEnabled !== undefined
+              ? patch.webSearchEnabled
+              : Boolean(chat.webSearchEnabled),
           worksheet:
             patch.worksheet !== undefined
               ? resolvePersistedWorksheet(patch.worksheet)

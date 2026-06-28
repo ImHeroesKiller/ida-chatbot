@@ -20,6 +20,7 @@ interface SessionDbRow {
   worksheet: WorksheetDocument | null;
   active_right_panel: string | null;
   worksheet_tool_enabled: boolean | null;
+  web_search_enabled: boolean | null;
   chat_created_at: string | null;
   chat_updated_at: string | null;
 }
@@ -37,6 +38,8 @@ function rowToChatSession(row: SessionDbRow): ChatSession {
     activeRightPanel: panel,
     worksheetToolEnabled:
       row.worksheet_tool_enabled ?? panel === "worksheet",
+    webSearchEnabled:
+      row.web_search_enabled ?? panel === "web-search",
     createdAt: row.chat_created_at
       ? new Date(row.chat_created_at).getTime()
       : Date.now(),
@@ -63,7 +66,7 @@ export async function loadUserChatStore(
       supabase
         .from("ida_chat_sessions")
         .select(
-          "user_id, chat_id, session_id, locale, title, messages, quick_replies, pinned, worksheet, active_right_panel, worksheet_tool_enabled, chat_created_at, chat_updated_at",
+          "user_id, chat_id, session_id, locale, title, messages, quick_replies, pinned, worksheet, active_right_panel, worksheet_tool_enabled, web_search_enabled, chat_created_at, chat_updated_at",
         )
         .eq("user_id", userId)
         .not("chat_id", "is", null),
@@ -129,6 +132,7 @@ export async function saveUserChatStore(
       worksheet: chat.worksheet ?? null,
       active_right_panel: chat.activeRightPanel ?? null,
       worksheet_tool_enabled: Boolean(chat.worksheetToolEnabled),
+      web_search_enabled: Boolean(chat.webSearchEnabled),
       chat_created_at: new Date(chat.createdAt).toISOString(),
       chat_updated_at: new Date(chat.updatedAt).toISOString(),
       updated_at: now,

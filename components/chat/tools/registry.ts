@@ -1,13 +1,10 @@
 import type { Tool, ToolId } from "./types";
+import { webSearchTool } from "./web-search/web-search-tool";
 import { worksheetTool } from "./worksheet/worksheet-tool";
 
 const tools: Record<ToolId, Tool> = {
   worksheet: worksheetTool,
-  "web-search": {
-    id: "web-search",
-    label: "Web Search",
-    enabled: true,
-  },
+  "web-search": webSearchTool,
   map: {
     id: "map",
     label: "Map",

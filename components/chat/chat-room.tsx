@@ -56,6 +56,7 @@ const HandoffDialog = dynamic(
 
 import { useChatContext } from "@/components/chat/chat-provider";
 import { getTool } from "@/components/chat/tools";
+import { useWebSearch, webSearchTool } from "@/components/chat/tools/web-search";
 import { useWorksheet, worksheetTool } from "@/components/chat/tools/worksheet";
 import {
   Sheet,
@@ -63,6 +64,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { requestChatComposerFocus } from "@/lib/client/focus-chat-composer";
 import { buildChatApiRequestBody } from "@/lib/client/chat-api-payload";
 import { consumeIdaSseStream } from "@/lib/client/parse-sse";
 import { useIsMobileViewport } from "@/lib/client/use-media-query";
@@ -76,7 +78,7 @@ import { IDA_CONFIG } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import { MessageReactionsProvider } from "@/lib/message-reactions";
 import { useSidebarExpanded } from "@/lib/sidebar-prefs";
-import type { IdaAttachment, IdaMessage } from "@/lib/types";
+import type { IdaAttachment, IdaMessage, IdaWebSearchSource } from "@/lib/types";
 import type { IdaSseDonePayload, IdaSseMetaPayload } from "@/lib/sse";
 import toast from "react-hot-toast";
 
@@ -107,29 +109,33 @@ import { RightSidebar } from "@/components/chat/right-sidebar";
 import { RightToolsRail } from "@/components/chat/right-tools-rail";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 import { useChatFontSize } from "@/lib/chat-font-prefs";
-import { useWebSearchPrefs } from "@/lib/web-search-prefs";
+
 
 function createMessageId() {
   return `ida-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
 const WORKSHEET_PANEL = worksheetTool.id as RightSidebarPanel;
+const WEB_SEARCH_PANEL = webSearchTool.id as RightSidebarPanel;
 
 function isWorksheetToolAvailable(): boolean {
   return getTool(worksheetTool.id)?.enabled ?? false;
 }
 
+function isWebSearchToolAvailable(): boolean {
+  return getTool(webSearchTool.id)?.enabled ?? false;
+}
+
 function ChatRoomContent() {
   const worksheet = useWorksheet();
   void worksheet;
+  const webSearch = useWebSearch();
 
   const { locale, openHandoff, closeHandoff } = useChatContext();
   const copy = COPY[locale];
   const { expanded: sidebarExpanded, setExpanded: setSidebarExpanded } =
     useSidebarExpanded();
   const { prefs } = useVoicePrefs();
-  const { enabled: webSearchEnabled, setEnabled: setWebSearchEnabled } =
-    useWebSearchPrefs();
   const { fontSize: chatFontSize } = useChatFontSize();
   const { speak } = useSpeechSynthesis();
   const appFeatures = useAppFeatures();
@@ -163,6 +169,7 @@ function ChatRoomContent() {
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [rightPanel, setRightPanel] = useState<RightSidebarPanel | null>(null);
   const [worksheetToolEnabled, setWorksheetToolEnabled] = useState(false);
+  const [webSearchToolEnabled, setWebSearchToolEnabled] = useState(false);
   const [worksheetWorkspace, setWorksheetWorkspace] =
     useState<WorksheetDocument>(() => createEmptyWorksheetWorkspace(locale));
   const isMobileViewport = useIsMobileViewport();
@@ -258,6 +265,27 @@ function ChatRoomContent() {
           (currentChat.worksheetToolEnabled ??
             currentChat.activeRightPanel === WORKSHEET_PANEL),
       );
+      setWebSearchToolEnabled(
+        isWebSearchToolAvailable() &&
+          (currentChat.webSearchEnabled ??
+            currentChat.activeRightPanel === WEB_SEARCH_PANEL),
+      );
+
+      const lastWebSearchMessage = [...currentChat.messages]
+        .reverse()
+        .find((message) => message.webSearchSources?.length);
+      if (lastWebSearchMessage?.webSearchSources?.length) {
+        webSearch.setSearchResults(lastWebSearchMessage.webSearchSources);
+      } else {
+        webSearch.clearResults();
+      }
+      webSearch.setEnabled(
+        isWebSearchToolAvailable() &&
+          Boolean(
+            currentChat.webSearchEnabled ??
+              currentChat.activeRightPanel === WEB_SEARCH_PANEL,
+          ),
+      );
 
       const worksheet = normalizeWorksheetDocument(currentChat.worksheet, locale);
       setWorksheetWorkspace(worksheet);
@@ -296,6 +324,7 @@ function ChatRoomContent() {
       messages,
       activeRightPanel: rightPanel,
       worksheetToolEnabled,
+      webSearchEnabled: webSearchToolEnabled,
     });
   }, [
     currentChat,
@@ -305,6 +334,7 @@ function ChatRoomContent() {
     canPersistCurrentChatState,
     persistCurrentChat,
     rightPanel,
+    webSearchToolEnabled,
     worksheetToolEnabled,
   ]);
 
@@ -379,6 +409,8 @@ function ChatRoomContent() {
       setEditingMessageId(null);
       setRightPanel(null);
       setWorksheetToolEnabled(false);
+      setWebSearchToolEnabled(false);
+      webSearch.resetForNewChat();
 
       const emptyWorksheet = normalizeWorksheetDocument(
         createEmptyWorksheet(),
@@ -392,7 +424,7 @@ function ChatRoomContent() {
 
     createChat();
     setMobileSidebarOpen(false);
-  }, [createChat, locale]);
+  }, [createChat, locale, webSearch]);
 
   const streamAssistantReply = useCallback(
     async (
@@ -449,6 +481,7 @@ function ChatRoomContent() {
 
         const applyWebSearchSources = (
           sources: IdaSseMetaPayload["webSearchSources"],
+          queries?: string[],
         ) => {
           if (!sources?.length) return;
 
@@ -460,8 +493,18 @@ function ChatRoomContent() {
 
           if (activeChatIdRef.current === chatIdAtSend) {
             setMessages(finalMessages);
+            webSearch.setSearchResults(sources);
+            if (queries?.length) {
+              webSearch.setLastQuery(queries[queries.length - 1] ?? null);
+            }
+            setWebSearchToolEnabled(true);
+            setRightPanel(WEB_SEARCH_PANEL);
           } else {
-            persistCurrentChat({ messages: finalMessages });
+            persistCurrentChat({
+              messages: finalMessages,
+              webSearchEnabled: true,
+              activeRightPanel: WEB_SEARCH_PANEL,
+            });
           }
         };
 
@@ -545,7 +588,10 @@ function ChatRoomContent() {
               openHandoff(meta.handoffPrefill);
             }
 
-            applyWebSearchSources(meta.webSearchSources);
+            applyWebSearchSources(
+              meta.webSearchSources,
+              meta.webSearchQueries,
+            );
           },
           (done) => {
             applyWebSearchSources(done.webSearchSources);
@@ -624,6 +670,13 @@ function ChatRoomContent() {
           });
         }
 
+        if (useWebSearch) {
+          if (activeChatIdRef.current === chatIdAtSend) {
+            webSearch.finishSearchError(errorMessage);
+            setRightPanel(WEB_SEARCH_PANEL);
+          }
+        }
+
         setError(errorMessage);
         throw err;
       }
@@ -637,8 +690,8 @@ function ChatRoomContent() {
       appFeatures?.features.autoSpeak,
       prefs.autoSpeak,
       speak,
+      webSearch,
       webSearchAvailable,
-      webSearchEnabled,
     ],
   );
 
@@ -665,12 +718,22 @@ function ChatRoomContent() {
       if (worksheetAtSend && text) {
         setLastWorksheetPrompt(text);
       }
+      const webSearchAtSend =
+        webSearchAvailable &&
+        webSearchToolEnabled &&
+        isWebSearchToolAvailable();
+
       if (worksheetAtSend) {
         setRightPanel(WORKSHEET_PANEL);
         setWorksheetWorkspace((prev) =>
           prev.error ? { ...prev, error: undefined } : prev,
         );
         setWorksheetErrorDetail(null);
+      }
+
+      if (webSearchAtSend && text) {
+        webSearch.beginSearch(text);
+        setRightPanel(WEB_SEARCH_PANEL);
       }
 
       const userMessage: IdaMessage = {
@@ -708,13 +771,16 @@ function ChatRoomContent() {
           chatIdAtSend,
           currentChat.apiSessionId,
           apiUserId,
-          webSearchAvailable && webSearchEnabled,
+          webSearchAtSend,
           worksheetAtSend,
         );
       } finally {
         if (activeChatIdRef.current === chatIdAtSend) {
           setStreamingMessageId(null);
           setIsLoading(false);
+          if (webSearchAtSend) {
+            webSearch.endSearch();
+          }
         }
       }
     },
@@ -724,10 +790,11 @@ function ChatRoomContent() {
       currentChat,
       isLoading,
       messages,
+      webSearch,
       worksheetToolEnabled,
       streamAssistantReply,
       webSearchAvailable,
-      webSearchEnabled,
+      webSearchToolEnabled,
     ],
   );
 
@@ -787,7 +854,7 @@ function ChatRoomContent() {
           chatIdAtSend,
           currentChat.apiSessionId,
           apiUserId,
-          webSearchAvailable && webSearchEnabled,
+          webSearchAvailable && webSearchToolEnabled,
           worksheetAtSend,
         );
       } finally {
@@ -805,7 +872,7 @@ function ChatRoomContent() {
       worksheetToolEnabled,
       streamAssistantReply,
       webSearchAvailable,
-      webSearchEnabled,
+      webSearchToolEnabled,
     ],
   );
 
@@ -874,7 +941,7 @@ function ChatRoomContent() {
           chatIdAtSend,
           currentChat.apiSessionId,
           apiUserId,
-          webSearchAvailable && webSearchEnabled,
+          webSearchAvailable && webSearchToolEnabled,
           worksheetAtSend,
         );
       } finally {
@@ -893,7 +960,7 @@ function ChatRoomContent() {
       worksheetToolEnabled,
       streamAssistantReply,
       webSearchAvailable,
-      webSearchEnabled,
+      webSearchToolEnabled,
     ],
   );
 
@@ -953,6 +1020,36 @@ function ChatRoomContent() {
       setRightPanel((panel) => (panel === WORKSHEET_PANEL ? null : panel));
     }
   }, []);
+
+  const handleWebSearchToolChange = useCallback(
+    (enabled: boolean) => {
+      if (!isWebSearchToolAvailable() || !webSearchAvailable) return;
+
+      setWebSearchToolEnabled(enabled);
+      webSearch.setEnabled(enabled);
+
+      if (enabled) {
+        setRightPanel(WEB_SEARCH_PANEL);
+      } else {
+        setRightPanel((panel) => (panel === WEB_SEARCH_PANEL ? null : panel));
+        webSearch.clearResults();
+      }
+    },
+    [webSearch, webSearchAvailable],
+  );
+
+  const handleWebSearchClearResults = useCallback(() => {
+    webSearch.clearResults();
+  }, [webSearch]);
+
+  const handleWebSearchUseAsContext = useCallback(
+    (result: IdaWebSearchSource) => {
+      const snippet = `${result.title}\n${result.url}\n${result.snippet}`.trim();
+      setInput((prev) => (prev.trim() ? `${prev}\n\n${snippet}` : snippet));
+      requestChatComposerFocus();
+    },
+    [],
+  );
 
   const handleToggleToolPanel = useCallback((panel: RightSidebarPanel) => {
     setRightPanel((current) => (current === panel ? null : panel));
@@ -1064,13 +1161,13 @@ function ChatRoomContent() {
               sessionId={currentChat?.apiSessionId}
               input={input}
               isLoading={isLoading}
-              webSearchEnabled={webSearchEnabled}
+              webSearchEnabled={webSearchToolEnabled}
               webSearchAvailable={webSearchAvailable}
               worksheetEnabled={
                 isWorksheetToolAvailable() && worksheetToolEnabled
               }
               activeToolPanel={rightPanel}
-              onWebSearchChange={setWebSearchEnabled}
+              onWebSearchChange={handleWebSearchToolChange}
               onWorksheetChange={handleWorksheetToolChange}
               onOpenToolPanel={handleOpenToolPanel}
               onInputChange={setInput}
@@ -1087,6 +1184,11 @@ function ChatRoomContent() {
             worksheetEnabled={
               isWorksheetToolAvailable() && worksheetToolEnabled
             }
+            webSearchEnabled={
+              isWebSearchToolAvailable() && webSearchToolEnabled
+            }
+            webSearchAvailable={webSearchAvailable}
+            onWebSearchChange={handleWebSearchToolChange}
             onSelectPanel={handleToggleToolPanel}
             className="relative z-10 hidden shrink-0 md:flex"
           />
@@ -1105,6 +1207,14 @@ function ChatRoomContent() {
               onWorksheetRetry={handleWorksheetRetry}
               onWorksheetRegenerate={handleWorksheetRegenerate}
               onWorksheetClear={handleWorksheetClear}
+              webSearchResults={webSearch.searchResults}
+              webSearchSearching={
+                isLoading && webSearchToolEnabled && webSearch.isSearching
+              }
+              webSearchLastQuery={webSearch.lastQuery}
+              webSearchError={webSearch.error}
+              onWebSearchClearResults={handleWebSearchClearResults}
+              onWebSearchUseAsContext={handleWebSearchUseAsContext}
               onClose={handleCollapseToolPanel}
               onCollapse={handleCollapseToolPanel}
               className="relative z-10 hidden shrink-0 md:flex"
@@ -1139,6 +1249,14 @@ function ChatRoomContent() {
               onWorksheetRetry={handleWorksheetRetry}
               onWorksheetRegenerate={handleWorksheetRegenerate}
               onWorksheetClear={handleWorksheetClear}
+              webSearchResults={webSearch.searchResults}
+              webSearchSearching={
+                isLoading && webSearchToolEnabled && webSearch.isSearching
+              }
+              webSearchLastQuery={webSearch.lastQuery}
+              webSearchError={webSearch.error}
+              onWebSearchClearResults={handleWebSearchClearResults}
+              onWebSearchUseAsContext={handleWebSearchUseAsContext}
               onClose={handleCollapseToolPanel}
               onCollapse={handleCollapseToolPanel}
               embedded

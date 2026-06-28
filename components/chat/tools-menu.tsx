@@ -68,7 +68,7 @@ export function ToolsMenu({
     (toolId: ToolId): boolean => {
       switch (toolId) {
         case "web-search":
-          return webSearchEnabled;
+          return webSearchEnabled || activePanel === "web-search";
         case "worksheet":
           return worksheetEnabled;
         case "map":
@@ -151,7 +151,13 @@ export function ToolsMenu({
     switch (config.kind) {
       case "toggle-web-search":
         if (!webSearchAvailable) return;
-        onWebSearchChange(!webSearchEnabled);
+        if (!webSearchEnabled) {
+          onWebSearchChange(true);
+          onOpenPanel("web-search");
+        } else {
+          onWebSearchChange(false);
+        }
+        setOpen(false);
         break;
       case "toggle-worksheet":
         onWorksheetChange(!worksheetEnabled);

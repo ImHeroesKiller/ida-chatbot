@@ -36,6 +36,7 @@ export const TOOL_UI_CONFIG: Record<ToolId, ToolUiConfig> = {
     icon: Globe,
     labelKey: "toolsWebSearch",
     kind: "toggle-web-search",
+    railPanel: "web-search",
   },
   worksheet: {
     icon: FileText,

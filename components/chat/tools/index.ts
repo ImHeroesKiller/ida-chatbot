@@ -9,3 +9,6 @@ export * from "./tool-ui-config";
 
 // Export worksheet module
 export * from "./worksheet";
+
+// Export web search module
+export * from "./web-search";

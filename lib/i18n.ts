@@ -112,6 +112,14 @@ export const COPY: Record<
     webSearchOn: string;
     webSearchOff: string;
     webSearchUnavailable: string;
+    webSearchPanelTitle: string;
+    webSearchPanelEmptyTitle: string;
+    webSearchPanelEmpty: string;
+    webSearchPanelSearching: string;
+    webSearchPanelError: string;
+    webSearchPanelLastQuery: string;
+    webSearchPanelClear: string;
+    webSearchUseAsContext: string;
     editMessage: string;
     editSave: string;
     editCancel: string;
@@ -478,6 +486,15 @@ export const COPY: Record<
     webSearchOn: "Pencarian web aktif",
     webSearchOff: "Pencarian web nonaktif",
     webSearchUnavailable: "Pencarian web belum dikonfigurasi",
+    webSearchPanelTitle: "Pencarian Web",
+    webSearchPanelEmptyTitle: "Belum ada hasil",
+    webSearchPanelEmpty:
+      "Aktifkan Pencarian Web, lalu kirim pertanyaan yang membutuhkan informasi terkini. Hasil akan muncul di panel ini.",
+    webSearchPanelSearching: "IDA sedang mencari di internet...",
+    webSearchPanelError: "Pencarian web gagal",
+    webSearchPanelLastQuery: "Kueri: {query}",
+    webSearchPanelClear: "Hapus hasil",
+    webSearchUseAsContext: "Gunakan sebagai konteks",
     editMessage: "Edit pesan",
     editSave: "Kirim ulang",
     editCancel: "Batal",
@@ -877,6 +894,15 @@ export const COPY: Record<
     webSearchOn: "Web search on",
     webSearchOff: "Web search off",
     webSearchUnavailable: "Web search is not configured",
+    webSearchPanelTitle: "Web Search",
+    webSearchPanelEmptyTitle: "No results yet",
+    webSearchPanelEmpty:
+      "Enable Web Search, then ask a question that needs up-to-date information. Results will appear in this panel.",
+    webSearchPanelSearching: "IDA is searching the web...",
+    webSearchPanelError: "Web search failed",
+    webSearchPanelLastQuery: "Query: {query}",
+    webSearchPanelClear: "Clear results",
+    webSearchUseAsContext: "Use as context",
     editMessage: "Edit message",
     editSave: "Resend",
     editCancel: "Cancel",
@@ -1277,6 +1303,15 @@ export const COPY: Record<
     webSearchOn: "已开启联网搜索",
     webSearchOff: "已关闭联网搜索",
     webSearchUnavailable: "联网搜索未配置",
+    webSearchPanelTitle: "联网搜索",
+    webSearchPanelEmptyTitle: "暂无结果",
+    webSearchPanelEmpty:
+      "开启联网搜索后，发送需要最新信息的问题，结果将显示在此面板。",
+    webSearchPanelSearching: "IDA 正在联网搜索...",
+    webSearchPanelError: "联网搜索失败",
+    webSearchPanelLastQuery: "查询：{query}",
+    webSearchPanelClear: "清除结果",
+    webSearchUseAsContext: "用作上下文",
     editMessage: "编辑消息",
     editSave: "重新发送",
     editCancel: "取消",

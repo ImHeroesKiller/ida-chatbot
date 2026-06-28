@@ -2,11 +2,13 @@
 
 import { Map, PanelRightClose, Search, FileText } from "lucide-react";
 
+import { WebSearchPanel } from "@/components/chat/tools/web-search";
 import { WorksheetPanel } from "@/components/chat/tools/worksheet";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
+import type { IdaWebSearchSource } from "@/lib/types";
 import type { WorksheetDocument, WorksheetErrorCode } from "@/lib/worksheet";
 import type { WorksheetTemplate } from "@/lib/worksheet-templates";
 import { COPY } from "@/lib/i18n";
@@ -24,6 +26,12 @@ interface RightSidebarProps {
   onWorksheetRetry?: () => void;
   onWorksheetRegenerate?: () => void;
   onWorksheetClear?: () => void;
+  webSearchResults?: IdaWebSearchSource[];
+  webSearchSearching?: boolean;
+  webSearchLastQuery?: string | null;
+  webSearchError?: string | null;
+  onWebSearchClearResults?: () => void;
+  onWebSearchUseAsContext?: (result: IdaWebSearchSource) => void;
   onClose: () => void;
   onCollapse?: () => void;
   className?: string;
@@ -48,6 +56,12 @@ export function RightSidebar({
   onWorksheetRetry,
   onWorksheetRegenerate,
   onWorksheetClear,
+  webSearchResults = [],
+  webSearchSearching = false,
+  webSearchLastQuery = null,
+  webSearchError = null,
+  onWebSearchClearResults,
+  onWebSearchUseAsContext,
   onClose,
   onCollapse,
   className,
@@ -55,6 +69,23 @@ export function RightSidebar({
 }: RightSidebarProps) {
   const handlePanelClose = onCollapse ?? onClose;
   const copy = COPY[locale];
+
+  if (panel === "web-search") {
+    return (
+      <WebSearchPanel
+        locale={locale}
+        isSearching={webSearchSearching}
+        lastQuery={webSearchLastQuery}
+        searchResults={webSearchResults}
+        error={webSearchError}
+        onClose={handlePanelClose}
+        onClearResults={onWebSearchClearResults}
+        onUseAsContext={onWebSearchUseAsContext}
+        className={className}
+        embedded={embedded}
+      />
+    );
+  }
 
   if (panel === "worksheet") {
     return (
