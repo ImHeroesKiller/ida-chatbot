@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
@@ -158,12 +157,12 @@ export function WorksheetBrandingDialog({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             onClick={(event) => event.stopPropagation()}
-            className="flex max-h-[min(92vh,44rem)] w-full max-w-2xl flex-col"
+            className="flex max-h-[min(92vh,44rem)] min-h-0 w-full max-w-2xl flex-col overflow-hidden"
             role="dialog"
             aria-modal="true"
             aria-label={copy.worksheetBrandingTitle}
           >
-            <Card className="flex min-h-0 flex-1 flex-col overflow-hidden shadow-2xl">
+            <Card className="flex min-h-0 flex-1 flex-col gap-0 overflow-hidden py-0 shadow-2xl">
               <CardHeader className="shrink-0 space-y-3 border-b px-6 pt-6 pb-4">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Palette className="h-4 w-4 text-primary" />
@@ -209,8 +208,8 @@ export function WorksheetBrandingDialog({
                 </div>
               </CardHeader>
 
-              <CardContent className="flex min-h-0 flex-1 flex-col gap-0 p-0">
-                <ScrollArea className="min-h-0 flex-1">
+              <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
+                <div className="h-0 min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
                   <div className="space-y-5 px-6 py-5">
                     {tab === "header" ? (
                       <>
@@ -259,7 +258,7 @@ export function WorksheetBrandingDialog({
                             id="worksheet-brand-logo"
                             label={copy.worksheetBrandingLogo}
                           >
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                               <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted/30">
                                 {draft.logoDataUrl ? (
                                   // eslint-disable-next-line @next/next/no-img-element
@@ -327,7 +326,7 @@ export function WorksheetBrandingDialog({
                               placeholder={
                                 copy.worksheetBrandingAddressPlaceholder
                               }
-                              className="min-h-20 text-sm"
+                              className="min-h-20 max-h-36 resize-y overflow-y-auto text-sm"
                               spellCheck={false}
                             />
                           </BrandingField>
@@ -568,7 +567,7 @@ export function WorksheetBrandingDialog({
                       </div>
                     ) : null}
                   </div>
-                </ScrollArea>
+                </div>
 
                 <div className="flex shrink-0 gap-2 border-t bg-muted/10 px-6 py-4">
                   <Button
