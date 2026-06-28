@@ -1,5 +1,11 @@
 import type { Locale } from "@/lib/config";
+import type { WorksheetBrandingConfig } from "@/lib/worksheet-branding-config";
 import { stripInlineMarkdown } from "@/lib/pdf-export";
+import {
+  buildLetterheadCss,
+  buildLetterheadFooterHtml,
+  buildLetterheadHeaderHtml,
+} from "@/lib/worksheet-letterhead";
 import { WORKSHEET_PRINT_PROSE_CSS } from "@/lib/worksheet-print-typography";
 
 function escapeHtml(value: string): string {
@@ -75,18 +81,21 @@ export function markdownToPrintHtml(markdown: string): string {
 export function buildPrintPreviewDocumentHtml(params: {
   title: string;
   content: string;
-  brandName: string;
-  footerText?: string;
-  logoDataUrl?: string | null;
+  branding: WorksheetBrandingConfig;
   locale: Locale;
+  pageLabel?: string;
 }): string {
   const title = stripInlineMarkdown(params.title.trim() || "Document");
   const body = markdownToPrintHtml(params.content.trim());
-  const date = formatPrintExportDate(params.locale);
-  const footerText = params.footerText?.trim() || "Worksheet";
-  const logoHtml = params.logoDataUrl
-    ? `<img src="${params.logoDataUrl.replace(/"/g, "&quot;")}" alt="" style="height:28px;max-width:96px;object-fit:contain;" />`
-    : "";
+  const headerHtml = buildLetterheadHeaderHtml({
+    branding: params.branding,
+    documentTitle: title,
+  });
+  const footerHtml = buildLetterheadFooterHtml({
+    branding: params.branding,
+    locale: params.locale,
+    pageLabel: params.pageLabel,
+  });
 
   return `<!DOCTYPE html>
 <html lang="${params.locale}">
@@ -103,50 +112,14 @@ export function buildPrintPreviewDocumentHtml(params: {
       margin: 0;
       padding: 0;
     }
-    .print-header, .print-footer {
-      color: #666;
-      font-size: 11px;
-      border-color: #ddd;
-    }
-    .print-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 8px;
-      margin-bottom: 24px;
-    }
-    .print-header-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-    .print-header strong { color: #333; }
-    .print-footer {
-      border-top: 1px solid #ddd;
-      padding-top: 8px;
-      margin-top: 32px;
-      display: flex;
-      justify-content: space-between;
-    }
+    ${buildLetterheadCss(params.branding)}
     ${WORKSHEET_PRINT_PROSE_CSS}
   </style>
 </head>
 <body>
-  <div class="print-header">
-    <div class="print-header-brand">
-      ${logoHtml}
-      <strong>${escapeHtml(params.brandName)}</strong>
-    </div>
-    <span>${escapeHtml(title)}</span>
-  </div>
+  ${headerHtml}
   <main class="worksheet-print-prose">${body}</main>
-  <div class="print-footer">
-    <span>${escapeHtml(date)}</span>
-    <span>${escapeHtml(params.brandName)} ${escapeHtml(footerText)}</span>
-  </div>
+  ${footerHtml}
 </body>
 </html>`;
 }
@@ -154,9 +127,7 @@ export function buildPrintPreviewDocumentHtml(params: {
 export function openWorksheetPrintPreview(params: {
   title: string;
   content: string;
-  brandName: string;
-  footerText?: string;
-  logoDataUrl?: string | null;
+  branding: WorksheetBrandingConfig;
   locale: Locale;
 }): void {
   const html = buildPrintPreviewDocumentHtml(params);

@@ -1,18 +1,59 @@
 import { jsPDF } from "jspdf";
 
 import type { Locale } from "@/lib/config";
+import {
+  parseWorksheetBrandingConfig,
+  type WorksheetBrandingConfig,
+  type WorksheetBrandingFontFamily,
+} from "@/lib/worksheet-branding-config";
+import {
+  brandingAddressLines,
+  brandingContactLines,
+  buildFooterSummary,
+  computePdfHeaderZoneMm,
+  hexToRgb,
+} from "@/lib/worksheet-letterhead";
 
 export type PdfPaperFormat = "a4" | "letter";
 export type PdfOrientation = "portrait" | "landscape";
 
-export interface PdfBrandingOptions {
+export interface PdfBrandingOptions extends Partial<WorksheetBrandingConfig> {
   enabled?: boolean;
-  brandName?: string;
-  footerText?: string;
-  logoDataUrl?: string | null;
   showPageNumbers?: boolean;
   showExportDate?: boolean;
   locale?: Locale;
+}
+
+type ResolvedPdfBranding = WorksheetBrandingConfig & {
+  enabled: boolean;
+  showPageNumbers: boolean;
+  showExportDate: boolean;
+  locale: Locale;
+};
+
+function resolvePdfBranding(
+  branding: PdfBrandingOptions | undefined,
+): ResolvedPdfBranding {
+  const parsed = parseWorksheetBrandingConfig(branding ?? {});
+
+  return {
+    ...parsed,
+    enabled: branding?.enabled !== false,
+    showPageNumbers: branding?.showPageNumbers !== false,
+    showExportDate: branding?.showExportDate !== false,
+    locale: branding?.locale ?? "en",
+  };
+}
+
+function pdfFontFamily(family: WorksheetBrandingFontFamily): string {
+  switch (family) {
+    case "serif":
+      return "times";
+    case "sans":
+      return "helvetica";
+    default:
+      return "helvetica";
+  }
 }
 
 export interface WorksheetPdfExportOptions {
@@ -35,7 +76,6 @@ type MarkdownBlock =
   | { kind: "hr" };
 
 const MARGIN_MM = 20;
-const HEADER_ZONE_MM = 14;
 const FOOTER_ZONE_MM = 12;
 const CELL_PADDING_MM = 2;
 const PT_TO_MM = 0.352778;
@@ -264,14 +304,11 @@ class WorksheetPdfRenderer {
   private y: number;
   private readonly margin = MARGIN_MM;
   private readonly marginTop: number;
+  private readonly headerZoneMm: number;
   private readonly pageWidth: number;
   private readonly pageHeight: number;
   private readonly contentWidth: number;
-  private readonly branding: Required<
-    Omit<PdfBrandingOptions, "logoDataUrl">
-  > & {
-    logoDataUrl: string | null;
-  };
+  private readonly branding: ResolvedPdfBranding;
 
   constructor(private readonly options: WorksheetPdfExportOptions) {
     this.pdf = new jsPDF({
@@ -280,20 +317,15 @@ class WorksheetPdfRenderer {
       format: options.paper ?? "a4",
     });
 
-    this.branding = {
-      enabled: options.branding?.enabled !== false,
-      brandName: options.branding?.brandName?.trim() || "IDA",
-      footerText: options.branding?.footerText?.trim() || "Worksheet",
-      logoDataUrl: options.branding?.logoDataUrl ?? null,
-      showPageNumbers: options.branding?.showPageNumbers !== false,
-      showExportDate: options.branding?.showExportDate !== false,
-      locale: options.branding?.locale ?? "en",
-    };
+    this.branding = resolvePdfBranding(options.branding);
+    this.headerZoneMm = this.branding.enabled
+      ? computePdfHeaderZoneMm(this.branding)
+      : 0;
 
     this.pageWidth = this.pdf.internal.pageSize.getWidth();
     this.pageHeight = this.pdf.internal.pageSize.getHeight();
     this.contentWidth = this.pageWidth - this.margin * 2;
-    this.marginTop = this.margin + (this.branding.enabled ? HEADER_ZONE_MM : 0);
+    this.marginTop = this.margin + this.headerZoneMm;
     this.y = this.marginTop;
   }
 
@@ -334,96 +366,168 @@ class WorksheetPdfRenderer {
       this.options.title.trim() || "Document",
     );
     const exportDate = formatPdfExportDate(this.branding.locale);
-    const headerTextY = this.margin + 8;
+    const footerSummary = buildFooterSummary(this.branding);
     const footerTextY = this.pageHeight - this.margin - 4;
-    const headerLineY = this.margin + HEADER_ZONE_MM - 2;
     const footerLineY = this.pageHeight - this.margin - FOOTER_ZONE_MM + 2;
+    const primaryRgb = hexToRgb(this.branding.primaryColor);
 
     for (let page = 1; page <= totalPages; page += 1) {
       this.pdf.setPage(page);
-
-      this.pdf.setDrawColor(200, 200, 200);
-      this.pdf.setLineWidth(0.2);
-      this.pdf.line(
-        this.margin,
-        headerLineY,
-        this.pageWidth - this.margin,
-        headerLineY,
-      );
-      this.pdf.line(
-        this.margin,
-        footerLineY,
-        this.pageWidth - this.margin,
+      this.renderPdfPageHeader(docTitle, primaryRgb);
+      this.renderPdfPageFooter(
+        page,
+        totalPages,
+        exportDate,
+        footerSummary,
+        footerTextY,
         footerLineY,
       );
-
-      let brandX = this.margin;
-
-      if (this.branding.logoDataUrl) {
-        try {
-          const format = detectPdfImageFormat(this.branding.logoDataUrl);
-          const logoWidth = LOGO_MAX_WIDTH_MM;
-          const logoHeight = LOGO_MAX_HEIGHT_MM;
-          const logoY = this.margin + 1;
-          this.pdf.addImage(
-            this.branding.logoDataUrl,
-            format,
-            this.margin,
-            logoY,
-            logoWidth,
-            logoHeight,
-            undefined,
-            "FAST",
-          );
-          brandX = this.margin + logoWidth + 2;
-        } catch {
-          brandX = this.margin;
-        }
-      }
-
-      this.pdf.setFont("helvetica", "bold");
-      this.pdf.setFontSize(8);
-      this.pdf.setTextColor(90, 90, 90);
-      this.pdf.text(this.branding.brandName, brandX, headerTextY);
-
-      const truncatedTitle = this.truncateHeaderTitle(docTitle);
-      this.pdf.text(truncatedTitle, this.pageWidth - this.margin, headerTextY, {
-        align: "right",
-      });
-
-      this.pdf.setFont("helvetica", "normal");
-      this.pdf.setFontSize(8);
-
-      if (this.branding.showExportDate) {
-        this.pdf.text(exportDate, this.margin, footerTextY);
-      }
-
-      const footerBrandLabel = `${this.branding.brandName} ${this.branding.footerText}`;
-
-      if (this.branding.showPageNumbers) {
-        const pageLabel = formatPdfPageLabel(
-          page,
-          totalPages,
-          this.branding.locale,
-        );
-        this.pdf.text(pageLabel, this.pageWidth - this.margin, footerTextY, {
-          align: "right",
-        });
-      } else {
-        this.pdf.text(footerBrandLabel, this.pageWidth - this.margin, footerTextY, {
-          align: "right",
-        });
-      }
     }
 
     this.pdf.setTextColor(24, 24, 24);
   }
 
-  private truncateHeaderTitle(title: string): string {
-    const maxWidth = this.contentWidth * 0.58;
+  private renderPdfPageHeader(
+    docTitle: string,
+    primaryRgb: { r: number; g: number; b: number },
+  ): void {
+    const headerFont = pdfFontFamily(this.branding.headerFontFamily);
+    let textX = this.margin;
+    let textY = this.margin + 4;
+
+    if (this.branding.logoDataUrl) {
+      try {
+        const format = detectPdfImageFormat(this.branding.logoDataUrl);
+        this.pdf.addImage(
+          this.branding.logoDataUrl,
+          format,
+          this.margin,
+          this.margin + 1,
+          LOGO_MAX_WIDTH_MM,
+          LOGO_MAX_HEIGHT_MM,
+          undefined,
+          "FAST",
+        );
+        textX = this.margin + LOGO_MAX_WIDTH_MM + 2;
+      } catch {
+        textX = this.margin;
+      }
+    }
+
+    this.pdf.setFont(headerFont, "bold");
+    this.pdf.setFontSize(9);
+    this.pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+    this.pdf.text(this.branding.brandName, textX, textY);
+    textY += 3.5;
+
+    if (this.branding.tagline.trim()) {
+      this.pdf.setFont(headerFont, "italic");
+      this.pdf.setFontSize(7.5);
+      this.pdf.setTextColor(85, 85, 85);
+      const taglineLines = this.pdf.splitTextToSize(
+        this.branding.tagline.trim(),
+        this.contentWidth * 0.55,
+      ) as string[];
+      for (const line of taglineLines.slice(0, 2)) {
+        this.pdf.text(line, textX, textY);
+        textY += 2.8;
+      }
+    }
+
+    const addressLines = brandingAddressLines(this.branding.address).slice(0, 3);
+    if (addressLines.length > 0) {
+      this.pdf.setFont(headerFont, "normal");
+      this.pdf.setFontSize(7);
+      this.pdf.setTextColor(102, 102, 102);
+      for (const line of addressLines) {
+        this.pdf.text(line, textX, textY);
+        textY += 2.5;
+      }
+    }
+
+    const contactLines = brandingContactLines(this.branding);
+    if (contactLines.length > 0) {
+      this.pdf.setFont(headerFont, "normal");
+      this.pdf.setFontSize(7);
+      this.pdf.setTextColor(102, 102, 102);
+      const contactText = contactLines.join(" · ");
+      const wrappedContact = this.pdf.splitTextToSize(
+        contactText,
+        this.contentWidth * 0.55,
+      ) as string[];
+      for (const line of wrappedContact.slice(0, 2)) {
+        this.pdf.text(line, textX, textY);
+        textY += 2.5;
+      }
+    }
+
+    const truncatedTitle = this.truncateHeaderTitle(docTitle, headerFont);
+    this.pdf.setFont(headerFont, "normal");
+    this.pdf.setFontSize(8);
+    this.pdf.setTextColor(102, 102, 102);
+    this.pdf.text(truncatedTitle, this.pageWidth - this.margin, this.margin + 4, {
+      align: "right",
+    });
+
+    if (this.branding.showHeaderDivider) {
+      const dividerY = this.margin + this.headerZoneMm - 1.5;
+      this.pdf.setDrawColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+      this.pdf.setLineWidth(0.25);
+      this.pdf.line(this.margin, dividerY, this.pageWidth - this.margin, dividerY);
+    }
+  }
+
+  private renderPdfPageFooter(
+    page: number,
+    totalPages: number,
+    exportDate: string,
+    footerSummary: string,
+    footerTextY: number,
+    footerLineY: number,
+  ): void {
+    const footerFont = pdfFontFamily(this.branding.footerFontFamily);
+
+    this.pdf.setDrawColor(221, 221, 221);
+    this.pdf.setLineWidth(0.2);
+    this.pdf.line(
+      this.margin,
+      footerLineY,
+      this.pageWidth - this.margin,
+      footerLineY,
+    );
+
+    this.pdf.setFont(footerFont, "normal");
+    this.pdf.setFontSize(7.5);
+    this.pdf.setTextColor(102, 102, 102);
+
+    if (this.branding.showExportDate) {
+      this.pdf.text(exportDate, this.margin, footerTextY);
+    }
+
+    const rightParts = [footerSummary];
+    if (this.branding.showPageNumbers) {
+      rightParts.push(
+        formatPdfPageLabel(page, totalPages, this.branding.locale),
+      );
+    }
+
+    const rightLabel = rightParts.filter(Boolean).join(" · ");
+    const wrappedRight = this.pdf.splitTextToSize(
+      rightLabel,
+      this.contentWidth * 0.62,
+    ) as string[];
+    const rightText = wrappedRight[wrappedRight.length - 1] ?? rightLabel;
+
+    this.pdf.text(rightText, this.pageWidth - this.margin, footerTextY, {
+      align: "right",
+    });
+  }
+
+  private truncateHeaderTitle(title: string, fontFamily: string): string {
+    const maxWidth = this.contentWidth * 0.38;
     let truncated = title;
 
-    this.pdf.setFont("helvetica", "bold");
+    this.pdf.setFont(fontFamily, "normal");
     this.pdf.setFontSize(8);
 
     while (

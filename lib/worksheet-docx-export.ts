@@ -4,6 +4,7 @@ import {
   Document,
   ExternalHyperlink,
   HeadingLevel,
+  ImageRun,
   LevelFormat,
   Packer,
   Paragraph,
@@ -14,15 +15,200 @@ import {
   WidthType,
 } from "docx";
 
+import type { Locale } from "@/lib/config";
 import {
   buildWorksheetPdfFilename,
+  formatPdfExportDate,
+  formatPdfPageLabel,
   parseMarkdownBlocks,
   stripInlineMarkdown,
 } from "@/lib/pdf-export";
+import {
+  parseWorksheetBrandingConfig,
+  type WorksheetBrandingConfig,
+} from "@/lib/worksheet-branding-config";
+import {
+  brandingAddressLines,
+  brandingContactLines,
+  buildFooterSummary,
+} from "@/lib/worksheet-letterhead";
+
 export interface WorksheetDocxExportOptions {
   title: string;
   content: string;
   filename?: string;
+  branding?: Partial<WorksheetBrandingConfig>;
+  locale?: Locale;
+  includeBranding?: boolean;
+  showPageNumbers?: boolean;
+  showExportDate?: boolean;
+}
+
+function dataUrlToUint8Array(dataUrl: string): Uint8Array {
+  const base64 = dataUrl.split(",")[1] ?? "";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return bytes;
+}
+
+function docxColor(hex: string): string {
+  return hex.replace("#", "").toUpperCase();
+}
+
+function buildLetterheadParagraphs(
+  branding: WorksheetBrandingConfig,
+  documentTitle: string,
+): Paragraph[] {
+  const paragraphs: Paragraph[] = [];
+  const primaryColor = docxColor(branding.primaryColor);
+  const addressLines = brandingAddressLines(branding.address);
+  const contactLines = brandingContactLines(branding);
+
+  if (branding.logoDataUrl) {
+    try {
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new ImageRun({
+              data: dataUrlToUint8Array(branding.logoDataUrl),
+              transformation: { width: 96, height: 36 },
+              type: branding.logoDataUrl.includes("image/png")
+                ? "png"
+                : branding.logoDataUrl.includes("image/jpeg") ||
+                    branding.logoDataUrl.includes("image/jpg")
+                  ? "jpg"
+                  : "png",
+            }),
+          ],
+        }),
+      );
+    } catch {
+      // Skip invalid logo data.
+    }
+  }
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: branding.brandName,
+          bold: true,
+          size: 28,
+          color: primaryColor,
+        }),
+        new TextRun({
+          text: `\t${documentTitle}`,
+          size: 20,
+          color: "666666",
+        }),
+      ],
+      tabStops: [{ type: "right", position: 9000 }],
+    }),
+  );
+
+  if (branding.tagline.trim()) {
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: branding.tagline.trim(),
+            italics: true,
+            size: 20,
+            color: "555555",
+          }),
+        ],
+      }),
+    );
+  }
+
+  for (const line of addressLines) {
+    paragraphs.push(
+      new Paragraph({
+        children: [new TextRun({ text: line, size: 18, color: "666666" })],
+      }),
+    );
+  }
+
+  if (contactLines.length > 0) {
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: contactLines.join(" · "),
+            size: 18,
+            color: "666666",
+          }),
+        ],
+      }),
+    );
+  }
+
+  if (branding.showHeaderDivider) {
+    paragraphs.push(
+      new Paragraph({
+        border: {
+          bottom: {
+            style: BorderStyle.SINGLE,
+            size: 6,
+            color: primaryColor,
+            space: 4,
+          },
+        },
+        spacing: { after: 240 },
+      }),
+    );
+  } else {
+    paragraphs.push(new Paragraph({ spacing: { after: 240 } }));
+  }
+
+  return paragraphs;
+}
+
+function buildFooterParagraphs(
+  branding: WorksheetBrandingConfig,
+  locale: Locale,
+  showExportDate: boolean,
+  showPageNumbers: boolean,
+): Paragraph[] {
+  const exportDate = formatPdfExportDate(locale);
+  const footerSummary = buildFooterSummary(branding);
+  const rightParts = [footerSummary];
+  if (showPageNumbers) {
+    rightParts.push(formatPdfPageLabel(1, 1, locale));
+  }
+  const rightLabel = rightParts.filter(Boolean).join(" · ");
+
+  return [
+    new Paragraph({
+      border: {
+        top: {
+          style: BorderStyle.SINGLE,
+          size: 4,
+          color: "DDDDDD",
+          space: 6,
+        },
+      },
+      spacing: { before: 360 },
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: showExportDate ? exportDate : "",
+          size: 18,
+          color: "666666",
+        }),
+        new TextRun({
+          text: `\t${rightLabel}`,
+          size: 18,
+          color: "666666",
+        }),
+      ],
+      tabStops: [{ type: "right", position: 9000 }],
+    }),
+  ];
 }
 
 type InlineToken =
@@ -174,8 +360,17 @@ export function buildWorksheetDocxDocument(
   const title = stripInlineMarkdown(options.title.trim() || "Document");
   const blocks = parseMarkdownBlocks(options.content.trim());
   const children: Array<Paragraph | Table> = [];
+  const includeBranding = options.includeBranding !== false;
+  const branding = parseWorksheetBrandingConfig(options.branding ?? {});
+  const locale = options.locale ?? "en";
+  const showExportDate = options.showExportDate !== false;
+  const showPageNumbers = options.showPageNumbers !== false;
 
-  if (title) {
+  if (includeBranding) {
+    children.push(...buildLetterheadParagraphs(branding, title));
+  }
+
+  if (title && !includeBranding) {
     children.push(
       new Paragraph({
         heading: HeadingLevel.HEADING_1,
@@ -272,6 +467,17 @@ export function buildWorksheetDocxDocument(
       default:
         break;
     }
+  }
+
+  if (includeBranding) {
+    children.push(
+      ...buildFooterParagraphs(
+        branding,
+        locale,
+        showExportDate,
+        showPageNumbers,
+      ),
+    );
   }
 
   return new Document({

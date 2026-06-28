@@ -4,18 +4,20 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Printer } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { WorksheetPrintTypographyStyles } from "@/components/chat/worksheet-print-typography-styles";
 import { MarkdownContent } from "@/components/chat/markdown-content";
+import {
+  WorksheetLetterheadFooter,
+  WorksheetLetterheadHeader,
+} from "@/components/chat/worksheet-letterhead";
+import { WorksheetPrintTypographyStyles } from "@/components/chat/worksheet-print-typography-styles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
+import { formatPdfPageLabel } from "@/lib/pdf-export";
 import { useWorksheetBrandingPrefs } from "@/lib/worksheet-branding-prefs";
-import {
-  formatPrintExportDate,
-  openWorksheetPrintPreview,
-} from "@/lib/worksheet-print";
+import { openWorksheetPrintPreview } from "@/lib/worksheet-print";
 import { WORKSHEET_PRINT_PAPER_CLASS } from "@/lib/worksheet-print-typography";
 import { cn } from "@/lib/utils";
 
@@ -36,17 +38,14 @@ export function WorksheetPrintPreviewDialog({
 }: WorksheetPrintPreviewDialogProps) {
   const copy = COPY[locale];
   const { prefs } = useWorksheetBrandingPrefs();
-  const exportDate = formatPrintExportDate(locale);
-  const footerLabel = `${prefs.brandName} ${prefs.footerText}`;
+  const samplePageLabel = formatPdfPageLabel(1, 3, locale);
 
   const handlePrint = () => {
     try {
       openWorksheetPrintPreview({
         title,
         content,
-        brandName: prefs.brandName,
-        footerText: prefs.footerText,
-        logoDataUrl: prefs.logoDataUrl,
+        branding: prefs,
         locale,
       });
     } catch {
@@ -90,22 +89,12 @@ export function WorksheetPrintPreviewDialog({
                       "mx-auto max-w-[210mm] rounded-sm border border-[#ddd] bg-white px-[16mm] py-[18mm] text-[#181818]",
                     )}
                   >
-                    <div className="mb-6 flex items-center justify-between gap-4 border-b border-[#ddd] pb-3 text-[11px] text-[#666]">
-                      <div className="flex min-w-0 items-center gap-2">
-                        {prefs.logoDataUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={prefs.logoDataUrl}
-                            alt=""
-                            className="h-7 max-w-24 object-contain"
-                          />
-                        ) : null}
-                        <strong className="truncate text-[#333]">
-                          {prefs.brandName}
-                        </strong>
-                      </div>
-                      <span className="truncate">{title}</span>
-                    </div>
+                    <WorksheetLetterheadHeader
+                      branding={prefs}
+                      documentTitle={title}
+                      compact
+                      className="mb-6"
+                    />
 
                     <MarkdownContent
                       locale={locale}
@@ -113,10 +102,12 @@ export function WorksheetPrintPreviewDialog({
                       variant="print"
                     />
 
-                    <div className="mt-8 flex items-center justify-between gap-4 border-t border-[#ddd] pt-3 text-[11px] text-[#666]">
-                      <span>{exportDate}</span>
-                      <span>{footerLabel}</span>
-                    </div>
+                    <WorksheetLetterheadFooter
+                      branding={prefs}
+                      locale={locale}
+                      pageLabel={samplePageLabel}
+                      className="mt-8"
+                    />
                   </div>
                 </ScrollArea>
 

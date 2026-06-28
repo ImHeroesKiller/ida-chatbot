@@ -226,6 +226,31 @@ export const COPY: Record<
     worksheetBrandingRemoveLogo: string;
     worksheetBrandingSaved: string;
     worksheetBrandingReset: string;
+    worksheetBrandingTabHeader: string;
+    worksheetBrandingTabFooter: string;
+    worksheetBrandingTabStyling: string;
+    worksheetBrandingLetterheadSection: string;
+    worksheetBrandingTagline: string;
+    worksheetBrandingTaglinePlaceholder: string;
+    worksheetBrandingAddress: string;
+    worksheetBrandingAddressPlaceholder: string;
+    worksheetBrandingPhone: string;
+    worksheetBrandingPhonePlaceholder: string;
+    worksheetBrandingEmail: string;
+    worksheetBrandingEmailPlaceholder: string;
+    worksheetBrandingWebsite: string;
+    worksheetBrandingWebsitePlaceholder: string;
+    worksheetBrandingShowHeaderDivider: string;
+    worksheetBrandingFooterContact: string;
+    worksheetBrandingFooterContactPlaceholder: string;
+    worksheetBrandingPrimaryColor: string;
+    worksheetBrandingHeaderFont: string;
+    worksheetBrandingFooterFont: string;
+    worksheetBrandingFontSystem: string;
+    worksheetBrandingFontSans: string;
+    worksheetBrandingFontSerif: string;
+    worksheetBrandingPreview: string;
+    worksheetBrandingPreviewDocTitle: string;
     worksheetShare: string;
     worksheetShareCopied: string;
     worksheetShareError: string;
@@ -504,6 +529,31 @@ export const COPY: Record<
     worksheetBrandingRemoveLogo: "Hapus logo",
     worksheetBrandingSaved: "Branding disimpan",
     worksheetBrandingReset: "Reset default",
+    worksheetBrandingTabHeader: "Header",
+    worksheetBrandingTabFooter: "Footer",
+    worksheetBrandingTabStyling: "Styling",
+    worksheetBrandingLetterheadSection: "Kop Surat (Letterhead)",
+    worksheetBrandingTagline: "Tagline / Slogan",
+    worksheetBrandingTaglinePlaceholder: "Solusi Digital Terpercaya",
+    worksheetBrandingAddress: "Alamat",
+    worksheetBrandingAddressPlaceholder: "Jl. Sudirman No. 123\nJakarta Pusat 10220",
+    worksheetBrandingPhone: "Telepon",
+    worksheetBrandingPhonePlaceholder: "+62 21 1234 5678",
+    worksheetBrandingEmail: "Email",
+    worksheetBrandingEmailPlaceholder: "info@perusahaan.com",
+    worksheetBrandingWebsite: "Website",
+    worksheetBrandingWebsitePlaceholder: "www.perusahaan.com",
+    worksheetBrandingShowHeaderDivider: "Garis pembatas di bawah header",
+    worksheetBrandingFooterContact: "Kontak singkat di footer",
+    worksheetBrandingFooterContactPlaceholder: "Jl. Sudirman No. 123 · +62 21 1234 5678",
+    worksheetBrandingPrimaryColor: "Warna utama",
+    worksheetBrandingHeaderFont: "Font header",
+    worksheetBrandingFooterFont: "Font footer",
+    worksheetBrandingFontSystem: "Sistem",
+    worksheetBrandingFontSans: "Sans-serif",
+    worksheetBrandingFontSerif: "Serif",
+    worksheetBrandingPreview: "Pratinjau",
+    worksheetBrandingPreviewDocTitle: "Judul Dokumen",
     worksheetShare: "Bagikan",
     worksheetShareCopied: "Tautan dibagikan dan disalin",
     worksheetShareError: "Gagal membuat tautan. Coba lagi.",
@@ -788,6 +838,31 @@ export const COPY: Record<
     worksheetBrandingRemoveLogo: "Remove logo",
     worksheetBrandingSaved: "Branding saved",
     worksheetBrandingReset: "Reset to default",
+    worksheetBrandingTabHeader: "Header",
+    worksheetBrandingTabFooter: "Footer",
+    worksheetBrandingTabStyling: "Styling",
+    worksheetBrandingLetterheadSection: "Letterhead",
+    worksheetBrandingTagline: "Tagline / Slogan",
+    worksheetBrandingTaglinePlaceholder: "Your Trusted Digital Partner",
+    worksheetBrandingAddress: "Address",
+    worksheetBrandingAddressPlaceholder: "123 Main Street\nNew York, NY 10001",
+    worksheetBrandingPhone: "Phone",
+    worksheetBrandingPhonePlaceholder: "+1 (555) 123-4567",
+    worksheetBrandingEmail: "Email",
+    worksheetBrandingEmailPlaceholder: "info@company.com",
+    worksheetBrandingWebsite: "Website",
+    worksheetBrandingWebsitePlaceholder: "www.company.com",
+    worksheetBrandingShowHeaderDivider: "Divider line below header",
+    worksheetBrandingFooterContact: "Short footer contact line",
+    worksheetBrandingFooterContactPlaceholder: "123 Main St · +1 (555) 123-4567",
+    worksheetBrandingPrimaryColor: "Primary color",
+    worksheetBrandingHeaderFont: "Header font",
+    worksheetBrandingFooterFont: "Footer font",
+    worksheetBrandingFontSystem: "System",
+    worksheetBrandingFontSans: "Sans-serif",
+    worksheetBrandingFontSerif: "Serif",
+    worksheetBrandingPreview: "Preview",
+    worksheetBrandingPreviewDocTitle: "Document Title",
     worksheetShare: "Share",
     worksheetShareCopied: "Share link created and copied",
     worksheetShareError: "Failed to create share link. Please try again.",
@@ -1063,6 +1138,31 @@ export const COPY: Record<
     worksheetBrandingRemoveLogo: "移除 Logo",
     worksheetBrandingSaved: "品牌设置已保存",
     worksheetBrandingReset: "恢复默认",
+    worksheetBrandingTabHeader: "页眉",
+    worksheetBrandingTabFooter: "页脚",
+    worksheetBrandingTabStyling: "样式",
+    worksheetBrandingLetterheadSection: "信笺抬头",
+    worksheetBrandingTagline: "标语 / Slogan",
+    worksheetBrandingTaglinePlaceholder: "您值得信赖的数字化伙伴",
+    worksheetBrandingAddress: "地址",
+    worksheetBrandingAddressPlaceholder: "主街 123 号\n纽约 NY 10001",
+    worksheetBrandingPhone: "电话",
+    worksheetBrandingPhonePlaceholder: "+1 (555) 123-4567",
+    worksheetBrandingEmail: "邮箱",
+    worksheetBrandingEmailPlaceholder: "info@company.com",
+    worksheetBrandingWebsite: "网站",
+    worksheetBrandingWebsitePlaceholder: "www.company.com",
+    worksheetBrandingShowHeaderDivider: "页眉下方分隔线",
+    worksheetBrandingFooterContact: "页脚简短联系信息",
+    worksheetBrandingFooterContactPlaceholder: "主街 123 号 · +1 (555) 123-4567",
+    worksheetBrandingPrimaryColor: "主色",
+    worksheetBrandingHeaderFont: "页眉字体",
+    worksheetBrandingFooterFont: "页脚字体",
+    worksheetBrandingFontSystem: "系统",
+    worksheetBrandingFontSans: "无衬线",
+    worksheetBrandingFontSerif: "衬线",
+    worksheetBrandingPreview: "预览",
+    worksheetBrandingPreviewDocTitle: "文档标题",
     worksheetShare: "分享",
     worksheetShareCopied: "分享链接已创建并复制",
     worksheetShareError: "创建分享链接失败，请重试。",

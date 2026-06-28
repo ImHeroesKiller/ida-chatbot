@@ -202,7 +202,15 @@ export function WorksheetPanel({
 
     setIsExportingDocx(true);
     try {
-      await exportWorksheetToDocx({ title, content });
+      await exportWorksheetToDocx({
+        title,
+        content,
+        branding: brandingPrefs,
+        locale,
+        includeBranding: true,
+        showExportDate: true,
+        showPageNumbers: true,
+      });
       toast.success(copy.worksheetExportDocxSuccess);
     } catch {
       toast.error(copy.worksheetExportDocxError);
@@ -211,11 +219,13 @@ export function WorksheetPanel({
     }
   }, [
     content,
+    brandingPrefs,
     copy.worksheetExportDocxError,
     copy.worksheetExportDocxSuccess,
     hasContent,
     isEditing,
     isExportingDocx,
+    locale,
     title,
   ]);
 
@@ -231,10 +241,8 @@ export function WorksheetPanel({
           paper: settings.paper,
           orientation: settings.orientation,
           branding: {
+            ...brandingPrefs,
             enabled: settings.includeBranding,
-            brandName: brandingPrefs.brandName,
-            footerText: brandingPrefs.footerText,
-            logoDataUrl: brandingPrefs.logoDataUrl,
             showPageNumbers: settings.showPageNumbers,
             showExportDate: settings.showExportDate,
             locale,
@@ -254,9 +262,7 @@ export function WorksheetPanel({
       copy.worksheetExportPdfSuccess,
       hasContent,
       isEditing,
-      brandingPrefs.brandName,
-      brandingPrefs.footerText,
-      brandingPrefs.logoDataUrl,
+      brandingPrefs,
       isExportingPdf,
       locale,
       title,

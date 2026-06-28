@@ -6,9 +6,13 @@ import { useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 import { WorksheetPrintTypographyStyles } from "@/components/chat/worksheet-print-typography-styles";
+import {
+  WorksheetLetterheadFooter,
+  WorksheetLetterheadHeader,
+} from "@/components/chat/worksheet-letterhead";
 import { WorksheetWysiwygEditor } from "@/components/chat/worksheet-wysiwyg-editor";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
@@ -39,7 +43,6 @@ export function WorksheetFullView({
   const copy = COPY[locale];
   const { prefs } = useWorksheetBrandingPrefs();
   const exportDate = formatPrintExportDate(locale);
-  const footerLabel = `${prefs.brandName} ${prefs.footerText}`;
 
   const handleContentChange = useCallback(
     (nextContent: string) => {
@@ -127,27 +130,14 @@ export function WorksheetFullView({
                   "px-[16mm] py-[18mm] text-[#181818]",
                 )}
               >
-                <div className="mb-7 flex items-center justify-between gap-4 border-b border-[#ddd] pb-3 text-[11px] leading-snug text-[#666]">
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    {prefs.logoDataUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={prefs.logoDataUrl}
-                        alt=""
-                        className="h-7 max-w-24 object-contain"
-                      />
-                    ) : null}
-                    <strong className="truncate text-[#333]">
-                      {prefs.brandName}
-                    </strong>
-                  </div>
-                  <Input
-                    value={title}
-                    onChange={(event) => onTitleChange(event.target.value)}
-                    className="h-7 max-w-[14rem] border-[#ddd] bg-white text-right text-[11px] text-[#666] shadow-none"
-                    aria-label={copy.worksheetTitleLabel}
-                  />
-                </div>
+                <WorksheetLetterheadHeader
+                  branding={prefs}
+                  documentTitle={title}
+                  titleEditable
+                  onTitleChange={onTitleChange}
+                  titleAriaLabel={copy.worksheetTitleLabel}
+                  className="mb-7"
+                />
 
                 <WorksheetWysiwygEditor
                   locale={locale}
@@ -157,10 +147,12 @@ export function WorksheetFullView({
                   toolbarSticky
                 />
 
-                <div className="mt-10 flex items-center justify-between gap-4 border-t border-[#ddd] pt-3 text-[11px] leading-snug text-[#666]">
-                  <span>{exportDate}</span>
-                  <span>{footerLabel}</span>
-                </div>
+                <WorksheetLetterheadFooter
+                  branding={prefs}
+                  locale={locale}
+                  exportDate={exportDate}
+                  className="mt-10"
+                />
               </div>
 
               <p className="mt-5 text-center text-[11px] text-muted-foreground">

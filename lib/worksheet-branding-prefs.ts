@@ -22,17 +22,7 @@ function parseStoredBranding(raw: string | null): Partial<WorksheetBrandingPrefs
 
   try {
     const parsed = JSON.parse(raw) as Partial<WorksheetBrandingPrefs>;
-    return {
-      brandName: parsed.brandName?.trim() || undefined,
-      footerText: parsed.footerText?.trim() || undefined,
-      logoDataUrl:
-        typeof parsed.logoDataUrl === "string" &&
-        parsed.logoDataUrl.startsWith("data:image/")
-          ? parsed.logoDataUrl
-          : parsed.logoDataUrl === null
-            ? null
-            : undefined,
-    };
+    return parsed;
   } catch {
     return null;
   }
