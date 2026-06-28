@@ -63,27 +63,6 @@ export function createEmptyWorksheet(): WorksheetDocument {
   };
 }
 
-function worksheetHasContent(
-  worksheet: WorksheetDocument | null | undefined,
-): boolean {
-  if (!worksheet) return false;
-
-  return Boolean(
-    worksheet.documents?.length ||
-      worksheet.content?.trim() ||
-      worksheet.versions?.length ||
-      worksheet.error,
-  );
-}
-
-function isFreshGenericChat(chat: ChatSession, locale: Locale): boolean {
-  return (
-    isGenericChatTitle(chat.title, locale) &&
-    stripWelcomeMessages(chat.messages).length === 0 &&
-    !worksheetHasContent(chat.worksheet)
-  );
-}
-
 function resolvePersistedWorksheet(
   worksheet: WorksheetDocument | null | undefined,
 ): WorksheetDocument {
@@ -370,6 +349,57 @@ export function getChatStoreStorageKey(scope: ChatStoreScope): string {
   return `${CHAT_STORE_KEY_PREFIX}anonymous:${scope.deviceId}`;
 }
 
+/** Merge remote and local stores, preferring newer per-chat revisions and local order. */
+export function mergeChatStores(
+  remote: ChatStoreState,
+  local: ChatStoreState,
+): ChatStoreState {
+  const chats: Record<string, ChatSession> = { ...remote.chats };
+
+  for (const [chatId, localChat] of Object.entries(local.chats)) {
+    const remoteChat = chats[chatId];
+    if (!remoteChat || localChat.updatedAt >= remoteChat.updatedAt) {
+      chats[chatId] = localChat;
+    }
+  }
+
+  const order: string[] = [];
+  const seen = new Set<string>();
+
+  for (const chatId of local.order) {
+    if (chats[chatId] && !seen.has(chatId)) {
+      order.push(chatId);
+      seen.add(chatId);
+    }
+  }
+
+  for (const chatId of remote.order) {
+    if (chats[chatId] && !seen.has(chatId)) {
+      order.push(chatId);
+      seen.add(chatId);
+    }
+  }
+
+  for (const chatId of Object.keys(chats)) {
+    if (!seen.has(chatId)) {
+      order.push(chatId);
+      seen.add(chatId);
+    }
+  }
+
+  const currentChatId = chats[local.currentChatId]
+    ? local.currentChatId
+    : chats[remote.currentChatId]
+      ? remote.currentChatId
+      : order[0]!;
+
+  return {
+    currentChatId,
+    chats,
+    order: order.slice(0, MAX_SESSIONS),
+  };
+}
+
 export function hasMeaningfulChatHistory(store: ChatStoreState): boolean {
   if (store.order.length > 1) return true;
 
@@ -460,6 +490,7 @@ export function useChatStore(locale: Locale) {
   );
   const [hydrated, setHydrated] = useState(false);
   const loadedScopeRef = useRef<string | null>(null);
+  const lastSyncedOrderLengthRef = useRef(0);
 
   useEffect(() => {
     if (authLoading) return;
@@ -472,6 +503,7 @@ export function useChatStore(locale: Locale) {
     let cancelled = false;
 
     setHydrated(false);
+    lastSyncedOrderLengthRef.current = 0;
     setStore(createInitialStore(locale));
 
     async function hydrateAuthenticated(
@@ -486,6 +518,14 @@ export function useChatStore(locale: Locale) {
 
       let remote = await fetchRemoteChatStore(locale);
       if (cancelled) return;
+
+      if (remote && userLocal) {
+        const merged = mergeChatStores(remote, userLocal);
+        setStore(merged);
+        saveChatStore(merged, authScope);
+        await persistRemoteChatStore(merged, locale);
+        return;
+      }
 
       if (remote) {
         setStore(remote);
@@ -531,6 +571,18 @@ export function useChatStore(locale: Locale) {
       }
 
       if (cancelled) return;
+
+      if (remote && local) {
+        const merged = mergeChatStores(remote, local);
+        setStore(merged);
+        saveChatStore(merged, anonymousScope);
+        try {
+          await persistDeviceChatStore(merged, locale, anonymousDeviceId);
+        } catch (error) {
+          console.error("[IDA chat-store device persist]", error);
+        }
+        return;
+      }
 
       if (remote) {
         setStore(remote);
@@ -593,7 +645,7 @@ export function useChatStore(locale: Locale) {
 
     saveChatStore(store, scope);
 
-    const timer = window.setTimeout(() => {
+    const syncRemote = () => {
       if (scope.kind === "authenticated") {
         void persistRemoteChatStore(store, locale).catch((error) => {
           console.error("[IDA chat-store persist]", error);
@@ -606,7 +658,18 @@ export function useChatStore(locale: Locale) {
           console.error("[IDA chat-store device persist]", error);
         },
       );
-    }, REMOTE_SYNC_DEBOUNCE_MS);
+    };
+
+    const shouldSyncImmediately =
+      store.order.length > lastSyncedOrderLengthRef.current;
+    lastSyncedOrderLengthRef.current = store.order.length;
+
+    if (shouldSyncImmediately) {
+      syncRemote();
+      return;
+    }
+
+    const timer = window.setTimeout(syncRemote, REMOTE_SYNC_DEBOUNCE_MS);
 
     return () => window.clearTimeout(timer);
   }, [store, hydrated, scope, locale, anonymousDeviceId]);
@@ -754,28 +817,7 @@ export function useChatStore(locale: Locale) {
       >,
     ) => {
       updateCurrentChat((chat) => {
-        const incomingMessages = patch.messages ?? chat.messages;
-        const incomingWorksheet =
-          patch.worksheet !== undefined ? patch.worksheet : chat.worksheet;
-
-        // Reject stale UI state leaking into a brand-new generic chat session.
-        if (isFreshGenericChat(chat, locale)) {
-          if (
-            patch.messages !== undefined &&
-            stripWelcomeMessages(incomingMessages).length > 0
-          ) {
-            return chat;
-          }
-
-          if (
-            patch.worksheet !== undefined &&
-            worksheetHasContent(incomingWorksheet)
-          ) {
-            return chat;
-          }
-        }
-
-        const messages = incomingMessages;
+        const messages = patch.messages ?? chat.messages;
 
         const nextTitle =
           patch.title ??
