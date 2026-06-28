@@ -75,11 +75,17 @@ export function buildPrintPreviewDocumentHtml(params: {
   title: string;
   content: string;
   brandName: string;
+  footerText?: string;
+  logoDataUrl?: string | null;
   locale: Locale;
 }): string {
   const title = stripInlineMarkdown(params.title.trim() || "Document");
   const body = markdownToPrintHtml(params.content.trim());
   const date = formatPrintExportDate(params.locale);
+  const footerText = params.footerText?.trim() || "Worksheet";
+  const logoHtml = params.logoDataUrl
+    ? `<img src="${params.logoDataUrl.replace(/"/g, "&quot;")}" alt="" style="height:28px;max-width:96px;object-fit:contain;" />`
+    : "";
 
   return `<!DOCTYPE html>
 <html lang="${params.locale}">
@@ -104,10 +110,17 @@ export function buildPrintPreviewDocumentHtml(params: {
     .print-header {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       gap: 16px;
       border-bottom: 1px solid #ddd;
       padding-bottom: 8px;
       margin-bottom: 24px;
+    }
+    .print-header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
     }
     .print-header strong { color: #333; }
     .print-footer {
@@ -134,13 +147,16 @@ export function buildPrintPreviewDocumentHtml(params: {
 </head>
 <body>
   <div class="print-header">
-    <strong>${escapeHtml(params.brandName)}</strong>
+    <div class="print-header-brand">
+      ${logoHtml}
+      <strong>${escapeHtml(params.brandName)}</strong>
+    </div>
     <span>${escapeHtml(title)}</span>
   </div>
   <main>${body}</main>
   <div class="print-footer">
     <span>${escapeHtml(date)}</span>
-    <span>${escapeHtml(params.brandName)} Worksheet</span>
+    <span>${escapeHtml(params.brandName)} ${escapeHtml(footerText)}</span>
   </div>
 </body>
 </html>`;
@@ -150,6 +166,8 @@ export function openWorksheetPrintPreview(params: {
   title: string;
   content: string;
   brandName: string;
+  footerText?: string;
+  logoDataUrl?: string | null;
   locale: Locale;
 }): void {
   const html = buildPrintPreviewDocumentHtml(params);

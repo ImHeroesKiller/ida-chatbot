@@ -8,6 +8,8 @@ export type PdfOrientation = "portrait" | "landscape";
 export interface PdfBrandingOptions {
   enabled?: boolean;
   brandName?: string;
+  footerText?: string;
+  logoDataUrl?: string | null;
   showPageNumbers?: boolean;
   showExportDate?: boolean;
   locale?: Locale;
@@ -37,6 +39,8 @@ const HEADER_ZONE_MM = 14;
 const FOOTER_ZONE_MM = 12;
 const CELL_PADDING_MM = 2;
 const PT_TO_MM = 0.352778;
+const LOGO_MAX_HEIGHT_MM = 8;
+const LOGO_MAX_WIDTH_MM = 22;
 
 const HEADING_STYLES: Record<
   number,
@@ -88,7 +92,7 @@ export function parseMarkdownBlocks(markdown: string): MarkdownBlock[] {
     buffer.length = 0;
   };
 
-  let paragraphBuffer: string[] = [];
+  const paragraphBuffer: string[] = [];
 
   while (index < lines.length) {
     const rawLine = lines[index] ?? "";
@@ -229,6 +233,17 @@ export function formatPdfPageLabel(
   return `Halaman ${page} dari ${total}`;
 }
 
+function detectPdfImageFormat(
+  dataUrl: string,
+): "PNG" | "JPEG" | "WEBP" | "GIF" {
+  if (dataUrl.includes("image/jpeg") || dataUrl.includes("image/jpg")) {
+    return "JPEG";
+  }
+  if (dataUrl.includes("image/webp")) return "WEBP";
+  if (dataUrl.includes("image/gif")) return "GIF";
+  return "PNG";
+}
+
 export function buildWorksheetPdfFilename(title: string): string {
   const slug =
     title
@@ -252,7 +267,11 @@ class WorksheetPdfRenderer {
   private readonly pageWidth: number;
   private readonly pageHeight: number;
   private readonly contentWidth: number;
-  private readonly branding: Required<PdfBrandingOptions>;
+  private readonly branding: Required<
+    Omit<PdfBrandingOptions, "logoDataUrl">
+  > & {
+    logoDataUrl: string | null;
+  };
 
   constructor(private readonly options: WorksheetPdfExportOptions) {
     this.pdf = new jsPDF({
@@ -264,6 +283,8 @@ class WorksheetPdfRenderer {
     this.branding = {
       enabled: options.branding?.enabled !== false,
       brandName: options.branding?.brandName?.trim() || "IDA",
+      footerText: options.branding?.footerText?.trim() || "Worksheet",
+      logoDataUrl: options.branding?.logoDataUrl ?? null,
       showPageNumbers: options.branding?.showPageNumbers !== false,
       showExportDate: options.branding?.showExportDate !== false,
       locale: options.branding?.locale ?? "en",
@@ -336,10 +357,34 @@ class WorksheetPdfRenderer {
         footerLineY,
       );
 
+      let brandX = this.margin;
+
+      if (this.branding.logoDataUrl) {
+        try {
+          const format = detectPdfImageFormat(this.branding.logoDataUrl);
+          const logoWidth = LOGO_MAX_WIDTH_MM;
+          const logoHeight = LOGO_MAX_HEIGHT_MM;
+          const logoY = this.margin + 1;
+          this.pdf.addImage(
+            this.branding.logoDataUrl,
+            format,
+            this.margin,
+            logoY,
+            logoWidth,
+            logoHeight,
+            undefined,
+            "FAST",
+          );
+          brandX = this.margin + logoWidth + 2;
+        } catch {
+          brandX = this.margin;
+        }
+      }
+
       this.pdf.setFont("helvetica", "bold");
       this.pdf.setFontSize(8);
       this.pdf.setTextColor(90, 90, 90);
-      this.pdf.text(this.branding.brandName, this.margin, headerTextY);
+      this.pdf.text(this.branding.brandName, brandX, headerTextY);
 
       const truncatedTitle = this.truncateHeaderTitle(docTitle);
       this.pdf.text(truncatedTitle, this.pageWidth - this.margin, headerTextY, {
@@ -353,6 +398,8 @@ class WorksheetPdfRenderer {
         this.pdf.text(exportDate, this.margin, footerTextY);
       }
 
+      const footerBrandLabel = `${this.branding.brandName} ${this.branding.footerText}`;
+
       if (this.branding.showPageNumbers) {
         const pageLabel = formatPdfPageLabel(
           page,
@@ -360,6 +407,10 @@ class WorksheetPdfRenderer {
           this.branding.locale,
         );
         this.pdf.text(pageLabel, this.pageWidth - this.margin, footerTextY, {
+          align: "right",
+        });
+      } else {
+        this.pdf.text(footerBrandLabel, this.pageWidth - this.margin, footerTextY, {
           align: "right",
         });
       }

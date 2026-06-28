@@ -194,6 +194,29 @@ export const COPY: Record<
     worksheetExportPdfIncludeBranding: string;
     worksheetExportPdfPageNumbers: string;
     worksheetExportPdfExportDate: string;
+    worksheetEditorToolbar: string;
+    worksheetEditorBold: string;
+    worksheetEditorItalic: string;
+    worksheetEditorHeading2: string;
+    worksheetEditorHeading3: string;
+    worksheetEditorBulletList: string;
+    worksheetEditorNumberedList: string;
+    worksheetEditorLink: string;
+    worksheetEditorCode: string;
+    worksheetEditorTable: string;
+    worksheetBranding: string;
+    worksheetBrandingTitle: string;
+    worksheetBrandingDescription: string;
+    worksheetBrandingBrandName: string;
+    worksheetBrandingFooterText: string;
+    worksheetBrandingLogo: string;
+    worksheetBrandingLogoHint: string;
+    worksheetBrandingRemoveLogo: string;
+    worksheetBrandingSaved: string;
+    worksheetBrandingReset: string;
+    worksheetShare: string;
+    worksheetShareCopied: string;
+    worksheetShareError: string;
     mapPlaceholderDesc: string;
     mapPlaceholderContent: string;
     researchPlaceholderDesc: string;
@@ -416,6 +439,30 @@ export const COPY: Record<
     worksheetExportPdfIncludeBranding: "Header & footer IDA",
     worksheetExportPdfPageNumbers: "Nomor halaman",
     worksheetExportPdfExportDate: "Tanggal ekspor",
+    worksheetEditorToolbar: "Toolbar editor Markdown",
+    worksheetEditorBold: "Tebal",
+    worksheetEditorItalic: "Miring",
+    worksheetEditorHeading2: "Heading 2",
+    worksheetEditorHeading3: "Heading 3",
+    worksheetEditorBulletList: "Daftar bullet",
+    worksheetEditorNumberedList: "Daftar bernomor",
+    worksheetEditorLink: "Tautan",
+    worksheetEditorCode: "Kode inline",
+    worksheetEditorTable: "Tabel",
+    worksheetBranding: "Branding",
+    worksheetBrandingTitle: "Branding dokumen",
+    worksheetBrandingDescription:
+      "Atur nama perusahaan, teks footer, dan logo untuk PDF serta pratinjau cetak. Disimpan di browser ini.",
+    worksheetBrandingBrandName: "Nama brand",
+    worksheetBrandingFooterText: "Teks footer",
+    worksheetBrandingLogo: "Logo",
+    worksheetBrandingLogoHint: "PNG/JPG, maks. ~180 KB",
+    worksheetBrandingRemoveLogo: "Hapus logo",
+    worksheetBrandingSaved: "Branding disimpan",
+    worksheetBrandingReset: "Reset default",
+    worksheetShare: "Bagikan",
+    worksheetShareCopied: "Tautan dibagikan dan disalin",
+    worksheetShareError: "Gagal membuat tautan. Coba lagi.",
     mapPlaceholderDesc:
       "Peta interaktif akan ditampilkan di sini untuk pertanyaan berbasis lokasi.",
     mapPlaceholderContent:
@@ -642,6 +689,30 @@ export const COPY: Record<
     worksheetExportPdfIncludeBranding: "IDA header & footer",
     worksheetExportPdfPageNumbers: "Page numbers",
     worksheetExportPdfExportDate: "Export date",
+    worksheetEditorToolbar: "Markdown editor toolbar",
+    worksheetEditorBold: "Bold",
+    worksheetEditorItalic: "Italic",
+    worksheetEditorHeading2: "Heading 2",
+    worksheetEditorHeading3: "Heading 3",
+    worksheetEditorBulletList: "Bullet list",
+    worksheetEditorNumberedList: "Numbered list",
+    worksheetEditorLink: "Link",
+    worksheetEditorCode: "Inline code",
+    worksheetEditorTable: "Table",
+    worksheetBranding: "Branding",
+    worksheetBrandingTitle: "Document branding",
+    worksheetBrandingDescription:
+      "Set company name, footer text, and logo for PDF export and print preview. Saved in this browser.",
+    worksheetBrandingBrandName: "Brand name",
+    worksheetBrandingFooterText: "Footer text",
+    worksheetBrandingLogo: "Logo",
+    worksheetBrandingLogoHint: "PNG/JPG, max ~180 KB",
+    worksheetBrandingRemoveLogo: "Remove logo",
+    worksheetBrandingSaved: "Branding saved",
+    worksheetBrandingReset: "Reset to default",
+    worksheetShare: "Share",
+    worksheetShareCopied: "Share link created and copied",
+    worksheetShareError: "Failed to create share link. Please try again.",
     mapPlaceholderDesc:
       "An interactive map will appear here for location-based questions.",
     mapPlaceholderContent:
@@ -859,6 +930,30 @@ export const COPY: Record<
     worksheetExportPdfIncludeBranding: "IDA 页眉和页脚",
     worksheetExportPdfPageNumbers: "页码",
     worksheetExportPdfExportDate: "导出日期",
+    worksheetEditorToolbar: "Markdown 编辑工具栏",
+    worksheetEditorBold: "粗体",
+    worksheetEditorItalic: "斜体",
+    worksheetEditorHeading2: "二级标题",
+    worksheetEditorHeading3: "三级标题",
+    worksheetEditorBulletList: "无序列表",
+    worksheetEditorNumberedList: "有序列表",
+    worksheetEditorLink: "链接",
+    worksheetEditorCode: "行内代码",
+    worksheetEditorTable: "表格",
+    worksheetBranding: "品牌",
+    worksheetBrandingTitle: "文档品牌设置",
+    worksheetBrandingDescription:
+      "设置公司名称、页脚文字和 Logo，用于 PDF 导出和打印预览。保存在本浏览器。",
+    worksheetBrandingBrandName: "品牌名称",
+    worksheetBrandingFooterText: "页脚文字",
+    worksheetBrandingLogo: "Logo",
+    worksheetBrandingLogoHint: "PNG/JPG，最大约 180 KB",
+    worksheetBrandingRemoveLogo: "移除 Logo",
+    worksheetBrandingSaved: "品牌设置已保存",
+    worksheetBrandingReset: "恢复默认",
+    worksheetShare: "分享",
+    worksheetShareCopied: "分享链接已创建并复制",
+    worksheetShareError: "创建分享链接失败，请重试。",
     mapPlaceholderDesc: "交互式地图将在此显示，用于位置相关问题。",
     mapPlaceholderContent: "[ 地图 ]\n\n地图预览将显示在此面板。",
     researchPlaceholderDesc: "深度研究结果将显示在此面板。",

@@ -8,9 +8,9 @@ import { MarkdownContent } from "@/components/chat/markdown-content";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { IDA_CONFIG } from "@/lib/config";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
+import { useWorksheetBrandingPrefs } from "@/lib/worksheet-branding-prefs";
 import {
   formatPrintExportDate,
   openWorksheetPrintPreview,
@@ -32,14 +32,18 @@ export function WorksheetPrintPreviewDialog({
   onClose,
 }: WorksheetPrintPreviewDialogProps) {
   const copy = COPY[locale];
+  const { prefs } = useWorksheetBrandingPrefs();
   const exportDate = formatPrintExportDate(locale);
+  const footerLabel = `${prefs.brandName} ${prefs.footerText}`;
 
   const handlePrint = () => {
     try {
       openWorksheetPrintPreview({
         title,
         content,
-        brandName: IDA_CONFIG.name,
+        brandName: prefs.brandName,
+        footerText: prefs.footerText,
+        logoDataUrl: prefs.logoDataUrl,
         locale,
       });
     } catch {
@@ -78,7 +82,19 @@ export function WorksheetPrintPreviewDialog({
                 <ScrollArea className="min-h-0 flex-1 rounded-xl border bg-muted/20 p-3">
                   <div className="mx-auto max-w-[210mm] rounded-lg border bg-white p-8 text-[#181818] shadow-sm">
                     <div className="mb-6 flex items-center justify-between gap-4 border-b border-[#ddd] pb-3 text-[11px] text-[#666]">
-                      <strong className="text-[#333]">{IDA_CONFIG.name}</strong>
+                      <div className="flex min-w-0 items-center gap-2">
+                        {prefs.logoDataUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={prefs.logoDataUrl}
+                            alt=""
+                            className="h-7 max-w-24 object-contain"
+                          />
+                        ) : null}
+                        <strong className="truncate text-[#333]">
+                          {prefs.brandName}
+                        </strong>
+                      </div>
                       <span className="truncate">{title}</span>
                     </div>
 
@@ -90,9 +106,7 @@ export function WorksheetPrintPreviewDialog({
 
                     <div className="mt-8 flex items-center justify-between gap-4 border-t border-[#ddd] pt-3 text-[11px] text-[#666]">
                       <span>{exportDate}</span>
-                      <span>
-                        {IDA_CONFIG.name} Worksheet
-                      </span>
+                      <span>{footerLabel}</span>
                     </div>
                   </div>
                 </ScrollArea>

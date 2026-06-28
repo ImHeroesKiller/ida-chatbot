@@ -7,7 +7,9 @@ import {
   FileText,
   History,
   LayoutTemplate,
+  Link2,
   Loader2,
+  Palette,
   PanelRightClose,
   Pencil,
   Printer,
@@ -20,6 +22,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import { MarkdownContent } from "@/components/chat/markdown-content";
+import { WorksheetBrandingDialog } from "@/components/chat/worksheet-branding-dialog";
+import { WorksheetEditorToolbar } from "@/components/chat/worksheet-editor-toolbar";
 import {
   WorksheetExportPdfDialog,
   type WorksheetPdfExportSettings,
@@ -31,9 +35,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { IDA_CONFIG, type Locale } from "@/lib/config";
-import { exportWorksheetToPdf } from "@/lib/pdf-export";
+import { type Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
+import { exportWorksheetToPdf } from "@/lib/pdf-export";
+import { useWorksheetBrandingPrefs } from "@/lib/worksheet-branding-prefs";
+import {
+  copyTextToClipboard,
+  createWorksheetShare,
+} from "@/lib/worksheet-share";
 import {
   sanitizeWorksheetFilename,
   type WorksheetErrorCode,
@@ -82,14 +91,17 @@ export function WorksheetPanel({
   embedded = false,
 }: WorksheetPanelProps) {
   const copy = COPY[locale];
+  const { prefs: brandingPrefs } = useWorksheetBrandingPrefs();
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [draftContent, setDraftContent] = useState(content);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const [exportPdfDialogOpen, setExportPdfDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
+  const [brandingDialogOpen, setBrandingDialogOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const pendingTemplateEditRef = useRef(false);
@@ -188,7 +200,9 @@ export function WorksheetPanel({
           orientation: settings.orientation,
           branding: {
             enabled: settings.includeBranding,
-            brandName: IDA_CONFIG.name,
+            brandName: brandingPrefs.brandName,
+            footerText: brandingPrefs.footerText,
+            logoDataUrl: brandingPrefs.logoDataUrl,
             showPageNumbers: settings.showPageNumbers,
             showExportDate: settings.showExportDate,
             locale,
@@ -208,11 +222,44 @@ export function WorksheetPanel({
       copy.worksheetExportPdfSuccess,
       hasContent,
       isEditing,
+      brandingPrefs.brandName,
+      brandingPrefs.footerText,
+      brandingPrefs.logoDataUrl,
       isExportingPdf,
       locale,
       title,
     ],
   );
+
+  const handleShare = useCallback(async () => {
+    if (!hasContent || isEditing || isSharing) return;
+
+    setIsSharing(true);
+    try {
+      const share = await createWorksheetShare({ title, content, locale });
+      await copyTextToClipboard(share.url);
+      toast.success(copy.worksheetShareCopied);
+    } catch (error) {
+      const message =
+        error instanceof Error &&
+        error.message.toLowerCase().includes("rate limit")
+          ? copy.errors.rateLimit
+          : copy.worksheetShareError;
+      toast.error(message);
+    } finally {
+      setIsSharing(false);
+    }
+  }, [
+    content,
+    copy.errors.rateLimit,
+    copy.worksheetShareCopied,
+    copy.worksheetShareError,
+    hasContent,
+    isEditing,
+    isSharing,
+    locale,
+    title,
+  ]);
 
   const handleStartEdit = useCallback(() => {
     if (!hasContent || isGenerating) return;
@@ -309,6 +356,19 @@ export function WorksheetPanel({
             {copy.worksheetUnsavedChanges}
           </span>
         ) : null}
+        {!isEditing ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => setBrandingDialogOpen(true)}
+            aria-label={copy.worksheetBranding}
+            title={copy.worksheetBranding}
+            className="h-8 w-8 shrink-0"
+          >
+            <Palette className="h-4 w-4" />
+          </Button>
+        ) : null}
         {versions.length > 0 && !isEditing ? (
           <Button
             type="button"
@@ -392,9 +452,12 @@ export function WorksheetPanel({
             </div>
           ) : isEditing ? (
             <div className="space-y-2">
-              <p className="text-[11px] font-medium text-muted-foreground">
-                Markdown
-              </p>
+              <WorksheetEditorToolbar
+                locale={locale}
+                textareaRef={editTextareaRef}
+                value={draftContent}
+                onChange={setDraftContent}
+              />
               <Textarea
                 ref={editTextareaRef}
                 value={draftContent}
@@ -591,6 +654,21 @@ export function WorksheetPanel({
                 variant="outline"
                 size="sm"
                 className={cn("flex-1", actionButtonClass)}
+                disabled={!hasContent || isGenerating || isSharing}
+                onClick={() => void handleShare()}
+              >
+                {isSharing ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Link2 className="h-3.5 w-3.5" />
+                )}
+                {copy.worksheetShare}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={cn("flex-1", actionButtonClass)}
                 disabled={!hasContent || isGenerating || isExportingPdf}
                 onClick={handleOpenExportPdfDialog}
               >
@@ -640,6 +718,12 @@ export function WorksheetPanel({
           setHistoryDialogOpen(false);
         }}
         onClose={() => setHistoryDialogOpen(false)}
+      />
+
+      <WorksheetBrandingDialog
+        open={brandingDialogOpen}
+        locale={locale}
+        onClose={() => setBrandingDialogOpen(false)}
       />
     </aside>
   );
