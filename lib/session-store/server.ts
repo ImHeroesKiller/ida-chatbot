@@ -1,8 +1,10 @@
 import type { ChatSession, ChatStoreState } from "@/lib/chat-store";
 import { createInitialStore } from "@/lib/chat-store";
+import { normalizeRightSidebarPanel } from "@/lib/chat-tools";
 import type { Locale } from "@/lib/config";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 import type { IdaMessage } from "@/lib/types";
+import type { WorksheetDocument } from "@/lib/worksheet";
 
 import type { UserChatSessionRow, UserChatStateRow } from "./types";
 
@@ -15,17 +17,26 @@ interface SessionDbRow {
   messages: IdaMessage[];
   quick_replies: string[];
   pinned: boolean;
+  worksheet: WorksheetDocument | null;
+  active_right_panel: string | null;
+  worksheet_tool_enabled: boolean | null;
   chat_created_at: string | null;
   chat_updated_at: string | null;
 }
 
 function rowToChatSession(row: SessionDbRow): ChatSession {
+  const panel = normalizeRightSidebarPanel(row.active_right_panel);
+
   return {
     id: row.chat_id,
     title: row.title ?? "Chat",
     messages: Array.isArray(row.messages) ? row.messages : [],
     apiSessionId: row.session_id,
     pinned: Boolean(row.pinned),
+    worksheet: row.worksheet ?? null,
+    activeRightPanel: panel,
+    worksheetToolEnabled:
+      row.worksheet_tool_enabled ?? panel === "worksheet",
     createdAt: row.chat_created_at
       ? new Date(row.chat_created_at).getTime()
       : Date.now(),
@@ -52,7 +63,7 @@ export async function loadUserChatStore(
       supabase
         .from("ida_chat_sessions")
         .select(
-          "user_id, chat_id, session_id, locale, title, messages, quick_replies, pinned, chat_created_at, chat_updated_at",
+          "user_id, chat_id, session_id, locale, title, messages, quick_replies, pinned, worksheet, active_right_panel, worksheet_tool_enabled, chat_created_at, chat_updated_at",
         )
         .eq("user_id", userId)
         .not("chat_id", "is", null),
@@ -115,6 +126,9 @@ export async function saveUserChatStore(
       messages: chat.messages,
       quick_replies: [],
       pinned: Boolean(chat.pinned),
+      worksheet: chat.worksheet ?? null,
+      active_right_panel: chat.activeRightPanel ?? null,
+      worksheet_tool_enabled: Boolean(chat.worksheetToolEnabled),
       chat_created_at: new Date(chat.createdAt).toISOString(),
       chat_updated_at: new Date(chat.updatedAt).toISOString(),
       updated_at: now,

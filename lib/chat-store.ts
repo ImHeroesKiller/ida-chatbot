@@ -4,8 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import {
+  fetchDeviceChatStore,
   fetchRemoteChatStore,
+  initializeDeviceChatStore,
   initializeRemoteChatStore,
+  persistDeviceChatStore,
   persistRemoteChatStore,
 } from "@/lib/client/sync-sessions";
 import { ensureApiSessionId } from "@/lib/client/chat-api-payload";
@@ -467,10 +470,42 @@ export function useChatStore(locale: Locale) {
       });
       const local = loadChatStore(anonymousScope);
 
+      let remote: ChatStoreState | null = null;
+      try {
+        remote = await fetchDeviceChatStore(locale, anonymousDeviceId);
+      } catch (error) {
+        console.error("[IDA chat-store device fetch]", error);
+      }
+
       if (cancelled) return;
+
+      if (remote) {
+        setStore(remote);
+        saveChatStore(remote, anonymousScope);
+        return;
+      }
 
       if (local) {
         setStore(local);
+        try {
+          await persistDeviceChatStore(local, locale, anonymousDeviceId);
+        } catch (error) {
+          console.error("[IDA chat-store device persist]", error);
+        }
+        return;
+      }
+
+      try {
+        remote = await initializeDeviceChatStore(locale, anonymousDeviceId);
+      } catch (error) {
+        console.error("[IDA chat-store device init]", error);
+      }
+
+      if (cancelled) return;
+
+      if (remote) {
+        setStore(remote);
+        saveChatStore(remote, anonymousScope);
       }
     }
 
@@ -505,16 +540,23 @@ export function useChatStore(locale: Locale) {
 
     saveChatStore(store, scope);
 
-    if (scope.kind !== "authenticated") return;
-
     const timer = window.setTimeout(() => {
-      void persistRemoteChatStore(store, locale).catch((error) => {
-        console.error("[IDA chat-store persist]", error);
-      });
+      if (scope.kind === "authenticated") {
+        void persistRemoteChatStore(store, locale).catch((error) => {
+          console.error("[IDA chat-store persist]", error);
+        });
+        return;
+      }
+
+      void persistDeviceChatStore(store, locale, anonymousDeviceId).catch(
+        (error) => {
+          console.error("[IDA chat-store device persist]", error);
+        },
+      );
     }, REMOTE_SYNC_DEBOUNCE_MS);
 
     return () => window.clearTimeout(timer);
-  }, [store, hydrated, scope, locale]);
+  }, [store, hydrated, scope, locale, anonymousDeviceId]);
 
   const currentChat = store.chats[store.currentChatId];
 

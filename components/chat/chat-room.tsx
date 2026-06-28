@@ -96,6 +96,7 @@ import {
 } from "@/lib/voice/use-speech-synthesis";
 import { useVoicePrefs } from "@/lib/voice/voice-prefs";
 import { RightSidebar } from "@/components/chat/right-sidebar";
+import { RightToolsRail } from "@/components/chat/right-tools-rail";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 import { useChatFontSize } from "@/lib/chat-font-prefs";
 import { useWebSearchPrefs } from "@/lib/web-search-prefs";
@@ -234,7 +235,7 @@ function ChatRoomContent() {
     setStreamingMessageId(null);
     setIsLoading(false);
     setEditingMessageId(null);
-    setRightPanel(currentChat.activeRightPanel ?? null);
+    setRightPanel(null);
     setWorksheetToolEnabled(
       currentChat.worksheetToolEnabled ??
         currentChat.activeRightPanel === "worksheet",
@@ -879,27 +880,23 @@ function ChatRoomContent() {
     handleWorksheetRetry();
   }, [handleWorksheetRetry]);
 
-  const handleWorksheetToolChange = useCallback(
-    (enabled: boolean) => {
-      setWorksheetToolEnabled(enabled);
+  const handleWorksheetToolChange = useCallback((enabled: boolean) => {
+    setWorksheetToolEnabled(enabled);
 
-      if (enabled) {
-        if (hasWorksheetWorkspaceContent(worksheetWorkspace)) {
-          setRightPanel("worksheet");
-        }
-        return;
-      }
-
+    if (!enabled) {
       setRightPanel((panel) => (panel === "worksheet" ? null : panel));
-    },
-    [worksheetWorkspace],
-  );
+    }
+  }, []);
+
+  const handleToggleToolPanel = useCallback((panel: RightSidebarPanel) => {
+    setRightPanel((current) => (current === panel ? null : panel));
+  }, []);
 
   const handleOpenToolPanel = useCallback((panel: RightSidebarPanel) => {
     setRightPanel(panel);
   }, []);
 
-  const handleCloseToolPanel = useCallback(() => {
+  const handleCollapseToolPanel = useCallback(() => {
     setRightPanel(null);
   }, []);
 
@@ -1016,9 +1013,17 @@ function ChatRoomContent() {
           </div>
           </div>
 
+          <RightToolsRail
+            locale={locale}
+            activePanel={rightPanel}
+            worksheetEnabled={worksheetToolEnabled}
+            onSelectPanel={handleToggleToolPanel}
+            className="relative z-10 hidden shrink-0 md:flex"
+          />
+
           {rightPanel ? (
             <RightSidebar
-              key={currentChat?.id}
+              key={`${currentChat?.id}-${rightPanel}`}
               locale={locale}
               panel={rightPanel}
               worksheet={worksheetWorkspace}
@@ -1030,7 +1035,8 @@ function ChatRoomContent() {
               onWorksheetRetry={handleWorksheetRetry}
               onWorksheetRegenerate={handleWorksheetRegenerate}
               onWorksheetClear={handleWorksheetClear}
-              onClose={handleCloseToolPanel}
+              onClose={handleCollapseToolPanel}
+              onCollapse={handleCollapseToolPanel}
               className="relative z-10 hidden shrink-0 md:flex"
             />
           ) : null}
@@ -1041,7 +1047,7 @@ function ChatRoomContent() {
         open={rightPanelSheetOpen}
         modal
         onOpenChange={(open) => {
-          if (!open) handleCloseToolPanel();
+          if (!open) handleCollapseToolPanel();
         }}
       >
         <SheetContent
@@ -1063,7 +1069,8 @@ function ChatRoomContent() {
               onWorksheetRetry={handleWorksheetRetry}
               onWorksheetRegenerate={handleWorksheetRegenerate}
               onWorksheetClear={handleWorksheetClear}
-              onClose={handleCloseToolPanel}
+              onClose={handleCollapseToolPanel}
+              onCollapse={handleCollapseToolPanel}
               embedded
             />
           ) : null}

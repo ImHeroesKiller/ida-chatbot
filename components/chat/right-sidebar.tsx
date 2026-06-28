@@ -1,6 +1,6 @@
 "use client";
 
-import { Map, PanelRightClose, Search } from "lucide-react";
+import { Map, PanelRightClose, Search, FileText } from "lucide-react";
 
 import { WorksheetPanel } from "@/components/chat/worksheet-panel";
 import { Button } from "@/components/ui/button";
@@ -25,12 +25,13 @@ interface RightSidebarProps {
   onWorksheetRegenerate?: () => void;
   onWorksheetClear?: () => void;
   onClose: () => void;
+  onCollapse?: () => void;
   className?: string;
   embedded?: boolean;
 }
 
 const PANEL_ICONS = {
-  worksheet: Map,
+  worksheet: FileText,
   map: Map,
   research: Search,
 } as const;
@@ -48,9 +49,11 @@ export function RightSidebar({
   onWorksheetRegenerate,
   onWorksheetClear,
   onClose,
+  onCollapse,
   className,
   embedded = false,
 }: RightSidebarProps) {
+  const handlePanelClose = onCollapse ?? onClose;
   const copy = COPY[locale];
 
   if (panel === "worksheet") {
@@ -66,7 +69,7 @@ export function RightSidebar({
         onRetry={onWorksheetRetry}
         onRegenerate={onWorksheetRegenerate}
         onClear={onWorksheetClear}
-        onClose={onClose}
+        onClose={handlePanelClose}
         className={className}
         embedded={embedded}
       />
@@ -101,7 +104,7 @@ export function RightSidebar({
           type="button"
           variant="ghost"
           size="icon-sm"
-          onClick={onClose}
+          onClick={handlePanelClose}
           aria-label={copy.rightSidebarClose}
           title={copy.rightSidebarClose}
           className="h-8 w-8 shrink-0"

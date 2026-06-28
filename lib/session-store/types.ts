@@ -1,4 +1,6 @@
 import type { Locale } from "@/lib/config";
+import type { WorksheetDocument } from "@/lib/worksheet";
+import type { RightSidebarPanel } from "@/lib/chat-tools";
 import type { IdaMessage } from "@/lib/types";
 
 export interface UserChatSessionRow {
@@ -10,6 +12,9 @@ export interface UserChatSessionRow {
   messages: IdaMessage[];
   quick_replies: string[];
   pinned: boolean;
+  worksheet: WorksheetDocument | null;
+  active_right_panel: RightSidebarPanel | null;
+  worksheet_tool_enabled: boolean;
   chat_created_at: string;
   chat_updated_at: string;
   updated_at: string;
