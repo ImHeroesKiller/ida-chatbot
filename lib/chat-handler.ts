@@ -49,8 +49,12 @@ import {
 } from "./memory/conversation-memory";
 import { retrieveContext } from "./rag/retriever";
 import { buildIdaSystemPrompt } from "./system-prompt";
-import type { IdaSseMetaPayload } from "./sse";
+import type { IdaSseMetaPayload, IdaSseWorksheetPayload } from "./sse";
 import type { IdaHandoffPrefill, IdaWebSearchSource } from "./types";
+import {
+  buildWorksheetPromptSection,
+  parseWorksheetFromResponse,
+} from "./worksheet";
 
 export interface IdaChatHandlerInput {
   messages: ConversationMessage[];
@@ -59,6 +63,8 @@ export interface IdaChatHandlerInput {
   userId?: string;
   /** User-enabled web search toggle from chat composer */
   webSearch?: boolean;
+  /** Worksheet panel is open — generate document for right sidebar */
+  worksheet?: boolean;
 }
 
 export interface IdaChatPreparedContext {
@@ -80,6 +86,7 @@ export interface IdaChatPreparedContext {
   webSearchEnabled: boolean;
   webSearchMaxResults: number;
   userRequestedWebSearch: boolean;
+  worksheetEnabled: boolean;
 }
 
 export interface IdaChatStreamResult extends StreamChatResult {
@@ -87,6 +94,7 @@ export interface IdaChatStreamResult extends StreamChatResult {
   usedWebSearch?: boolean;
   webSearchSources?: IdaWebSearchSource[];
   webSearchQueries?: string[];
+  worksheet?: IdaSseWorksheetPayload | null;
 }
 
 export interface HandoffToolExecution {
@@ -269,6 +277,7 @@ export async function prepareIdaChatContext(
   const userRequestedWebSearch = input.webSearch === true;
   const webSearchActive = webSearchAvailable && userRequestedWebSearch;
   const webSearchMaxResults = appConfig.webSearch.maxResults;
+  const worksheetEnabled = input.worksheet === true;
 
   const [retrieval, memoryContext, prefetchedWebSearch] = await Promise.all([
     retrieveContext({
@@ -295,6 +304,10 @@ export async function prepareIdaChatContext(
     conversationMemory: memoryContext,
     webSearchContext: prefetchedWebSearch.context,
     webSearchEnabled: webSearchActive && useGoogle && !prefetchedWebSearch.context,
+    worksheetEnabled,
+    worksheetPromptSection: worksheetEnabled
+      ? buildWorksheetPromptSection(locale)
+      : "",
     basePromptOverride: appConfig.systemPromptOverride,
   });
 
@@ -368,6 +381,28 @@ export async function prepareIdaChatContext(
     webSearchEnabled: webSearchActive && useGoogle && !prefetchedWebSearch.context,
     webSearchMaxResults,
     userRequestedWebSearch: webSearchActive,
+    worksheetEnabled,
+  };
+}
+
+function finalizeStreamResult(
+  context: IdaChatPreparedContext,
+  fullText: string,
+  base: Omit<IdaChatStreamResult, "fullText" | "worksheet">,
+): IdaChatStreamResult {
+  if (!context.worksheetEnabled) {
+    return { ...base, fullText };
+  }
+
+  const { chatMessage, worksheet } = parseWorksheetFromResponse(
+    fullText,
+    context.locale,
+  );
+
+  return {
+    ...base,
+    fullText: chatMessage,
+    worksheet,
   };
 }
 
@@ -573,10 +608,7 @@ export async function runIdaChatStream(
     await persistAssistantMessage(context, context.handoffResponse);
 
     const usage = buildEstimatedUsage(context, context.handoffResponse);
-    return {
-      fullText: context.handoffResponse,
-      usage,
-    };
+    return finalizeStreamResult(context, context.handoffResponse, { usage });
   }
 
   if (context.provider === "google" && context.model) {
@@ -589,26 +621,25 @@ export async function runIdaChatStream(
       callbacks?.onToken?.(response);
       await persistAssistantMessage(context, response);
 
-      return {
-        fullText: response,
+      return finalizeStreamResult(context, response, {
         usage: buildEstimatedUsage(context, response),
         usedWebSearch: toolLoop.usedWebSearch,
         webSearchSources: toolLoop.webSearchSources,
         webSearchQueries: toolLoop.webSearchQueries,
-      };
+      });
     }
 
     if (toolLoop.finalText) {
       callbacks?.onToken?.(toolLoop.finalText);
-      await persistAssistantMessage(context, toolLoop.finalText);
-
-      return {
-        fullText: toolLoop.finalText,
+      const finalized = finalizeStreamResult(context, toolLoop.finalText, {
         usage: buildEstimatedUsage(context, toolLoop.finalText),
         usedWebSearch: toolLoop.usedWebSearch,
         webSearchSources: toolLoop.webSearchSources,
         webSearchQueries: toolLoop.webSearchQueries,
-      };
+      });
+      await persistAssistantMessage(context, finalized.fullText);
+
+      return finalized;
     }
 
     const streamed = await streamGeminiFinalResponse(
@@ -621,10 +652,7 @@ export async function runIdaChatStream(
       throw new Error("Empty response from model.");
     }
 
-    await persistAssistantMessage(context, streamed.fullText);
-
-    return {
-      fullText: streamed.fullText,
+    const finalized = finalizeStreamResult(context, streamed.fullText, {
       usage: mergeTokenUsage(
         streamed.usage ?? {
           promptTokens: 0,
@@ -636,7 +664,10 @@ export async function runIdaChatStream(
       usedWebSearch: toolLoop.usedWebSearch,
       webSearchSources: toolLoop.webSearchSources,
       webSearchQueries: toolLoop.webSearchQueries,
-    };
+    });
+    await persistAssistantMessage(context, finalized.fullText);
+
+    return finalized;
   }
 
   const result = await streamOpenAiCompatibleChat({
@@ -650,10 +681,7 @@ export async function runIdaChatStream(
     throw new Error("Empty response from model.");
   }
 
-  await persistAssistantMessage(context, result.fullText);
-
-  return {
-    fullText: result.fullText,
+  const finalized = finalizeStreamResult(context, result.fullText, {
     usage: mergeTokenUsage(
       result.usage,
       buildEstimatedUsage(context, result.fullText),
@@ -661,7 +689,10 @@ export async function runIdaChatStream(
     usedWebSearch: context.meta.usedWebSearch,
     webSearchSources: context.meta.webSearchSources,
     webSearchQueries: context.meta.webSearchQueries,
-  };
+  });
+  await persistAssistantMessage(context, finalized.fullText);
+
+  return finalized;
 }
 
 async function persistAssistantMessage(

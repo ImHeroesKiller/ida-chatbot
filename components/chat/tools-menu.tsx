@@ -50,8 +50,8 @@ export function ToolsMenu({
   const isActive = webSearchEnabled || activePanel !== null;
 
   const activePanelLabel =
-    activePanel === "canvas"
-      ? copy.toolsCanvas
+    activePanel === "worksheet"
+      ? copy.toolsWorksheet
       : activePanel === "map"
         ? copy.toolsMap
         : activePanel === "research"
@@ -197,17 +197,17 @@ export function ToolsMenu({
             type="button"
             role="menuitem"
             onClick={() => {
-              onOpenPanel("canvas");
+              onOpenPanel("worksheet");
               setOpen(false);
             }}
             className={cn(
               "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs",
               "transition-colors hover:bg-muted",
-              activePanel === "canvas" && "bg-primary/10 ring-1 ring-primary/20",
+              activePanel === "worksheet" && "bg-primary/10 ring-1 ring-primary/20",
             )}
           >
             <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <span className="flex-1 font-medium">{copy.toolsCanvas}</span>
+            <span className="flex-1 font-medium">{copy.toolsWorksheet}</span>
           </button>
 
           {!webSearchAvailable ? (

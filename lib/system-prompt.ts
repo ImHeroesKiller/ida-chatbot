@@ -11,6 +11,8 @@ interface PromptContext {
   conversationMemory?: string;
   webSearchContext?: string;
   webSearchEnabled?: boolean;
+  worksheetEnabled?: boolean;
+  worksheetPromptSection?: string;
   basePromptOverride?: string | null;
 }
 
@@ -28,6 +30,8 @@ export function buildIdaSystemPrompt(
     conversationMemory,
     webSearchContext,
     webSearchEnabled = false,
+    worksheetEnabled = false,
+    worksheetPromptSection = "",
   } = context;
 
   const ragSection = retrievedContext?.trim()
@@ -99,6 +103,8 @@ Saat tool dipanggil, berikan respons singkat bahwa handoff sedang disiapkan bese
 
 ${webSearchToolSection}
 
+${worksheetEnabled && worksheetPromptSection ? worksheetPromptSection : ""}
+
 ## Cara Menggunakan Konteks
 - **Prioritas 1:** Konteks Retrieval (RAG) — jawab berdasarkan dokumen yang di-retrieve.
 - **Prioritas 2:** Web Search — untuk data real-time yang tidak ada di RAG.
@@ -123,6 +129,6 @@ ${languageRule}
 - Jangan mulai jawaban dengan salam pembuka (Halo, Hai, Hello, Hi, 你好, dll.) kecuali pengguna menyapa terlebih dahulu.
 - Langsung jawab inti pertanyaan dengan natural, ramah, dan to the point.
 - Gunakan paragraf pendek dan bullet points jika perlu.
-- Maksimal 3–4 paragraf per jawaban kecuali diminta detail lebih lanjut.
-- Akhiri dengan pertanyaan lanjutan atau saran langkah berikutnya jika relevan.`;
+${worksheetEnabled ? "- Dalam mode Worksheet, bagian chat tetap singkat; dokumen lengkap hanya di dalam penanda Worksheet." : "- Maksimal 3–4 paragraf per jawaban kecuali diminta detail lebih lanjut."}
+- Akhiri dengan pertanyaan lanjutan atau saran langkah berikutnya jika relevan${worksheetEnabled ? " (kecuali mode Worksheet — cukup konfirmasi singkat)." : "."}`;
 }

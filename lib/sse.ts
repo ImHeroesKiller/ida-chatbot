@@ -6,6 +6,11 @@ export interface IdaWebSearchSourcePayload {
   snippet: string;
 }
 
+export interface IdaSseWorksheetPayload {
+  title: string;
+  content: string;
+}
+
 export interface IdaSseMetaPayload {
   retrievedChunks: number;
   usedRag: boolean;
@@ -24,6 +29,7 @@ export interface IdaSseMetaPayload {
   usedFallbackModel?: boolean;
   activeModel?: string;
   activeProvider?: string;
+  worksheet?: IdaSseWorksheetPayload;
 }
 
 export interface IdaSseTokenPayload {
@@ -34,6 +40,7 @@ export interface IdaSseDonePayload {
   message: string;
   usedWebSearch?: boolean;
   webSearchSources?: IdaWebSearchSourcePayload[];
+  worksheet?: IdaSseWorksheetPayload;
 }
 
 export interface IdaSseErrorPayload {

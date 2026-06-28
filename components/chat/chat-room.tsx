@@ -66,7 +66,8 @@ import { COPY } from "@/lib/i18n";
 import { MessageReactionsProvider } from "@/lib/message-reactions";
 import { useSidebarExpanded } from "@/lib/sidebar-prefs";
 import type { IdaAttachment, IdaMessage } from "@/lib/types";
-import type { IdaSseMetaPayload } from "@/lib/sse";
+import type { IdaSseDonePayload, IdaSseMetaPayload } from "@/lib/sse";
+import { createEmptyWorksheet } from "@/lib/worksheet";
 import {
   SpeechSynthesisProvider,
   useSpeechSynthesis,
@@ -127,6 +128,8 @@ function ChatRoomContent() {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [rightPanel, setRightPanel] = useState<RightSidebarPanel | null>(null);
+  const [worksheetTitle, setWorksheetTitle] = useState("");
+  const [worksheetContent, setWorksheetContent] = useState("");
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -206,13 +209,35 @@ function ChatRoomContent() {
     setIsLoading(false);
     setEditingMessageId(null);
     setRightPanel(currentChat.activeRightPanel ?? null);
-  }, [hydrated, currentChat]);
+    setWorksheetTitle(
+      currentChat.worksheet?.title ?? createEmptyWorksheet(locale).title,
+    );
+    setWorksheetContent(currentChat.worksheet?.content ?? "");
+  }, [hydrated, currentChat, locale]);
 
   useEffect(() => {
     if (!hydrated || isLoading) return;
 
-    persistCurrentChat({ messages, activeRightPanel: rightPanel });
-  }, [messages, rightPanel, hydrated, isLoading, persistCurrentChat]);
+    const worksheet =
+      worksheetContent.trim() || worksheetTitle.trim()
+        ? {
+            title: worksheetTitle.trim() || createEmptyWorksheet(locale).title,
+            content: worksheetContent,
+            updatedAt: Date.now(),
+          }
+        : null;
+
+    persistCurrentChat({ messages, activeRightPanel: rightPanel, worksheet });
+  }, [
+    messages,
+    rightPanel,
+    worksheetTitle,
+    worksheetContent,
+    hydrated,
+    isLoading,
+    locale,
+    persistCurrentChat,
+  ]);
 
   useEffect(() => {
     const handleEscape = (event: globalThis.KeyboardEvent) => {
@@ -252,6 +277,7 @@ function ChatRoomContent() {
       apiSessionId: string,
       apiUserId: string,
       useWebSearch: boolean,
+      useWorksheet: boolean,
     ) => {
       const streamingPlaceholder: IdaMessage = {
         id: streamId,
@@ -271,6 +297,7 @@ function ChatRoomContent() {
             sessionId: apiSessionId,
             ...(apiUserId ? { userId: apiUserId } : {}),
             ...(useWebSearch ? { webSearch: true } : {}),
+            ...(useWorksheet ? { worksheet: true } : {}),
             messages: toApiMessages(contextMessages),
           }),
         });
@@ -311,6 +338,27 @@ function ChatRoomContent() {
           }
         };
 
+        const applyWorksheet = (
+          worksheet: NonNullable<IdaSseDonePayload["worksheet"]>,
+        ) => {
+          const document = {
+            title: worksheet.title,
+            content: worksheet.content,
+            updatedAt: Date.now(),
+          };
+
+          if (activeChatIdRef.current === chatIdAtSend) {
+            setWorksheetTitle(worksheet.title);
+            setWorksheetContent(worksheet.content);
+            setRightPanel("worksheet");
+          }
+
+          persistCurrentChat({
+            worksheet: document,
+            activeRightPanel: "worksheet",
+          });
+        };
+
         await consumeIdaSseStream(
           response,
           (token) => {
@@ -335,6 +383,24 @@ function ChatRoomContent() {
           },
           (done) => {
             applyWebSearchSources(done.webSearchSources);
+
+            if (done.message?.trim()) {
+              finalMessages = finalMessages.map((message) =>
+                message.id === streamId
+                  ? { ...message, content: done.message }
+                  : message,
+              );
+
+              if (activeChatIdRef.current === chatIdAtSend) {
+                setMessages(finalMessages);
+              } else {
+                persistCurrentChat({ messages: finalMessages });
+              }
+            }
+
+            if (done.worksheet) {
+              applyWorksheet(done.worksheet);
+            }
           },
         );
 
@@ -424,6 +490,8 @@ function ChatRoomContent() {
 
     const chatIdAtSend = currentChat.id;
 
+    const worksheetAtSend = rightPanel === "worksheet";
+
     try {
       await streamAssistantReply(
         nextMessages,
@@ -432,6 +500,7 @@ function ChatRoomContent() {
         currentChat.apiSessionId,
         apiUserId,
         webSearchAvailable && webSearchEnabled,
+        worksheetAtSend,
       );
     } finally {
       if (activeChatIdRef.current === chatIdAtSend) {
@@ -471,6 +540,8 @@ function ChatRoomContent() {
 
       const chatIdAtSend = currentChat.id;
 
+      const worksheetAtSend = rightPanel === "worksheet";
+
       try {
         await streamAssistantReply(
           contextMessages,
@@ -479,6 +550,7 @@ function ChatRoomContent() {
           currentChat.apiSessionId,
           apiUserId,
           webSearchAvailable && webSearchEnabled,
+          worksheetAtSend,
         );
       } finally {
         if (activeChatIdRef.current === chatIdAtSend) {
@@ -487,7 +559,16 @@ function ChatRoomContent() {
         }
       }
     },
-    [currentChat, isLoading, messages, streamAssistantReply, apiUserId],
+    [
+      apiUserId,
+      currentChat,
+      isLoading,
+      messages,
+      rightPanel,
+      streamAssistantReply,
+      webSearchAvailable,
+      webSearchEnabled,
+    ],
   );
 
   const handleEditMessage = useCallback((messageId: string) => {
@@ -546,6 +627,8 @@ function ChatRoomContent() {
 
       const chatIdAtSend = currentChat.id;
 
+      const worksheetAtSend = rightPanel === "worksheet";
+
       try {
         await streamAssistantReply(
           contextMessages,
@@ -554,6 +637,7 @@ function ChatRoomContent() {
           currentChat.apiSessionId,
           apiUserId,
           webSearchAvailable && webSearchEnabled,
+          worksheetAtSend,
         );
       } finally {
         if (activeChatIdRef.current === chatIdAtSend) {
@@ -568,11 +652,16 @@ function ChatRoomContent() {
       currentChat,
       isLoading,
       messages,
+      rightPanel,
       streamAssistantReply,
       webSearchAvailable,
       webSearchEnabled,
     ],
   );
+
+  const handleWorksheetTitleChange = useCallback((title: string) => {
+    setWorksheetTitle(title);
+  }, []);
 
   const handleOpenToolPanel = useCallback((panel: RightSidebarPanel) => {
     setRightPanel(panel);
@@ -695,6 +784,10 @@ function ChatRoomContent() {
             <RightSidebar
               locale={locale}
               panel={rightPanel}
+              worksheetTitle={worksheetTitle}
+              worksheetContent={worksheetContent}
+              worksheetGenerating={isLoading && rightPanel === "worksheet"}
+              onWorksheetTitleChange={handleWorksheetTitleChange}
               onClose={handleCloseToolPanel}
               className="hidden md:flex"
             />
@@ -716,6 +809,10 @@ function ChatRoomContent() {
             <RightSidebar
               locale={locale}
               panel={rightPanel}
+              worksheetTitle={worksheetTitle}
+              worksheetContent={worksheetContent}
+              worksheetGenerating={isLoading && rightPanel === "worksheet"}
+              onWorksheetTitleChange={handleWorksheetTitleChange}
               onClose={handleCloseToolPanel}
               embedded
             />

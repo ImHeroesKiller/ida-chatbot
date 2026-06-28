@@ -9,7 +9,9 @@ import {
   persistRemoteChatStore,
 } from "@/lib/client/sync-sessions";
 import { getOrCreateAnonymousUserId } from "@/lib/client/user-id";
+import { normalizeRightSidebarPanel } from "@/lib/chat-tools";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
+import type { WorksheetDocument } from "@/lib/worksheet";
 import type { Locale } from "@/lib/config";
 import type { IdaMessage } from "@/lib/types";
 
@@ -25,6 +27,7 @@ export interface ChatSession {
   messages: IdaMessage[];
   apiSessionId: string;
   activeRightPanel?: RightSidebarPanel | null;
+  worksheet?: WorksheetDocument | null;
   pinned?: boolean;
   createdAt: number;
   updatedAt: number;
@@ -226,6 +229,7 @@ export function createChatSession(locale: Locale): ChatSession {
     messages: [],
     apiSessionId: createId("ida"),
     activeRightPanel: null,
+    worksheet: null,
     pinned: false,
     createdAt: now,
     updatedAt: now,
@@ -246,15 +250,15 @@ function normalizeSession(
   session: ChatSession & { quickReplies?: string[] },
 ): ChatSession {
   const { quickReplies: _legacyQuickReplies, ...rest } = session;
-  const panel = rest.activeRightPanel;
+  const panel = normalizeRightSidebarPanel(
+    rest.activeRightPanel as string | null | undefined,
+  );
 
   return {
     ...rest,
     messages: stripWelcomeMessages(session.messages),
-    activeRightPanel:
-      panel === "canvas" || panel === "map" || panel === "research"
-        ? panel
-        : null,
+    activeRightPanel: panel,
+    worksheet: rest.worksheet ?? null,
     pinned: Boolean(session.pinned),
   };
 }
@@ -635,7 +639,10 @@ export function useChatStore(locale: Locale) {
   const persistCurrentChat = useCallback(
     (
       patch: Partial<
-        Pick<ChatSession, "messages" | "title" | "activeRightPanel">
+        Pick<
+          ChatSession,
+          "messages" | "title" | "activeRightPanel" | "worksheet"
+        >
       >,
     ) => {
       updateCurrentChat((chat) => {
@@ -656,6 +663,10 @@ export function useChatStore(locale: Locale) {
             patch.activeRightPanel !== undefined
               ? patch.activeRightPanel
               : chat.activeRightPanel ?? null,
+          worksheet:
+            patch.worksheet !== undefined
+              ? patch.worksheet
+              : chat.worksheet ?? null,
           updatedAt: Date.now(),
         };
       });
