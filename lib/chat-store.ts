@@ -52,6 +52,7 @@ function createId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+/** Fresh worksheet workspace — never reuse or spread from another chat. */
 function createEmptyWorksheet(): WorksheetDocument {
   return {
     documents: [],
@@ -60,6 +61,13 @@ function createEmptyWorksheet(): WorksheetDocument {
     content: "",
     updatedAt: Date.now(),
   };
+}
+
+function resolvePersistedWorksheet(
+  worksheet: WorksheetDocument | null | undefined,
+): WorksheetDocument {
+  if (!worksheet) return createEmptyWorksheet();
+  return cloneWorksheet(worksheet) ?? createEmptyWorksheet();
 }
 
 function cloneWorksheet(
@@ -76,7 +84,7 @@ function cloneWorksheet(
 
 const GENERIC_CHAT_TITLES: Record<Locale, string> = {
   id: "Chat baru",
-  en: "New chat",
+  en: "New Chat",
   zh: "新对话",
 };
 
@@ -250,6 +258,8 @@ export function sortSessions(sessions: ChatSession[]): ChatSession[] {
 export function createChatSession(locale: Locale): ChatSession {
   const now = Date.now();
 
+  // New Chat: always start with a generic title and an isolated empty worksheet.
+  // Never spread from an existing chat session.
   return {
     id: createId("chat"),
     title: GENERIC_CHAT_TITLES[locale],
@@ -620,22 +630,19 @@ export function useChatStore(locale: Locale) {
   }, []);
 
   const createChat = useCallback(() => {
-    const session: ChatSession = {
-      ...createChatSession(locale),
-      messages: [],
-      activeRightPanel: null,
-      worksheetToolEnabled: false,
-      worksheet: createEmptyWorksheet(),
-    };
+    const session = createChatSession(locale);
 
-    setStore((prev) => ({
-      currentChatId: session.id,
-      chats: { ...prev.chats, [session.id]: session },
-      order: [session.id, ...prev.order.filter((id) => id !== session.id)].slice(
-        0,
-        MAX_SESSIONS,
-      ),
-    }));
+    setStore((prev) => {
+      // Append only the new session; leave every existing chat entry untouched.
+      return {
+        currentChatId: session.id,
+        chats: { ...prev.chats, [session.id]: session },
+        order: [session.id, ...prev.order.filter((id) => id !== session.id)].slice(
+          0,
+          MAX_SESSIONS,
+        ),
+      };
+    });
 
     return session.id;
   }, [locale]);
@@ -749,8 +756,8 @@ export function useChatStore(locale: Locale) {
               : Boolean(chat.worksheetToolEnabled),
           worksheet:
             patch.worksheet !== undefined
-              ? cloneWorksheet(patch.worksheet)
-              : cloneWorksheet(chat.worksheet),
+              ? resolvePersistedWorksheet(patch.worksheet)
+              : resolvePersistedWorksheet(chat.worksheet),
           updatedAt: Date.now(),
         };
       });
