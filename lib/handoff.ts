@@ -2,13 +2,6 @@ import type { Locale } from "@/lib/config";
 import type { IdaHandoffPrefill } from "@/lib/types";
 
 import type { ConversationMessage } from "./memory/conversation-memory";
-import {
-  filterQuickReplies,
-  inferQuickReplies,
-  isHandoffQuickReply,
-} from "./quick-replies";
-
-export { filterQuickReplies, isHandoffQuickReply };
 
 const TOPIC_RULES: { topic: string; keywords: string[] }[] = [
   {
@@ -127,9 +120,3 @@ export function buildHandoffPrefill(
   };
 }
 
-export function getQuickReplies(
-  locale: Locale,
-  messages: ConversationMessage[] = [],
-): string[] {
-  return inferQuickReplies({ locale, messages });
-}

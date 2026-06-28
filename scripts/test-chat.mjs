@@ -89,7 +89,6 @@ async function main() {
     rag: q1.meta?.usedRag ?? false,
     retrievedChunks: q1.meta?.retrievedChunks ?? 0,
     memory: memoryOk,
-    quickReplies: q1.meta?.quickReplies?.length ?? 0,
     handoffPrefill: Boolean(q2.meta?.handoffPrefill?.topic),
   });
 }

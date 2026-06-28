@@ -11,7 +11,6 @@ export interface IdaSseMetaPayload {
   usedRag: boolean;
   ragFallbackReason?: string;
   maxSimilarity?: number;
-  quickReplies?: string[];
   handoffTriggered?: boolean;
   toolCall?: string;
   toolCallReason?: string;
@@ -33,7 +32,6 @@ export interface IdaSseTokenPayload {
 
 export interface IdaSseDonePayload {
   message: string;
-  quickReplies?: string[];
   usedWebSearch?: boolean;
   webSearchSources?: IdaWebSearchSourcePayload[];
 }

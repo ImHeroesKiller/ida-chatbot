@@ -24,7 +24,6 @@ function rowToChatSession(row: SessionDbRow): ChatSession {
     id: row.chat_id,
     title: row.title ?? "Chat",
     messages: Array.isArray(row.messages) ? row.messages : [],
-    quickReplies: Array.isArray(row.quick_replies) ? row.quick_replies : [],
     apiSessionId: row.session_id,
     pinned: Boolean(row.pinned),
     createdAt: row.chat_created_at
@@ -114,7 +113,7 @@ export async function saveUserChatStore(
       locale,
       title: chat.title,
       messages: chat.messages,
-      quick_replies: chat.quickReplies,
+      quick_replies: [],
       pinned: Boolean(chat.pinned),
       chat_created_at: new Date(chat.createdAt).toISOString(),
       chat_updated_at: new Date(chat.updatedAt).toISOString(),

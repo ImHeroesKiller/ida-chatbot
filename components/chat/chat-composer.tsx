@@ -361,7 +361,7 @@ export function ChatComposer({
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "shrink-0 overflow-x-hidden border-t bg-muted/30 px-2.5 pt-2.5 dark:bg-muted/20",
+        "relative z-30 shrink-0 overflow-visible border-t bg-muted/30 px-2.5 pt-2.5 dark:bg-muted/20",
         "pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-5 sm:pt-3 sm:pb-4",
       )}
     >

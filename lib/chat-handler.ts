@@ -25,7 +25,6 @@ import {
 import type { ModelSelection } from "@/lib/admin/types";
 import type { Locale } from "@/lib/config";
 import { buildHandoffPrefill } from "@/lib/handoff";
-import { inferQuickReplies } from "@/lib/quick-replies";
 import {
   detectHandoffKeyword,
   getHandoffConfirmationMessage,
@@ -85,7 +84,6 @@ export interface IdaChatPreparedContext {
 
 export interface IdaChatStreamResult extends StreamChatResult {
   usage: TokenUsage;
-  quickReplies: string[];
   usedWebSearch?: boolean;
   webSearchSources?: IdaWebSearchSource[];
   webSearchQueries?: string[];
@@ -345,12 +343,6 @@ export async function prepareIdaChatContext(
     usedRag: retrieval.usedRag,
     ragFallbackReason: retrieval.fallbackReason,
     maxSimilarity: retrieval.maxSimilarity,
-    quickReplies: inferQuickReplies({
-      locale,
-      messages,
-      usedRag: retrieval.usedRag,
-      usedWebSearch: prefetchedWebSearch.sources.length > 0,
-    }),
     handoffPrefill: handoffExecution.handoffPrefill ?? handoffPrefill,
     handoffTriggered: handoffExecution.triggered,
     toolCall: handoffExecution.toolCall,
@@ -572,20 +564,6 @@ async function streamGeminiFinalResponse(
   return { fullText: fullText.trim(), usage };
 }
 
-function buildStreamQuickReplies(
-  context: IdaChatPreparedContext,
-  assistantReply: string,
-  usedWebSearch?: boolean,
-): string[] {
-  return inferQuickReplies({
-    locale: context.locale,
-    messages: context.sessionMessages,
-    assistantReply,
-    usedRag: context.meta.usedRag,
-    usedWebSearch: usedWebSearch ?? context.meta.usedWebSearch,
-  });
-}
-
 export async function runIdaChatStream(
   context: IdaChatPreparedContext,
   callbacks?: IdaChatStreamCallbacks,
@@ -598,10 +576,6 @@ export async function runIdaChatStream(
     return {
       fullText: context.handoffResponse,
       usage,
-      quickReplies: buildStreamQuickReplies(
-        context,
-        context.handoffResponse,
-      ),
     };
   }
 
@@ -618,7 +592,6 @@ export async function runIdaChatStream(
       return {
         fullText: response,
         usage: buildEstimatedUsage(context, response),
-        quickReplies: buildStreamQuickReplies(context, response, toolLoop.usedWebSearch),
         usedWebSearch: toolLoop.usedWebSearch,
         webSearchSources: toolLoop.webSearchSources,
         webSearchQueries: toolLoop.webSearchQueries,
@@ -632,11 +605,6 @@ export async function runIdaChatStream(
       return {
         fullText: toolLoop.finalText,
         usage: buildEstimatedUsage(context, toolLoop.finalText),
-        quickReplies: buildStreamQuickReplies(
-          context,
-          toolLoop.finalText,
-          toolLoop.usedWebSearch,
-        ),
         usedWebSearch: toolLoop.usedWebSearch,
         webSearchSources: toolLoop.webSearchSources,
         webSearchQueries: toolLoop.webSearchQueries,
@@ -665,11 +633,6 @@ export async function runIdaChatStream(
         },
         buildEstimatedUsage(context, streamed.fullText),
       ),
-      quickReplies: buildStreamQuickReplies(
-        context,
-        streamed.fullText,
-        toolLoop.usedWebSearch,
-      ),
       usedWebSearch: toolLoop.usedWebSearch,
       webSearchSources: toolLoop.webSearchSources,
       webSearchQueries: toolLoop.webSearchQueries,
@@ -694,11 +657,6 @@ export async function runIdaChatStream(
     usage: mergeTokenUsage(
       result.usage,
       buildEstimatedUsage(context, result.fullText),
-    ),
-    quickReplies: buildStreamQuickReplies(
-      context,
-      result.fullText,
-      context.meta.usedWebSearch,
     ),
     usedWebSearch: context.meta.usedWebSearch,
     webSearchSources: context.meta.webSearchSources,

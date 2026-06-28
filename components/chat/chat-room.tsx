@@ -12,7 +12,6 @@ import {
 import { ChatHeader } from "@/components/chat/header";
 import { MessageBubble } from "@/components/chat/message-bubble";
 import { MessageSkeleton } from "@/components/chat/message-skeleton";
-import { QuickReplies } from "@/components/chat/quick-replies";
 import { ScrollToBottomButton } from "@/components/chat/scroll-to-bottom";
 import { SidebarSkeleton } from "@/components/chat/sidebar-skeleton";
 
@@ -63,7 +62,6 @@ import { consumeIdaSseStream } from "@/lib/client/parse-sse";
 import { useAppFeatures } from "@/lib/client/use-app-features";
 import { useChatStore, WELCOME_MESSAGE_ID } from "@/lib/chat-store";
 import { IDA_CONFIG } from "@/lib/config";
-import { filterQuickReplies } from "@/lib/handoff";
 import { COPY } from "@/lib/i18n";
 import { MessageReactionsProvider } from "@/lib/message-reactions";
 import { useSidebarExpanded } from "@/lib/sidebar-prefs";
@@ -125,7 +123,6 @@ function ChatRoomContent() {
   );
   const [messages, setMessages] = useState<IdaMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [quickReplies, setQuickReplies] = useState<string[]>([]);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -143,17 +140,6 @@ function ChatRoomContent() {
   const hasUserMessages = visibleMessages.some(
     (message) => message.role === "user",
   );
-
-  const conversationMessageCount = useMemo(
-    () =>
-      visibleMessages.filter((message) => message.content.trim()).length,
-    [visibleMessages],
-  );
-
-  const showQuickReplies =
-    conversationMessageCount >= 3 &&
-    quickReplies.length > 0 &&
-    !isLoading;
 
   const lastAssistantMessageId = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i -= 1) {
@@ -214,7 +200,6 @@ function ChatRoomContent() {
 
     activeChatIdRef.current = currentChat.id;
     setMessages(currentChat.messages);
-    setQuickReplies(filterQuickReplies(currentChat.quickReplies));
     setInput("");
     setError(null);
     setStreamingMessageId(null);
@@ -226,8 +211,8 @@ function ChatRoomContent() {
   useEffect(() => {
     if (!hydrated || isLoading) return;
 
-    persistCurrentChat({ messages, quickReplies });
-  }, [messages, quickReplies, hydrated, isLoading, persistCurrentChat]);
+    persistCurrentChat({ messages });
+  }, [messages, hydrated, isLoading, persistCurrentChat]);
 
   useEffect(() => {
     const handleEscape = (event: globalThis.KeyboardEvent) => {
@@ -321,16 +306,6 @@ function ChatRoomContent() {
           }
         };
 
-        const applyQuickReplies = (replies?: string[]) => {
-          if (!replies?.length) return;
-
-          const filtered = filterQuickReplies(replies);
-          if (activeChatIdRef.current === chatIdAtSend) {
-            setQuickReplies(filtered);
-          }
-          persistCurrentChat({ quickReplies: filtered });
-        };
-
         await consumeIdaSseStream(
           response,
           (token) => {
@@ -347,25 +322,14 @@ function ChatRoomContent() {
             }
           },
           (meta: IdaSseMetaPayload) => {
-            if (meta.quickReplies?.length) {
-              const filtered = filterQuickReplies(meta.quickReplies);
-              if (activeChatIdRef.current === chatIdAtSend) {
-                setQuickReplies(filtered);
-              } else {
-                persistCurrentChat({ quickReplies: filtered });
-              }
-            }
-
             if (meta.handoffTriggered && meta.handoffPrefill) {
               openHandoff(meta.handoffPrefill);
             }
 
             applyWebSearchSources(meta.webSearchSources);
-            applyQuickReplies(meta.quickReplies);
           },
           (done) => {
             applyWebSearchSources(done.webSearchSources);
-            applyQuickReplies(done.quickReplies);
           },
         );
 
@@ -605,10 +569,6 @@ function ChatRoomContent() {
     ],
   );
 
-  const handleQuickReply = (message: string) => {
-    void sendMessage(message);
-  };
-
   const handleOpenToolPanel = useCallback((panel: RightSidebarPanel) => {
     setRightPanel(panel);
   }, []);
@@ -687,16 +647,6 @@ function ChatRoomContent() {
                   );
                 })}
 
-                {showQuickReplies ? (
-                  <div className="pt-1">
-                    <QuickReplies
-                      replies={quickReplies}
-                      disabled={isLoading}
-                      onSelect={handleQuickReply}
-                    />
-                  </div>
-                ) : null}
-
                 <div ref={messagesEndRef} className="h-px" aria-hidden />
               </div>
             </div>
@@ -714,7 +664,7 @@ function ChatRoomContent() {
             </p>
           )}
 
-          <div className="shrink-0">
+          <div className="relative z-30 shrink-0">
             <ChatComposer
               key={currentChat?.id}
               locale={locale}

@@ -22,7 +22,6 @@ export interface ChatSession {
   id: string;
   title: string;
   messages: IdaMessage[];
-  quickReplies: string[];
   apiSessionId: string;
   pinned?: boolean;
   createdAt: number;
@@ -139,7 +138,6 @@ export function createChatSession(locale: Locale): ChatSession {
     id: createId("chat"),
     title: GENERIC_CHAT_TITLES[locale],
     messages: [],
-    quickReplies: [],
     apiSessionId: createId("ida"),
     pinned: false,
     createdAt: now,
@@ -157,18 +155,12 @@ export function createInitialStore(locale: Locale): ChatStoreState {
   };
 }
 
-function normalizeSession(session: ChatSession): ChatSession {
-  const messages = stripWelcomeMessages(session.messages);
-  const conversationCount = messages.filter(
-    (message) => message.content.trim(),
-  ).length;
-  const quickReplies =
-    conversationCount >= 3 ? session.quickReplies : [];
+function normalizeSession(session: ChatSession & { quickReplies?: string[] }): ChatSession {
+  const { quickReplies: _legacyQuickReplies, ...rest } = session;
 
   return {
-    ...session,
-    messages,
-    quickReplies,
+    ...rest,
+    messages: stripWelcomeMessages(session.messages),
     pinned: Boolean(session.pinned),
   };
 }
@@ -547,10 +539,9 @@ export function useChatStore(locale: Locale) {
   }, [locale]);
 
   const persistCurrentChat = useCallback(
-    (patch: Partial<Pick<ChatSession, "messages" | "quickReplies" | "title">>) => {
+    (patch: Partial<Pick<ChatSession, "messages" | "title">>) => {
       updateCurrentChat((chat) => {
         const messages = patch.messages ?? chat.messages;
-        const quickReplies = patch.quickReplies ?? chat.quickReplies;
 
         const nextTitle =
           patch.title ??
@@ -562,7 +553,6 @@ export function useChatStore(locale: Locale) {
           ...chat,
           ...patch,
           messages,
-          quickReplies,
           title: nextTitle,
           updatedAt: Date.now(),
         };

@@ -196,7 +196,6 @@ export async function POST(request: Request) {
 
         send("meta", {
           ...activeContext.meta,
-          quickReplies: result.quickReplies,
           usedWebSearch: result.usedWebSearch ?? activeContext.meta.usedWebSearch,
           webSearchSources:
             result.webSearchSources ?? activeContext.meta.webSearchSources,
@@ -208,7 +207,6 @@ export async function POST(request: Request) {
 
         send("done", {
           message: result.fullText,
-          quickReplies: result.quickReplies,
           usedWebSearch: result.usedWebSearch,
           webSearchSources: result.webSearchSources,
         });

@@ -7,7 +7,14 @@ import {
   Search,
   Wrench,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/config";
@@ -36,20 +43,49 @@ export function ToolsMenu({
 }: ToolsMenuProps) {
   const copy = COPY[locale];
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const anchorRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const isActive = webSearchEnabled || activePanel !== null;
+
+  const updateMenuPosition = useCallback(() => {
+    const anchor = anchorRef.current;
+    if (!anchor) return;
+
+    const rect = anchor.getBoundingClientRect();
+    setMenuPosition({
+      top: rect.top - 8,
+      left: rect.left,
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+
+    updateMenuPosition();
+
+    window.addEventListener("resize", updateMenuPosition);
+    window.addEventListener("scroll", updateMenuPosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updateMenuPosition);
+      window.removeEventListener("scroll", updateMenuPosition, true);
+    };
+  }, [open, updateMenuPosition]);
 
   useEffect(() => {
     if (!open) return;
 
     const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
       if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
+        anchorRef.current?.contains(target) ||
+        menuRef.current?.contains(target)
       ) {
-        setOpen(false);
+        return;
       }
+      setOpen(false);
     };
 
     const handleEscape = (event: KeyboardEvent) => {
@@ -64,31 +100,21 @@ export function ToolsMenu({
     };
   }, [open]);
 
-  return (
-    <div ref={containerRef} className="relative shrink-0">
-      <Button
-        type="button"
-        variant={isActive ? "default" : "outline"}
-        size="icon"
-        disabled={disabled}
-        aria-label={copy.toolsMenu}
-        aria-expanded={open}
-        aria-haspopup="menu"
-        title={copy.toolsMenu}
-        className="h-12 w-12 sm:h-11 sm:w-11"
-        onClick={() => setOpen((value) => !value)}
-      >
-        <Wrench className="h-4 w-4" />
-      </Button>
-
-      {open ? (
-        <div
-          role="menu"
-          className={cn(
-            "absolute bottom-full left-0 z-[60] mb-2 w-52",
-            "rounded-xl border bg-popover p-1.5 shadow-lg",
-          )}
-        >
+  const menuContent = open ? (
+    <div
+      ref={menuRef}
+      role="menu"
+      style={{
+        position: "fixed",
+        top: menuPosition.top,
+        left: menuPosition.left,
+        transform: "translateY(-100%)",
+      }}
+      className={cn(
+        "z-[80] w-52",
+        "rounded-xl border bg-popover p-1.5 shadow-lg",
+      )}
+    >
           <button
             type="button"
             role="menuitem"
@@ -173,8 +199,30 @@ export function ToolsMenu({
               {copy.webSearchUnavailable}
             </p>
           ) : null}
-        </div>
-      ) : null}
+    </div>
+  ) : null;
+
+  return (
+    <div className="relative z-30 shrink-0">
+      <Button
+        ref={anchorRef}
+        type="button"
+        variant={isActive ? "default" : "outline"}
+        size="icon"
+        disabled={disabled}
+        aria-label={copy.toolsMenu}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        title={copy.toolsMenu}
+        className="h-12 w-12 sm:h-11 sm:w-11"
+        onClick={() => setOpen((value) => !value)}
+      >
+        <Wrench className="h-4 w-4" />
+      </Button>
+
+      {typeof document !== "undefined" && menuContent
+        ? createPortal(menuContent, document.body)
+        : null}
     </div>
   );
 }
