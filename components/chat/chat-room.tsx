@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { flushSync } from "react-dom";
 
 import { ChatHeader } from "@/components/chat/header";
 import { MessageBubble } from "@/components/chat/message-bubble";
@@ -264,9 +265,15 @@ function ChatRoomContent() {
     lastWorksheetPromptRef.current = lastWorksheetPrompt;
   }, [lastWorksheetPrompt]);
 
+  const canPersistCurrentChatState = useCallback(() => {
+    if (!currentChat) return false;
+    if (activeChatIdRef.current === "__pending__") return false;
+    return activeChatIdRef.current === currentChat.id;
+  }, [currentChat]);
+
   useEffect(() => {
     if (!hydrated || isLoading || !currentChat) return;
-    if (activeChatIdRef.current !== currentChat.id) return;
+    if (!canPersistCurrentChatState()) return;
 
     persistCurrentChat({
       messages,
@@ -278,6 +285,7 @@ function ChatRoomContent() {
     hydrated,
     isLoading,
     messages,
+    canPersistCurrentChatState,
     persistCurrentChat,
     rightPanel,
     worksheetToolEnabled,
@@ -285,7 +293,7 @@ function ChatRoomContent() {
 
   useEffect(() => {
     if (!hydrated || !currentChat) return;
-    if (activeChatIdRef.current !== currentChat.id) return;
+    if (!canPersistCurrentChatState()) return;
 
     const worksheet = hasWorksheetWorkspaceContent(worksheetWorkspace)
       ? syncWorkspaceLegacyFields({
@@ -295,7 +303,13 @@ function ChatRoomContent() {
       : null;
 
     persistCurrentChat({ worksheet });
-  }, [currentChat, hydrated, persistCurrentChat, worksheetWorkspace]);
+  }, [
+    canPersistCurrentChatState,
+    currentChat,
+    hydrated,
+    persistCurrentChat,
+    worksheetWorkspace,
+  ]);
 
   useEffect(() => {
     const handleEscape = (event: globalThis.KeyboardEvent) => {
@@ -325,7 +339,6 @@ function ChatRoomContent() {
 
   const syncLocalStateFromChat = useCallback(
     (chat: ChatSession) => {
-      activeChatIdRef.current = chat.id;
       setMessages(chat.messages);
       setInput("");
       setError(null);
@@ -355,7 +368,10 @@ function ChatRoomContent() {
       const chat = sessions.find((session) => session.id === chatId);
       if (!chat) return;
 
-      syncLocalStateFromChat(chat);
+      activeChatIdRef.current = "__pending__";
+      flushSync(() => {
+        syncLocalStateFromChat(chat);
+      });
       switchChat(chatId);
       setMobileSidebarOpen(false);
     },
@@ -364,23 +380,25 @@ function ChatRoomContent() {
 
   const handleNewChat = useCallback(() => {
     activeChatIdRef.current = "__pending__";
-    setMessages([]);
-    setInput("");
-    setError(null);
-    setStreamingMessageId(null);
-    setIsLoading(false);
-    setEditingMessageId(null);
-    setRightPanel(null);
-    setWorksheetToolEnabled(false);
 
-    const emptyWorksheet = createEmptyWorksheetWorkspace(locale);
-    setWorksheetWorkspace(emptyWorksheet);
-    worksheetWorkspaceRef.current = emptyWorksheet;
-    setWorksheetErrorDetail(null);
-    setLastWorksheetPrompt("");
+    flushSync(() => {
+      setMessages([]);
+      setInput("");
+      setError(null);
+      setStreamingMessageId(null);
+      setIsLoading(false);
+      setEditingMessageId(null);
+      setRightPanel(null);
+      setWorksheetToolEnabled(false);
 
-    const newChatId = createChat();
-    activeChatIdRef.current = newChatId;
+      const emptyWorksheet = createEmptyWorksheetWorkspace(locale);
+      setWorksheetWorkspace(emptyWorksheet);
+      worksheetWorkspaceRef.current = emptyWorksheet;
+      setWorksheetErrorDetail(null);
+      setLastWorksheetPrompt("");
+    });
+
+    createChat();
     setMobileSidebarOpen(false);
   }, [createChat, locale]);
 

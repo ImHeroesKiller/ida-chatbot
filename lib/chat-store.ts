@@ -16,7 +16,6 @@ import { getOrCreateAnonymousUserId } from "@/lib/client/user-id";
 import { normalizeRightSidebarPanel } from "@/lib/chat-tools";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 import type { WorksheetDocument } from "@/lib/worksheet";
-import { createEmptyWorksheetWorkspace } from "@/lib/worksheet-workspace";
 import type { Locale } from "@/lib/config";
 import type { IdaMessage } from "@/lib/types";
 
@@ -53,8 +52,26 @@ function createId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function createEmptyWorksheet(locale: Locale): WorksheetDocument {
-  return createEmptyWorksheetWorkspace(locale);
+function createEmptyWorksheet(): WorksheetDocument {
+  return {
+    documents: [],
+    activeDocumentId: null,
+    title: "",
+    content: "",
+    updatedAt: Date.now(),
+  };
+}
+
+function cloneWorksheet(
+  worksheet: WorksheetDocument | null | undefined,
+): WorksheetDocument | null {
+  if (!worksheet) return null;
+
+  return {
+    ...worksheet,
+    documents: worksheet.documents?.map((document) => ({ ...document })) ?? [],
+    versions: worksheet.versions?.map((version) => ({ ...version })),
+  };
 }
 
 const GENERIC_CHAT_TITLES: Record<Locale, string> = {
@@ -240,7 +257,7 @@ export function createChatSession(locale: Locale): ChatSession {
     apiSessionId: createId("ida"),
     activeRightPanel: null,
     worksheetToolEnabled: false,
-    worksheet: createEmptyWorksheet(locale),
+    worksheet: createEmptyWorksheet(),
     pinned: false,
     createdAt: now,
     updatedAt: now,
@@ -603,7 +620,13 @@ export function useChatStore(locale: Locale) {
   }, []);
 
   const createChat = useCallback(() => {
-    const session = createChatSession(locale);
+    const session: ChatSession = {
+      ...createChatSession(locale),
+      messages: [],
+      activeRightPanel: null,
+      worksheetToolEnabled: false,
+      worksheet: createEmptyWorksheet(),
+    };
 
     setStore((prev) => ({
       currentChatId: session.id,
@@ -726,8 +749,8 @@ export function useChatStore(locale: Locale) {
               : Boolean(chat.worksheetToolEnabled),
           worksheet:
             patch.worksheet !== undefined
-              ? patch.worksheet
-              : chat.worksheet ?? null,
+              ? cloneWorksheet(patch.worksheet)
+              : cloneWorksheet(chat.worksheet),
           updatedAt: Date.now(),
         };
       });
