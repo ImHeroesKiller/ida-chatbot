@@ -55,6 +55,8 @@ const HandoffDialog = dynamic(
 );
 
 import { useChatContext } from "@/components/chat/chat-provider";
+import { getTool } from "@/components/chat/tools/registry";
+import { worksheetTool } from "@/components/chat/tools/worksheet/worksheet-tool";
 import {
   Sheet,
   SheetContent,
@@ -109,6 +111,12 @@ import { useWebSearchPrefs } from "@/lib/web-search-prefs";
 
 function createMessageId() {
   return `ida-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+const WORKSHEET_PANEL = worksheetTool.id as RightSidebarPanel;
+
+function isWorksheetToolAvailable(): boolean {
+  return getTool(worksheetTool.id)?.enabled ?? false;
 }
 
 function ChatRoomContent() {
@@ -243,8 +251,9 @@ function ChatRoomContent() {
       setEditingMessageId(null);
       setRightPanel(currentChat.activeRightPanel ?? null);
       setWorksheetToolEnabled(
-        currentChat.worksheetToolEnabled ??
-          currentChat.activeRightPanel === "worksheet",
+        isWorksheetToolAvailable() &&
+          (currentChat.worksheetToolEnabled ??
+            currentChat.activeRightPanel === WORKSHEET_PANEL),
       );
 
       const worksheet = normalizeWorksheetDocument(currentChat.worksheet, locale);
@@ -476,13 +485,13 @@ function ChatRoomContent() {
             setWorksheetWorkspace(next);
             setWorksheetErrorDetail(null);
             setWorksheetToolEnabled(true);
-            setRightPanel("worksheet");
+            setRightPanel(WORKSHEET_PANEL);
             toast.success(copy.worksheetCreated);
           }
 
           persistCurrentChat({
             worksheet: persisted,
-            activeRightPanel: "worksheet",
+            activeRightPanel: WORKSHEET_PANEL,
             worksheetToolEnabled: true,
           });
         };
@@ -503,12 +512,12 @@ function ChatRoomContent() {
             setWorksheetWorkspace(next);
             setWorksheetErrorDetail(null);
             setWorksheetToolEnabled(true);
-            setRightPanel("worksheet");
+            setRightPanel(WORKSHEET_PANEL);
           }
 
           persistCurrentChat({
             worksheet: persisted,
-            activeRightPanel: "worksheet",
+            activeRightPanel: WORKSHEET_PANEL,
             worksheetToolEnabled: true,
           });
         };
@@ -592,7 +601,7 @@ function ChatRoomContent() {
             setWorksheetWorkspace(next);
             setWorksheetErrorDetail(errorMessage);
             setWorksheetToolEnabled(true);
-            setRightPanel("worksheet");
+            setRightPanel(WORKSHEET_PANEL);
           }
         }
 
@@ -607,7 +616,7 @@ function ChatRoomContent() {
               ...next,
               updatedAt: Date.now(),
             }),
-            activeRightPanel: "worksheet",
+            activeRightPanel: WORKSHEET_PANEL,
             worksheetToolEnabled: true,
           });
         }
@@ -654,7 +663,7 @@ function ChatRoomContent() {
         setLastWorksheetPrompt(text);
       }
       if (worksheetAtSend) {
-        setRightPanel("worksheet");
+        setRightPanel(WORKSHEET_PANEL);
         setWorksheetWorkspace((prev) =>
           prev.error ? { ...prev, error: undefined } : prev,
         );
@@ -933,10 +942,12 @@ function ChatRoomContent() {
   }, [handleWorksheetRetry]);
 
   const handleWorksheetToolChange = useCallback((enabled: boolean) => {
+    if (!isWorksheetToolAvailable()) return;
+
     setWorksheetToolEnabled(enabled);
 
     if (!enabled) {
-      setRightPanel((panel) => (panel === "worksheet" ? null : panel));
+      setRightPanel((panel) => (panel === WORKSHEET_PANEL ? null : panel));
     }
   }, []);
 
@@ -1052,7 +1063,9 @@ function ChatRoomContent() {
               isLoading={isLoading}
               webSearchEnabled={webSearchEnabled}
               webSearchAvailable={webSearchAvailable}
-              worksheetEnabled={worksheetToolEnabled}
+              worksheetEnabled={
+                isWorksheetToolAvailable() && worksheetToolEnabled
+              }
               activeToolPanel={rightPanel}
               onWebSearchChange={setWebSearchEnabled}
               onWorksheetChange={handleWorksheetToolChange}
@@ -1068,7 +1081,9 @@ function ChatRoomContent() {
           <RightToolsRail
             locale={locale}
             activePanel={rightPanel}
-            worksheetEnabled={worksheetToolEnabled}
+            worksheetEnabled={
+              isWorksheetToolAvailable() && worksheetToolEnabled
+            }
             onSelectPanel={handleToggleToolPanel}
             className="relative z-10 hidden shrink-0 md:flex"
           />
