@@ -160,6 +160,44 @@ export function getWorksheetDocumentById(
   return workspace.documents?.find((doc) => doc.id === documentId) ?? null;
 }
 
+export function removeWorksheetDocument(
+  workspace: WorksheetDocument,
+  documentId: string,
+  locale: Locale,
+): WorksheetDocument {
+  const documents = (workspace.documents ?? []).filter(
+    (doc) => doc.id !== documentId,
+  );
+
+  if (documents.length === 0) {
+    return createEmptyWorksheetWorkspace(locale);
+  }
+
+  const wasActive = workspace.activeDocumentId === documentId;
+  const nextActiveId = wasActive ? null : workspace.activeDocumentId;
+
+  const next: WorksheetDocument = {
+    ...workspace,
+    documents,
+    activeDocumentId: nextActiveId,
+    error: wasActive ? undefined : workspace.error,
+    updatedAt: Date.now(),
+  };
+
+  if (wasActive) {
+    return {
+      ...next,
+      title: "",
+      content: "",
+      versions: undefined,
+      brandingSource: undefined,
+      letterheadTemplateId: undefined,
+    };
+  }
+
+  return syncWorkspaceLegacyFields(next);
+}
+
 export function setActiveWorksheetDocument(
   workspace: WorksheetDocument,
   documentId: string | null,

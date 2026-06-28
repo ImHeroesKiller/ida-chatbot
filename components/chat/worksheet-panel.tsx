@@ -68,6 +68,7 @@ import {
   getWorksheetLetterheadSelection,
   markWorksheetDocumentExported,
   recordWorksheetDocumentVersion,
+  removeWorksheetDocument,
   setActiveWorksheetDocument,
   setWorksheetLetterheadSelection,
   syncWorkspaceLegacyFields,
@@ -456,12 +457,45 @@ export function WorksheetPanel({
     [copy.worksheetTemplateOverwriteConfirm, hasContent, onApplyTemplate],
   );
 
-  const handleClear = useCallback(() => {
-    if (isEditing) return;
-    if (!hasContent && !error) return;
+  const handleDeleteDocument = useCallback(
+    (documentId: string) => {
+      if (isEditing) return;
+      if (!window.confirm(copy.worksheetDeleteDocumentConfirm)) return;
+
+      const next = removeWorksheetDocument(workspace, documentId, locale);
+
+      if (!(next.documents?.length)) {
+        onClear?.();
+        return;
+      }
+
+      commitWorkspace(next);
+
+      if (workspace.activeDocumentId === documentId) {
+        setIsFullViewOpen(false);
+        setDraftContent("");
+        setIsEditing(false);
+      }
+
+      toast.success(copy.worksheetDeleteDocumentSuccess);
+    },
+    [
+      commitWorkspace,
+      copy.worksheetDeleteDocumentConfirm,
+      copy.worksheetDeleteDocumentSuccess,
+      isEditing,
+      locale,
+      onClear,
+      workspace,
+    ],
+  );
+
+  const handleClearAll = useCallback(() => {
+    if (isGenerating) return;
+    if (documentCount === 0 && !error) return;
     if (!window.confirm(copy.worksheetClearConfirm)) return;
     onClear?.();
-  }, [copy.worksheetClearConfirm, error, hasContent, isEditing, onClear]);
+  }, [copy.worksheetClearConfirm, documentCount, error, isGenerating, onClear]);
 
   const handleFullViewContentChange = useCallback(
     (nextContent: string) => {
@@ -545,37 +579,41 @@ export function WorksheetPanel({
       });
     }
 
-    if (onClear) {
+    if (showEditor) {
       items.push({
-        id: "clear",
-        label: copy.worksheetClear,
+        id: "delete",
+        label: copy.worksheetDeleteDocument,
         icon: <Trash2 className="h-3.5 w-3.5" />,
-        disabled: isGenerating || (!hasContent && !error),
+        disabled: isGenerating || isEditing || !workspace.activeDocumentId,
         destructive: true,
-        onClick: handleClear,
+        onClick: () => {
+          const documentId = workspace.activeDocumentId;
+          if (documentId) handleDeleteDocument(documentId);
+        },
       });
     }
 
     return items;
   }, [
     canRegenerate,
-    copy.worksheetClear,
+    copy.worksheetDeleteDocument,
     copy.worksheetHistory,
     copy.worksheetPrintPreview,
     copy.worksheetRegenerate,
     copy.worksheetShare,
     copy.worksheetTemplates,
     error,
-    handleClear,
+    handleDeleteDocument,
     handleShare,
     hasContent,
     isEditing,
     isGenerating,
     isSharing,
     onApplyTemplate,
-    onClear,
     onRegenerate,
+    showEditor,
     versions.length,
+    workspace.activeDocumentId,
   ]);
 
   const downloadMenuItems = useMemo((): WorksheetOverflowMenuItem[] => {
@@ -810,6 +848,20 @@ export function WorksheetPanel({
             <BookmarkPlus className="h-4 w-4" />
           </Button>
         ) : null}
+        {!showEditor && documentCount > 0 && onClear ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={handleClearAll}
+            disabled={isGenerating}
+            aria-label={copy.worksheetClear}
+            title={copy.worksheetClear}
+            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        ) : null}
         {showEditor && !isEditing ? (
           <Button
             type="button"
@@ -821,6 +873,20 @@ export function WorksheetPanel({
             className="h-8 w-8 shrink-0"
           >
             <Palette className="h-4 w-4" />
+          </Button>
+        ) : null}
+        {showEditor && !isEditing && workspace.activeDocumentId ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => handleDeleteDocument(workspace.activeDocumentId!)}
+            disabled={isGenerating}
+            aria-label={copy.worksheetDeleteDocument}
+            title={copy.worksheetDeleteDocument}
+            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
           </Button>
         ) : null}
         {versions.length > 0 && !isEditing ? (
@@ -922,6 +988,7 @@ export function WorksheetPanel({
                 locale={locale}
                 workspace={workspace}
                 onSelectDocument={handleSelectDocument}
+                onDeleteDocument={handleDeleteDocument}
               />
               {!isGenerating && documentCount === 0 ? (
                 <div className="flex min-h-[14rem] flex-col items-center justify-center rounded-xl border border-dashed bg-background/60 px-4 py-10 text-center dark:bg-background/40">

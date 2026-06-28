@@ -137,6 +137,9 @@ export const COPY: Record<
     worksheetDocumentsTitle: string;
     worksheetDocumentsNoSummary: string;
     worksheetDocumentsBack: string;
+    worksheetDeleteDocument: string;
+    worksheetDeleteDocumentConfirm: string;
+    worksheetDeleteDocumentSuccess: string;
     worksheetSaveTemplate: string;
     worksheetSaveTemplateTitle: string;
     worksheetSaveTemplateDescription: string;
@@ -455,6 +458,10 @@ export const COPY: Record<
     worksheetDocumentsTitle: "Dokumen tersimpan",
     worksheetDocumentsNoSummary: "Tanpa ringkasan",
     worksheetDocumentsBack: "Kembali ke daftar",
+    worksheetDeleteDocument: "Hapus dokumen ini",
+    worksheetDeleteDocumentConfirm:
+      "Hapus dokumen ini dari daftar? Tindakan ini tidak dapat dibatalkan.",
+    worksheetDeleteDocumentSuccess: "Dokumen dihapus",
     worksheetSaveTemplate: "Simpan sebagai template",
     worksheetSaveTemplateTitle: "Simpan sebagai template",
     worksheetSaveTemplateDescription:
@@ -481,8 +488,9 @@ export const COPY: Record<
       "Gagal membuat dokumen. Periksa koneksi lalu coba lagi.",
     worksheetRetry: "Coba lagi",
     worksheetRegenerate: "Buat ulang",
-    worksheetClear: "Hapus dokumen",
-    worksheetClearConfirm: "Hapus dokumen Worksheet? Konten saat ini akan dihilangkan.",
+    worksheetClear: "Hapus semua dokumen",
+    worksheetClearConfirm:
+      "Hapus semua dokumen Worksheet? Tindakan ini tidak dapat dibatalkan.",
     worksheetOverwriteTitle: "Ganti dokumen?",
     worksheetOverwriteDescription:
       "Worksheet sudah berisi dokumen. Permintaan baru akan menimpa konten yang ada.",
@@ -796,6 +804,10 @@ export const COPY: Record<
     worksheetDocumentsTitle: "Saved documents",
     worksheetDocumentsNoSummary: "No summary",
     worksheetDocumentsBack: "Back to list",
+    worksheetDeleteDocument: "Delete this document",
+    worksheetDeleteDocumentConfirm:
+      "Delete this document from the list? This cannot be undone.",
+    worksheetDeleteDocumentSuccess: "Document deleted",
     worksheetSaveTemplate: "Save as template",
     worksheetSaveTemplateTitle: "Save as template",
     worksheetSaveTemplateDescription:
@@ -822,8 +834,9 @@ export const COPY: Record<
       "Failed to generate the document. Check your connection and try again.",
     worksheetRetry: "Retry",
     worksheetRegenerate: "Regenerate",
-    worksheetClear: "Clear document",
-    worksheetClearConfirm: "Clear the Worksheet document? Current content will be removed.",
+    worksheetClear: "Clear all documents",
+    worksheetClearConfirm:
+      "Clear all Worksheet documents? This cannot be undone.",
     worksheetOverwriteTitle: "Replace document?",
     worksheetOverwriteDescription:
       "The Worksheet already has a document. A new request will overwrite the existing content.",
@@ -1138,6 +1151,9 @@ export const COPY: Record<
     worksheetDocumentsTitle: "已保存文档",
     worksheetDocumentsNoSummary: "无摘要",
     worksheetDocumentsBack: "返回列表",
+    worksheetDeleteDocument: "删除此文档",
+    worksheetDeleteDocumentConfirm: "从列表中删除此文档？此操作无法撤销。",
+    worksheetDeleteDocumentSuccess: "文档已删除",
     worksheetSaveTemplate: "保存为模板",
     worksheetSaveTemplateTitle: "保存为模板",
     worksheetSaveTemplateDescription: "将此文档的品牌样式和结构保存为公司信笺模板。",
@@ -1160,8 +1176,8 @@ export const COPY: Record<
     worksheetErrorGenerateFailed: "生成文档失败。请检查网络后重试。",
     worksheetRetry: "重试",
     worksheetRegenerate: "重新生成",
-    worksheetClear: "清除文档",
-    worksheetClearConfirm: "清除 Worksheet 文档？当前内容将被删除。",
+    worksheetClear: "清除所有文档",
+    worksheetClearConfirm: "清除所有 Worksheet 文档？此操作无法撤销。",
     worksheetOverwriteTitle: "替换文档？",
     worksheetOverwriteDescription:
       "Worksheet 已有文档。新请求将覆盖现有内容。",
