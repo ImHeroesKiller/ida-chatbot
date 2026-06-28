@@ -58,6 +58,7 @@ export async function POST(request: Request) {
   const parsed = chatRequestSchema.safeParse(body);
 
   if (!parsed.success) {
+    console.warn("[IDA chat] Invalid payload", parsed.error.flatten());
     return NextResponse.json<IdaChatErrorResponse>(
       { error: "Invalid chat payload." },
       { status: 400 },
@@ -264,7 +265,7 @@ export async function POST(request: Request) {
         });
 
         const fallbackContext = await prepareIdaChatContext(
-          { messages, locale, sessionId, userId, webSearch },
+          { messages, locale, sessionId, userId, webSearch, worksheet },
           { model: fallback },
         );
 

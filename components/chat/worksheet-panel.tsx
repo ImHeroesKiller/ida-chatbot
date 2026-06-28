@@ -70,6 +70,7 @@ interface WorksheetPanelProps {
   title: string;
   content: string;
   error?: WorksheetErrorCode | null;
+  errorDetail?: string | null;
   isGenerating?: boolean;
   canRegenerate?: boolean;
   onTitleChange: (title: string) => void;
@@ -91,6 +92,7 @@ export function WorksheetPanel({
   title,
   content,
   error = null,
+  errorDetail = null,
   isGenerating = false,
   canRegenerate = false,
   onTitleChange,
@@ -712,13 +714,19 @@ export function WorksheetPanel({
               <p className="text-xs leading-relaxed text-destructive">
                 {errorMessage}
               </p>
-              {onRetry ? (
+              {errorDetail ? (
+                <p className="text-[11px] leading-relaxed text-destructive/80">
+                  {errorDetail}
+                </p>
+              ) : null}
+              {onRetry && canRegenerate ? (
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   className="h-7 gap-1.5 text-xs"
                   onClick={onRetry}
+                  disabled={isGenerating}
                 >
                   <RefreshCw className="h-3 w-3" />
                   {copy.worksheetRetry}

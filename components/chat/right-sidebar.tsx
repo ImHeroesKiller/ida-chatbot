@@ -18,6 +18,7 @@ interface RightSidebarProps {
   worksheetTitle: string;
   worksheetContent: string;
   worksheetError?: WorksheetErrorCode | null;
+  worksheetErrorDetail?: string | null;
   worksheetGenerating?: boolean;
   worksheetCanRegenerate?: boolean;
   onWorksheetTitleChange: (title: string) => void;
@@ -46,6 +47,7 @@ export function RightSidebar({
   worksheetTitle,
   worksheetContent,
   worksheetError = null,
+  worksheetErrorDetail = null,
   worksheetGenerating = false,
   worksheetCanRegenerate = false,
   onWorksheetTitleChange,
@@ -70,6 +72,7 @@ export function RightSidebar({
         title={worksheetTitle}
         content={worksheetContent}
         error={worksheetError}
+        errorDetail={worksheetErrorDetail}
         isGenerating={worksheetGenerating}
         canRegenerate={worksheetCanRegenerate}
         onTitleChange={onWorksheetTitleChange}

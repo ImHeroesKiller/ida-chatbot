@@ -5,7 +5,6 @@ import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-import { LCP_LOGO_PATH } from "@/components/landing/landing-lcp-logo";
 import { WebVitalsReporter } from "@/components/performance/web-vitals-reporter";
 import { PreconnectLinks } from "@/components/performance/preconnect-links";
 import { StructuredData } from "@/components/seo/structured-data";
@@ -147,13 +146,6 @@ export default function RootLayout({
       <head>
         <PreconnectLinks />
         <StructuredData />
-        <link
-          rel="preload"
-          href={LCP_LOGO_PATH}
-          as="image"
-          type="image/webp"
-          fetchPriority="high"
-        />
         <script dangerouslySetInnerHTML={{ __html: uiInitScript }} />
       </head>
       <body className="min-h-dvh bg-background font-sans text-foreground">

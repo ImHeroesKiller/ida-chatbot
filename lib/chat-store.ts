@@ -8,6 +8,7 @@ import {
   initializeRemoteChatStore,
   persistRemoteChatStore,
 } from "@/lib/client/sync-sessions";
+import { ensureApiSessionId } from "@/lib/client/chat-api-payload";
 import { getOrCreateAnonymousUserId } from "@/lib/client/user-id";
 import { normalizeRightSidebarPanel } from "@/lib/chat-tools";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
@@ -257,6 +258,7 @@ function normalizeSession(
   return {
     ...rest,
     messages: stripWelcomeMessages(session.messages),
+    apiSessionId: ensureApiSessionId(rest.apiSessionId),
     activeRightPanel: panel,
     worksheet: rest.worksheet ?? null,
     pinned: Boolean(session.pinned),

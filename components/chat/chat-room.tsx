@@ -59,6 +59,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { buildChatApiRequestBody } from "@/lib/client/chat-api-payload";
 import { consumeIdaSseStream } from "@/lib/client/parse-sse";
 import { useIsMobileViewport } from "@/lib/client/use-media-query";
 import { useAppFeatures } from "@/lib/client/use-app-features";
@@ -94,12 +95,6 @@ import { useWebSearchPrefs } from "@/lib/web-search-prefs";
 
 function createMessageId() {
   return `ida-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
-function toApiMessages(messages: IdaMessage[]) {
-  return messages
-    .filter((message) => message.id !== WELCOME_MESSAGE_ID)
-    .map(({ role, content }) => ({ role, content }));
 }
 
 function ChatRoomContent() {
@@ -158,6 +153,9 @@ function ChatRoomContent() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeChatIdRef = useRef<string | null>(null);
   const [lastWorksheetPrompt, setLastWorksheetPrompt] = useState("");
+  const [worksheetErrorDetail, setWorksheetErrorDetail] = useState<
+    string | null
+  >(null);
   const pendingSendRef = useRef<{
     rawText: string;
     options?: {
@@ -351,17 +349,19 @@ function ChatRoomContent() {
       let finalMessages = [...contextMessages, streamingPlaceholder];
 
       try {
+        const requestBody = buildChatApiRequestBody({
+          locale,
+          sessionId: apiSessionId,
+          userId: apiUserId,
+          messages: contextMessages,
+          webSearch: useWebSearch,
+          worksheet: useWorksheet,
+        });
+
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            locale,
-            sessionId: apiSessionId,
-            ...(apiUserId ? { userId: apiUserId } : {}),
-            ...(useWebSearch ? { webSearch: true } : {}),
-            ...(useWorksheet ? { worksheet: true } : {}),
-            messages: toApiMessages(contextMessages),
-          }),
+          body: JSON.stringify(requestBody),
         });
 
         if (!response.ok) {
@@ -423,6 +423,7 @@ function ChatRoomContent() {
             setWorksheetTitle(worksheet.title);
             setWorksheetContent(worksheet.content);
             setWorksheetError(null);
+            setWorksheetErrorDetail(null);
             setWorksheetVersions(versions);
             setRightPanel("worksheet");
             toast.success(copy.worksheetCreated);
@@ -439,6 +440,7 @@ function ChatRoomContent() {
 
           if (activeChatIdRef.current === chatIdAtSend) {
             setWorksheetError(code);
+            setWorksheetErrorDetail(null);
             setRightPanel("worksheet");
           }
 
@@ -516,6 +518,9 @@ function ChatRoomContent() {
           speak(streamId, assistantReply.content);
         }
       } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : copy.errors.generic;
+
         if (activeChatIdRef.current === chatIdAtSend) {
           setMessages((prev) =>
             prev.filter((message) => message.id !== streamId),
@@ -523,6 +528,7 @@ function ChatRoomContent() {
 
           if (useWorksheet) {
             setWorksheetError("generate_failed");
+            setWorksheetErrorDetail(errorMessage);
             setRightPanel("worksheet");
           }
         }
@@ -540,9 +546,7 @@ function ChatRoomContent() {
           });
         }
 
-        const message =
-          err instanceof Error ? err.message : copy.errors.generic;
-        setError(message);
+        setError(errorMessage);
         throw err;
       }
     },
@@ -587,6 +591,7 @@ function ChatRoomContent() {
       }
       if (worksheetAtSend) {
         setWorksheetError(null);
+        setWorksheetErrorDetail(null);
       }
 
       const userMessage: IdaMessage = {
@@ -928,6 +933,7 @@ function ChatRoomContent() {
     setWorksheetTitle(empty.title);
     setWorksheetContent("");
     setWorksheetError(null);
+    setWorksheetErrorDetail(null);
     setWorksheetVersions([]);
     setLastWorksheetPrompt("");
     persistCurrentChat({ worksheet: null });
@@ -1083,6 +1089,7 @@ function ChatRoomContent() {
               worksheetTitle={worksheetTitle}
               worksheetContent={worksheetContent}
               worksheetError={worksheetError}
+              worksheetErrorDetail={worksheetErrorDetail}
               worksheetGenerating={isLoading && rightPanel === "worksheet"}
               worksheetCanRegenerate={Boolean(lastWorksheetPrompt.trim())}
               onWorksheetTitleChange={handleWorksheetTitleChange}
@@ -1121,6 +1128,7 @@ function ChatRoomContent() {
               worksheetTitle={worksheetTitle}
               worksheetContent={worksheetContent}
               worksheetError={worksheetError}
+              worksheetErrorDetail={worksheetErrorDetail}
               worksheetGenerating={isLoading && rightPanel === "worksheet"}
               worksheetCanRegenerate={Boolean(lastWorksheetPrompt.trim())}
               onWorksheetTitleChange={handleWorksheetTitleChange}
