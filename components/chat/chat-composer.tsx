@@ -19,6 +19,7 @@ import { VoiceWaveform } from "@/components/chat/voice-waveform";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { buildAttachmentMessageContent } from "@/lib/client/build-attachment-message";
+import { FOCUS_CHAT_COMPOSER_EVENT } from "@/lib/client/focus-chat-composer";
 import {
   VisionExtractError,
   extractVisionFromFile,
@@ -360,6 +361,17 @@ export function ChatComposer({
       textareaRef.current?.focus();
     }
   }, [isLoading, isTranscribing]);
+
+  useEffect(() => {
+    const handleFocusRequest = () => {
+      window.setTimeout(() => textareaRef.current?.focus(), 50);
+    };
+
+    window.addEventListener(FOCUS_CHAT_COMPOSER_EVENT, handleFocusRequest);
+    return () => {
+      window.removeEventListener(FOCUS_CHAT_COMPOSER_EVENT, handleFocusRequest);
+    };
+  }, []);
 
   return (
     <form

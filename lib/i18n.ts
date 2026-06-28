@@ -158,7 +158,10 @@ export const COPY: Record<
     worksheetDocumentsFilterActive: string;
     worksheetDocumentsNoResults: string;
     worksheetDocumentsNoResultsHint: string;
+    worksheetDocumentsResetFilters: string;
     worksheetEmptyStepsTitle: string;
+    worksheetEmptyCreateFirst: string;
+    worksheetEmptyUseTemplate: string;
     worksheetDeleteDocument: string;
     worksheetDeleteDocumentConfirm: string;
     worksheetDeleteDocumentSuccess: string;
@@ -511,10 +514,14 @@ export const COPY: Record<
     worksheetDocumentsFilterTimeMonth: "Bulan ini",
     worksheetDocumentsFilterResults: "Menampilkan {shown} dari {total} dokumen",
     worksheetDocumentsFilterActive: "filter aktif",
-    worksheetDocumentsNoResults: "Tidak ada dokumen yang cocok",
+    worksheetDocumentsNoResults:
+      "Tidak ada dokumen yang cocok dengan pencarian atau filter kamu.",
     worksheetDocumentsNoResultsHint:
-      "Coba ubah kata kunci pencarian atau reset filter status/waktu.",
+      "Coba kata kunci lain atau reset filter untuk melihat semua dokumen.",
+    worksheetDocumentsResetFilters: "Reset Filter",
     worksheetEmptyStepsTitle: "Cara memulai",
+    worksheetEmptyCreateFirst: "Buat Dokumen Pertama",
+    worksheetEmptyUseTemplate: "Gunakan Template",
     worksheetDeleteDocument: "Hapus dokumen ini",
     worksheetDeleteDocumentConfirm:
       "Hapus dokumen ini dari daftar? Tindakan ini tidak dapat dibatalkan.",
@@ -568,7 +575,7 @@ export const COPY: Record<
       "Worksheet sudah berisi dokumen. Permintaan baru akan menimpa konten yang ada.",
     worksheetOverwriteConfirm: "Ganti dokumen",
     worksheetEmptySteps:
-      "1. Ketik permintaan di chat (mis. \"Buat proposal PLTS\")\n2. IDA membuat dokumen di panel ini\n3. Klik Edit untuk mengubah, lalu Save\n4. Unduh .md atau Export PDF",
+      "1. Aktifkan Worksheet di menu Tools, lalu ketik permintaan di chat\n2. IDA membuat dokumen dan menampilkannya di panel ini\n3. Edit, simpan, lalu ekspor ke PDF atau DOCX",
     worksheetEmptyEditHint:
       "Tip: Setelah dokumen dibuat, gunakan tombol Edit untuk menyempurnakan isi sebelum diunduh.",
     worksheetEdit: "Edit",
@@ -895,10 +902,14 @@ export const COPY: Record<
     worksheetDocumentsFilterTimeMonth: "This month",
     worksheetDocumentsFilterResults: "Showing {shown} of {total} documents",
     worksheetDocumentsFilterActive: "filters active",
-    worksheetDocumentsNoResults: "No matching documents",
+    worksheetDocumentsNoResults:
+      "No documents match your search or filters.",
     worksheetDocumentsNoResultsHint:
-      "Try a different search term or reset the status/time filters.",
+      "Try a different keyword or reset filters to see all documents.",
+    worksheetDocumentsResetFilters: "Reset Filters",
     worksheetEmptyStepsTitle: "Getting started",
+    worksheetEmptyCreateFirst: "Create First Document",
+    worksheetEmptyUseTemplate: "Use Template",
     worksheetDeleteDocument: "Delete this document",
     worksheetDeleteDocumentConfirm:
       "Delete this document from the list? This cannot be undone.",
@@ -952,7 +963,7 @@ export const COPY: Record<
       "The Worksheet already has a document. A new request will overwrite the existing content.",
     worksheetOverwriteConfirm: "Replace document",
     worksheetEmptySteps:
-      "1. Type a request in chat (e.g. \"Create a solar proposal\")\n2. IDA generates the document in this panel\n3. Click Edit to refine, then Save\n4. Download .md or Export PDF",
+      "1. Enable Worksheet in Tools, then type your request in chat\n2. IDA creates the document and shows it in this panel\n3. Edit, save, then export to PDF or DOCX",
     worksheetEmptyEditHint:
       "Tip: After the document is created, use Edit to refine the content before downloading.",
     worksheetEdit: "Edit",
@@ -1280,9 +1291,12 @@ export const COPY: Record<
     worksheetDocumentsFilterTimeMonth: "本月",
     worksheetDocumentsFilterResults: "显示 {shown} / {total} 个文档",
     worksheetDocumentsFilterActive: "筛选已启用",
-    worksheetDocumentsNoResults: "没有匹配的文档",
-    worksheetDocumentsNoResultsHint: "请尝试其他搜索词或重置状态/时间筛选。",
+    worksheetDocumentsNoResults: "没有符合搜索或筛选条件的文档。",
+    worksheetDocumentsNoResultsHint: "请尝试其他关键词或重置筛选以查看全部文档。",
+    worksheetDocumentsResetFilters: "重置筛选",
     worksheetEmptyStepsTitle: "开始使用",
+    worksheetEmptyCreateFirst: "创建第一份文档",
+    worksheetEmptyUseTemplate: "使用模板",
     worksheetDeleteDocument: "删除此文档",
     worksheetDeleteDocumentConfirm: "从列表中删除此文档？此操作无法撤销。",
     worksheetDeleteDocumentSuccess: "文档已删除",
@@ -1329,7 +1343,7 @@ export const COPY: Record<
       "Worksheet 已有文档。新请求将覆盖现有内容。",
     worksheetOverwriteConfirm: "替换文档",
     worksheetEmptySteps:
-      "1. 在聊天中输入请求（如「创建光伏提案」）\n2. IDA 在此面板生成文档\n3. 点击编辑修改后保存\n4. 下载 .md 或导出 PDF",
+      "1. 在工具菜单中启用 Worksheet，然后在聊天中输入请求\n2. IDA 会在此面板生成文档\n3. 编辑、保存后导出为 PDF 或 DOCX",
     worksheetEmptyEditHint:
       "提示：文档生成后，可先点击编辑完善内容再下载。",
     worksheetEdit: "编辑",

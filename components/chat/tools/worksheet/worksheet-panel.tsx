@@ -28,6 +28,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import { MarkdownContent } from "@/components/chat/markdown-content";
+import { requestChatComposerFocus } from "@/lib/client/focus-chat-composer";
 import { WorksheetBrandingDialog } from "@/components/chat/worksheet-branding-dialog";
 import { WorksheetDocumentCards } from "@/components/chat/tools/worksheet/worksheet-document-cards";
 import { WorksheetDocumentsEmptyState } from "@/components/chat/tools/worksheet/worksheet-documents-empty-state";
@@ -1052,6 +1053,10 @@ export function WorksheetPanel({
                   locale={locale}
                   variant="no-results"
                   className="mt-3"
+                  onResetFilters={() => {
+                    setDocumentSearch("");
+                    setDocumentFilters(DEFAULT_WORKSHEET_DOCUMENT_FILTERS);
+                  }}
                 />
               ) : null}
 
@@ -1059,6 +1064,10 @@ export function WorksheetPanel({
                 <WorksheetDocumentsEmptyState
                   locale={locale}
                   variant="no-documents"
+                  onCreateFirstDocument={() => {
+                    requestChatComposerFocus();
+                    if (embedded) onClose();
+                  }}
                   onApplyTemplate={
                     onApplyTemplate
                       ? () => setTemplateDialogOpen(true)
