@@ -55,9 +55,8 @@ const HandoffDialog = dynamic(
 );
 
 import { useChatContext } from "@/components/chat/chat-provider";
-import { getTool } from "@/components/chat/tools/registry";
-import { worksheetTool } from "@/components/chat/tools/worksheet/worksheet-tool";
-import { useWorksheet } from "@/components/chat/tools/worksheet/use-worksheet";
+import { getTool } from "@/components/chat/tools";
+import { useWorksheet, worksheetTool } from "@/components/chat/tools/worksheet";
 import {
   Sheet,
   SheetContent,

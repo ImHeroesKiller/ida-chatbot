@@ -2,7 +2,7 @@
 
 import { Map, PanelRightClose, Search, FileText } from "lucide-react";
 
-import { WorksheetPanel } from "@/components/chat/tools/worksheet/worksheet-panel";
+import { WorksheetPanel } from "@/components/chat/tools/worksheet";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";

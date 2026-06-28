@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  FileText,
-  Globe,
-  Map,
-  Search,
-  Wrench,
-  type LucideIcon,
-} from "lucide-react";
+import { Wrench } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -18,7 +11,12 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-import { getAllTools, isToolEnabled } from "@/components/chat/tools/registry";
+import {
+  getAllTools,
+  isToolEnabled,
+  TOOL_DISPLAY_ORDER,
+  TOOL_UI_CONFIG,
+} from "@/components/chat/tools";
 import type { ToolId } from "@/components/chat/tools/types";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/config";
@@ -37,51 +35,6 @@ interface ToolsMenuProps {
   onWorksheetChange: (enabled: boolean) => void;
   onOpenPanel: (panel: RightSidebarPanel) => void;
 }
-
-type ToolLabelKey =
-  | "toolsWebSearch"
-  | "toolsMap"
-  | "toolsResearch"
-  | "toolsWorksheet";
-
-type ToolMenuConfig = {
-  icon: LucideIcon;
-  labelKey: ToolLabelKey;
-  kind: "toggle-web-search" | "toggle-worksheet" | "open-panel";
-  panel?: RightSidebarPanel;
-};
-
-const TOOL_DISPLAY_ORDER: ToolId[] = [
-  "web-search",
-  "map",
-  "research",
-  "worksheet",
-];
-
-const TOOL_MENU_CONFIG: Record<ToolId, ToolMenuConfig> = {
-  "web-search": {
-    icon: Globe,
-    labelKey: "toolsWebSearch",
-    kind: "toggle-web-search",
-  },
-  worksheet: {
-    icon: FileText,
-    labelKey: "toolsWorksheet",
-    kind: "toggle-worksheet",
-  },
-  map: {
-    icon: Map,
-    labelKey: "toolsMap",
-    kind: "open-panel",
-    panel: "map",
-  },
-  research: {
-    icon: Search,
-    labelKey: "toolsResearch",
-    kind: "open-panel",
-    panel: "research",
-  },
-};
 
 export function ToolsMenu({
   locale,
@@ -134,7 +87,7 @@ export function ToolsMenu({
 
   const activeToolLabels = tools
     .filter((tool) => isToolActive(tool.id))
-    .map((tool) => copy[TOOL_MENU_CONFIG[tool.id].labelKey]);
+    .map((tool) => copy[TOOL_UI_CONFIG[tool.id].labelKey]);
 
   const buttonTitle =
     activeToolLabels.length > 0
@@ -193,7 +146,7 @@ export function ToolsMenu({
   }, [open]);
 
   const handleToolClick = (toolId: ToolId) => {
-    const config = TOOL_MENU_CONFIG[toolId];
+    const config = TOOL_UI_CONFIG[toolId];
 
     switch (config.kind) {
       case "toggle-web-search":
@@ -229,7 +182,7 @@ export function ToolsMenu({
       )}
     >
       {tools.map((tool) => {
-        const config = TOOL_MENU_CONFIG[tool.id];
+        const config = TOOL_UI_CONFIG[tool.id];
         const Icon = config.icon;
         const active = isToolActive(tool.id);
         const isToggle =

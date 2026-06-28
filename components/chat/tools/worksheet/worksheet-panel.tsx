@@ -29,11 +29,11 @@ import toast from "react-hot-toast";
 
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { WorksheetBrandingDialog } from "@/components/chat/worksheet-branding-dialog";
-import { WorksheetDocumentCards } from "@/components/chat/worksheet-document-cards";
-import { WorksheetDocumentsEmptyState } from "@/components/chat/worksheet-documents-empty-state";
-import { WorksheetDocumentsToolbar } from "@/components/chat/worksheet-documents-toolbar";
-import { WorksheetFullView } from "@/components/chat/worksheet-full-view";
-import { WorksheetSaveTemplateDialog } from "@/components/chat/worksheet-save-template-dialog";
+import { WorksheetDocumentCards } from "@/components/chat/tools/worksheet/worksheet-document-cards";
+import { WorksheetDocumentsEmptyState } from "@/components/chat/tools/worksheet/worksheet-documents-empty-state";
+import { WorksheetDocumentsToolbar } from "@/components/chat/tools/worksheet/worksheet-documents-toolbar";
+import { WorksheetFullView } from "@/components/chat/tools/worksheet/worksheet-full-view";
+import { WorksheetSaveTemplateDialog } from "@/components/chat/tools/worksheet/worksheet-save-template-dialog";
 import {
   WorksheetSplitEditor,
   type WorksheetEditLayout,

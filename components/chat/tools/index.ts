@@ -4,5 +4,8 @@ export * from "./types";
 // Export registry
 export * from "./registry";
 
-// Export individual tools
-export * from "./worksheet/worksheet-tool";
+// Export shared UI config
+export * from "./tool-ui-config";
+
+// Export worksheet module
+export * from "./worksheet";

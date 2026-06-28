@@ -1,7 +1,14 @@
 "use client";
 
-import { FileText, Map, Search } from "lucide-react";
+import { useMemo } from "react";
 
+import {
+  getAllTools,
+  isToolEnabled,
+  TOOL_DISPLAY_ORDER,
+  TOOL_UI_CONFIG,
+} from "@/components/chat/tools";
+import { worksheetTool } from "@/components/chat/tools/worksheet/worksheet-tool";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/config";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
@@ -16,16 +23,6 @@ interface RightToolsRailProps {
   className?: string;
 }
 
-const TOOL_ITEMS: {
-  id: RightSidebarPanel;
-  icon: typeof FileText;
-  labelKey: "toolsWorksheet" | "toolsMap" | "toolsResearch";
-}[] = [
-  { id: "worksheet", icon: FileText, labelKey: "toolsWorksheet" },
-  { id: "map", icon: Map, labelKey: "toolsMap" },
-  { id: "research", icon: Search, labelKey: "toolsResearch" },
-];
-
 export function RightToolsRail({
   locale,
   activePanel,
@@ -35,6 +32,21 @@ export function RightToolsRail({
 }: RightToolsRailProps) {
   const copy = COPY[locale];
 
+  const railTools = useMemo(
+    () =>
+      getAllTools()
+        .filter(
+          (tool) =>
+            isToolEnabled(tool.id) && TOOL_UI_CONFIG[tool.id].railPanel,
+        )
+        .sort(
+          (a, b) =>
+            TOOL_DISPLAY_ORDER.indexOf(a.id) -
+            TOOL_DISPLAY_ORDER.indexOf(b.id),
+        ),
+    [],
+  );
+
   return (
     <aside
       className={cn(
@@ -43,15 +55,17 @@ export function RightToolsRail({
       )}
       aria-label={copy.toolsMenu}
     >
-      {TOOL_ITEMS.map((item) => {
-        const Icon = item.icon;
-        const isExpanded = activePanel === item.id;
+      {railTools.map((tool) => {
+        const config = TOOL_UI_CONFIG[tool.id];
+        const panel = config.railPanel!;
+        const Icon = config.icon;
+        const isExpanded = activePanel === panel;
         const isWorksheetArmed =
-          item.id === "worksheet" && worksheetEnabled && !isExpanded;
+          tool.id === worksheetTool.id && worksheetEnabled && !isExpanded;
 
         return (
           <Button
-            key={item.id}
+            key={tool.id}
             type="button"
             variant={isExpanded ? "default" : "ghost"}
             size="icon"
@@ -59,10 +73,10 @@ export function RightToolsRail({
               "relative h-11 w-11",
               isExpanded && "shadow-sm",
             )}
-            aria-label={copy[item.labelKey]}
+            aria-label={copy[config.labelKey]}
             aria-pressed={isExpanded}
-            title={copy[item.labelKey]}
-            onClick={() => onSelectPanel(item.id)}
+            title={copy[config.labelKey]}
+            onClick={() => onSelectPanel(panel)}
           >
             <Icon className="h-4 w-4" />
             {isWorksheetArmed ? (
