@@ -12,6 +12,7 @@ import {
   LayoutTemplate,
   Link2,
   Loader2,
+  Maximize2,
   Palette,
   PanelRightClose,
   Pencil,
@@ -26,6 +27,7 @@ import toast from "react-hot-toast";
 
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { WorksheetBrandingDialog } from "@/components/chat/worksheet-branding-dialog";
+import { WorksheetFullView } from "@/components/chat/worksheet-full-view";
 import {
   WorksheetSplitEditor,
   type WorksheetEditLayout,
@@ -72,6 +74,7 @@ interface WorksheetPanelProps {
   canRegenerate?: boolean;
   onTitleChange: (title: string) => void;
   onContentSave?: (content: string) => void;
+  onContentChange?: (content: string) => void;
   versions?: WorksheetVersion[];
   onRestoreVersion?: (versionId: string) => void;
   onApplyTemplate?: (template: WorksheetTemplate) => void;
@@ -92,6 +95,7 @@ export function WorksheetPanel({
   canRegenerate = false,
   onTitleChange,
   onContentSave,
+  onContentChange,
   versions = [],
   onRestoreVersion,
   onApplyTemplate,
@@ -116,6 +120,7 @@ export function WorksheetPanel({
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
   const [brandingDialogOpen, setBrandingDialogOpen] = useState(false);
+  const [isFullViewOpen, setIsFullViewOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const pendingTemplateEditRef = useRef(false);
 
@@ -337,8 +342,52 @@ export function WorksheetPanel({
     onClear?.();
   }, [copy.worksheetClearConfirm, error, hasContent, isEditing, onClear]);
 
+  const handleFullViewContentChange = useCallback(
+    (nextContent: string) => {
+      if (onContentChange) {
+        onContentChange(nextContent);
+        return;
+      }
+      onContentSave?.(nextContent);
+    },
+    [onContentChange, onContentSave],
+  );
+
+  const handleOpenFullView = useCallback(() => {
+    if (!hasContent || isGenerating) return;
+
+    if (isEditing) {
+      if (hasUnsavedChanges && !window.confirm(copy.worksheetDiscardChanges)) {
+        return;
+      }
+      setDraftContent(content);
+      setIsEditing(false);
+    }
+
+    setIsFullViewOpen(true);
+  }, [
+    content,
+    copy.worksheetDiscardChanges,
+    hasContent,
+    hasUnsavedChanges,
+    isEditing,
+    isGenerating,
+  ]);
+
   const overflowMenuItems = useMemo((): WorksheetOverflowMenuItem[] => {
     const items: WorksheetOverflowMenuItem[] = [];
+
+    items.push({
+      id: "share",
+      label: copy.worksheetShare,
+      icon: isSharing ? (
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      ) : (
+        <Link2 className="h-3.5 w-3.5" />
+      ),
+      disabled: !hasContent || isGenerating || isEditing || isSharing,
+      onClick: () => void handleShare(),
+    });
 
     if (onApplyTemplate) {
       items.push({
@@ -396,12 +445,15 @@ export function WorksheetPanel({
     copy.worksheetHistory,
     copy.worksheetPrintPreview,
     copy.worksheetRegenerate,
+    copy.worksheetShare,
     copy.worksheetTemplates,
     error,
     handleClear,
+    handleShare,
     hasContent,
     isEditing,
     isGenerating,
+    isSharing,
     onApplyTemplate,
     onClear,
     onRegenerate,
@@ -482,6 +534,14 @@ export function WorksheetPanel({
           <Pencil className="h-4 w-4" />
         </WorksheetIconAction>
         <WorksheetIconAction
+          label={copy.worksheetFullView}
+          disabled={!hasContent || isGenerating}
+          active={isFullViewOpen}
+          onClick={handleOpenFullView}
+        >
+          <Maximize2 className="h-4 w-4" />
+        </WorksheetIconAction>
+        <WorksheetIconAction
           label={copied ? copy.worksheetCopied : copy.worksheetCopy}
           disabled={!hasContent || isGenerating}
           active={copied}
@@ -504,17 +564,6 @@ export function WorksheetPanel({
             <Download className="h-4 w-4" />
           )}
         </WorksheetIconMenu>
-        <WorksheetIconAction
-          label={copy.worksheetShare}
-          disabled={!hasContent || isGenerating || isSharing}
-          onClick={() => void handleShare()}
-        >
-          {isSharing ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Link2 className="h-4 w-4" />
-          )}
-        </WorksheetIconAction>
         <WorksheetOverflowMenu
           label={copy.worksheetMoreActions}
           items={overflowMenuItems}
@@ -524,7 +573,54 @@ export function WorksheetPanel({
     );
   };
 
+  useEffect(() => {
+    if (!hasContent || isGenerating || isEditing || isFullViewOpen) return;
+
+    const isEditableTarget = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false;
+      const tag = target.tagName;
+      return (
+        target.isContentEditable ||
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT"
+      );
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const shortcut =
+        event.key.toLowerCase() === "f" &&
+        (event.metaKey || event.ctrlKey) &&
+        event.shiftKey;
+      const quickKey =
+        event.key.toLowerCase() === "f" &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey &&
+        !event.shiftKey;
+
+      if (!shortcut && !(quickKey && !isEditableTarget(event.target))) {
+        return;
+      }
+
+      event.preventDefault();
+      handleOpenFullView();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    handleOpenFullView,
+    hasContent,
+    isEditing,
+    isFullViewOpen,
+    isGenerating,
+  ]);
+
   const handleClose = useCallback(() => {
+    if (isFullViewOpen) {
+      setIsFullViewOpen(false);
+    }
     if (isEditing && hasUnsavedChanges) {
       if (!window.confirm(copy.worksheetDiscardChanges)) return;
       setDraftContent(content);
@@ -536,6 +632,7 @@ export function WorksheetPanel({
     copy.worksheetDiscardChanges,
     hasUnsavedChanges,
     isEditing,
+    isFullViewOpen,
     onClose,
   ]);
 
@@ -759,6 +856,16 @@ export function WorksheetPanel({
         open={brandingDialogOpen}
         locale={locale}
         onClose={() => setBrandingDialogOpen(false)}
+      />
+
+      <WorksheetFullView
+        open={isFullViewOpen}
+        locale={locale}
+        title={title}
+        content={content}
+        onTitleChange={onTitleChange}
+        onContentChange={handleFullViewContentChange}
+        onClose={() => setIsFullViewOpen(false)}
       />
     </aside>
   );

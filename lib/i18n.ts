@@ -234,6 +234,14 @@ export const COPY: Record<
     worksheetEditMarkdownHint: string;
     worksheetEditSplitHint: string;
     worksheetEditPreviewEmpty: string;
+    worksheetFullView: string;
+    worksheetFullViewTitle: string;
+    worksheetFullViewDescription: string;
+    worksheetFullViewBadge: string;
+    worksheetExitFullView: string;
+    worksheetFullViewEditorLabel: string;
+    worksheetFullViewPlaceholder: string;
+    worksheetFullViewShortcutHint: string;
     mapPlaceholderDesc: string;
     mapPlaceholderContent: string;
     researchPlaceholderDesc: string;
@@ -497,6 +505,16 @@ export const COPY: Record<
     worksheetEditMarkdownHint: "Mode sumber Markdown penuh.",
     worksheetEditSplitHint: "Edit Markdown dengan pratinjau langsung.",
     worksheetEditPreviewEmpty: "Pratinjau akan muncul saat Anda mengetik.",
+    worksheetFullView: "Full View",
+    worksheetFullViewTitle: "Full View — Tampilan Siap Cetak",
+    worksheetFullViewDescription:
+      "Edit dokumen dalam tampilan yang mendekati hasil PDF/export.",
+    worksheetFullViewBadge: "Print Preview / Full View",
+    worksheetExitFullView: "Keluar Full View",
+    worksheetFullViewEditorLabel: "Editor dokumen Full View",
+    worksheetFullViewPlaceholder: "Mulai mengedit dokumen…",
+    worksheetFullViewShortcutHint:
+      "Pintasan: F atau Ctrl/Cmd+Shift+F untuk membuka · Esc untuk keluar",
     mapPlaceholderDesc:
       "Peta interaktif akan ditampilkan di sini untuk pertanyaan berbasis lokasi.",
     mapPlaceholderContent:
@@ -764,6 +782,16 @@ export const COPY: Record<
     worksheetEditMarkdownHint: "Full Markdown source mode.",
     worksheetEditSplitHint: "Edit Markdown with a live preview.",
     worksheetEditPreviewEmpty: "Preview appears as you type.",
+    worksheetFullView: "Full View",
+    worksheetFullViewTitle: "Full View — Print-Ready",
+    worksheetFullViewDescription:
+      "Edit your document in a layout close to the PDF/export output.",
+    worksheetFullViewBadge: "Print Preview / Full View",
+    worksheetExitFullView: "Exit Full View",
+    worksheetFullViewEditorLabel: "Full View document editor",
+    worksheetFullViewPlaceholder: "Start editing your document…",
+    worksheetFullViewShortcutHint:
+      "Shortcut: F or Ctrl/Cmd+Shift+F to open · Esc to exit",
     mapPlaceholderDesc:
       "An interactive map will appear here for location-based questions.",
     mapPlaceholderContent:
@@ -1022,6 +1050,15 @@ export const COPY: Record<
     worksheetEditMarkdownHint: "完整 Markdown 源码模式。",
     worksheetEditSplitHint: "编辑 Markdown 并实时预览。",
     worksheetEditPreviewEmpty: "输入内容后将显示预览。",
+    worksheetFullView: "全屏视图",
+    worksheetFullViewTitle: "全屏视图 — 打印就绪",
+    worksheetFullViewDescription: "在接近 PDF/导出效果的版式中编辑文档。",
+    worksheetFullViewBadge: "打印预览 / 全屏视图",
+    worksheetExitFullView: "退出全屏视图",
+    worksheetFullViewEditorLabel: "全屏视图文档编辑器",
+    worksheetFullViewPlaceholder: "开始编辑文档…",
+    worksheetFullViewShortcutHint:
+      "快捷键：F 或 Ctrl/Cmd+Shift+F 打开 · Esc 退出",
     mapPlaceholderDesc: "交互式地图将在此显示，用于位置相关问题。",
     mapPlaceholderContent: "[ 地图 ]\n\n地图预览将显示在此面板。",
     researchPlaceholderDesc: "深度研究结果将显示在此面板。",

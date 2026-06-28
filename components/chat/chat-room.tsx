@@ -856,6 +856,10 @@ function ChatRoomContent() {
     [locale, worksheetTitle, worksheetVersions],
   );
 
+  const handleWorksheetContentChange = useCallback((content: string) => {
+    setWorksheetContent(content);
+  }, []);
+
   const handleWorksheetApplyTemplate = useCallback(
     (template: WorksheetTemplate) => {
       const { title, content } = resolveWorksheetTemplate(template, locale);
@@ -1083,6 +1087,7 @@ function ChatRoomContent() {
               worksheetCanRegenerate={Boolean(lastWorksheetPrompt.trim())}
               onWorksheetTitleChange={handleWorksheetTitleChange}
               onWorksheetContentSave={handleWorksheetContentSave}
+              onWorksheetContentChange={handleWorksheetContentChange}
               worksheetVersions={worksheetVersions}
               onWorksheetRestoreVersion={handleWorksheetRestoreVersion}
               onWorksheetApplyTemplate={handleWorksheetApplyTemplate}
@@ -1120,6 +1125,7 @@ function ChatRoomContent() {
               worksheetCanRegenerate={Boolean(lastWorksheetPrompt.trim())}
               onWorksheetTitleChange={handleWorksheetTitleChange}
               onWorksheetContentSave={handleWorksheetContentSave}
+              onWorksheetContentChange={handleWorksheetContentChange}
               worksheetVersions={worksheetVersions}
               onWorksheetRestoreVersion={handleWorksheetRestoreVersion}
               onWorksheetApplyTemplate={handleWorksheetApplyTemplate}
