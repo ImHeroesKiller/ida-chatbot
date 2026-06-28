@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Printer } from "lucide-react";
+import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 
 import { MarkdownContent } from "@/components/chat/markdown-content";
@@ -18,6 +19,7 @@ import { COPY } from "@/lib/i18n";
 import { formatPdfPageLabel } from "@/lib/pdf-export";
 import { useWorksheetBrandingPrefs } from "@/lib/worksheet-branding-prefs";
 import { openWorksheetPrintPreview } from "@/lib/worksheet-print";
+import { WORKSHEET_MODAL_OVERLAY_CLASS } from "@/lib/worksheet-overlay";
 import { WORKSHEET_PRINT_PAPER_CLASS } from "@/lib/worksheet-print-typography";
 import { cn } from "@/lib/utils";
 
@@ -53,14 +55,19 @@ export function WorksheetPrintPreviewDialog({
     }
   };
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4"
+          className={cn(
+            "fixed inset-0 flex items-center justify-center bg-black/50 p-4",
+            WORKSHEET_MODAL_OVERLAY_CLASS,
+          )}
           onClick={onClose}
         >
           <motion.div
@@ -134,6 +141,7 @@ export function WorksheetPrintPreviewDialog({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

@@ -12,6 +12,7 @@ import {
 import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
+import { WORKSHEET_POPOVER_OVERLAY_CLASS } from "@/lib/worksheet-overlay";
 import { cn } from "@/lib/utils";
 
 export function WorksheetIconAction({
@@ -172,7 +173,10 @@ export function WorksheetIconMenu({
             <div
               ref={menuRef}
               role="menu"
-              className="fixed z-[80] min-w-[11rem] -translate-y-full rounded-lg border bg-popover p-1 shadow-lg"
+              className={cn(
+                "fixed min-w-[11rem] -translate-y-full rounded-lg border bg-popover p-1 shadow-lg",
+                WORKSHEET_POPOVER_OVERLAY_CLASS,
+              )}
               style={{ top: menuPosition.top, left: menuPosition.left }}
             >
               {items.map((item) => (

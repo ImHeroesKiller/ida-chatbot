@@ -5,6 +5,8 @@ import { Maximize2, X } from "lucide-react";
 import { useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 
+import { WORKSHEET_FULL_VIEW_OVERLAY_CLASS } from "@/lib/worksheet-overlay";
+
 import { WorksheetPrintTypographyStyles } from "@/components/chat/worksheet-print-typography-styles";
 import {
   WorksheetLetterheadFooter,
@@ -81,7 +83,10 @@ export function WorksheetFullView({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[90] flex flex-col bg-[#e4e4e4]/95 backdrop-blur-sm dark:bg-black/80"
+          className={cn(
+            "fixed inset-0 flex flex-col bg-[#e4e4e4]/95 backdrop-blur-sm dark:bg-black/80",
+            WORKSHEET_FULL_VIEW_OVERLAY_CLASS,
+          )}
           role="dialog"
           aria-modal="true"
           aria-label={copy.worksheetFullViewTitle}

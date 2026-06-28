@@ -9,6 +9,7 @@ import {
   Presentation,
   ScrollText,
 } from "lucide-react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,7 @@ import {
   getWorksheetTemplates,
   type WorksheetTemplate,
 } from "@/lib/worksheet-templates";
+import { WORKSHEET_MODAL_OVERLAY_CLASS } from "@/lib/worksheet-overlay";
 import { cn } from "@/lib/utils";
 
 const TEMPLATE_ICONS = {
@@ -46,14 +48,19 @@ export function WorksheetTemplateDialog({
   const copy = COPY[locale];
   const templates = getWorksheetTemplates(locale);
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4"
+          className={cn(
+            "fixed inset-0 flex items-center justify-center bg-black/50 p-4",
+            WORKSHEET_MODAL_OVERLAY_CLASS,
+          )}
           onClick={onClose}
         >
           <motion.div
@@ -119,6 +126,7 @@ export function WorksheetTemplateDialog({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

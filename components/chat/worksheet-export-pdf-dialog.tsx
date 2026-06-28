@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { FileText, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import type { PdfOrientation, PdfPaperFormat } from "@/lib/pdf-export";
+import { WORKSHEET_MODAL_OVERLAY_CLASS } from "@/lib/worksheet-overlay";
 import { cn } from "@/lib/utils";
 
 export interface WorksheetPdfExportSettings {
@@ -76,14 +78,19 @@ export function WorksheetExportPdfDialog({
   const [showPageNumbers, setShowPageNumbers] = useState(true);
   const [showExportDate, setShowExportDate] = useState(true);
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4"
+          className={cn(
+            "fixed inset-0 flex items-center justify-center bg-black/50 p-4",
+            WORKSHEET_MODAL_OVERLAY_CLASS,
+          )}
           onClick={isExporting ? undefined : onCancel}
         >
           <motion.div
@@ -213,6 +220,7 @@ export function WorksheetExportPdfDialog({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

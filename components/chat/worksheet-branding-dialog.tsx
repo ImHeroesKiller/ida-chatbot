@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ImageIcon, Palette, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 
 import {
@@ -27,6 +28,7 @@ import {
   readLogoFileAsDataUrl,
   useWorksheetBrandingPrefs,
 } from "@/lib/worksheet-branding-prefs";
+import { WORKSHEET_MODAL_OVERLAY_CLASS } from "@/lib/worksheet-overlay";
 import { cn } from "@/lib/utils";
 
 type BrandingTab = "header" | "footer" | "styling";
@@ -93,14 +95,19 @@ export function WorksheetBrandingDialog({
     }
   };
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {open ? (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4"
+          className={cn(
+            "fixed inset-0 flex items-center justify-center bg-black/50 p-4",
+            WORKSHEET_MODAL_OVERLAY_CLASS,
+          )}
           onClick={onClose}
         >
           <motion.div
@@ -513,6 +520,7 @@ export function WorksheetBrandingDialog({
           </motion.div>
         </motion.div>
       ) : null}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
