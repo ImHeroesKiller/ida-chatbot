@@ -49,6 +49,21 @@ export function ToolsMenu({
 
   const isActive = webSearchEnabled || activePanel !== null;
 
+  const activePanelLabel =
+    activePanel === "canvas"
+      ? copy.toolsCanvas
+      : activePanel === "map"
+        ? copy.toolsMap
+        : activePanel === "research"
+          ? copy.toolsResearch
+          : null;
+
+  const buttonTitle = activePanelLabel
+    ? `${copy.toolsMenu} — ${activePanelLabel}`
+    : webSearchEnabled
+      ? `${copy.toolsMenu} — ${copy.toolsWebSearch} (${copy.toolsOn})`
+      : copy.toolsMenu;
+
   const updateMenuPosition = useCallback(() => {
     const anchor = anchorRef.current;
     if (!anchor) return;
@@ -126,6 +141,7 @@ export function ToolsMenu({
             className={cn(
               "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs",
               "transition-colors hover:bg-muted",
+              webSearchEnabled && "bg-primary/10 ring-1 ring-primary/20",
               !webSearchAvailable && "cursor-not-allowed opacity-50",
             )}
           >
@@ -153,7 +169,7 @@ export function ToolsMenu({
             className={cn(
               "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs",
               "transition-colors hover:bg-muted",
-              activePanel === "map" && "bg-muted/80",
+              activePanel === "map" && "bg-primary/10 ring-1 ring-primary/20",
             )}
           >
             <Map className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -170,7 +186,7 @@ export function ToolsMenu({
             className={cn(
               "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs",
               "transition-colors hover:bg-muted",
-              activePanel === "research" && "bg-muted/80",
+              activePanel === "research" && "bg-primary/10 ring-1 ring-primary/20",
             )}
           >
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -187,7 +203,7 @@ export function ToolsMenu({
             className={cn(
               "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs",
               "transition-colors hover:bg-muted",
-              activePanel === "canvas" && "bg-muted/80",
+              activePanel === "canvas" && "bg-primary/10 ring-1 ring-primary/20",
             )}
           >
             <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -213,11 +229,18 @@ export function ToolsMenu({
         aria-label={copy.toolsMenu}
         aria-expanded={open}
         aria-haspopup="menu"
-        title={copy.toolsMenu}
-        className="h-12 w-12 sm:h-11 sm:w-11"
+        title={buttonTitle}
+        className={cn(
+          "relative h-12 w-12 sm:h-11 sm:w-11",
+          isActive && "ring-2 ring-primary/40",
+          open && "ring-2 ring-primary/60",
+        )}
         onClick={() => setOpen((value) => !value)}
       >
         <Wrench className="h-4 w-4" />
+        {isActive ? (
+          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
+        ) : null}
       </Button>
 
       {typeof document !== "undefined" && menuContent

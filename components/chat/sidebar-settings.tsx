@@ -70,18 +70,20 @@ export function SidebarSettings({
 
   if (!expanded) {
     return (
-      <div className="shrink-0 border-t p-1.5">
-        <Button
+      <div className="mt-auto shrink-0 border-t">
+        <button
           type="button"
-          variant="ghost"
-          size="icon-sm"
-          className="h-9 w-full transition-transform hover:scale-105 active:scale-95"
+          className={cn(
+            "flex h-11 w-full items-center justify-center",
+            "text-muted-foreground transition-colors",
+            "hover:bg-muted/60 hover:text-foreground active:bg-muted/80",
+          )}
           onClick={handleToggleSettings}
           title={copy.settings}
           aria-label={copy.settings}
         >
           <Settings className="h-4 w-4" />
-        </Button>
+        </button>
       </div>
     );
   }

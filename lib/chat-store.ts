@@ -9,6 +9,7 @@ import {
   persistRemoteChatStore,
 } from "@/lib/client/sync-sessions";
 import { getOrCreateAnonymousUserId } from "@/lib/client/user-id";
+import type { RightSidebarPanel } from "@/lib/chat-tools";
 import type { Locale } from "@/lib/config";
 import type { IdaMessage } from "@/lib/types";
 
@@ -23,6 +24,7 @@ export interface ChatSession {
   title: string;
   messages: IdaMessage[];
   apiSessionId: string;
+  activeRightPanel?: RightSidebarPanel | null;
   pinned?: boolean;
   createdAt: number;
   updatedAt: number;
@@ -55,6 +57,38 @@ const TITLE_FILLER_PATTERNS = [
   /^(buatkan|buat|create|make|generate|write|draft)\s+(saya\s+|me\s+)?/i,
 ];
 
+const TITLE_TOPIC_PATTERNS: Array<{
+  pattern: RegExp;
+  format: (topic: string, locale: Locale) => string;
+}> = [
+  {
+    pattern:
+      /cara\s+(mengajukan|mengurus|daftar|memproses|apply(?:\s+for)?)\s+(.+)/i,
+    format: (topic, locale) =>
+      locale === "zh"
+        ? `申请${topic}`
+        : locale === "en"
+          ? `Applying for ${topic}`
+          : `Pengajuan ${topic}`,
+  },
+  {
+    pattern: /cara\s+(membuat|buat|buatkan|create|make)\s+(.+)/i,
+    format: (topic, locale) =>
+      locale === "zh"
+        ? `制作${topic}`
+        : locale === "en"
+          ? `Creating ${topic}`
+          : `Pembuatan ${topic}`,
+  },
+  {
+    pattern: /(?:tentang|mengenai|about|regarding|关于)\s+(.+)/i,
+    format: (topic) => topic,
+  },
+];
+
+const TITLE_STOP_WORDS =
+  /^(saya|aku|me|my|the|a|an|untuk|for|yang|dan|atau|with|di|on|in|ke|to|dari|from)\s+/i;
+
 export function isGenericChatTitle(title: string, locale: Locale): boolean {
   const normalized = title.trim().toLowerCase();
   return (
@@ -85,11 +119,63 @@ function toTitleWords(text: string): string {
 
   return words
     .map((word) => {
+      if (/^\d{4}$/.test(word)) return word;
       if (/^[A-Z0-9]{2,}$/.test(word)) return word;
       if (/^[A-Z][a-z]+/.test(word)) return word;
       return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     })
     .join(" ");
+}
+
+function trimTitleTopic(text: string): string {
+  let topic = text.trim();
+
+  while (TITLE_STOP_WORDS.test(topic)) {
+    topic = topic.replace(TITLE_STOP_WORDS, "").trim();
+  }
+
+  return topic.replace(/[?.!,;:]+$/g, "").trim();
+}
+
+function extractTitleTopic(sources: string[], locale: Locale): string {
+  for (const source of sources) {
+    for (const { pattern, format } of TITLE_TOPIC_PATTERNS) {
+      const match = source.match(pattern);
+      if (!match?.[2] && !match?.[1]) continue;
+
+      const rawTopic = trimTitleTopic(match[2] ?? match[1] ?? "");
+      if (!rawTopic) continue;
+
+      return toTitleWords(format(rawTopic, locale));
+    }
+  }
+
+  const ranked = [...sources].sort((a, b) => b.length - a.length);
+  const best = ranked.find((source) => source.split(/\s+/).length >= 2) ?? ranked[0];
+
+  return best ? toTitleWords(trimTitleTopic(best)) : "";
+}
+
+export function shouldAutoRenameChat(
+  messages: IdaMessage[],
+  title: string,
+  locale: Locale,
+): boolean {
+  if (!isGenericChatTitle(title, locale)) return false;
+
+  const conversationMessages = stripWelcomeMessages(messages);
+  const userCount = conversationMessages.filter(
+    (message) => message.role === "user" && message.content.trim(),
+  ).length;
+  const assistantCount = conversationMessages.filter(
+    (message) => message.role === "assistant" && message.content.trim(),
+  ).length;
+
+  return (
+    userCount >= 1 &&
+    assistantCount >= 1 &&
+    userCount + assistantCount >= 3
+  );
 }
 
 export function deriveChatTitle(
@@ -105,19 +191,19 @@ export function deriveChatTitle(
     (message) => message.role === "assistant" && message.content.trim(),
   );
 
-  if (userMessages.length < 2 || assistantMessages.length < 2) {
+  if (
+    userMessages.length < 1 ||
+    assistantMessages.length < 1 ||
+    userMessages.length + assistantMessages.length < 3
+  ) {
     return fallback;
   }
 
-  const primary = cleanTitleSource(userMessages[0]!.content);
-  let title = toTitleWords(primary);
+  const sources = userMessages
+    .slice(0, 3)
+    .map((message) => cleanTitleSource(message.content));
 
-  if (title.split(/\s+/).length < 3 && userMessages[1]) {
-    const secondary = cleanTitleSource(userMessages[1].content);
-    const combined = `${primary} ${secondary}`.trim();
-    title = toTitleWords(combined);
-  }
-
+  const title = extractTitleTopic(sources, locale);
   return title || fallback;
 }
 
@@ -139,6 +225,7 @@ export function createChatSession(locale: Locale): ChatSession {
     title: GENERIC_CHAT_TITLES[locale],
     messages: [],
     apiSessionId: createId("ida"),
+    activeRightPanel: null,
     pinned: false,
     createdAt: now,
     updatedAt: now,
@@ -155,12 +242,19 @@ export function createInitialStore(locale: Locale): ChatStoreState {
   };
 }
 
-function normalizeSession(session: ChatSession & { quickReplies?: string[] }): ChatSession {
+function normalizeSession(
+  session: ChatSession & { quickReplies?: string[] },
+): ChatSession {
   const { quickReplies: _legacyQuickReplies, ...rest } = session;
+  const panel = rest.activeRightPanel;
 
   return {
     ...rest,
     messages: stripWelcomeMessages(session.messages),
+    activeRightPanel:
+      panel === "canvas" || panel === "map" || panel === "research"
+        ? panel
+        : null,
     pinned: Boolean(session.pinned),
   };
 }
@@ -539,13 +633,17 @@ export function useChatStore(locale: Locale) {
   }, [locale]);
 
   const persistCurrentChat = useCallback(
-    (patch: Partial<Pick<ChatSession, "messages" | "title">>) => {
+    (
+      patch: Partial<
+        Pick<ChatSession, "messages" | "title" | "activeRightPanel">
+      >,
+    ) => {
       updateCurrentChat((chat) => {
         const messages = patch.messages ?? chat.messages;
 
         const nextTitle =
           patch.title ??
-          (isGenericChatTitle(chat.title, locale)
+          (shouldAutoRenameChat(messages, chat.title, locale)
             ? deriveChatTitle(messages, locale)
             : chat.title);
 
@@ -554,6 +652,10 @@ export function useChatStore(locale: Locale) {
           ...patch,
           messages,
           title: nextTitle,
+          activeRightPanel:
+            patch.activeRightPanel !== undefined
+              ? patch.activeRightPanel
+              : chat.activeRightPanel ?? null,
           updatedAt: Date.now(),
         };
       });

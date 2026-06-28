@@ -204,7 +204,7 @@ function ActionButton({
       <span
         role="tooltip"
         className={cn(
-          "pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 -translate-x-1/2",
+          "pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 -translate-x-1/2",
           "whitespace-nowrap rounded-md border bg-popover px-2 py-1 text-[10px] text-popover-foreground shadow-md",
           "opacity-0 transition-opacity duration-150",
           "group-hover/action:opacity-100 group-focus-within/action:opacity-100",

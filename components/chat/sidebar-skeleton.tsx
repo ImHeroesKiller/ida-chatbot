@@ -23,18 +23,24 @@ export function SidebarSkeleton({
       {expanded && (
         <div className="h-8 animate-pulse rounded-lg bg-muted/80" />
       )}
-      <div className="mt-1 flex-1 space-y-2">
-        {Array.from({ length: expanded ? 5 : 3 }).map((_, index) => (
-          <div
-            key={index}
-            className={cn(
-              "animate-pulse rounded-xl bg-muted/70",
-              expanded ? "h-12" : "mx-auto h-9 w-9",
-            )}
-          />
-        ))}
-      </div>
-      <div className="mt-auto h-20 animate-pulse rounded-lg bg-muted/60" />
+      {expanded ? (
+        <div className="mt-1 flex-1 space-y-2">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-12 animate-pulse rounded-xl bg-muted/70"
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex-1" />
+      )}
+      <div
+        className={cn(
+          "mt-auto animate-pulse rounded-lg bg-muted/60",
+          expanded ? "h-20" : "h-11",
+        )}
+      />
     </div>
   );
 }

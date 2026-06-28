@@ -14,18 +14,38 @@ function deriveChatTitle(messages, locale) {
     (m) => m.role === "assistant" && m.content.trim(),
   );
 
-  if (userMessages.length < 2 || assistantMessages.length < 2) {
+  if (
+    userMessages.length < 1 ||
+    assistantMessages.length < 1 ||
+    userMessages.length + assistantMessages.length < 3
+  ) {
     return fallback[locale];
   }
 
-  const cleaned = userMessages[0].content
-    .trim()
+  const source = userMessages[0].content.trim();
+  const caraMatch = source.match(
+    /cara\s+(mengajukan|mengurus|daftar|memproses|apply(?:\s+for)?)\s+(.+)/i,
+  );
+  if (caraMatch?.[2]) {
+    const topic = caraMatch[2].replace(/[?.!]+$/, "").trim();
+    return `Pengajuan ${topic}`
+      .split(/\s+/)
+      .slice(0, 7)
+      .map((word) => {
+        if (/^[A-Z0-9]{2,}$/.test(word)) return word;
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(" ");
+  }
+
+  const cleaned = source
     .replace(/^(bantu|tolong|please|help me)\s+/i, "")
     .replace(/^(buatkan|buat|create|make)\s+(saya\s+)?/i, "")
     .replace(/[?.!]+$/, "");
   const words = cleaned.split(/\s+/).slice(0, 7);
   return words
     .map((word) => {
+      if (/^\d{4}$/.test(word)) return word;
       if (/^[A-Z0-9]{2,}$/.test(word)) return word;
       return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     })
@@ -98,21 +118,33 @@ function testDeriveTitle() {
   );
 
   if (earlyTitle !== "Chat baru") {
-    checks.push(`expected generic title before 2 exchanges, got "${earlyTitle}"`);
+    checks.push(`expected generic title before 3 messages, got "${earlyTitle}"`);
   }
 
-  const title = deriveChatTitle(
+  const kprTitle = deriveChatTitle(
     [
-      { id: "u1", role: "user", content: "Bantu buatkan proposal proyek PLTS" },
-      { id: "a1", role: "assistant", content: "Berikut struktur proposal..." },
-      { id: "u2", role: "user", content: "Untuk rooftop komersial" },
-      { id: "a2", role: "assistant", content: "Baik, untuk rooftop..." },
+      { id: "u1", role: "user", content: "cara mengajukan KPR" },
+      { id: "a1", role: "assistant", content: "Berikut langkah pengajuan..." },
+      { id: "u2", role: "user", content: "untuk rumah pertama" },
     ],
     "id",
   );
 
-  if (title !== "Proposal Proyek PLTS") {
-    checks.push(`expected cleaned title, got "${title}"`);
+  if (kprTitle !== "Pengajuan KPR") {
+    checks.push(`expected KPR title, got "${kprTitle}"`);
+  }
+
+  const pltsTitle = deriveChatTitle(
+    [
+      { id: "u1", role: "user", content: "regulasi PLTS rooftop 2025" },
+      { id: "a1", role: "assistant", content: "Berikut ringkasan regulasi..." },
+      { id: "u2", role: "user", content: "apa syarat utamanya?" },
+    ],
+    "id",
+  );
+
+  if (pltsTitle !== "Regulasi PLTS Rooftop 2025") {
+    checks.push(`expected PLTS title, got "${pltsTitle}"`);
   }
 
   const fallback = deriveChatTitle([], "id");

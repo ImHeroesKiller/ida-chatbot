@@ -306,12 +306,12 @@ export function ChatSidebar({
             </ScrollArea>
           </>
         ) : (
-          <div className="flex min-h-0 flex-1 flex-col items-center px-1.5 pt-3">
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-start px-1.5 pt-4">
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="h-10 w-10 text-muted-foreground hover:text-foreground"
+              className="h-11 w-11 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
               onClick={onExpand}
               aria-label={copy.openChatHistory}
               title={copy.openChatHistory}

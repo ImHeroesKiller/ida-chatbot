@@ -205,18 +205,23 @@ function ChatRoomContent() {
     setStreamingMessageId(null);
     setIsLoading(false);
     setEditingMessageId(null);
-    setRightPanel(null);
+    setRightPanel(currentChat.activeRightPanel ?? null);
   }, [hydrated, currentChat]);
 
   useEffect(() => {
     if (!hydrated || isLoading) return;
 
-    persistCurrentChat({ messages });
-  }, [messages, hydrated, isLoading, persistCurrentChat]);
+    persistCurrentChat({ messages, activeRightPanel: rightPanel });
+  }, [messages, rightPanel, hydrated, isLoading, persistCurrentChat]);
 
   useEffect(() => {
     const handleEscape = (event: globalThis.KeyboardEvent) => {
       if (event.key !== "Escape") return;
+
+      if (rightPanel) {
+        setRightPanel(null);
+        return;
+      }
 
       setMobileSidebarOpen(false);
       closeHandoff();
@@ -224,7 +229,7 @@ function ChatRoomContent() {
 
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [closeHandoff]);
+  }, [closeHandoff, rightPanel]);
 
   const handleSelectChat = useCallback(
     (chatId: string) => {
@@ -573,6 +578,10 @@ function ChatRoomContent() {
     setRightPanel(panel);
   }, []);
 
+  const handleCloseToolPanel = useCallback(() => {
+    setRightPanel(null);
+  }, []);
+
   const sidebarProps = {
     sessions,
     currentChatId: currentChat?.id ?? "",
@@ -686,7 +695,7 @@ function ChatRoomContent() {
             <RightSidebar
               locale={locale}
               panel={rightPanel}
-              onClose={() => setRightPanel(null)}
+              onClose={handleCloseToolPanel}
               className="hidden md:flex"
             />
           ) : null}
@@ -696,7 +705,7 @@ function ChatRoomContent() {
       <Sheet
         open={Boolean(rightPanel)}
         onOpenChange={(open) => {
-          if (!open) setRightPanel(null);
+          if (!open) handleCloseToolPanel();
         }}
       >
         <SheetContent
@@ -707,7 +716,7 @@ function ChatRoomContent() {
             <RightSidebar
               locale={locale}
               panel={rightPanel}
-              onClose={() => setRightPanel(null)}
+              onClose={handleCloseToolPanel}
               embedded
             />
           ) : null}

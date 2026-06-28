@@ -48,11 +48,9 @@ export function RightSidebar({
         : copy.researchPlaceholderDesc;
 
   const previewContent =
-    panel === "canvas"
-      ? copy.canvasPlaceholderContent
-      : panel === "map"
-        ? copy.mapPlaceholderContent
-        : copy.researchPlaceholderContent;
+    panel === "map"
+      ? copy.mapPlaceholderContent
+      : copy.researchPlaceholderContent;
 
   return (
     <aside
@@ -64,7 +62,7 @@ export function RightSidebar({
       aria-label={title}
     >
       <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2.5">
-        <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <Icon className="h-4 w-4 shrink-0 text-primary" />
         <h2 className="min-w-0 flex-1 truncate text-sm font-semibold">{title}</h2>
         <Button
           type="button"
@@ -80,27 +78,41 @@ export function RightSidebar({
       </div>
 
       <ScrollArea className="min-h-0 flex-1">
-        <div className="space-y-4 p-4">
-          <div className="rounded-xl border border-dashed bg-background/60 p-4 dark:bg-background/40">
-            <p className="text-xs font-medium text-muted-foreground">
-              {copy.toolsComingSoon}
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-foreground/90">
-              {description}
-            </p>
-          </div>
-
-          <div className="rounded-xl border bg-card p-4 shadow-sm">
-            <p className="mb-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-              {copy.previewLabel}
-            </p>
-            <div className="min-h-[12rem] rounded-lg bg-muted/40 p-3">
-              <pre className="chat-text whitespace-pre-wrap text-muted-foreground">
-                {previewContent}
-              </pre>
+        {panel === "canvas" ? (
+          <div className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-center p-6 text-center">
+            <div className="flex w-full max-w-xs flex-col items-center rounded-2xl border border-dashed bg-background/60 px-6 py-10 dark:bg-background/40">
+              <FileText className="mb-3 h-9 w-9 text-muted-foreground/60" />
+              <p className="text-sm font-medium text-foreground/90">
+                {copy.canvasEmptyState}
+              </p>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                {copy.canvasPlaceholderDesc}
+              </p>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-4 p-4">
+            <div className="rounded-xl border border-dashed bg-background/60 p-4 dark:bg-background/40">
+              <p className="text-xs font-medium text-muted-foreground">
+                {copy.toolsComingSoon}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-foreground/90">
+                {description}
+              </p>
+            </div>
+
+            <div className="rounded-xl border bg-card p-4 shadow-sm">
+              <p className="mb-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                {copy.previewLabel}
+              </p>
+              <div className="min-h-[12rem] rounded-lg bg-muted/40 p-3">
+                <pre className="chat-text whitespace-pre-wrap text-muted-foreground">
+                  {previewContent}
+                </pre>
+              </div>
+            </div>
+          </div>
+        )}
       </ScrollArea>
     </aside>
   );
