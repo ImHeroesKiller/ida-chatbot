@@ -57,6 +57,7 @@ const HandoffDialog = dynamic(
 import { useChatContext } from "@/components/chat/chat-provider";
 import { getTool } from "@/components/chat/tools/registry";
 import { worksheetTool } from "@/components/chat/tools/worksheet/worksheet-tool";
+import { useWorksheet } from "@/components/chat/tools/worksheet/use-worksheet";
 import {
   Sheet,
   SheetContent,
@@ -120,6 +121,9 @@ function isWorksheetToolAvailable(): boolean {
 }
 
 function ChatRoomContent() {
+  const worksheet = useWorksheet();
+  void worksheet;
+
   const { locale, openHandoff, closeHandoff } = useChatContext();
   const copy = COPY[locale];
   const { expanded: sidebarExpanded, setExpanded: setSidebarExpanded } =
