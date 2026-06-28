@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
-import type { WorksheetErrorCode } from "@/lib/worksheet";
+import type { WorksheetErrorCode, WorksheetVersion } from "@/lib/worksheet";
 import { COPY } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +21,8 @@ interface RightSidebarProps {
   worksheetCanRegenerate?: boolean;
   onWorksheetTitleChange: (title: string) => void;
   onWorksheetContentSave?: (content: string) => void;
+  worksheetVersions?: WorksheetVersion[];
+  onWorksheetRestoreVersion?: (versionId: string) => void;
   onWorksheetRetry?: () => void;
   onWorksheetRegenerate?: () => void;
   onWorksheetClear?: () => void;
@@ -45,6 +47,8 @@ export function RightSidebar({
   worksheetCanRegenerate = false,
   onWorksheetTitleChange,
   onWorksheetContentSave,
+  worksheetVersions = [],
+  onWorksheetRestoreVersion,
   onWorksheetRetry,
   onWorksheetRegenerate,
   onWorksheetClear,
@@ -65,6 +69,8 @@ export function RightSidebar({
         canRegenerate={worksheetCanRegenerate}
         onTitleChange={onWorksheetTitleChange}
         onContentSave={onWorksheetContentSave}
+        versions={worksheetVersions}
+        onRestoreVersion={onWorksheetRestoreVersion}
         onRetry={onWorksheetRetry}
         onRegenerate={onWorksheetRegenerate}
         onClear={onWorksheetClear}

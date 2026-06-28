@@ -5,6 +5,7 @@ import {
   Copy,
   Download,
   FileText,
+  History,
   Loader2,
   PanelRightClose,
   Pencil,
@@ -18,6 +19,7 @@ import toast from "react-hot-toast";
 
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { WorksheetExportPdfDialog } from "@/components/chat/worksheet-export-pdf-dialog";
+import { WorksheetVersionHistoryDialog } from "@/components/chat/worksheet-version-history-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -28,6 +30,7 @@ import { COPY } from "@/lib/i18n";
 import {
   sanitizeWorksheetFilename,
   type WorksheetErrorCode,
+  type WorksheetVersion,
 } from "@/lib/worksheet";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +43,8 @@ interface WorksheetPanelProps {
   canRegenerate?: boolean;
   onTitleChange: (title: string) => void;
   onContentSave?: (content: string) => void;
+  versions?: WorksheetVersion[];
+  onRestoreVersion?: (versionId: string) => void;
   onRetry?: () => void;
   onRegenerate?: () => void;
   onClear?: () => void;
@@ -57,6 +62,8 @@ export function WorksheetPanel({
   canRegenerate = false,
   onTitleChange,
   onContentSave,
+  versions = [],
+  onRestoreVersion,
   onRetry,
   onRegenerate,
   onClear,
@@ -70,6 +77,7 @@ export function WorksheetPanel({
   const [draftContent, setDraftContent] = useState(content);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [exportPdfDialogOpen, setExportPdfDialogOpen] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -256,6 +264,19 @@ export function WorksheetPanel({
           <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
             {copy.worksheetUnsavedChanges}
           </span>
+        ) : null}
+        {versions.length > 0 && !isEditing ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => setHistoryDialogOpen(true)}
+            aria-label={copy.worksheetHistory}
+            title={copy.worksheetHistory}
+            className="h-8 w-8 shrink-0"
+          >
+            <History className="h-4 w-4" />
+          </Button>
         ) : null}
         <Button
           type="button"
@@ -458,11 +479,27 @@ export function WorksheetPanel({
             </div>
 
             <div className="flex gap-2">
+              {versions.length > 0 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className={cn("flex-1", actionButtonClass)}
+                  disabled={isGenerating}
+                  onClick={() => setHistoryDialogOpen(true)}
+                >
+                  <History className="h-3.5 w-3.5" />
+                  {copy.worksheetHistory}
+                </Button>
+              ) : null}
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className={cn("flex-1", actionButtonClass)}
+                className={cn(
+                  versions.length > 0 ? "flex-1" : "flex-1",
+                  actionButtonClass,
+                )}
                 disabled={!hasContent || isGenerating}
                 onClick={handleDownload}
               >
@@ -497,6 +534,17 @@ export function WorksheetPanel({
         onCancel={() => {
           if (!isExportingPdf) setExportPdfDialogOpen(false);
         }}
+      />
+
+      <WorksheetVersionHistoryDialog
+        open={historyDialogOpen}
+        locale={locale}
+        versions={versions}
+        onRestore={(versionId) => {
+          onRestoreVersion?.(versionId);
+          setHistoryDialogOpen(false);
+        }}
+        onClose={() => setHistoryDialogOpen(false)}
       />
     </aside>
   );

@@ -170,6 +170,15 @@ export const COPY: Record<
     worksheetExportPdfGenerating: string;
     worksheetExportPdfSuccess: string;
     worksheetExportPdfError: string;
+    worksheetHistory: string;
+    worksheetHistoryTitle: string;
+    worksheetHistoryEmpty: string;
+    worksheetHistoryRestore: string;
+    worksheetHistoryRestoreConfirm: string;
+    worksheetHistoryRestoredToast: string;
+    worksheetHistoryGenerated: string;
+    worksheetHistoryManualSave: string;
+    worksheetHistoryRestored: string;
     mapPlaceholderDesc: string;
     mapPlaceholderContent: string;
     researchPlaceholderDesc: string;
@@ -363,6 +372,16 @@ export const COPY: Record<
     worksheetExportPdfGenerating: "Sedang membuat PDF...",
     worksheetExportPdfSuccess: "PDF berhasil diunduh",
     worksheetExportPdfError: "Gagal membuat PDF. Coba lagi.",
+    worksheetHistory: "Riwayat",
+    worksheetHistoryTitle: "Riwayat dokumen",
+    worksheetHistoryEmpty: "Belum ada versi tersimpan. Versi dibuat saat generate atau simpan edit.",
+    worksheetHistoryRestore: "Pulihkan",
+    worksheetHistoryRestoreConfirm:
+      "Pulihkan versi ini? Konten saat ini akan disimpan ke riwayat terlebih dahulu.",
+    worksheetHistoryRestoredToast: "Versi dokumen dipulihkan",
+    worksheetHistoryGenerated: "Dibuat IDA",
+    worksheetHistoryManualSave: "Simpan manual",
+    worksheetHistoryRestored: "Dipulihkan",
     mapPlaceholderDesc:
       "Peta interaktif akan ditampilkan di sini untuk pertanyaan berbasis lokasi.",
     mapPlaceholderContent:
@@ -559,6 +578,17 @@ export const COPY: Record<
     worksheetExportPdfGenerating: "Generating PDF...",
     worksheetExportPdfSuccess: "PDF downloaded successfully",
     worksheetExportPdfError: "Failed to generate PDF. Please try again.",
+    worksheetHistory: "History",
+    worksheetHistoryTitle: "Document history",
+    worksheetHistoryEmpty:
+      "No saved versions yet. Versions are created when IDA generates or you save edits.",
+    worksheetHistoryRestore: "Restore",
+    worksheetHistoryRestoreConfirm:
+      "Restore this version? Your current content will be saved to history first.",
+    worksheetHistoryRestoredToast: "Document version restored",
+    worksheetHistoryGenerated: "IDA generated",
+    worksheetHistoryManualSave: "Manual save",
+    worksheetHistoryRestored: "Restored",
     mapPlaceholderDesc:
       "An interactive map will appear here for location-based questions.",
     mapPlaceholderContent:
@@ -751,6 +781,15 @@ export const COPY: Record<
     worksheetExportPdfGenerating: "正在生成 PDF...",
     worksheetExportPdfSuccess: "PDF 下载成功",
     worksheetExportPdfError: "PDF 生成失败，请重试。",
+    worksheetHistory: "历史",
+    worksheetHistoryTitle: "文档历史",
+    worksheetHistoryEmpty: "尚无保存版本。IDA 生成或手动保存时会创建版本。",
+    worksheetHistoryRestore: "恢复",
+    worksheetHistoryRestoreConfirm: "恢复此版本？当前内容将先保存到历史记录。",
+    worksheetHistoryRestoredToast: "文档版本已恢复",
+    worksheetHistoryGenerated: "IDA 生成",
+    worksheetHistoryManualSave: "手动保存",
+    worksheetHistoryRestored: "已恢复",
     mapPlaceholderDesc: "交互式地图将在此显示，用于位置相关问题。",
     mapPlaceholderContent: "[ 地图 ]\n\n地图预览将显示在此面板。",
     researchPlaceholderDesc: "深度研究结果将显示在此面板。",

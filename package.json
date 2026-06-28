@@ -15,7 +15,8 @@
     "test:web-search": "node scripts/test-web-search.mjs",
     "test:sessions": "node scripts/test-chat-store.mjs",
     "test:worksheet": "node scripts/test-worksheet.mjs",
-    "test:pdf-export": "node scripts/test-pdf-export.mjs"
+    "test:pdf-export": "node scripts/test-pdf-export.mjs",
+    "test:worksheet-versions": "node scripts/test-worksheet-versions.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

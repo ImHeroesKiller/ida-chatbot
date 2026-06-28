@@ -14,12 +14,25 @@ export type WorksheetParseSource =
   | "json_block"
   | "markdown_heuristic";
 
+export type WorksheetVersionSource = "generated" | "manual_save" | "restored";
+
+export interface WorksheetVersion {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: number;
+  source: WorksheetVersionSource;
+}
+
 export interface WorksheetDocument {
   title: string;
   content: string;
   updatedAt: number;
   error?: WorksheetErrorCode;
+  versions?: WorksheetVersion[];
 }
+
+export const MAX_WORKSHEET_VERSIONS = 20;
 
 export interface WorksheetPayload {
   title: string;
@@ -50,6 +63,91 @@ const WORKSHEET_PARSE_ERROR_CHAT: Record<Locale, string> = {
   en: "The document could not be processed. Try sending your request again or clarify the format you need.",
   zh: "无法处理文档。请重新发送请求或说明您需要的格式。",
 };
+
+export function createWorksheetVersion(params: {
+  title: string;
+  content: string;
+  source: WorksheetVersionSource;
+}): WorksheetVersion {
+  return {
+    id: `wv-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    title: params.title.trim(),
+    content: params.content,
+    createdAt: Date.now(),
+    source: params.source,
+  };
+}
+
+export function shouldRecordWorksheetVersion(
+  versions: WorksheetVersion[] | undefined,
+  title: string,
+  content: string,
+): boolean {
+  const trimmed = content.trim();
+  if (!trimmed) return false;
+
+  const latest = versions?.[0];
+  if (!latest) return true;
+
+  return latest.content !== content || latest.title.trim() !== title.trim();
+}
+
+export function pushWorksheetVersion(
+  versions: WorksheetVersion[] | undefined,
+  version: WorksheetVersion,
+): WorksheetVersion[] {
+  return [version, ...(versions ?? [])].slice(0, MAX_WORKSHEET_VERSIONS);
+}
+
+export function recordWorksheetVersion(
+  versions: WorksheetVersion[] | undefined,
+  params: {
+    title: string;
+    content: string;
+    source: WorksheetVersionSource;
+  },
+): WorksheetVersion[] {
+  if (!shouldRecordWorksheetVersion(versions, params.title, params.content)) {
+    return versions ?? [];
+  }
+
+  return pushWorksheetVersion(
+    versions,
+    createWorksheetVersion(params),
+  );
+}
+
+export function findWorksheetVersion(
+  versions: WorksheetVersion[] | undefined,
+  versionId: string,
+): WorksheetVersion | undefined {
+  return versions?.find((version) => version.id === versionId);
+}
+
+export function formatWorksheetVersionTime(
+  timestamp: number,
+  locale: Locale,
+): string {
+  return new Intl.DateTimeFormat(
+    locale === "zh" ? "zh-CN" : locale === "en" ? "en-US" : "id-ID",
+    {
+      dateStyle: "medium",
+      timeStyle: "short",
+    },
+  ).format(new Date(timestamp));
+}
+
+export function worksheetVersionPreview(content: string, maxLength = 72): string {
+  const line =
+    content
+      .split("\n")
+      .map((part) => part.trim())
+      .find(Boolean) ?? "";
+
+  const plain = line.replace(/^#+\s*/, "");
+  if (plain.length <= maxLength) return plain;
+  return `${plain.slice(0, maxLength - 1)}…`;
+}
 
 export function createEmptyWorksheet(locale: Locale): WorksheetDocument {
   return {
