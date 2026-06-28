@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
-import type { WorksheetLetterheadSelection } from "@/lib/worksheet-letterhead-template";
-import type { WorksheetErrorCode, WorksheetVersion } from "@/lib/worksheet";
+import type { WorksheetDocument, WorksheetErrorCode } from "@/lib/worksheet";
 import type { WorksheetTemplate } from "@/lib/worksheet-templates";
 import { COPY } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -16,25 +15,15 @@ import { cn } from "@/lib/utils";
 interface RightSidebarProps {
   locale: Locale;
   panel: RightSidebarPanel;
-  worksheetTitle: string;
-  worksheetContent: string;
-  worksheetError?: WorksheetErrorCode | null;
+  worksheet: WorksheetDocument;
   worksheetErrorDetail?: string | null;
   worksheetGenerating?: boolean;
   worksheetCanRegenerate?: boolean;
-  onWorksheetTitleChange: (title: string) => void;
-  onWorksheetContentSave?: (content: string) => void;
-  onWorksheetContentChange?: (content: string) => void;
-  worksheetVersions?: WorksheetVersion[];
-  onWorksheetRestoreVersion?: (versionId: string) => void;
+  onWorksheetChange: (workspace: WorksheetDocument) => void;
   onWorksheetApplyTemplate?: (template: WorksheetTemplate) => void;
   onWorksheetRetry?: () => void;
   onWorksheetRegenerate?: () => void;
   onWorksheetClear?: () => void;
-  worksheetLetterheadSelection?: WorksheetLetterheadSelection;
-  onWorksheetLetterheadSelectionChange?: (
-    selection: WorksheetLetterheadSelection,
-  ) => void;
   onClose: () => void;
   className?: string;
   embedded?: boolean;
@@ -49,23 +38,15 @@ const PANEL_ICONS = {
 export function RightSidebar({
   locale,
   panel,
-  worksheetTitle,
-  worksheetContent,
-  worksheetError = null,
+  worksheet,
   worksheetErrorDetail = null,
   worksheetGenerating = false,
   worksheetCanRegenerate = false,
-  onWorksheetTitleChange,
-  onWorksheetContentSave,
-  onWorksheetContentChange,
-  worksheetVersions = [],
-  onWorksheetRestoreVersion,
+  onWorksheetChange,
   onWorksheetApplyTemplate,
   onWorksheetRetry,
   onWorksheetRegenerate,
   onWorksheetClear,
-  worksheetLetterheadSelection,
-  onWorksheetLetterheadSelectionChange,
   onClose,
   className,
   embedded = false,
@@ -76,23 +57,15 @@ export function RightSidebar({
     return (
       <WorksheetPanel
         locale={locale}
-        title={worksheetTitle}
-        content={worksheetContent}
-        error={worksheetError}
+        workspace={worksheet}
+        onWorkspaceChange={onWorksheetChange}
         errorDetail={worksheetErrorDetail}
         isGenerating={worksheetGenerating}
         canRegenerate={worksheetCanRegenerate}
-        onTitleChange={onWorksheetTitleChange}
-        onContentSave={onWorksheetContentSave}
-        onContentChange={onWorksheetContentChange}
-        versions={worksheetVersions}
-        onRestoreVersion={onWorksheetRestoreVersion}
         onApplyTemplate={onWorksheetApplyTemplate}
         onRetry={onWorksheetRetry}
         onRegenerate={onWorksheetRegenerate}
         onClear={onWorksheetClear}
-        letterheadSelection={worksheetLetterheadSelection}
-        onLetterheadSelectionChange={onWorksheetLetterheadSelectionChange}
         onClose={onClose}
         className={className}
         embedded={embedded}

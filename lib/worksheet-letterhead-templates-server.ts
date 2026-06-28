@@ -90,6 +90,7 @@ async function clearDefaultFlag(): Promise<void> {
 export async function createWorksheetLetterheadTemplate(params: {
   name: string;
   brandingConfig: WorksheetBrandingConfig;
+  sampleContent?: string | null;
   isDefault?: boolean;
   createdBy?: string | null;
 }): Promise<WorksheetLetterheadTemplate> {
@@ -102,6 +103,7 @@ export async function createWorksheetLetterheadTemplate(params: {
       id: `local-${Date.now()}`,
       name: params.name.trim(),
       brandingConfig,
+      sampleContent: params.sampleContent?.trim() || null,
       isDefault,
       createdBy: params.createdBy ?? null,
       createdAt: now,
@@ -125,6 +127,7 @@ export async function createWorksheetLetterheadTemplate(params: {
     .insert({
       name: params.name.trim(),
       branding_config: brandingConfig,
+      sample_content: params.sampleContent?.trim() || null,
       is_default: isDefault,
       created_by: params.createdBy ?? null,
     })

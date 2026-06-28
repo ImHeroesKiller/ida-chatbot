@@ -51,7 +51,7 @@ const HandoffDialog = dynamic(
     })),
   { ssr: false },
 );
-import { ConfirmDialog } from "@/components/chat/confirm-dialog";
+
 import { useChatContext } from "@/components/chat/chat-provider";
 import {
   Sheet,
@@ -73,17 +73,19 @@ import type { IdaSseDonePayload, IdaSseMetaPayload } from "@/lib/sse";
 import toast from "react-hot-toast";
 
 import {
-  createEmptyWorksheet,
-  findWorksheetVersion,
-  recordWorksheetVersion,
+  type WorksheetDocument,
   type WorksheetErrorCode,
-  type WorksheetVersion,
 } from "@/lib/worksheet";
 import {
-  DEFAULT_WORKSHEET_LETTERHEAD_SELECTION,
-  parseWorksheetLetterheadSelection,
-  type WorksheetLetterheadSelection,
-} from "@/lib/worksheet-letterhead-template";
+  addGeneratedWorksheetDocument,
+  createEmptyWorksheetWorkspace,
+  hasWorksheetWorkspaceContent,
+  normalizeWorksheetDocument,
+  recordWorksheetDocumentVersion,
+  setWorksheetWorkspaceError,
+  summarizeWorksheetPrompt,
+  syncWorkspaceLegacyFields,
+} from "@/lib/worksheet-workspace";
 import {
   resolveWorksheetTemplate,
   type WorksheetTemplate,
@@ -142,36 +144,22 @@ function ChatRoomContent() {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [rightPanel, setRightPanel] = useState<RightSidebarPanel | null>(null);
-  const [worksheetTitle, setWorksheetTitle] = useState("");
-  const [worksheetContent, setWorksheetContent] = useState("");
-  const [worksheetError, setWorksheetError] =
-    useState<WorksheetErrorCode | null>(null);
-  const [worksheetVersions, setWorksheetVersions] = useState<WorksheetVersion[]>(
-    [],
-  );
-  const [overwriteConfirmOpen, setOverwriteConfirmOpen] = useState(false);
+  const [worksheetWorkspace, setWorksheetWorkspace] =
+    useState<WorksheetDocument>(() => createEmptyWorksheetWorkspace(locale));
   const isMobileViewport = useIsMobileViewport();
   const rightPanelSheetOpen = Boolean(rightPanel) && isMobileViewport;
 
-  const worksheetVersionsRef = useRef<WorksheetVersion[]>([]);
+  const worksheetWorkspaceRef = useRef<WorksheetDocument>(
+    createEmptyWorksheetWorkspace(locale),
+  );
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeChatIdRef = useRef<string | null>(null);
   const [lastWorksheetPrompt, setLastWorksheetPrompt] = useState("");
+  const lastWorksheetPromptRef = useRef("");
   const [worksheetErrorDetail, setWorksheetErrorDetail] = useState<
     string | null
   >(null);
-  const [worksheetLetterheadSelection, setWorksheetLetterheadSelection] =
-    useState<WorksheetLetterheadSelection>(DEFAULT_WORKSHEET_LETTERHEAD_SELECTION);
-  const pendingSendRef = useRef<{
-    rawText: string;
-    options?: {
-      attachment?: IdaAttachment;
-      isVoiceNote?: boolean;
-      caption?: string;
-    };
-  } | null>(null);
-
   const visibleMessages = useMemo(
     () => messages.filter((message) => message.id !== WELCOME_MESSAGE_ID),
     [messages],
@@ -246,18 +234,10 @@ function ChatRoomContent() {
     setIsLoading(false);
     setEditingMessageId(null);
     setRightPanel(currentChat.activeRightPanel ?? null);
-    setWorksheetTitle(
-      currentChat.worksheet?.title ?? createEmptyWorksheet(locale).title,
+    setWorksheetWorkspace(
+      normalizeWorksheetDocument(currentChat.worksheet, locale),
     );
-    setWorksheetContent(currentChat.worksheet?.content ?? "");
-    setWorksheetError(currentChat.worksheet?.error ?? null);
-    setWorksheetVersions(currentChat.worksheet?.versions ?? []);
-    setWorksheetLetterheadSelection(
-      parseWorksheetLetterheadSelection({
-        brandingSource: currentChat.worksheet?.brandingSource,
-        letterheadTemplateId: currentChat.worksheet?.letterheadTemplateId,
-      }),
-    );
+    setWorksheetErrorDetail(null);
 
     const lastUserMessage = [...currentChat.messages]
       .reverse()
@@ -267,43 +247,30 @@ function ChatRoomContent() {
   }, [hydrated, currentChat, locale]);
 
   useEffect(() => {
-    worksheetVersionsRef.current = worksheetVersions;
-  }, [worksheetVersions]);
+    worksheetWorkspaceRef.current = worksheetWorkspace;
+  }, [worksheetWorkspace]);
+
+  useEffect(() => {
+    lastWorksheetPromptRef.current = lastWorksheetPrompt;
+  }, [lastWorksheetPrompt]);
 
   useEffect(() => {
     if (!hydrated || isLoading) return;
 
-    const worksheet =
-      worksheetContent.trim() ||
-      worksheetTitle.trim() ||
-      worksheetError ||
-      worksheetVersions.length > 0
-        ? {
-            title: worksheetTitle.trim() || createEmptyWorksheet(locale).title,
-            content: worksheetContent,
-            updatedAt: Date.now(),
-            ...(worksheetError ? { error: worksheetError } : {}),
-            ...(worksheetVersions.length > 0
-              ? { versions: worksheetVersions }
-              : {}),
-            brandingSource: worksheetLetterheadSelection.brandingSource,
-            letterheadTemplateId:
-              worksheetLetterheadSelection.letterheadTemplateId,
-          }
-        : null;
+    const worksheet = hasWorksheetWorkspaceContent(worksheetWorkspace)
+      ? syncWorkspaceLegacyFields({
+          ...worksheetWorkspace,
+          updatedAt: Date.now(),
+        })
+      : null;
 
     persistCurrentChat({ messages, activeRightPanel: rightPanel, worksheet });
   }, [
     messages,
     rightPanel,
-    worksheetTitle,
-    worksheetContent,
-    worksheetError,
-    worksheetVersions,
-    worksheetLetterheadSelection,
+    worksheetWorkspace,
     hydrated,
     isLoading,
-    locale,
     persistCurrentChat,
   ]);
 
@@ -420,55 +387,55 @@ function ChatRoomContent() {
         const applyWorksheet = (
           worksheet: NonNullable<IdaSseDonePayload["worksheet"]>,
         ) => {
-          const versions = recordWorksheetVersion(
-            worksheetVersionsRef.current,
+          const next = addGeneratedWorksheetDocument(
+            worksheetWorkspaceRef.current,
             {
               title: worksheet.title,
               content: worksheet.content,
-              source: "generated",
+              promptSummary: summarizeWorksheetPrompt(
+                lastWorksheetPromptRef.current,
+              ),
             },
+            { activate: false },
           );
-
-          const document = {
-            title: worksheet.title,
-            content: worksheet.content,
+          const persisted = syncWorkspaceLegacyFields({
+            ...next,
             updatedAt: Date.now(),
-            versions,
-          };
+          });
 
           if (activeChatIdRef.current === chatIdAtSend) {
-            setWorksheetTitle(worksheet.title);
-            setWorksheetContent(worksheet.content);
-            setWorksheetError(null);
+            setWorksheetWorkspace(next);
             setWorksheetErrorDetail(null);
-            setWorksheetVersions(versions);
             setRightPanel("worksheet");
             toast.success(copy.worksheetCreated);
           }
 
           persistCurrentChat({
-            worksheet: document,
+            worksheet: persisted,
             activeRightPanel: "worksheet",
           });
         };
 
         const applyWorksheetError = (errorCode: string) => {
           const code = errorCode as WorksheetErrorCode;
+          const next = setWorksheetWorkspaceError(
+            worksheetWorkspaceRef.current,
+            code,
+            locale,
+          );
+          const persisted = syncWorkspaceLegacyFields({
+            ...next,
+            updatedAt: Date.now(),
+          });
 
           if (activeChatIdRef.current === chatIdAtSend) {
-            setWorksheetError(code);
+            setWorksheetWorkspace(next);
             setWorksheetErrorDetail(null);
             setRightPanel("worksheet");
           }
 
           persistCurrentChat({
-            worksheet: {
-              title:
-                worksheetTitle.trim() || createEmptyWorksheet(locale).title,
-              content: worksheetContent,
-              updatedAt: Date.now(),
-              error: code,
-            },
+            worksheet: persisted,
             activeRightPanel: "worksheet",
           });
         };
@@ -544,21 +511,28 @@ function ChatRoomContent() {
           );
 
           if (useWorksheet) {
-            setWorksheetError("generate_failed");
+            const next = setWorksheetWorkspaceError(
+              worksheetWorkspaceRef.current,
+              "generate_failed",
+              locale,
+            );
+            setWorksheetWorkspace(next);
             setWorksheetErrorDetail(errorMessage);
             setRightPanel("worksheet");
           }
         }
 
         if (useWorksheet) {
+          const next = setWorksheetWorkspaceError(
+            worksheetWorkspaceRef.current,
+            "generate_failed",
+            locale,
+          );
           persistCurrentChat({
-            worksheet: {
-              title:
-                worksheetTitle.trim() || createEmptyWorksheet(locale).title,
-              content: worksheetContent,
+            worksheet: syncWorkspaceLegacyFields({
+              ...next,
               updatedAt: Date.now(),
-              error: "generate_failed",
-            },
+            }),
             activeRightPanel: "worksheet",
           });
         }
@@ -571,8 +545,6 @@ function ChatRoomContent() {
       copy.errors,
       copy.worksheetCreated,
       locale,
-      worksheetContent,
-      worksheetTitle,
       openHandoff,
       persistCurrentChat,
       appFeatures?.features.autoSpeak,
@@ -607,7 +579,9 @@ function ChatRoomContent() {
         setLastWorksheetPrompt(text);
       }
       if (worksheetAtSend) {
-        setWorksheetError(null);
+        setWorksheetWorkspace((prev) =>
+          prev.error ? { ...prev, error: undefined } : prev,
+        );
         setWorksheetErrorDetail(null);
       }
 
@@ -677,35 +651,13 @@ function ChatRoomContent() {
         isVoiceNote?: boolean;
         caption?: string;
       },
-      sendOptions?: { skipOverwriteConfirm?: boolean },
     ) => {
       const text = rawText.trim();
       if ((!text && !options?.attachment) || isLoading || !currentChat) return;
 
-      const worksheetAtSend = rightPanel === "worksheet";
-      const hasExistingWorksheet = Boolean(worksheetContent.trim());
-
-      if (
-        worksheetAtSend &&
-        hasExistingWorksheet &&
-        !worksheetError &&
-        !sendOptions?.skipOverwriteConfirm
-      ) {
-        pendingSendRef.current = { rawText, options };
-        setOverwriteConfirmOpen(true);
-        return;
-      }
-
       await executeSendMessage(rawText, options);
     },
-    [
-      currentChat,
-      executeSendMessage,
-      isLoading,
-      rightPanel,
-      worksheetContent,
-      worksheetError,
-    ],
+    [currentChat, executeSendMessage, isLoading],
   );
 
   const handleRegenerate = useCallback(
@@ -857,108 +809,37 @@ function ChatRoomContent() {
     ],
   );
 
-  const handleWorksheetTitleChange = useCallback((title: string) => {
-    setWorksheetTitle(title);
+  const handleWorksheetChange = useCallback((workspace: WorksheetDocument) => {
+    setWorksheetWorkspace(workspace);
   }, []);
-
-  const handleWorksheetContentSave = useCallback(
-    (content: string) => {
-      const title =
-        worksheetTitle.trim() || createEmptyWorksheet(locale).title;
-      const versions = recordWorksheetVersion(worksheetVersions, {
-        title,
-        content,
-        source: "manual_save",
-      });
-
-      setWorksheetContent(content);
-      setWorksheetError(null);
-      setWorksheetVersions(versions);
-    },
-    [locale, worksheetTitle, worksheetVersions],
-  );
-
-  const handleWorksheetContentChange = useCallback((content: string) => {
-    setWorksheetContent(content);
-  }, []);
-
-  const handleWorksheetLetterheadSelectionChange = useCallback(
-    (selection: WorksheetLetterheadSelection) => {
-      setWorksheetLetterheadSelection(selection);
-    },
-    [],
-  );
 
   const handleWorksheetApplyTemplate = useCallback(
     (template: WorksheetTemplate) => {
       const { title, content } = resolveWorksheetTemplate(template, locale);
-      const versions = recordWorksheetVersion(worksheetVersions, {
-        title,
-        content,
-        source: "template",
-      });
 
-      setWorksheetTitle(title);
-      setWorksheetContent(content);
-      setWorksheetError(null);
-      setWorksheetVersions(versions);
+      setWorksheetWorkspace((prev) => {
+        const documentId = prev.activeDocumentId;
+        const next = documentId
+          ? recordWorksheetDocumentVersion(prev, documentId, {
+              title,
+              content,
+              source: "template",
+            })
+          : addGeneratedWorksheetDocument(
+              prev,
+              { title, content },
+              { activate: true },
+            );
+        return syncWorkspaceLegacyFields(next);
+      });
       toast.success(copy.worksheetTemplateApplied);
     },
-    [copy.worksheetTemplateApplied, locale, worksheetVersions],
-  );
-
-  const handleWorksheetRestoreVersion = useCallback(
-    (versionId: string) => {
-      const version = findWorksheetVersion(worksheetVersions, versionId);
-      if (!version) return;
-
-      if (!window.confirm(copy.worksheetHistoryRestoreConfirm)) return;
-
-      const currentTitle =
-        worksheetTitle.trim() || createEmptyWorksheet(locale).title;
-      let versions = worksheetVersions;
-
-      if (
-        worksheetContent.trim() &&
-        (worksheetContent !== version.content ||
-          currentTitle !== version.title.trim())
-      ) {
-        versions = recordWorksheetVersion(versions, {
-          title: currentTitle,
-          content: worksheetContent,
-          source: "manual_save",
-        });
-      }
-
-      versions = recordWorksheetVersion(versions, {
-        title: version.title,
-        content: version.content,
-        source: "restored",
-      });
-
-      setWorksheetTitle(version.title);
-      setWorksheetContent(version.content);
-      setWorksheetError(null);
-      setWorksheetVersions(versions);
-      toast.success(copy.worksheetHistoryRestoredToast);
-    },
-    [
-      copy.worksheetHistoryRestoreConfirm,
-      copy.worksheetHistoryRestoredToast,
-      locale,
-      worksheetContent,
-      worksheetTitle,
-      worksheetVersions,
-    ],
+    [copy.worksheetTemplateApplied, locale],
   );
 
   const handleWorksheetClear = useCallback(() => {
-    const empty = createEmptyWorksheet(locale);
-    setWorksheetTitle(empty.title);
-    setWorksheetContent("");
-    setWorksheetError(null);
+    setWorksheetWorkspace(createEmptyWorksheetWorkspace(locale));
     setWorksheetErrorDetail(null);
-    setWorksheetVersions([]);
     setLastWorksheetPrompt("");
     persistCurrentChat({ worksheet: null });
   }, [locale, persistCurrentChat]);
@@ -966,25 +847,12 @@ function ChatRoomContent() {
   const handleWorksheetRetry = useCallback(() => {
     const prompt = lastWorksheetPrompt.trim();
     if (!prompt || isLoading) return;
-    void sendMessage(prompt, undefined, { skipOverwriteConfirm: true });
+    void sendMessage(prompt);
   }, [isLoading, lastWorksheetPrompt, sendMessage]);
 
   const handleWorksheetRegenerate = useCallback(() => {
     handleWorksheetRetry();
   }, [handleWorksheetRetry]);
-
-  const handleOverwriteConfirm = useCallback(() => {
-    const pending = pendingSendRef.current;
-    pendingSendRef.current = null;
-    setOverwriteConfirmOpen(false);
-    if (!pending) return;
-    void executeSendMessage(pending.rawText, pending.options);
-  }, [executeSendMessage]);
-
-  const handleOverwriteCancel = useCallback(() => {
-    pendingSendRef.current = null;
-    setOverwriteConfirmOpen(false);
-  }, []);
 
   const handleOpenToolPanel = useCallback((panel: RightSidebarPanel) => {
     setRightPanel(panel);
@@ -1110,25 +978,15 @@ function ChatRoomContent() {
               key={currentChat?.id}
               locale={locale}
               panel={rightPanel}
-              worksheetTitle={worksheetTitle}
-              worksheetContent={worksheetContent}
-              worksheetError={worksheetError}
+              worksheet={worksheetWorkspace}
               worksheetErrorDetail={worksheetErrorDetail}
               worksheetGenerating={isLoading && rightPanel === "worksheet"}
               worksheetCanRegenerate={Boolean(lastWorksheetPrompt.trim())}
-              onWorksheetTitleChange={handleWorksheetTitleChange}
-              onWorksheetContentSave={handleWorksheetContentSave}
-              onWorksheetContentChange={handleWorksheetContentChange}
-              worksheetVersions={worksheetVersions}
-              onWorksheetRestoreVersion={handleWorksheetRestoreVersion}
+              onWorksheetChange={handleWorksheetChange}
               onWorksheetApplyTemplate={handleWorksheetApplyTemplate}
               onWorksheetRetry={handleWorksheetRetry}
               onWorksheetRegenerate={handleWorksheetRegenerate}
               onWorksheetClear={handleWorksheetClear}
-              worksheetLetterheadSelection={worksheetLetterheadSelection}
-              onWorksheetLetterheadSelectionChange={
-                handleWorksheetLetterheadSelectionChange
-              }
               onClose={handleCloseToolPanel}
               className="relative z-10 hidden shrink-0 md:flex"
             />
@@ -1153,25 +1011,15 @@ function ChatRoomContent() {
               key={currentChat?.id}
               locale={locale}
               panel={rightPanel}
-              worksheetTitle={worksheetTitle}
-              worksheetContent={worksheetContent}
-              worksheetError={worksheetError}
+              worksheet={worksheetWorkspace}
               worksheetErrorDetail={worksheetErrorDetail}
               worksheetGenerating={isLoading && rightPanel === "worksheet"}
               worksheetCanRegenerate={Boolean(lastWorksheetPrompt.trim())}
-              onWorksheetTitleChange={handleWorksheetTitleChange}
-              onWorksheetContentSave={handleWorksheetContentSave}
-              onWorksheetContentChange={handleWorksheetContentChange}
-              worksheetVersions={worksheetVersions}
-              onWorksheetRestoreVersion={handleWorksheetRestoreVersion}
+              onWorksheetChange={handleWorksheetChange}
               onWorksheetApplyTemplate={handleWorksheetApplyTemplate}
               onWorksheetRetry={handleWorksheetRetry}
               onWorksheetRegenerate={handleWorksheetRegenerate}
               onWorksheetClear={handleWorksheetClear}
-              worksheetLetterheadSelection={worksheetLetterheadSelection}
-              onWorksheetLetterheadSelectionChange={
-                handleWorksheetLetterheadSelectionChange
-              }
               onClose={handleCloseToolPanel}
               embedded
             />
@@ -1194,17 +1042,6 @@ function ChatRoomContent() {
           />
         </SheetContent>
       </Sheet>
-
-      <ConfirmDialog
-        open={overwriteConfirmOpen}
-        title={copy.worksheetOverwriteTitle}
-        description={copy.worksheetOverwriteDescription}
-        confirmLabel={copy.worksheetOverwriteConfirm}
-        cancelLabel={copy.handoffClose}
-        destructive
-        onConfirm={handleOverwriteConfirm}
-        onCancel={handleOverwriteCancel}
-      />
 
       <HandoffDialog />
     </MessageReactionsProvider>

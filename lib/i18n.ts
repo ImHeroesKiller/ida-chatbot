@@ -134,6 +134,18 @@ export const COPY: Record<
     worksheetTitlePlaceholder: string;
     worksheetEmptyTitle: string;
     worksheetEmptyHint: string;
+    worksheetDocumentsTitle: string;
+    worksheetDocumentsNoSummary: string;
+    worksheetDocumentsBack: string;
+    worksheetSaveTemplate: string;
+    worksheetSaveTemplateTitle: string;
+    worksheetSaveTemplateDescription: string;
+    worksheetSaveTemplateNameLabel: string;
+    worksheetSaveTemplateNamePlaceholder: string;
+    worksheetSaveTemplateAction: string;
+    worksheetSaveTemplateSuccess: string;
+    worksheetSaveTemplateError: string;
+    worksheetSaveTemplateNameRequired: string;
     worksheetCopy: string;
     worksheetDownload: string;
     worksheetCopied: string;
@@ -440,6 +452,19 @@ export const COPY: Record<
     worksheetEmptyTitle: "Belum ada dokumen",
     worksheetEmptyHint:
       "Minta IDA membuat dokumen lewat chat. Setelah dibuat, Anda bisa mengedit langsung di sini dan mengekspor ke PDF.",
+    worksheetDocumentsTitle: "Dokumen tersimpan",
+    worksheetDocumentsNoSummary: "Tanpa ringkasan",
+    worksheetDocumentsBack: "Kembali ke daftar",
+    worksheetSaveTemplate: "Simpan sebagai template",
+    worksheetSaveTemplateTitle: "Simpan sebagai template",
+    worksheetSaveTemplateDescription:
+      "Simpan branding dan struktur dokumen ini sebagai template letterhead perusahaan.",
+    worksheetSaveTemplateNameLabel: "Nama template",
+    worksheetSaveTemplateNamePlaceholder: "Surat Resmi, Proposal Proyek…",
+    worksheetSaveTemplateAction: "Simpan template",
+    worksheetSaveTemplateSuccess: "Template letterhead disimpan",
+    worksheetSaveTemplateError: "Gagal menyimpan template",
+    worksheetSaveTemplateNameRequired: "Nama template wajib diisi",
     worksheetCopy: "Salin",
     worksheetDownload: "Unduh .md",
     worksheetCopied: "Dokumen disalin",
@@ -768,6 +793,19 @@ export const COPY: Record<
     worksheetEmptyTitle: "No document yet",
     worksheetEmptyHint:
       "Ask IDA to create a document in chat. Once ready, edit it here and export to PDF.",
+    worksheetDocumentsTitle: "Saved documents",
+    worksheetDocumentsNoSummary: "No summary",
+    worksheetDocumentsBack: "Back to list",
+    worksheetSaveTemplate: "Save as template",
+    worksheetSaveTemplateTitle: "Save as template",
+    worksheetSaveTemplateDescription:
+      "Save this document branding and structure as a company letterhead template.",
+    worksheetSaveTemplateNameLabel: "Template name",
+    worksheetSaveTemplateNamePlaceholder: "Official Letter, Project Proposal…",
+    worksheetSaveTemplateAction: "Save template",
+    worksheetSaveTemplateSuccess: "Letterhead template saved",
+    worksheetSaveTemplateError: "Failed to save template",
+    worksheetSaveTemplateNameRequired: "Template name is required",
     worksheetCopy: "Copy",
     worksheetDownload: "Download .md",
     worksheetCopied: "Document copied",
@@ -1097,6 +1135,18 @@ export const COPY: Record<
     worksheetEmptyTitle: "尚无文档",
     worksheetEmptyHint:
       "在聊天中请求 IDA 创建文档。生成后可直接在此编辑并导出 PDF。",
+    worksheetDocumentsTitle: "已保存文档",
+    worksheetDocumentsNoSummary: "无摘要",
+    worksheetDocumentsBack: "返回列表",
+    worksheetSaveTemplate: "保存为模板",
+    worksheetSaveTemplateTitle: "保存为模板",
+    worksheetSaveTemplateDescription: "将此文档的品牌样式和结构保存为公司信笺模板。",
+    worksheetSaveTemplateNameLabel: "模板名称",
+    worksheetSaveTemplateNamePlaceholder: "正式信函、项目提案…",
+    worksheetSaveTemplateAction: "保存模板",
+    worksheetSaveTemplateSuccess: "信笺模板已保存",
+    worksheetSaveTemplateError: "保存模板失败",
+    worksheetSaveTemplateNameRequired: "模板名称不能为空",
     worksheetCopy: "复制",
     worksheetDownload: "下载 .md",
     worksheetCopied: "文档已复制",

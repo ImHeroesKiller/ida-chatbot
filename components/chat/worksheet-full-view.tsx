@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Maximize2, X } from "lucide-react";
+import { BookmarkPlus, Maximize2, X } from "lucide-react";
 import { useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -31,6 +31,7 @@ interface WorksheetFullViewProps {
   branding: WorksheetBrandingConfig;
   onTitleChange: (title: string) => void;
   onContentChange: (content: string) => void;
+  onSaveAsTemplate?: () => void;
   onClose: () => void;
 }
 
@@ -42,6 +43,7 @@ export function WorksheetFullView({
   branding,
   onTitleChange,
   onContentChange,
+  onSaveAsTemplate,
   onClose,
 }: WorksheetFullViewProps) {
   const copy = COPY[locale];
@@ -109,6 +111,18 @@ export function WorksheetFullView({
             <span className="hidden shrink-0 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-medium text-primary sm:inline">
               {copy.worksheetFullViewBadge}
             </span>
+            {onSaveAsTemplate ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="shrink-0 gap-1.5"
+                onClick={onSaveAsTemplate}
+              >
+                <BookmarkPlus className="h-4 w-4" />
+                <span className="hidden sm:inline">{copy.worksheetSaveTemplate}</span>
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="outline"

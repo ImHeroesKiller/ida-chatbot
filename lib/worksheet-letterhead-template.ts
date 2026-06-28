@@ -9,6 +9,7 @@ export interface WorksheetLetterheadTemplate {
   id: string;
   name: string;
   brandingConfig: WorksheetBrandingConfig;
+  sampleContent: string | null;
   isDefault: boolean;
   createdBy: string | null;
   createdAt: string;
@@ -30,6 +31,7 @@ interface LetterheadTemplateRow {
   id: string;
   name: string;
   branding_config: unknown;
+  sample_content?: string | null;
   is_default: boolean;
   created_by: string | null;
   created_at: string;
@@ -43,6 +45,7 @@ export function mapLetterheadTemplateRow(
     id: row.id,
     name: row.name,
     brandingConfig: parseWorksheetBrandingConfig(row.branding_config),
+    sampleContent: row.sample_content ?? null,
     isDefault: row.is_default,
     createdBy: row.created_by,
     createdAt: row.created_at,

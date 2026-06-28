@@ -32,7 +32,11 @@ export interface WorksheetVersion {
   source: WorksheetVersionSource;
 }
 
+export type { WorksheetDocumentStatus, WorksheetSavedDocument } from "@/lib/worksheet-workspace";
+
 export interface WorksheetDocument {
+  activeDocumentId?: string | null;
+  documents?: import("@/lib/worksheet-workspace").WorksheetSavedDocument[];
   title: string;
   content: string;
   updatedAt: number;
@@ -163,6 +167,8 @@ export function worksheetVersionPreview(content: string, maxLength = 72): string
 
 export function createEmptyWorksheet(locale: Locale): WorksheetDocument {
   return {
+    activeDocumentId: null,
+    documents: [],
     title: DEFAULT_WORKSHEET_TITLES[locale],
     content: "",
     updatedAt: Date.now(),
