@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe, Loader2, Mic, Paperclip, Send } from "lucide-react";
+import { Loader2, Mic, Paperclip, Send } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -14,6 +14,7 @@ import {
 import toast from "react-hot-toast";
 
 import { AttachmentPreview } from "@/components/chat/attachment-preview";
+import { ToolsMenu } from "@/components/chat/tools-menu";
 import { VoiceWaveform } from "@/components/chat/voice-waveform";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +31,7 @@ import {
 import { useAppFeatures } from "@/lib/client/use-app-features";
 import { IDA_CONFIG, type Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
+import type { RightSidebarPanel } from "@/lib/chat-tools";
 import type { IdaAttachment, IdaAttachmentType } from "@/lib/types";
 import { getVoiceErrorMessage } from "@/lib/voice/voice-error-copy";
 import { useVoiceInput } from "@/lib/voice/use-voice-input";
@@ -56,7 +58,9 @@ interface ChatComposerProps {
   isLoading: boolean;
   webSearchEnabled: boolean;
   webSearchAvailable: boolean;
+  activeToolPanel: RightSidebarPanel | null;
   onWebSearchChange: (enabled: boolean) => void;
+  onOpenToolPanel: (panel: RightSidebarPanel) => void;
   onInputChange: (value: string) => void;
   onSend: (content: string, options?: {
     attachment?: IdaAttachment;
@@ -76,7 +80,9 @@ export function ChatComposer({
   isLoading,
   webSearchEnabled,
   webSearchAvailable,
+  activeToolPanel,
   onWebSearchChange,
+  onOpenToolPanel,
   onInputChange,
   onSend,
 }: ChatComposerProps) {
@@ -439,23 +445,15 @@ export function ChatComposer({
             }}
           />
 
-          {webSearchAvailable ? (
-            <Button
-              type="button"
-              variant={webSearchEnabled ? "default" : "outline"}
-              size="icon"
-              disabled={isLoading || isExtracting || isTranscribing}
-              aria-label={
-                webSearchEnabled ? copy.webSearchOn : copy.webSearchOff
-              }
-              aria-pressed={webSearchEnabled}
-              title={copy.webSearchToggle}
-              className="h-12 w-12 shrink-0 sm:h-11 sm:w-11"
-              onClick={() => onWebSearchChange(!webSearchEnabled)}
-            >
-              <Globe className="h-4 w-4" />
-            </Button>
-          ) : null}
+          <ToolsMenu
+            locale={locale}
+            disabled={isLoading || isExtracting || isTranscribing}
+            webSearchEnabled={webSearchEnabled}
+            webSearchAvailable={webSearchAvailable}
+            activePanel={activeToolPanel}
+            onWebSearchChange={onWebSearchChange}
+            onOpenPanel={onOpenToolPanel}
+          />
 
           {ocrEnabled && (
             <Button
@@ -557,9 +555,6 @@ export function ChatComposer({
             {copy.holdToRecord}
           </p>
         ) : null}
-        <p className="text-center text-[10px] leading-relaxed text-muted-foreground sm:text-[11px]">
-          {copy.disclaimer}
-        </p>
       </div>
     </form>
   );

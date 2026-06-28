@@ -11,7 +11,6 @@ export const COPY: Record<
     inputLabel: string;
     inputPlaceholder: string;
     send: string;
-    disclaimer: string;
     handoff: string;
     handoffTitle: string;
     handoffTopic: string;
@@ -120,6 +119,22 @@ export const COPY: Record<
     fontSizeSmall: string;
     fontSizeMedium: string;
     fontSizeLarge: string;
+    toolsMenu: string;
+    toolsWebSearch: string;
+    toolsMap: string;
+    toolsResearch: string;
+    toolsCanvas: string;
+    toolsOn: string;
+    toolsOff: string;
+    toolsComingSoon: string;
+    rightSidebarClose: string;
+    previewLabel: string;
+    canvasPlaceholderDesc: string;
+    canvasPlaceholderContent: string;
+    mapPlaceholderDesc: string;
+    mapPlaceholderContent: string;
+    researchPlaceholderDesc: string;
+    researchPlaceholderContent: string;
     errors: {
       generic: string;
       rateLimit: string;
@@ -129,7 +144,7 @@ export const COPY: Record<
 > = {
   id: {
     welcome:
-      "Halo! Saya **IDA** — Intelligent Digital Assistant yang siap membantu Anda.\n\nSaya bisa membantu dengan:\n- Pertanyaan umum & penjelasan\n- Brainstorming ide\n- Panduan langkah demi langkah\n\nApa yang ingin Anda tanyakan hari ini?",
+      "Saya siap membantu kamu hari ini. Ketik pertanyaan di bawah atau pilih saran cepat untuk memulai.\n\nAda yang bisa saya bantu?",
     subtitle: "Intelligent Digital Assistant",
     windowLabel: "Jendela chat IDA",
     open: "Buka chat IDA",
@@ -137,7 +152,6 @@ export const COPY: Record<
     inputLabel: "Pesan untuk IDA",
     inputPlaceholder: "Ketik pesan Anda...",
     send: "Kirim",
-    disclaimer: "IDA adalah asisten AI. Verifikasi info penting secara mandiri.",
     handoff: "Hubungi tim manusia",
     handoffTitle: "Handoff ke Tim Manusia",
     handoffTopic: "Topik",
@@ -151,13 +165,13 @@ export const COPY: Record<
     expandSidebar: "Perluas sidebar",
     collapseSidebar: "Ciutkan sidebar",
     emptyStateTitle: "Selamat datang di IDA",
-    emptyStateSubtitle: "Asisten AI mandiri, multilingual, siap 24/7",
-    emptyStateHint: "Ketik pesan di bawah atau pilih saran cepat untuk memulai percakapan.",
-    emptyStateTipsTitle: "Tips",
+    emptyStateSubtitle: "Asisten AI yang siap membantu kapan saja",
+    emptyStateHint: "Ketik pesan di bawah atau pilih saran cepat untuk memulai.",
+    emptyStateTipsTitle: "Tips singkat",
     emptyStateTips: [
-      "Tanyakan apa saja — IDA mendukung Bahasa Indonesia, Inggris, dan Mandarin.",
-      "Gunakan quick reply untuk memulai dengan cepat.",
-      "Tekan ⌘/Ctrl + Enter untuk mengirim pesan.",
+      "Tanyakan apa saja — bahasa Indonesia, Inggris, atau Mandarin.",
+      "Gunakan menu Alat untuk pencarian web, canvas, dan lainnya.",
+      "Tekan Enter untuk kirim pesan.",
     ],
     copyMessage: "Salin pesan",
     copySuccess: "Pesan disalin",
@@ -250,6 +264,28 @@ export const COPY: Record<
     fontSizeSmall: "Kecil",
     fontSizeMedium: "Sedang",
     fontSizeLarge: "Besar",
+    toolsMenu: "Alat",
+    toolsWebSearch: "Pencarian Web",
+    toolsMap: "Peta",
+    toolsResearch: "Riset",
+    toolsCanvas: "Canvas",
+    toolsOn: "Aktif",
+    toolsOff: "Mati",
+    toolsComingSoon: "Segera hadir",
+    rightSidebarClose: "Tutup panel",
+    previewLabel: "Pratinjau",
+    canvasPlaceholderDesc:
+      "Canvas akan menampilkan dokumen yang sedang dibuat atau diedit di sini.",
+    canvasPlaceholderContent:
+      "# Dokumen Contoh\n\nArea ini akan menampilkan pratinjau dokumen yang dihasilkan IDA — mirip Gemini Canvas.",
+    mapPlaceholderDesc:
+      "Peta interaktif akan ditampilkan di sini untuk pertanyaan berbasis lokasi.",
+    mapPlaceholderContent:
+      "[ Peta ]\n\nPratinjau peta akan muncul di panel ini.",
+    researchPlaceholderDesc:
+      "Hasil riset mendalam akan ditampilkan di panel ini.",
+    researchPlaceholderContent:
+      "## Ringkasan Riset\n\nHasil riset multi-sumber akan ditampilkan di sini.",
     errors: {
       generic: "Gagal mendapatkan respons. Coba lagi.",
       rateLimit: "Terlalu banyak permintaan. Tunggu sebentar.",
@@ -258,7 +294,7 @@ export const COPY: Record<
   },
   en: {
     welcome:
-      "Hello! I'm **IDA** — your Intelligent Digital Assistant.\n\nI can help with:\n- General questions & explanations\n- Idea brainstorming\n- Step-by-step guidance\n\nWhat would you like to ask today?",
+      "I'm ready to help you today. Type a question below or pick a quick suggestion to get started.\n\nWhat can I help you with?",
     subtitle: "Intelligent Digital Assistant",
     windowLabel: "IDA chat window",
     open: "Open IDA chat",
@@ -266,7 +302,6 @@ export const COPY: Record<
     inputLabel: "Message to IDA",
     inputPlaceholder: "Type your message...",
     send: "Send",
-    disclaimer: "IDA is an AI assistant. Verify important information independently.",
     handoff: "Talk to a human",
     handoffTitle: "Human Handoff",
     handoffTopic: "Topic",
@@ -280,13 +315,13 @@ export const COPY: Record<
     expandSidebar: "Expand sidebar",
     collapseSidebar: "Collapse sidebar",
     emptyStateTitle: "Welcome to IDA",
-    emptyStateSubtitle: "Independent, multilingual AI assistant — available 24/7",
-    emptyStateHint: "Type a message below or pick a quick suggestion to get started.",
-    emptyStateTipsTitle: "Tips",
+    emptyStateSubtitle: "Your AI assistant, ready whenever you need",
+    emptyStateHint: "Type a message below or pick a quick suggestion to begin.",
+    emptyStateTipsTitle: "Quick tips",
     emptyStateTips: [
-      "Ask anything — IDA supports Indonesian, English, and Chinese.",
-      "Use quick replies to get started faster.",
-      "Press ⌘/Ctrl + Enter to send a message.",
+      "Ask anything — Indonesian, English, or Chinese.",
+      "Use the Tools menu for web search, canvas, and more.",
+      "Press Enter to send a message.",
     ],
     copyMessage: "Copy message",
     copySuccess: "Message copied",
@@ -379,6 +414,28 @@ export const COPY: Record<
     fontSizeSmall: "Small",
     fontSizeMedium: "Medium",
     fontSizeLarge: "Large",
+    toolsMenu: "Tools",
+    toolsWebSearch: "Web Search",
+    toolsMap: "Map",
+    toolsResearch: "Research",
+    toolsCanvas: "Canvas",
+    toolsOn: "On",
+    toolsOff: "Off",
+    toolsComingSoon: "Coming soon",
+    rightSidebarClose: "Close panel",
+    previewLabel: "Preview",
+    canvasPlaceholderDesc:
+      "Canvas will show documents being created or edited here.",
+    canvasPlaceholderContent:
+      "# Sample Document\n\nThis area will preview documents generated by IDA — similar to Gemini Canvas.",
+    mapPlaceholderDesc:
+      "An interactive map will appear here for location-based questions.",
+    mapPlaceholderContent:
+      "[ Map ]\n\nMap preview will appear in this panel.",
+    researchPlaceholderDesc:
+      "Deep research results will be displayed in this panel.",
+    researchPlaceholderContent:
+      "## Research Summary\n\nMulti-source research results will appear here.",
     errors: {
       generic: "Failed to get a response. Please try again.",
       rateLimit: "Too many requests. Please wait a moment.",
@@ -387,7 +444,7 @@ export const COPY: Record<
   },
   zh: {
     welcome:
-      "你好！我是 **IDA** — 你的智能数字助手。\n\n我可以帮助你：\n- 解答常见问题\n- 头脑风暴创意\n- 提供分步指导\n\n今天想问我什么？",
+      "我今天随时准备帮助你。在下方输入问题，或选择快捷建议开始。\n\n有什么我可以帮你的吗？",
     subtitle: "智能数字助手",
     windowLabel: "IDA 聊天窗口",
     open: "打开 IDA 聊天",
@@ -395,7 +452,6 @@ export const COPY: Record<
     inputLabel: "发送给 IDA 的消息",
     inputPlaceholder: "输入消息...",
     send: "发送",
-    disclaimer: "IDA 是 AI 助手。请自行核实重要信息。",
     handoff: "联系人工客服",
     handoffTitle: "转接人工客服",
     handoffTopic: "主题",
@@ -409,13 +465,13 @@ export const COPY: Record<
     expandSidebar: "展开侧边栏",
     collapseSidebar: "收起侧边栏",
     emptyStateTitle: "欢迎使用 IDA",
-    emptyStateSubtitle: "独立多语言 AI 助手，全天候在线",
-    emptyStateHint: "在下方输入消息或选择快捷建议开始对话。",
+    emptyStateSubtitle: "随时为你提供帮助的 AI 助手",
+    emptyStateHint: "在下方输入消息或选择快捷建议开始。",
     emptyStateTipsTitle: "小贴士",
     emptyStateTips: [
-      "随意提问 — IDA 支持印尼语、英语和中文。",
-      "使用快捷回复更快开始。",
-      "按 ⌘/Ctrl + Enter 发送消息。",
+      "随意提问 — 支持印尼语、英语和中文。",
+      "使用工具菜单进行联网搜索、画布等功能。",
+      "按 Enter 发送消息。",
     ],
     copyMessage: "复制消息",
     copySuccess: "消息已复制",
@@ -508,6 +564,24 @@ export const COPY: Record<
     fontSizeSmall: "小",
     fontSizeMedium: "中",
     fontSizeLarge: "大",
+    toolsMenu: "工具",
+    toolsWebSearch: "联网搜索",
+    toolsMap: "地图",
+    toolsResearch: "研究",
+    toolsCanvas: "画布",
+    toolsOn: "开",
+    toolsOff: "关",
+    toolsComingSoon: "即将推出",
+    rightSidebarClose: "关闭面板",
+    previewLabel: "预览",
+    canvasPlaceholderDesc: "画布将在此显示正在创建或编辑的文档。",
+    canvasPlaceholderContent:
+      "# 示例文档\n\n此区域将预览 IDA 生成的文档 — 类似 Gemini Canvas。",
+    mapPlaceholderDesc: "交互式地图将在此显示，用于位置相关问题。",
+    mapPlaceholderContent: "[ 地图 ]\n\n地图预览将显示在此面板。",
+    researchPlaceholderDesc: "深度研究结果将显示在此面板。",
+    researchPlaceholderContent:
+      "## 研究摘要\n\n多来源研究结果将显示在此处。",
     errors: {
       generic: "获取回复失败，请重试。",
       rateLimit: "请求过多，请稍后再试。",

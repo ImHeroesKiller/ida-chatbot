@@ -74,6 +74,8 @@ import {
   useSpeechSynthesis,
 } from "@/lib/voice/use-speech-synthesis";
 import { useVoicePrefs } from "@/lib/voice/voice-prefs";
+import { RightSidebar } from "@/components/chat/right-sidebar";
+import type { RightSidebarPanel } from "@/lib/chat-tools";
 import { useChatFontSize } from "@/lib/chat-font-prefs";
 import { useWebSearchPrefs } from "@/lib/web-search-prefs";
 
@@ -129,6 +131,7 @@ function ChatRoomContent() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [rightPanel, setRightPanel] = useState<RightSidebarPanel | null>(null);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -201,6 +204,7 @@ function ChatRoomContent() {
     setStreamingMessageId(null);
     setIsLoading(false);
     setEditingMessageId(null);
+    setRightPanel(null);
   }, [hydrated, currentChat]);
 
   useEffect(() => {
@@ -589,6 +593,10 @@ function ChatRoomContent() {
     void sendMessage(message);
   };
 
+  const handleOpenToolPanel = useCallback((panel: RightSidebarPanel) => {
+    setRightPanel((current) => (current === panel ? null : panel));
+  }, []);
+
   const sidebarProps = {
     sessions,
     currentChatId: currentChat?.id ?? "",
@@ -617,7 +625,8 @@ function ChatRoomContent() {
           className="hidden shrink-0 border-r md:flex"
         />
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
+        <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
           <ChatHeader
             title={currentChat?.title ?? IDA_CONFIG.name}
             subtitle={copy.subtitle}
@@ -698,13 +707,46 @@ function ChatRoomContent() {
               isLoading={isLoading}
               webSearchEnabled={webSearchEnabled}
               webSearchAvailable={webSearchAvailable}
+              activeToolPanel={rightPanel}
               onWebSearchChange={setWebSearchEnabled}
+              onOpenToolPanel={handleOpenToolPanel}
               onInputChange={setInput}
               onSend={(content, options) => void sendMessage(content, options)}
             />
           </div>
+          </div>
+
+          {rightPanel ? (
+            <RightSidebar
+              locale={locale}
+              panel={rightPanel}
+              onClose={() => setRightPanel(null)}
+              className="hidden md:flex"
+            />
+          ) : null}
         </div>
       </div>
+
+      <Sheet
+        open={Boolean(rightPanel)}
+        onOpenChange={(open) => {
+          if (!open) setRightPanel(null);
+        }}
+      >
+        <SheetContent
+          side="right"
+          className="w-[min(92vw,24rem)] gap-0 overflow-hidden p-0 md:hidden [&>button]:h-10 [&>button]:w-10"
+        >
+          {rightPanel ? (
+            <RightSidebar
+              locale={locale}
+              panel={rightPanel}
+              onClose={() => setRightPanel(null)}
+              embedded
+            />
+          ) : null}
+        </SheetContent>
+      </Sheet>
 
       <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
         <SheetContent
