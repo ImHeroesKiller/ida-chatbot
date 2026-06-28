@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -65,7 +66,7 @@ import { consumeIdaSseStream } from "@/lib/client/parse-sse";
 import { useIsMobileViewport } from "@/lib/client/use-media-query";
 import { useAppFeatures } from "@/lib/client/use-app-features";
 import {
-  type ChatSession,
+  createEmptyWorksheet,
   useChatStore,
   WELCOME_MESSAGE_ID,
 } from "@/lib/chat-store";
@@ -162,6 +163,7 @@ function ChatRoomContent() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeChatIdRef = useRef<string | null>(null);
+  const localStateChatIdRef = useRef<string | null>(null);
   const [lastWorksheetPrompt, setLastWorksheetPrompt] = useState("");
   const lastWorksheetPromptRef = useRef("");
   const [worksheetErrorDetail, setWorksheetErrorDetail] = useState<
@@ -228,33 +230,36 @@ function ChatRoomContent() {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [hydrated, currentChat?.id]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!hydrated || !currentChat) return;
+    if (localStateChatIdRef.current === currentChat.id) return;
 
-    if (activeChatIdRef.current === currentChat.id) return;
+    flushSync(() => {
+      setMessages(currentChat.messages);
+      setInput("");
+      setError(null);
+      setStreamingMessageId(null);
+      setIsLoading(false);
+      setEditingMessageId(null);
+      setRightPanel(currentChat.activeRightPanel ?? null);
+      setWorksheetToolEnabled(
+        currentChat.worksheetToolEnabled ??
+          currentChat.activeRightPanel === "worksheet",
+      );
+
+      const worksheet = normalizeWorksheetDocument(currentChat.worksheet, locale);
+      setWorksheetWorkspace(worksheet);
+      worksheetWorkspaceRef.current = worksheet;
+      setWorksheetErrorDetail(null);
+
+      const lastUserMessage = [...currentChat.messages]
+        .reverse()
+        .find((message) => message.role === "user");
+      setLastWorksheetPrompt(lastUserMessage?.content?.trim() ?? "");
+    });
 
     activeChatIdRef.current = currentChat.id;
-    setMessages(currentChat.messages);
-    setInput("");
-    setError(null);
-    setStreamingMessageId(null);
-    setIsLoading(false);
-    setEditingMessageId(null);
-    setRightPanel(null);
-    setWorksheetToolEnabled(
-      currentChat.worksheetToolEnabled ??
-        currentChat.activeRightPanel === "worksheet",
-    );
-    setWorksheetWorkspace(
-      normalizeWorksheetDocument(currentChat.worksheet, locale),
-    );
-    setWorksheetErrorDetail(null);
-
-    const lastUserMessage = [...currentChat.messages]
-      .reverse()
-      .find((message) => message.role === "user");
-    const restoredPrompt = lastUserMessage?.content?.trim() ?? "";
-    setLastWorksheetPrompt(restoredPrompt);
+    localStateChatIdRef.current = currentChat.id;
   }, [hydrated, currentChat, locale]);
 
   useEffect(() => {
@@ -268,7 +273,7 @@ function ChatRoomContent() {
   const canPersistCurrentChatState = useCallback(() => {
     if (!currentChat) return false;
     if (activeChatIdRef.current === "__pending__") return false;
-    return activeChatIdRef.current === currentChat.id;
+    return localStateChatIdRef.current === currentChat.id;
   }, [currentChat]);
 
   useEffect(() => {
@@ -300,7 +305,7 @@ function ChatRoomContent() {
           ...worksheetWorkspace,
           updatedAt: Date.now(),
         })
-      : null;
+      : createEmptyWorksheet();
 
     persistCurrentChat({ worksheet });
   }, [
@@ -337,49 +342,21 @@ function ChatRoomContent() {
     }
   }, [rightPanelSheetOpen]);
 
-  const syncLocalStateFromChat = useCallback(
-    (chat: ChatSession) => {
-      setMessages(chat.messages);
-      setInput("");
-      setError(null);
-      setStreamingMessageId(null);
-      setIsLoading(false);
-      setEditingMessageId(null);
-      setRightPanel(null);
-      setWorksheetToolEnabled(
-        chat.worksheetToolEnabled ?? chat.activeRightPanel === "worksheet",
-      );
-
-      const worksheet = normalizeWorksheetDocument(chat.worksheet, locale);
-      setWorksheetWorkspace(worksheet);
-      worksheetWorkspaceRef.current = worksheet;
-      setWorksheetErrorDetail(null);
-
-      const lastUserMessage = [...chat.messages]
-        .reverse()
-        .find((message) => message.role === "user");
-      setLastWorksheetPrompt(lastUserMessage?.content?.trim() ?? "");
-    },
-    [locale],
-  );
-
   const handleSelectChat = useCallback(
     (chatId: string) => {
-      const chat = sessions.find((session) => session.id === chatId);
-      if (!chat) return;
+      if (!sessions.some((session) => session.id === chatId)) return;
 
       activeChatIdRef.current = "__pending__";
-      flushSync(() => {
-        syncLocalStateFromChat(chat);
-      });
+      localStateChatIdRef.current = null;
       switchChat(chatId);
       setMobileSidebarOpen(false);
     },
-    [sessions, switchChat, syncLocalStateFromChat],
+    [sessions, switchChat],
   );
 
   const handleNewChat = useCallback(() => {
     activeChatIdRef.current = "__pending__";
+    localStateChatIdRef.current = null;
 
     flushSync(() => {
       setMessages([]);
@@ -391,7 +368,10 @@ function ChatRoomContent() {
       setRightPanel(null);
       setWorksheetToolEnabled(false);
 
-      const emptyWorksheet = createEmptyWorksheetWorkspace(locale);
+      const emptyWorksheet = normalizeWorksheetDocument(
+        createEmptyWorksheet(),
+        locale,
+      );
       setWorksheetWorkspace(emptyWorksheet);
       worksheetWorkspaceRef.current = emptyWorksheet;
       setWorksheetErrorDetail(null);
@@ -934,10 +914,12 @@ function ChatRoomContent() {
   );
 
   const handleWorksheetClear = useCallback(() => {
-    setWorksheetWorkspace(createEmptyWorksheetWorkspace(locale));
+    const emptyWorksheet = normalizeWorksheetDocument(createEmptyWorksheet(), locale);
+    setWorksheetWorkspace(emptyWorksheet);
+    worksheetWorkspaceRef.current = emptyWorksheet;
     setWorksheetErrorDetail(null);
     setLastWorksheetPrompt("");
-    persistCurrentChat({ worksheet: null });
+    persistCurrentChat({ worksheet: createEmptyWorksheet() });
   }, [locale, persistCurrentChat]);
 
   const handleWorksheetRetry = useCallback(() => {

@@ -53,7 +53,7 @@ function createId(prefix: string): string {
 }
 
 /** Fresh worksheet workspace — never reuse or spread from another chat. */
-function createEmptyWorksheet(): WorksheetDocument {
+export function createEmptyWorksheet(): WorksheetDocument {
   return {
     documents: [],
     activeDocumentId: null,
@@ -61,6 +61,27 @@ function createEmptyWorksheet(): WorksheetDocument {
     content: "",
     updatedAt: Date.now(),
   };
+}
+
+function worksheetHasContent(
+  worksheet: WorksheetDocument | null | undefined,
+): boolean {
+  if (!worksheet) return false;
+
+  return Boolean(
+    worksheet.documents?.length ||
+      worksheet.content?.trim() ||
+      worksheet.versions?.length ||
+      worksheet.error,
+  );
+}
+
+function isFreshGenericChat(chat: ChatSession, locale: Locale): boolean {
+  return (
+    isGenericChatTitle(chat.title, locale) &&
+    stripWelcomeMessages(chat.messages).length === 0 &&
+    !worksheetHasContent(chat.worksheet)
+  );
 }
 
 function resolvePersistedWorksheet(
@@ -733,7 +754,28 @@ export function useChatStore(locale: Locale) {
       >,
     ) => {
       updateCurrentChat((chat) => {
-        const messages = patch.messages ?? chat.messages;
+        const incomingMessages = patch.messages ?? chat.messages;
+        const incomingWorksheet =
+          patch.worksheet !== undefined ? patch.worksheet : chat.worksheet;
+
+        // Reject stale UI state leaking into a brand-new generic chat session.
+        if (isFreshGenericChat(chat, locale)) {
+          if (
+            patch.messages !== undefined &&
+            stripWelcomeMessages(incomingMessages).length > 0
+          ) {
+            return chat;
+          }
+
+          if (
+            patch.worksheet !== undefined &&
+            worksheetHasContent(incomingWorksheet)
+          ) {
+            return chat;
+          }
+        }
+
+        const messages = incomingMessages;
 
         const nextTitle =
           patch.title ??
