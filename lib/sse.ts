@@ -41,6 +41,7 @@ export interface IdaSseDonePayload {
   usedWebSearch?: boolean;
   webSearchSources?: IdaWebSearchSourcePayload[];
   worksheet?: IdaSseWorksheetPayload;
+  worksheetError?: string;
 }
 
 export interface IdaSseErrorPayload {

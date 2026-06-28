@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
+import type { WorksheetErrorCode } from "@/lib/worksheet";
 import { COPY } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -15,8 +16,13 @@ interface RightSidebarProps {
   panel: RightSidebarPanel;
   worksheetTitle: string;
   worksheetContent: string;
+  worksheetError?: WorksheetErrorCode | null;
   worksheetGenerating?: boolean;
+  worksheetCanRegenerate?: boolean;
   onWorksheetTitleChange: (title: string) => void;
+  onWorksheetRetry?: () => void;
+  onWorksheetRegenerate?: () => void;
+  onWorksheetClear?: () => void;
   onClose: () => void;
   className?: string;
   embedded?: boolean;
@@ -33,8 +39,13 @@ export function RightSidebar({
   panel,
   worksheetTitle,
   worksheetContent,
+  worksheetError = null,
   worksheetGenerating = false,
+  worksheetCanRegenerate = false,
   onWorksheetTitleChange,
+  onWorksheetRetry,
+  onWorksheetRegenerate,
+  onWorksheetClear,
   onClose,
   className,
   embedded = false,
@@ -47,8 +58,13 @@ export function RightSidebar({
         locale={locale}
         title={worksheetTitle}
         content={worksheetContent}
+        error={worksheetError}
         isGenerating={worksheetGenerating}
+        canRegenerate={worksheetCanRegenerate}
         onTitleChange={onWorksheetTitleChange}
+        onRetry={onWorksheetRetry}
+        onRegenerate={onWorksheetRegenerate}
+        onClear={onWorksheetClear}
         onClose={onClose}
         className={className}
         embedded={embedded}

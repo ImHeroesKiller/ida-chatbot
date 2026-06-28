@@ -213,6 +213,7 @@ export async function POST(request: Request) {
           usedWebSearch: result.usedWebSearch,
           webSearchSources: result.webSearchSources,
           ...(result.worksheet ? { worksheet: result.worksheet } : {}),
+          ...(result.worksheetError ? { worksheetError: result.worksheetError } : {}),
         });
 
         void logRequest({

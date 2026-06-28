@@ -139,6 +139,19 @@ export const COPY: Record<
     worksheetCopied: string;
     worksheetDownloaded: string;
     worksheetGenerating: string;
+    worksheetGeneratingSubtext: string;
+    worksheetCreated: string;
+    worksheetErrorParseFailed: string;
+    worksheetErrorEmptyDocument: string;
+    worksheetErrorGenerateFailed: string;
+    worksheetRetry: string;
+    worksheetRegenerate: string;
+    worksheetClear: string;
+    worksheetClearConfirm: string;
+    worksheetOverwriteTitle: string;
+    worksheetOverwriteDescription: string;
+    worksheetOverwriteConfirm: string;
+    worksheetEmptySteps: string;
     mapPlaceholderDesc: string;
     mapPlaceholderContent: string;
     researchPlaceholderDesc: string;
@@ -293,6 +306,25 @@ export const COPY: Record<
     worksheetCopied: "Dokumen disalin",
     worksheetDownloaded: "Dokumen diunduh",
     worksheetGenerating: "IDA sedang membuat dokumen...",
+    worksheetGeneratingSubtext:
+      "Dokumen akan muncul di panel ini setelah selesai.",
+    worksheetCreated: "Dokumen berhasil dibuat",
+    worksheetErrorParseFailed:
+      "Format respons tidak dikenali. Coba kirim ulang permintaan atau perjelas isi dokumen.",
+    worksheetErrorEmptyDocument:
+      "Dokumen kosong. Coba kirim ulang dengan permintaan yang lebih jelas.",
+    worksheetErrorGenerateFailed:
+      "Gagal membuat dokumen. Periksa koneksi lalu coba lagi.",
+    worksheetRetry: "Coba lagi",
+    worksheetRegenerate: "Buat ulang",
+    worksheetClear: "Hapus dokumen",
+    worksheetClearConfirm: "Hapus dokumen Worksheet? Konten saat ini akan dihilangkan.",
+    worksheetOverwriteTitle: "Ganti dokumen?",
+    worksheetOverwriteDescription:
+      "Worksheet sudah berisi dokumen. Permintaan baru akan menimpa konten yang ada.",
+    worksheetOverwriteConfirm: "Ganti dokumen",
+    worksheetEmptySteps:
+      "1. Ketik permintaan di chat (mis. \"Buat proposal PLTS\")\n2. IDA akan membuat dokumen Markdown\n3. Salin atau unduh dari panel ini",
     mapPlaceholderDesc:
       "Peta interaktif akan ditampilkan di sini untuk pertanyaan berbasis lokasi.",
     mapPlaceholderContent:
@@ -450,6 +482,25 @@ export const COPY: Record<
     worksheetCopied: "Document copied",
     worksheetDownloaded: "Document downloaded",
     worksheetGenerating: "IDA is generating your document...",
+    worksheetGeneratingSubtext:
+      "Your document will appear in this panel when ready.",
+    worksheetCreated: "Document created successfully",
+    worksheetErrorParseFailed:
+      "The response format was not recognized. Try sending your request again or clarify the document content.",
+    worksheetErrorEmptyDocument:
+      "The document is empty. Try again with a clearer request.",
+    worksheetErrorGenerateFailed:
+      "Failed to generate the document. Check your connection and try again.",
+    worksheetRetry: "Retry",
+    worksheetRegenerate: "Regenerate",
+    worksheetClear: "Clear document",
+    worksheetClearConfirm: "Clear the Worksheet document? Current content will be removed.",
+    worksheetOverwriteTitle: "Replace document?",
+    worksheetOverwriteDescription:
+      "The Worksheet already has a document. A new request will overwrite the existing content.",
+    worksheetOverwriteConfirm: "Replace document",
+    worksheetEmptySteps:
+      "1. Type a request in chat (e.g. \"Create a solar proposal\")\n2. IDA will generate a Markdown document\n3. Copy or download from this panel",
     mapPlaceholderDesc:
       "An interactive map will appear here for location-based questions.",
     mapPlaceholderContent:
@@ -606,6 +657,22 @@ export const COPY: Record<
     worksheetCopied: "文档已复制",
     worksheetDownloaded: "文档已下载",
     worksheetGenerating: "IDA 正在生成文档...",
+    worksheetGeneratingSubtext: "文档完成后将显示在此面板。",
+    worksheetCreated: "文档创建成功",
+    worksheetErrorParseFailed:
+      "无法识别响应格式。请重新发送请求或说明文档内容。",
+    worksheetErrorEmptyDocument: "文档为空。请用更清晰的请求重试。",
+    worksheetErrorGenerateFailed: "生成文档失败。请检查网络后重试。",
+    worksheetRetry: "重试",
+    worksheetRegenerate: "重新生成",
+    worksheetClear: "清除文档",
+    worksheetClearConfirm: "清除 Worksheet 文档？当前内容将被删除。",
+    worksheetOverwriteTitle: "替换文档？",
+    worksheetOverwriteDescription:
+      "Worksheet 已有文档。新请求将覆盖现有内容。",
+    worksheetOverwriteConfirm: "替换文档",
+    worksheetEmptySteps:
+      "1. 在聊天中输入请求（如「创建光伏提案」）\n2. IDA 将生成 Markdown 文档\n3. 在此面板复制或下载",
     mapPlaceholderDesc: "交互式地图将在此显示，用于位置相关问题。",
     mapPlaceholderContent: "[ 地图 ]\n\n地图预览将显示在此面板。",
     researchPlaceholderDesc: "深度研究结果将显示在此面板。",

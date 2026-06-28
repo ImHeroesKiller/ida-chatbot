@@ -51,6 +51,7 @@ const HandoffDialog = dynamic(
     })),
   { ssr: false },
 );
+import { ConfirmDialog } from "@/components/chat/confirm-dialog";
 import { useChatContext } from "@/components/chat/chat-provider";
 import {
   Sheet,
@@ -67,7 +68,12 @@ import { MessageReactionsProvider } from "@/lib/message-reactions";
 import { useSidebarExpanded } from "@/lib/sidebar-prefs";
 import type { IdaAttachment, IdaMessage } from "@/lib/types";
 import type { IdaSseDonePayload, IdaSseMetaPayload } from "@/lib/sse";
-import { createEmptyWorksheet } from "@/lib/worksheet";
+import toast from "react-hot-toast";
+
+import {
+  createEmptyWorksheet,
+  type WorksheetErrorCode,
+} from "@/lib/worksheet";
 import {
   SpeechSynthesisProvider,
   useSpeechSynthesis,
@@ -130,10 +136,22 @@ function ChatRoomContent() {
   const [rightPanel, setRightPanel] = useState<RightSidebarPanel | null>(null);
   const [worksheetTitle, setWorksheetTitle] = useState("");
   const [worksheetContent, setWorksheetContent] = useState("");
+  const [worksheetError, setWorksheetError] =
+    useState<WorksheetErrorCode | null>(null);
+  const [overwriteConfirmOpen, setOverwriteConfirmOpen] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeChatIdRef = useRef<string | null>(null);
+  const [lastWorksheetPrompt, setLastWorksheetPrompt] = useState("");
+  const pendingSendRef = useRef<{
+    rawText: string;
+    options?: {
+      attachment?: IdaAttachment;
+      isVoiceNote?: boolean;
+      caption?: string;
+    };
+  } | null>(null);
 
   const visibleMessages = useMemo(
     () => messages.filter((message) => message.id !== WELCOME_MESSAGE_ID),
@@ -213,17 +231,27 @@ function ChatRoomContent() {
       currentChat.worksheet?.title ?? createEmptyWorksheet(locale).title,
     );
     setWorksheetContent(currentChat.worksheet?.content ?? "");
+    setWorksheetError(currentChat.worksheet?.error ?? null);
+
+    const lastUserMessage = [...currentChat.messages]
+      .reverse()
+      .find((message) => message.role === "user");
+    const restoredPrompt = lastUserMessage?.content?.trim() ?? "";
+    setLastWorksheetPrompt(restoredPrompt);
   }, [hydrated, currentChat, locale]);
 
   useEffect(() => {
     if (!hydrated || isLoading) return;
 
     const worksheet =
-      worksheetContent.trim() || worksheetTitle.trim()
+      worksheetContent.trim() ||
+      worksheetTitle.trim() ||
+      worksheetError
         ? {
             title: worksheetTitle.trim() || createEmptyWorksheet(locale).title,
             content: worksheetContent,
             updatedAt: Date.now(),
+            ...(worksheetError ? { error: worksheetError } : {}),
           }
         : null;
 
@@ -233,6 +261,7 @@ function ChatRoomContent() {
     rightPanel,
     worksheetTitle,
     worksheetContent,
+    worksheetError,
     hydrated,
     isLoading,
     locale,
@@ -350,11 +379,33 @@ function ChatRoomContent() {
           if (activeChatIdRef.current === chatIdAtSend) {
             setWorksheetTitle(worksheet.title);
             setWorksheetContent(worksheet.content);
+            setWorksheetError(null);
             setRightPanel("worksheet");
+            toast.success(copy.worksheetCreated);
           }
 
           persistCurrentChat({
             worksheet: document,
+            activeRightPanel: "worksheet",
+          });
+        };
+
+        const applyWorksheetError = (errorCode: string) => {
+          const code = errorCode as WorksheetErrorCode;
+
+          if (activeChatIdRef.current === chatIdAtSend) {
+            setWorksheetError(code);
+            setRightPanel("worksheet");
+          }
+
+          persistCurrentChat({
+            worksheet: {
+              title:
+                worksheetTitle.trim() || createEmptyWorksheet(locale).title,
+              content: worksheetContent,
+              updatedAt: Date.now(),
+              error: code,
+            },
             activeRightPanel: "worksheet",
           });
         };
@@ -400,6 +451,8 @@ function ChatRoomContent() {
 
             if (done.worksheet) {
               applyWorksheet(done.worksheet);
+            } else if (done.worksheetError && useWorksheet) {
+              applyWorksheetError(done.worksheetError);
             }
           },
         );
@@ -423,6 +476,24 @@ function ChatRoomContent() {
           setMessages((prev) =>
             prev.filter((message) => message.id !== streamId),
           );
+
+          if (useWorksheet) {
+            setWorksheetError("generate_failed");
+            setRightPanel("worksheet");
+          }
+        }
+
+        if (useWorksheet) {
+          persistCurrentChat({
+            worksheet: {
+              title:
+                worksheetTitle.trim() || createEmptyWorksheet(locale).title,
+              content: worksheetContent,
+              updatedAt: Date.now(),
+              error: "generate_failed",
+            },
+            activeRightPanel: "worksheet",
+          });
         }
 
         const message =
@@ -433,7 +504,10 @@ function ChatRoomContent() {
     },
     [
       copy.errors,
+      copy.worksheetCreated,
       locale,
+      worksheetContent,
+      worksheetTitle,
       openHandoff,
       persistCurrentChat,
       appFeatures?.features.autoSpeak,
@@ -444,71 +518,129 @@ function ChatRoomContent() {
     ],
   );
 
-  const sendMessage = async (
-    rawText: string,
-    options?: {
-      attachment?: IdaAttachment;
-      isVoiceNote?: boolean;
-      caption?: string;
-    },
-  ) => {
-    const text = rawText.trim();
-    if ((!text && !options?.attachment) || isLoading || !currentChat) return;
-
-    if (text.length > IDA_CONFIG.maxMessageLength) {
-      setError(copy.errors.tooLong);
-      return;
-    }
-
-    setError(null);
-
-    const userMessage: IdaMessage = {
-      id: createMessageId(),
-      role: "user",
-      content: text,
-      caption: options?.caption,
-      attachment: options?.attachment,
-      isVoiceNote: options?.isVoiceNote,
-      createdAt: Date.now(),
-    };
-
-    const nextMessages = [...messages, userMessage];
-    const streamId = createMessageId();
-
-    setMessages([
-      ...nextMessages,
-      {
-        id: streamId,
-        role: "assistant",
-        content: "",
-        createdAt: Date.now(),
+  const executeSendMessage = useCallback(
+    async (
+      rawText: string,
+      options?: {
+        attachment?: IdaAttachment;
+        isVoiceNote?: boolean;
+        caption?: string;
       },
-    ]);
-    setStreamingMessageId(streamId);
-    setInput("");
-    setIsLoading(true);
+    ) => {
+      const text = rawText.trim();
+      if ((!text && !options?.attachment) || isLoading || !currentChat) return;
 
-    const chatIdAtSend = currentChat.id;
-
-    const worksheetAtSend = rightPanel === "worksheet";
-
-    try {
-      await streamAssistantReply(
-        nextMessages,
-        streamId,
-        chatIdAtSend,
-        currentChat.apiSessionId,
-        apiUserId,
-        webSearchAvailable && webSearchEnabled,
-        worksheetAtSend,
-      );
-    } finally {
-      if (activeChatIdRef.current === chatIdAtSend) {
-        setStreamingMessageId(null);
-        setIsLoading(false);
+      if (text.length > IDA_CONFIG.maxMessageLength) {
+        setError(copy.errors.tooLong);
+        return;
       }
-    }
-  };
+
+      setError(null);
+
+      const worksheetAtSend = rightPanel === "worksheet";
+      if (worksheetAtSend && text) {
+        setLastWorksheetPrompt(text);
+      }
+      if (worksheetAtSend) {
+        setWorksheetError(null);
+      }
+
+      const userMessage: IdaMessage = {
+        id: createMessageId(),
+        role: "user",
+        content: text,
+        caption: options?.caption,
+        attachment: options?.attachment,
+        isVoiceNote: options?.isVoiceNote,
+        createdAt: Date.now(),
+      };
+
+      const nextMessages = [...messages, userMessage];
+      const streamId = createMessageId();
+
+      setMessages([
+        ...nextMessages,
+        {
+          id: streamId,
+          role: "assistant",
+          content: "",
+          createdAt: Date.now(),
+        },
+      ]);
+      setStreamingMessageId(streamId);
+      setInput("");
+      setIsLoading(true);
+
+      const chatIdAtSend = currentChat.id;
+
+      try {
+        await streamAssistantReply(
+          nextMessages,
+          streamId,
+          chatIdAtSend,
+          currentChat.apiSessionId,
+          apiUserId,
+          webSearchAvailable && webSearchEnabled,
+          worksheetAtSend,
+        );
+      } finally {
+        if (activeChatIdRef.current === chatIdAtSend) {
+          setStreamingMessageId(null);
+          setIsLoading(false);
+        }
+      }
+    },
+    [
+      apiUserId,
+      copy.errors.tooLong,
+      currentChat,
+      isLoading,
+      messages,
+      rightPanel,
+      streamAssistantReply,
+      webSearchAvailable,
+      webSearchEnabled,
+    ],
+  );
+
+  const sendMessage = useCallback(
+    async (
+      rawText: string,
+      options?: {
+        attachment?: IdaAttachment;
+        isVoiceNote?: boolean;
+        caption?: string;
+      },
+      sendOptions?: { skipOverwriteConfirm?: boolean },
+    ) => {
+      const text = rawText.trim();
+      if ((!text && !options?.attachment) || isLoading || !currentChat) return;
+
+      const worksheetAtSend = rightPanel === "worksheet";
+      const hasExistingWorksheet = Boolean(worksheetContent.trim());
+
+      if (
+        worksheetAtSend &&
+        hasExistingWorksheet &&
+        !worksheetError &&
+        !sendOptions?.skipOverwriteConfirm
+      ) {
+        pendingSendRef.current = { rawText, options };
+        setOverwriteConfirmOpen(true);
+        return;
+      }
+
+      await executeSendMessage(rawText, options);
+    },
+    [
+      currentChat,
+      executeSendMessage,
+      isLoading,
+      rightPanel,
+      worksheetContent,
+      worksheetError,
+    ],
+  );
 
   const handleRegenerate = useCallback(
     async (assistantMessageId: string) => {
@@ -663,6 +795,38 @@ function ChatRoomContent() {
     setWorksheetTitle(title);
   }, []);
 
+  const handleWorksheetClear = useCallback(() => {
+    const empty = createEmptyWorksheet(locale);
+    setWorksheetTitle(empty.title);
+    setWorksheetContent("");
+    setWorksheetError(null);
+    setLastWorksheetPrompt("");
+    persistCurrentChat({ worksheet: null });
+  }, [locale, persistCurrentChat]);
+
+  const handleWorksheetRetry = useCallback(() => {
+    const prompt = lastWorksheetPrompt.trim();
+    if (!prompt || isLoading) return;
+    void sendMessage(prompt, undefined, { skipOverwriteConfirm: true });
+  }, [isLoading, lastWorksheetPrompt, sendMessage]);
+
+  const handleWorksheetRegenerate = useCallback(() => {
+    handleWorksheetRetry();
+  }, [handleWorksheetRetry]);
+
+  const handleOverwriteConfirm = useCallback(() => {
+    const pending = pendingSendRef.current;
+    pendingSendRef.current = null;
+    setOverwriteConfirmOpen(false);
+    if (!pending) return;
+    void executeSendMessage(pending.rawText, pending.options);
+  }, [executeSendMessage]);
+
+  const handleOverwriteCancel = useCallback(() => {
+    pendingSendRef.current = null;
+    setOverwriteConfirmOpen(false);
+  }, []);
+
   const handleOpenToolPanel = useCallback((panel: RightSidebarPanel) => {
     setRightPanel(panel);
   }, []);
@@ -775,7 +939,9 @@ function ChatRoomContent() {
               onWebSearchChange={setWebSearchEnabled}
               onOpenToolPanel={handleOpenToolPanel}
               onInputChange={setInput}
-              onSend={(content, options) => void sendMessage(content, options)}
+              onSend={(content, options) =>
+                void sendMessage(content, options)
+              }
             />
           </div>
           </div>
@@ -786,8 +952,13 @@ function ChatRoomContent() {
               panel={rightPanel}
               worksheetTitle={worksheetTitle}
               worksheetContent={worksheetContent}
+              worksheetError={worksheetError}
               worksheetGenerating={isLoading && rightPanel === "worksheet"}
+              worksheetCanRegenerate={Boolean(lastWorksheetPrompt.trim())}
               onWorksheetTitleChange={handleWorksheetTitleChange}
+              onWorksheetRetry={handleWorksheetRetry}
+              onWorksheetRegenerate={handleWorksheetRegenerate}
+              onWorksheetClear={handleWorksheetClear}
               onClose={handleCloseToolPanel}
               className="hidden md:flex"
             />
@@ -811,8 +982,13 @@ function ChatRoomContent() {
               panel={rightPanel}
               worksheetTitle={worksheetTitle}
               worksheetContent={worksheetContent}
+              worksheetError={worksheetError}
               worksheetGenerating={isLoading && rightPanel === "worksheet"}
+              worksheetCanRegenerate={Boolean(lastWorksheetPrompt.trim())}
               onWorksheetTitleChange={handleWorksheetTitleChange}
+              onWorksheetRetry={handleWorksheetRetry}
+              onWorksheetRegenerate={handleWorksheetRegenerate}
+              onWorksheetClear={handleWorksheetClear}
               onClose={handleCloseToolPanel}
               embedded
             />
@@ -835,6 +1011,17 @@ function ChatRoomContent() {
           />
         </SheetContent>
       </Sheet>
+
+      <ConfirmDialog
+        open={overwriteConfirmOpen}
+        title={copy.worksheetOverwriteTitle}
+        description={copy.worksheetOverwriteDescription}
+        confirmLabel={copy.worksheetOverwriteConfirm}
+        cancelLabel={copy.handoffClose}
+        destructive
+        onConfirm={handleOverwriteConfirm}
+        onCancel={handleOverwriteCancel}
+      />
 
       <HandoffDialog />
     </MessageReactionsProvider>

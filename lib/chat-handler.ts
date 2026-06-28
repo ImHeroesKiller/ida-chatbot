@@ -95,6 +95,7 @@ export interface IdaChatStreamResult extends StreamChatResult {
   webSearchSources?: IdaWebSearchSource[];
   webSearchQueries?: string[];
   worksheet?: IdaSseWorksheetPayload | null;
+  worksheetError?: string;
 }
 
 export interface HandoffToolExecution {
@@ -388,13 +389,13 @@ export async function prepareIdaChatContext(
 function finalizeStreamResult(
   context: IdaChatPreparedContext,
   fullText: string,
-  base: Omit<IdaChatStreamResult, "fullText" | "worksheet">,
+  base: Omit<IdaChatStreamResult, "fullText" | "worksheet" | "worksheetError">,
 ): IdaChatStreamResult {
   if (!context.worksheetEnabled) {
     return { ...base, fullText };
   }
 
-  const { chatMessage, worksheet } = parseWorksheetFromResponse(
+  const { chatMessage, worksheet, error } = parseWorksheetFromResponse(
     fullText,
     context.locale,
   );
@@ -403,6 +404,7 @@ function finalizeStreamResult(
     ...base,
     fullText: chatMessage,
     worksheet,
+    ...(error ? { worksheetError: error } : {}),
   };
 }
 

@@ -3,15 +3,34 @@ import type { Locale } from "@/lib/config";
 export const WORKSHEET_START_MARKER = "<<<IDA_WORKSHEET>>>";
 export const WORKSHEET_END_MARKER = "<<<END_IDA_WORKSHEET>>>";
 
+export type WorksheetErrorCode =
+  | "parse_failed"
+  | "empty_document"
+  | "generate_failed";
+
+export type WorksheetParseSource =
+  | "markers"
+  | "partial_marker"
+  | "json_block"
+  | "markdown_heuristic";
+
 export interface WorksheetDocument {
   title: string;
   content: string;
   updatedAt: number;
+  error?: WorksheetErrorCode;
 }
 
 export interface WorksheetPayload {
   title: string;
   content: string;
+}
+
+export interface WorksheetParseResult {
+  chatMessage: string;
+  worksheet: WorksheetPayload | null;
+  parseSource?: WorksheetParseSource;
+  error?: WorksheetErrorCode;
 }
 
 const DEFAULT_WORKSHEET_TITLES: Record<Locale, string> = {
@@ -24,6 +43,12 @@ const WORKSHEET_CHAT_FALLBACK: Record<Locale, string> = {
   id: "Dokumen sudah dibuat. Lihat dan salin dari panel Worksheet di sebelah kanan.",
   en: "Your document is ready. View and copy it from the Worksheet panel on the right.",
   zh: "文档已生成。请在右侧 Worksheet 面板查看和复制。",
+};
+
+const WORKSHEET_PARSE_ERROR_CHAT: Record<Locale, string> = {
+  id: "Dokumen tidak dapat diproses. Coba kirim ulang permintaan atau perjelas format yang diinginkan.",
+  en: "The document could not be processed. Try sending your request again or clarify the format you need.",
+  zh: "无法处理文档。请重新发送请求或说明您需要的格式。",
 };
 
 export function createEmptyWorksheet(locale: Locale): WorksheetDocument {
@@ -50,33 +75,199 @@ export function extractWorksheetTitle(markdown: string, locale: Locale): string 
   return firstLine.replace(/^#+\s*/, "").slice(0, 120);
 }
 
-export function parseWorksheetFromResponse(
-  fullText: string,
+function buildWorksheetPayload(
+  content: string,
   locale: Locale,
-): { chatMessage: string; worksheet: WorksheetPayload | null } {
+): WorksheetPayload | null {
+  const trimmed = content.trim();
+  if (!trimmed) return null;
+
+  return {
+    title: extractWorksheetTitle(trimmed, locale),
+    content: trimmed,
+  };
+}
+
+function stripWorksheetFromChat(
+  fullText: string,
+  worksheetBlock: string,
+  locale: Locale,
+): string {
+  const withoutBlock = fullText.replace(worksheetBlock, "").trim();
+  return withoutBlock || WORKSHEET_CHAT_FALLBACK[locale];
+}
+
+function parseWithMarkers(fullText: string, locale: Locale): WorksheetParseResult | null {
   const pattern = new RegExp(
     `${escapeRegExp(WORKSHEET_START_MARKER)}\\s*([\\s\\S]*?)\\s*${escapeRegExp(WORKSHEET_END_MARKER)}`,
   );
   const match = fullText.match(pattern);
+  if (!match) return null;
 
-  if (!match?.[1]) {
-    return { chatMessage: fullText.trim(), worksheet: null };
-  }
-
-  const worksheetContent = match[1].trim();
-  const chatMessage =
-    fullText.replace(match[0], "").trim() || WORKSHEET_CHAT_FALLBACK[locale];
+  const worksheetContent = match[1]?.trim() ?? "";
+  const chatMessage = stripWorksheetFromChat(fullText, match[0], locale);
 
   if (!worksheetContent) {
-    return { chatMessage, worksheet: null };
+    return { chatMessage, worksheet: null, parseSource: "markers", error: "empty_document" };
   }
 
   return {
     chatMessage,
-    worksheet: {
-      title: extractWorksheetTitle(worksheetContent, locale),
-      content: worksheetContent,
-    },
+    worksheet: buildWorksheetPayload(worksheetContent, locale),
+    parseSource: "markers",
+  };
+}
+
+function parseWithPartialMarker(
+  fullText: string,
+  locale: Locale,
+): WorksheetParseResult | null {
+  const startIdx = fullText.indexOf(WORKSHEET_START_MARKER);
+  if (startIdx < 0) return null;
+
+  let remainder = fullText.slice(startIdx + WORKSHEET_START_MARKER.length);
+  const endIdx = remainder.indexOf(WORKSHEET_END_MARKER);
+  if (endIdx >= 0) {
+    remainder = remainder.slice(0, endIdx);
+  }
+
+  const worksheetContent = remainder.trim();
+  const chatMessage = stripWorksheetFromChat(
+    fullText,
+    fullText.slice(startIdx),
+    locale,
+  );
+
+  if (!worksheetContent) {
+    return {
+      chatMessage,
+      worksheet: null,
+      parseSource: "partial_marker",
+      error: "empty_document",
+    };
+  }
+
+  return {
+    chatMessage,
+    worksheet: buildWorksheetPayload(worksheetContent, locale),
+    parseSource: "partial_marker",
+  };
+}
+
+function parseWithJsonBlock(
+  fullText: string,
+  locale: Locale,
+): WorksheetParseResult | null {
+  const jsonBlockPattern = /```(?:json)?\s*\n([\s\S]*?)\n```/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = jsonBlockPattern.exec(fullText)) !== null) {
+    const raw = match[1]?.trim();
+    if (!raw) continue;
+
+    try {
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      const content =
+        typeof parsed.content === "string"
+          ? parsed.content
+          : typeof parsed.markdown === "string"
+            ? parsed.markdown
+            : typeof parsed.body === "string"
+              ? parsed.body
+              : null;
+
+      if (!content?.trim()) continue;
+
+      const title =
+        typeof parsed.title === "string" && parsed.title.trim()
+          ? parsed.title.trim().slice(0, 120)
+          : extractWorksheetTitle(content, locale);
+
+      const chatMessage = fullText.replace(match[0], "").trim() || WORKSHEET_CHAT_FALLBACK[locale];
+
+      return {
+        chatMessage,
+        worksheet: { title, content: content.trim() },
+        parseSource: "json_block",
+      };
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
+function looksLikeMarkdownDocument(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith("#")) return false;
+
+  const lines = trimmed.split("\n").filter((line) => line.trim());
+  if (lines.length < 3) return false;
+
+  const hasStructure = lines.some((line) =>
+    /^#{1,3}\s+/.test(line.trim()),
+  );
+  const hasBody = trimmed.length >= 80;
+
+  return hasStructure && hasBody;
+}
+
+function parseWithMarkdownHeuristic(
+  fullText: string,
+  locale: Locale,
+): WorksheetParseResult | null {
+  const headingMatch = fullText.match(/(^|\n)(#\s+[\s\S]+)/);
+  if (!headingMatch?.[2]) return null;
+
+  const worksheetContent = headingMatch[2].trim();
+  if (!looksLikeMarkdownDocument(worksheetContent)) return null;
+
+  const blockStart = fullText.indexOf(worksheetContent);
+  const chatMessage =
+    fullText.slice(0, blockStart).trim() || WORKSHEET_CHAT_FALLBACK[locale];
+
+  return {
+    chatMessage,
+    worksheet: buildWorksheetPayload(worksheetContent, locale),
+    parseSource: "markdown_heuristic",
+  };
+}
+
+export function parseWorksheetFromResponse(
+  fullText: string,
+  locale: Locale,
+): WorksheetParseResult {
+  const trimmed = fullText.trim();
+  if (!trimmed) {
+    return {
+      chatMessage: WORKSHEET_PARSE_ERROR_CHAT[locale],
+      worksheet: null,
+      error: "empty_document",
+    };
+  }
+
+  const strategies: Array<(text: string, loc: Locale) => WorksheetParseResult | null> = [
+    parseWithMarkers,
+    parseWithPartialMarker,
+    parseWithJsonBlock,
+    parseWithMarkdownHeuristic,
+  ];
+
+  for (const strategy of strategies) {
+    const result = strategy(trimmed, locale);
+    if (result?.worksheet) {
+      return result;
+    }
+    if (result?.error === "empty_document") {
+      return result;
+    }
+  }
+
+  return {
+    chatMessage: WORKSHEET_PARSE_ERROR_CHAT[locale],
+    worksheet: null,
+    error: "parse_failed",
   };
 }
 

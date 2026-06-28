@@ -1,7 +1,16 @@
 "use client";
 
-import { Copy, Download, FileText, Loader2, PanelRightClose } from "lucide-react";
-import { useCallback, useState } from "react";
+import {
+  AlertCircle,
+  Copy,
+  Download,
+  FileText,
+  Loader2,
+  PanelRightClose,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 import { MarkdownContent } from "@/components/chat/markdown-content";
@@ -10,15 +19,23 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
-import { sanitizeWorksheetFilename } from "@/lib/worksheet";
+import {
+  sanitizeWorksheetFilename,
+  type WorksheetErrorCode,
+} from "@/lib/worksheet";
 import { cn } from "@/lib/utils";
 
 interface WorksheetPanelProps {
   locale: Locale;
   title: string;
   content: string;
+  error?: WorksheetErrorCode | null;
   isGenerating?: boolean;
+  canRegenerate?: boolean;
   onTitleChange: (title: string) => void;
+  onRetry?: () => void;
+  onRegenerate?: () => void;
+  onClear?: () => void;
   onClose: () => void;
   className?: string;
   embedded?: boolean;
@@ -28,8 +45,13 @@ export function WorksheetPanel({
   locale,
   title,
   content,
+  error = null,
   isGenerating = false,
+  canRegenerate = false,
   onTitleChange,
+  onRetry,
+  onRegenerate,
+  onClear,
   onClose,
   className,
   embedded = false,
@@ -38,6 +60,21 @@ export function WorksheetPanel({
   const [copied, setCopied] = useState(false);
 
   const hasContent = Boolean(content.trim());
+
+  const errorMessage = useMemo(() => {
+    if (!error) return null;
+
+    switch (error) {
+      case "parse_failed":
+        return copy.worksheetErrorParseFailed;
+      case "empty_document":
+        return copy.worksheetErrorEmptyDocument;
+      case "generate_failed":
+        return copy.worksheetErrorGenerateFailed;
+      default:
+        return copy.errors.generic;
+    }
+  }, [copy, error]);
 
   const handleCopy = useCallback(async () => {
     if (!hasContent) return;
@@ -66,6 +103,12 @@ export function WorksheetPanel({
     toast.success(copy.worksheetDownloaded);
   }, [content, copy.worksheetDownloaded, hasContent, title]);
 
+  const handleClear = useCallback(() => {
+    if (!hasContent && !error) return;
+    if (!window.confirm(copy.worksheetClearConfirm)) return;
+    onClear?.();
+  }, [copy.worksheetClearConfirm, error, hasContent, onClear]);
+
   return (
     <aside
       className={cn(
@@ -93,6 +136,31 @@ export function WorksheetPanel({
         </Button>
       </div>
 
+      {errorMessage && !isGenerating ? (
+        <div className="shrink-0 border-b bg-destructive/5 px-3 py-2.5">
+          <div className="flex gap-2">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <p className="text-xs leading-relaxed text-destructive">
+                {errorMessage}
+              </p>
+              {onRetry ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 gap-1.5 text-xs"
+                  onClick={onRetry}
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  {copy.worksheetRetry}
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="shrink-0 space-y-2 border-b px-3 py-3">
         <label className="text-[11px] font-medium text-muted-foreground">
           {copy.worksheetTitleLabel}
@@ -102,6 +170,7 @@ export function WorksheetPanel({
           onChange={(event) => onTitleChange(event.target.value)}
           placeholder={copy.worksheetTitlePlaceholder}
           className="h-9 text-sm"
+          disabled={isGenerating}
         />
       </div>
 
@@ -110,8 +179,11 @@ export function WorksheetPanel({
           {isGenerating ? (
             <div className="flex min-h-[14rem] flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-background/60 px-4 py-10 text-center dark:bg-background/40">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm font-medium text-foreground/90">
                 {copy.worksheetGenerating}
+              </p>
+              <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
+                {copy.worksheetGeneratingSubtext}
               </p>
             </div>
           ) : hasContent ? (
@@ -131,34 +203,69 @@ export function WorksheetPanel({
               <p className="mt-2 max-w-xs text-xs leading-relaxed text-muted-foreground">
                 {copy.worksheetEmptyHint}
               </p>
+              <pre className="mt-4 max-w-xs whitespace-pre-wrap text-left text-[11px] leading-relaxed text-muted-foreground">
+                {copy.worksheetEmptySteps}
+              </pre>
             </div>
           )}
         </div>
       </ScrollArea>
 
-      <div className="flex shrink-0 gap-2 border-t bg-muted/10 p-3 dark:bg-muted/5">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-9 flex-1 gap-1.5 text-xs"
-          disabled={!hasContent}
-          onClick={() => void handleCopy()}
-        >
-          <Copy className="h-3.5 w-3.5" />
-          {copied ? copy.worksheetCopied : copy.worksheetCopy}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-9 flex-1 gap-1.5 text-xs"
-          disabled={!hasContent}
-          onClick={handleDownload}
-        >
-          <Download className="h-3.5 w-3.5" />
-          {copy.worksheetDownload}
-        </Button>
+      <div className="flex shrink-0 flex-col gap-2 border-t bg-muted/10 p-3 dark:bg-muted/5">
+        {(canRegenerate || onClear) && !isGenerating ? (
+          <div className="flex gap-2">
+            {canRegenerate && onRegenerate ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 flex-1 gap-1.5 text-xs"
+                onClick={onRegenerate}
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                {copy.worksheetRegenerate}
+              </Button>
+            ) : null}
+            {onClear ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 flex-1 gap-1.5 text-xs text-destructive hover:text-destructive"
+                disabled={!hasContent && !error}
+                onClick={handleClear}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {copy.worksheetClear}
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-9 flex-1 gap-1.5 text-xs"
+            disabled={!hasContent || isGenerating}
+            onClick={() => void handleCopy()}
+          >
+            <Copy className="h-3.5 w-3.5" />
+            {copied ? copy.worksheetCopied : copy.worksheetCopy}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-9 flex-1 gap-1.5 text-xs"
+            disabled={!hasContent || isGenerating}
+            onClick={handleDownload}
+          >
+            <Download className="h-3.5 w-3.5" />
+            {copy.worksheetDownload}
+          </Button>
+        </div>
       </div>
     </aside>
   );
