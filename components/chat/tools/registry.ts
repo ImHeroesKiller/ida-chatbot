@@ -1,4 +1,5 @@
 import type { Tool, ToolId } from "./types";
+import { researchTool } from "./research/research-tool";
 import { webSearchTool } from "./web-search/web-search-tool";
 import { worksheetTool } from "./worksheet/worksheet-tool";
 
@@ -10,11 +11,7 @@ const tools: Record<ToolId, Tool> = {
     label: "Map",
     enabled: false,
   },
-  research: {
-    id: "research",
-    label: "Research",
-    enabled: false,
-  },
+  research: researchTool,
 };
 
 export function getTool(id: ToolId): Tool | undefined {

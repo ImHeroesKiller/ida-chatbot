@@ -11,6 +11,8 @@ interface PromptContext {
   conversationMemory?: string;
   webSearchContext?: string;
   webSearchEnabled?: boolean;
+  researchContext?: string;
+  researchEnabled?: boolean;
   worksheetEnabled?: boolean;
   worksheetPromptSection?: string;
   basePromptOverride?: string | null;
@@ -30,6 +32,8 @@ export function buildIdaSystemPrompt(
     conversationMemory,
     webSearchContext,
     webSearchEnabled = false,
+    researchContext,
+    researchEnabled = false,
     worksheetEnabled = false,
     worksheetPromptSection = "",
   } = context;
@@ -55,6 +59,26 @@ Gunakan hasil pencarian web berikut untuk pertanyaan yang membutuhkan data terki
 Jangan cantumkan daftar sumber atau URL di teks jawaban — sumber akan ditampilkan otomatis di UI.
 
 ${webSearchContext}`
+    : "";
+
+  const researchSection = researchContext?.trim()
+    ? `## Konteks Research (Multi-sumber)
+Gunakan hasil riset terstruktur berikut untuk menjawab dengan kedalaman.
+Jangan cantumkan daftar sumber atau URL di teks jawaban — sumber akan ditampilkan otomatis di UI.
+
+${researchContext}`
+    : "";
+
+  const researchToolSection = researchEnabled
+    ? `## Mode Research — Riset Mendalam
+Kamu sedang dalam mode **Research**. Pengguna mengharapkan analisis mendalam, multi-sudut pandang, dan sintesis dari berbagai sumber.
+
+Panduan:
+- Gunakan konteks riset dan RAG sebagai dasar fakta
+- Panggil **web_search** jika perlu informasi tambahan dari sudut pandang lain
+- Berikan jawaban terstruktur: ringkasan eksekutif, temuan utama, nuansa/kontra-argumen, dan kesimpulan
+- Jangan ulangi daftar sumber/URL di teks jawaban (sumber ditampilkan terpisah di UI)
+- Jika data tidak cukup, jelaskan keterbatasan dan sarankan langkah riset lanjutan`
     : "";
 
   const webSearchToolSection = webSearchEnabled
@@ -101,18 +125,23 @@ Jangan panggil tool untuk pertanyaan umum yang masih bisa dijawab dari RAG atau 
 Jangan menyarankan atau menawarkan tombol "hubungi tim manusia" — handoff hanya dipicu secara eksplisit oleh pengguna.
 Saat tool dipanggil, berikan respons singkat bahwa handoff sedang disiapkan beserta ringkasan topik.
 
+${researchToolSection}
+
 ${webSearchToolSection}
 
 ${worksheetEnabled && worksheetPromptSection ? worksheetPromptSection : ""}
 
 ## Cara Menggunakan Konteks
 - **Prioritas 1:** Konteks Retrieval (RAG) — jawab berdasarkan dokumen yang di-retrieve.
-- **Prioritas 2:** Web Search — untuk data real-time yang tidak ada di RAG.
-- **Prioritas 3:** Memori Percakapan — pertahankan kontinuitas topik dalam sesi yang sama.
-- **Prioritas 4:** Pengetahuan umum — hanya jika retrieval kosong; jangan mengarang fakta spesifik.
+- **Prioritas 2:** Research — untuk analisis mendalam multi-sumber.
+- **Prioritas 3:** Web Search — untuk data real-time yang tidak ada di RAG.
+- **Prioritas 4:** Memori Percakapan — pertahankan kontinuitas topik dalam sesi yang sama.
+- **Prioritas 5:** Pengetahuan umum — hanya jika retrieval kosong; jangan mengarang fakta spesifik.
 - Jika informasi tidak tersedia, katakan dengan jujur dan tawarkan alternatif.
 
 ${ragSection}
+
+${researchSection}
 
 ${webSearchSection}
 

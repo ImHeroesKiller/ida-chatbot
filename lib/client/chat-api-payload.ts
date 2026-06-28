@@ -59,6 +59,7 @@ export interface ChatApiRequestBody {
   sessionId: string;
   userId?: string;
   webSearch?: boolean;
+  research?: boolean;
   worksheet?: boolean;
   messages: Array<{ role: "user" | "assistant"; content: string }>;
 }
@@ -69,6 +70,7 @@ export function buildChatApiRequestBody(options: {
   userId: string | undefined | null;
   messages: IdaMessage[];
   webSearch?: boolean;
+  research?: boolean;
   worksheet?: boolean;
 }): ChatApiRequestBody {
   const apiMessages = toChatApiMessages(options.messages, options.locale);
@@ -95,6 +97,10 @@ export function buildChatApiRequestBody(options: {
 
   if (options.webSearch) {
     body.webSearch = true;
+  }
+
+  if (options.research) {
+    body.research = true;
   }
 
   if (options.worksheet) {

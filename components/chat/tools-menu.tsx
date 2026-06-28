@@ -29,9 +29,12 @@ interface ToolsMenuProps {
   disabled?: boolean;
   webSearchEnabled: boolean;
   webSearchAvailable: boolean;
+  researchEnabled: boolean;
+  researchAvailable: boolean;
   worksheetEnabled: boolean;
   activePanel: RightSidebarPanel | null;
   onWebSearchChange: (enabled: boolean) => void;
+  onResearchChange: (enabled: boolean) => void;
   onWorksheetChange: (enabled: boolean) => void;
   onOpenPanel: (panel: RightSidebarPanel) => void;
 }
@@ -41,9 +44,12 @@ export function ToolsMenu({
   disabled = false,
   webSearchEnabled,
   webSearchAvailable,
+  researchEnabled,
+  researchAvailable,
   worksheetEnabled,
   activePanel,
   onWebSearchChange,
+  onResearchChange,
   onWorksheetChange,
   onOpenPanel,
 }: ToolsMenuProps) {
@@ -74,16 +80,19 @@ export function ToolsMenu({
         case "map":
           return activePanel === "map";
         case "research":
-          return activePanel === "research";
+          return researchEnabled || activePanel === "research";
         default:
           return false;
       }
     },
-    [activePanel, webSearchEnabled, worksheetEnabled],
+    [activePanel, researchEnabled, webSearchEnabled, worksheetEnabled],
   );
 
   const isActive =
-    webSearchEnabled || worksheetEnabled || activePanel !== null;
+    webSearchEnabled ||
+    researchEnabled ||
+    worksheetEnabled ||
+    activePanel !== null;
 
   const activeToolLabels = tools
     .filter((tool) => isToolActive(tool.id))
@@ -159,6 +168,16 @@ export function ToolsMenu({
         }
         setOpen(false);
         break;
+      case "toggle-research":
+        if (!researchAvailable) return;
+        if (!researchEnabled) {
+          onResearchChange(true);
+          onOpenPanel("research");
+        } else {
+          onResearchChange(false);
+        }
+        setOpen(false);
+        break;
       case "toggle-worksheet":
         onWorksheetChange(!worksheetEnabled);
         setOpen(false);
@@ -193,9 +212,13 @@ export function ToolsMenu({
         const active = isToolActive(tool.id);
         const isToggle =
           config.kind === "toggle-web-search" ||
+          config.kind === "toggle-research" ||
           config.kind === "toggle-worksheet";
         const isWebSearch = tool.id === "web-search";
-        const itemDisabled = isWebSearch && !webSearchAvailable;
+        const isResearch = tool.id === "research";
+        const itemDisabled =
+          (isWebSearch && !webSearchAvailable) ||
+          (isResearch && !researchAvailable);
 
         return (
           <button
@@ -233,6 +256,13 @@ export function ToolsMenu({
       tools.some((tool) => tool.id === "web-search") ? (
         <p className="px-2.5 pt-1 text-[10px] text-muted-foreground">
           {copy.webSearchUnavailable}
+        </p>
+      ) : null}
+
+      {!researchAvailable &&
+      tools.some((tool) => tool.id === "research") ? (
+        <p className="px-2.5 pt-1 text-[10px] text-muted-foreground">
+          {copy.researchUnavailable}
         </p>
       ) : null}
     </div>

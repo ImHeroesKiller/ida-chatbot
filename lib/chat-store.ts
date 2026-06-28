@@ -15,6 +15,7 @@ import { ensureApiSessionId } from "@/lib/client/chat-api-payload";
 import { getOrCreateAnonymousUserId } from "@/lib/client/user-id";
 import { normalizeRightSidebarPanel } from "@/lib/chat-tools";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
+import type { ResearchSession } from "@/lib/research-types";
 import type { WorksheetDocument } from "@/lib/worksheet";
 import type { Locale } from "@/lib/config";
 import type { IdaMessage } from "@/lib/types";
@@ -33,6 +34,8 @@ export interface ChatSession {
   activeRightPanel?: RightSidebarPanel | null;
   worksheetToolEnabled?: boolean;
   webSearchEnabled?: boolean;
+  researchEnabled?: boolean;
+  researchSessions?: ResearchSession[];
   worksheet?: WorksheetDocument | null;
   pinned?: boolean;
   createdAt: number;
@@ -269,6 +272,8 @@ export function createChatSession(locale: Locale): ChatSession {
     activeRightPanel: null,
     worksheetToolEnabled: false,
     webSearchEnabled: false,
+    researchEnabled: false,
+    researchSessions: [],
     worksheet: createEmptyWorksheet(),
     pinned: false,
     createdAt: now,
@@ -303,6 +308,11 @@ function normalizeSession(
       rest.worksheetToolEnabled ?? panel === "worksheet",
     webSearchEnabled:
       rest.webSearchEnabled ?? panel === "web-search",
+    researchEnabled:
+      rest.researchEnabled ?? panel === "research",
+    researchSessions: Array.isArray(rest.researchSessions)
+      ? rest.researchSessions
+      : [],
     worksheet: rest.worksheet ?? null,
     pinned: Boolean(session.pinned),
   };
@@ -817,6 +827,8 @@ export function useChatStore(locale: Locale) {
           | "activeRightPanel"
           | "worksheetToolEnabled"
           | "webSearchEnabled"
+          | "researchEnabled"
+          | "researchSessions"
           | "worksheet"
         >
       >,
@@ -847,6 +859,14 @@ export function useChatStore(locale: Locale) {
             patch.webSearchEnabled !== undefined
               ? patch.webSearchEnabled
               : Boolean(chat.webSearchEnabled),
+          researchEnabled:
+            patch.researchEnabled !== undefined
+              ? patch.researchEnabled
+              : Boolean(chat.researchEnabled),
+          researchSessions:
+            patch.researchSessions !== undefined
+              ? patch.researchSessions
+              : (chat.researchSessions ?? []),
           worksheet:
             patch.worksheet !== undefined
               ? resolvePersistedWorksheet(patch.worksheet)

@@ -8,6 +8,7 @@ import {
   TOOL_DISPLAY_ORDER,
   TOOL_UI_CONFIG,
 } from "@/components/chat/tools";
+import { researchTool } from "@/components/chat/tools/research/research-tool";
 import { webSearchTool } from "@/components/chat/tools/web-search/web-search-tool";
 import { worksheetTool } from "@/components/chat/tools/worksheet/worksheet-tool";
 import { Button } from "@/components/ui/button";
@@ -22,8 +23,11 @@ interface RightToolsRailProps {
   worksheetEnabled: boolean;
   webSearchEnabled: boolean;
   webSearchAvailable: boolean;
+  researchEnabled: boolean;
+  researchAvailable: boolean;
   onSelectPanel: (panel: RightSidebarPanel) => void;
   onWebSearchChange: (enabled: boolean) => void;
+  onResearchChange: (enabled: boolean) => void;
   className?: string;
 }
 
@@ -33,8 +37,11 @@ export function RightToolsRail({
   worksheetEnabled,
   webSearchEnabled,
   webSearchAvailable,
+  researchEnabled,
+  researchAvailable,
   onSelectPanel,
   onWebSearchChange,
+  onResearchChange,
   className,
 }: RightToolsRailProps) {
   const copy = COPY[locale];
@@ -64,6 +71,15 @@ export function RightToolsRail({
       return;
     }
 
+    if (toolId === researchTool.id) {
+      if (!researchAvailable) return;
+      if (!researchEnabled) {
+        onResearchChange(true);
+      }
+      onSelectPanel(panel);
+      return;
+    }
+
     onSelectPanel(panel);
   };
 
@@ -87,8 +103,14 @@ export function RightToolsRail({
           webSearchEnabled &&
           !isExpanded &&
           webSearchAvailable;
+        const isResearchArmed =
+          tool.id === researchTool.id &&
+          researchEnabled &&
+          !isExpanded &&
+          researchAvailable;
         const isDisabled =
-          tool.id === webSearchTool.id && !webSearchAvailable;
+          (tool.id === webSearchTool.id && !webSearchAvailable) ||
+          (tool.id === researchTool.id && !researchAvailable);
 
         return (
           <Button
@@ -108,7 +130,7 @@ export function RightToolsRail({
             onClick={() => handleRailClick(tool.id, panel)}
           >
             <Icon className="h-4 w-4" />
-            {isWorksheetArmed || isWebSearchArmed ? (
+            {isWorksheetArmed || isWebSearchArmed || isResearchArmed ? (
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
             ) : null}
           </Button>

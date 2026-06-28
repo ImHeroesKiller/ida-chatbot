@@ -120,6 +120,30 @@ export const COPY: Record<
     webSearchPanelLastQuery: string;
     webSearchPanelClear: string;
     webSearchUseAsContext: string;
+    researchUnavailable: string;
+    researchPanelTitle: string;
+    researchPanelEmptyTitle: string;
+    researchPanelEmpty: string;
+    researchPanelSearching: string;
+    researchPanelError: string;
+    researchPanelLastTopic: string;
+    researchPanelClear: string;
+    researchPanelTopicPlaceholder: string;
+    researchPanelStart: string;
+    researchPanelSummary: string;
+    researchPanelSaveSession: string;
+    researchPanelCreateDocument: string;
+    researchPanelHistory: string;
+    researchPanelOpenSession: string;
+    researchPanelSourceCount: string;
+    researchPanelQueriesUsed: string;
+    researchPanelQueryLabel: string;
+    researchPanelDepth: {
+      quick: string;
+      standard: string;
+      deep: string;
+    };
+    researchSessionSaved: string;
     editMessage: string;
     editSave: string;
     editCancel: string;
@@ -495,6 +519,31 @@ export const COPY: Record<
     webSearchPanelLastQuery: "Kueri: {query}",
     webSearchPanelClear: "Hapus hasil",
     webSearchUseAsContext: "Gunakan sebagai konteks",
+    researchUnavailable: "Riset belum dikonfigurasi",
+    researchPanelTitle: "Riset",
+    researchPanelEmptyTitle: "Belum ada hasil riset",
+    researchPanelEmpty:
+      "Masukkan topik riset di atas, atau aktifkan Riset lalu kirim pertanyaan di chat untuk riset mendalam.",
+    researchPanelSearching: "IDA sedang melakukan riset...",
+    researchPanelError: "Riset gagal",
+    researchPanelLastTopic: "Topik: {topic}",
+    researchPanelClear: "Hapus hasil",
+    researchPanelTopicPlaceholder: "Topik riset, mis. tren AI di Indonesia 2026",
+    researchPanelStart: "Mulai Riset",
+    researchPanelSummary: "Ringkasan",
+    researchPanelSaveSession: "Simpan sesi",
+    researchPanelCreateDocument: "Buat Dokumen",
+    researchPanelHistory: "Riwayat riset",
+    researchPanelOpenSession: "Buka",
+    researchPanelSourceCount: "{count} sumber",
+    researchPanelQueriesUsed: "{count} kueri digunakan",
+    researchPanelQueryLabel: "Kueri: {query}",
+    researchPanelDepth: {
+      quick: "Cepat",
+      standard: "Standar",
+      deep: "Mendalam",
+    },
+    researchSessionSaved: "Sesi riset disimpan",
     editMessage: "Edit pesan",
     editSave: "Kirim ulang",
     editCancel: "Batal",
@@ -903,6 +952,31 @@ export const COPY: Record<
     webSearchPanelLastQuery: "Query: {query}",
     webSearchPanelClear: "Clear results",
     webSearchUseAsContext: "Use as context",
+    researchUnavailable: "Research is not configured",
+    researchPanelTitle: "Research",
+    researchPanelEmptyTitle: "No research results yet",
+    researchPanelEmpty:
+      "Enter a research topic above, or enable Research and send a question in chat for in-depth research.",
+    researchPanelSearching: "IDA is researching...",
+    researchPanelError: "Research failed",
+    researchPanelLastTopic: "Topic: {topic}",
+    researchPanelClear: "Clear results",
+    researchPanelTopicPlaceholder: "Research topic, e.g. AI trends in Indonesia 2026",
+    researchPanelStart: "Start Research",
+    researchPanelSummary: "Summary",
+    researchPanelSaveSession: "Save session",
+    researchPanelCreateDocument: "Create Document",
+    researchPanelHistory: "Research history",
+    researchPanelOpenSession: "Open",
+    researchPanelSourceCount: "{count} sources",
+    researchPanelQueriesUsed: "{count} queries used",
+    researchPanelQueryLabel: "Query: {query}",
+    researchPanelDepth: {
+      quick: "Quick",
+      standard: "Standard",
+      deep: "Deep",
+    },
+    researchSessionSaved: "Research session saved",
     editMessage: "Edit message",
     editSave: "Resend",
     editCancel: "Cancel",
@@ -1312,6 +1386,31 @@ export const COPY: Record<
     webSearchPanelLastQuery: "查询：{query}",
     webSearchPanelClear: "清除结果",
     webSearchUseAsContext: "用作上下文",
+    researchUnavailable: "研究功能未配置",
+    researchPanelTitle: "研究",
+    researchPanelEmptyTitle: "暂无研究结果",
+    researchPanelEmpty:
+      "在上方输入研究主题，或开启研究后在聊天中发送问题以进行深度研究。",
+    researchPanelSearching: "IDA 正在研究中...",
+    researchPanelError: "研究失败",
+    researchPanelLastTopic: "主题：{topic}",
+    researchPanelClear: "清除结果",
+    researchPanelTopicPlaceholder: "研究主题，例如：2026年印尼AI趋势",
+    researchPanelStart: "开始研究",
+    researchPanelSummary: "摘要",
+    researchPanelSaveSession: "保存会话",
+    researchPanelCreateDocument: "创建文档",
+    researchPanelHistory: "研究历史",
+    researchPanelOpenSession: "打开",
+    researchPanelSourceCount: "{count} 个来源",
+    researchPanelQueriesUsed: "使用了 {count} 个查询",
+    researchPanelQueryLabel: "查询：{query}",
+    researchPanelDepth: {
+      quick: "快速",
+      standard: "标准",
+      deep: "深度",
+    },
+    researchSessionSaved: "研究会话已保存",
     editMessage: "编辑消息",
     editSave: "重新发送",
     editCancel: "取消",

@@ -16,6 +16,10 @@ export interface IdaWebSearchSource {
   snippet: string;
 }
 
+export interface IdaResearchSource extends IdaWebSearchSource {
+  query?: string;
+}
+
 export interface IdaMessage {
   id: string;
   role: "user" | "assistant";
@@ -25,6 +29,9 @@ export interface IdaMessage {
   attachment?: IdaAttachment;
   isVoiceNote?: boolean;
   webSearchSources?: IdaWebSearchSource[];
+  researchSources?: IdaResearchSource[];
+  researchQueries?: string[];
+  researchSummary?: string;
 }
 
 export interface IdaChatErrorResponse {

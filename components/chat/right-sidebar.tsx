@@ -1,13 +1,17 @@
 "use client";
 
-import { Map, PanelRightClose, Search, FileText } from "lucide-react";
+import { Map, PanelRightClose, FileText } from "lucide-react";
 
+import { ResearchPanel } from "@/components/chat/tools/research";
 import { WebSearchPanel } from "@/components/chat/tools/web-search";
 import { WorksheetPanel } from "@/components/chat/tools/worksheet";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
+import type { ResearchSession } from "@/lib/research-types";
+import type { ResearchResult } from "@/components/chat/tools/research/use-research";
+import type { ResearchDepth } from "@/lib/research-types";
 import type { IdaWebSearchSource } from "@/lib/types";
 import type { WorksheetDocument, WorksheetErrorCode } from "@/lib/worksheet";
 import type { WorksheetTemplate } from "@/lib/worksheet-templates";
@@ -32,6 +36,16 @@ interface RightSidebarProps {
   webSearchError?: string | null;
   onWebSearchClearResults?: () => void;
   onWebSearchUseAsContext?: (result: IdaWebSearchSource) => void;
+  researchResults?: ResearchResult | null;
+  researchSessions?: ResearchSession[];
+  researchSearching?: boolean;
+  researchError?: string | null;
+  onResearchStart?: (topic: string, depth: ResearchDepth) => void;
+  onResearchClearResults?: () => void;
+  onResearchSaveSession?: () => void;
+  onResearchOpenSession?: (session: ResearchSession) => void;
+  onResearchCreateDocument?: (session: ResearchSession) => void;
+  onResearchCreateDocumentFromCurrent?: () => void;
   onClose: () => void;
   onCollapse?: () => void;
   className?: string;
@@ -41,7 +55,6 @@ interface RightSidebarProps {
 const PANEL_ICONS = {
   worksheet: FileText,
   map: Map,
-  research: Search,
 } as const;
 
 export function RightSidebar({
@@ -62,6 +75,16 @@ export function RightSidebar({
   webSearchError = null,
   onWebSearchClearResults,
   onWebSearchUseAsContext,
+  researchResults = null,
+  researchSessions = [],
+  researchSearching = false,
+  researchError = null,
+  onResearchStart,
+  onResearchClearResults,
+  onResearchSaveSession,
+  onResearchOpenSession,
+  onResearchCreateDocument,
+  onResearchCreateDocumentFromCurrent,
   onClose,
   onCollapse,
   className,
@@ -81,6 +104,27 @@ export function RightSidebar({
         onClose={handlePanelClose}
         onClearResults={onWebSearchClearResults}
         onUseAsContext={onWebSearchUseAsContext}
+        className={className}
+        embedded={embedded}
+      />
+    );
+  }
+
+  if (panel === "research") {
+    return (
+      <ResearchPanel
+        locale={locale}
+        isResearching={researchSearching}
+        researchResults={researchResults}
+        researchSessions={researchSessions}
+        error={researchError}
+        onClose={handlePanelClose}
+        onStartResearch={(topic, depth) => onResearchStart?.(topic, depth)}
+        onClearResults={onResearchClearResults}
+        onSaveSession={onResearchSaveSession}
+        onOpenSession={onResearchOpenSession}
+        onCreateDocument={onResearchCreateDocument}
+        onCreateDocumentFromCurrent={onResearchCreateDocumentFromCurrent}
         className={className}
         embedded={embedded}
       />
@@ -109,13 +153,11 @@ export function RightSidebar({
 
   const Icon = PANEL_ICONS[panel];
 
-  const title = panel === "map" ? copy.toolsMap : copy.toolsResearch;
+  const title = copy.toolsMap;
 
-  const description =
-    panel === "map" ? copy.mapPlaceholderDesc : copy.researchPlaceholderDesc;
+  const description = copy.mapPlaceholderDesc;
 
-  const previewContent =
-    panel === "map" ? copy.mapPlaceholderContent : copy.researchPlaceholderContent;
+  const previewContent = copy.mapPlaceholderContent;
 
   return (
     <aside

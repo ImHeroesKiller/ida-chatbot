@@ -40,6 +40,7 @@ const chatRequestSchema = z.object({
   sessionId: z.string().min(8).max(64).optional(),
   userId: z.string().uuid().optional(),
   webSearch: z.boolean().optional(),
+  research: z.boolean().optional(),
   worksheet: z.boolean().optional(),
 });
 
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { messages, locale, sessionId, userId, webSearch, worksheet } =
+  const { messages, locale, sessionId, userId, webSearch, research, worksheet } =
     parsed.data;
 
   if (userId && !isValidAnonymousUserId(userId)) {
@@ -118,6 +119,7 @@ export async function POST(request: Request) {
       sessionId,
       userId,
       webSearch,
+      research,
       worksheet,
     });
 
@@ -205,6 +207,13 @@ export async function POST(request: Request) {
             result.webSearchSources ?? activeContext.meta.webSearchSources,
           webSearchQueries:
             result.webSearchQueries ?? activeContext.meta.webSearchQueries,
+          usedResearch: result.usedResearch ?? activeContext.meta.usedResearch,
+          researchSources:
+            result.researchSources ?? activeContext.meta.researchSources,
+          researchQueries:
+            result.researchQueries ?? activeContext.meta.researchQueries,
+          researchSummary:
+            result.researchSummary ?? activeContext.meta.researchSummary,
           activeModel: activeContext.modelId,
           activeProvider: activeContext.provider,
         });
@@ -213,6 +222,10 @@ export async function POST(request: Request) {
           message: result.fullText,
           usedWebSearch: result.usedWebSearch,
           webSearchSources: result.webSearchSources,
+          usedResearch: result.usedResearch,
+          researchSources: result.researchSources,
+          researchQueries: result.researchQueries,
+          researchSummary: result.researchSummary,
           ...(result.worksheet ? { worksheet: result.worksheet } : {}),
           ...(result.worksheetError ? { worksheetError: result.worksheetError } : {}),
         });

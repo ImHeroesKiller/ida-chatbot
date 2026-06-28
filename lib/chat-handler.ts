@@ -33,6 +33,10 @@ import {
   type HandoffTriggerSource,
 } from "@/lib/tools/handoff-tool";
 import {
+  executeResearch,
+  isResearchConfigured,
+} from "@/lib/tools/research";
+import {
   executeWebSearch,
   isWebSearchConfigured,
   looksLikeRealtimeQuery,
@@ -50,7 +54,11 @@ import {
 import { retrieveContext } from "./rag/retriever";
 import { buildIdaSystemPrompt } from "./system-prompt";
 import type { IdaSseMetaPayload, IdaSseWorksheetPayload } from "./sse";
-import type { IdaHandoffPrefill, IdaWebSearchSource } from "./types";
+import type {
+  IdaHandoffPrefill,
+  IdaResearchSource,
+  IdaWebSearchSource,
+} from "./types";
 import {
   buildWorksheetPromptSection,
   parseWorksheetFromResponse,
@@ -63,6 +71,8 @@ export interface IdaChatHandlerInput {
   userId?: string;
   /** User-enabled web search toggle from chat composer */
   webSearch?: boolean;
+  /** User-enabled research toggle — deeper multi-source research */
+  research?: boolean;
   /** Worksheet panel is open — generate document for right sidebar */
   worksheet?: boolean;
 }
@@ -86,6 +96,7 @@ export interface IdaChatPreparedContext {
   webSearchEnabled: boolean;
   webSearchMaxResults: number;
   userRequestedWebSearch: boolean;
+  userRequestedResearch: boolean;
   worksheetEnabled: boolean;
 }
 
@@ -94,6 +105,10 @@ export interface IdaChatStreamResult extends StreamChatResult {
   usedWebSearch?: boolean;
   webSearchSources?: IdaWebSearchSource[];
   webSearchQueries?: string[];
+  usedResearch?: boolean;
+  researchSources?: IdaResearchSource[];
+  researchQueries?: string[];
+  researchSummary?: string;
   worksheet?: IdaSseWorksheetPayload | null;
   worksheetError?: string;
 }
@@ -275,12 +290,16 @@ export async function prepareIdaChatContext(
 
   const webSearchAvailable =
     appConfig.features.webSearch && isWebSearchConfigured();
-  const userRequestedWebSearch = input.webSearch === true;
+  const researchAvailable =
+    appConfig.features.webSearch && isResearchConfigured();
+  const userRequestedResearch = input.research === true;
+  const researchActive = researchAvailable && userRequestedResearch;
+  const userRequestedWebSearch = input.webSearch === true && !researchActive;
   const webSearchActive = webSearchAvailable && userRequestedWebSearch;
   const webSearchMaxResults = appConfig.webSearch.maxResults;
   const worksheetEnabled = input.worksheet === true;
 
-  const [retrieval, memoryContext, prefetchedWebSearch] = await Promise.all([
+  const [retrieval, memoryContext] = await Promise.all([
     retrieveContext({
       query: lastMessage.content,
       locale,
@@ -290,6 +309,11 @@ export async function prepareIdaChatContext(
       confidenceThreshold: appConfig.rag.confidenceThreshold,
     }),
     buildConversationMemoryContext(messages),
+  ]);
+
+  const ragContext = retrieval.usedRag ? retrieval.context : "";
+
+  const [prefetchedWebSearch, prefetchedResearch] = await Promise.all([
     webSearchActive
       ? maybePrefetchWebSearchContext({
           query: lastMessage.content,
@@ -298,13 +322,37 @@ export async function prepareIdaChatContext(
           force: true,
         })
       : Promise.resolve({ context: "", sources: [], queries: [] }),
+    researchActive
+      ? executeResearch({
+          topic: lastMessage.content,
+          depth: "standard",
+          ragContext,
+        }).then((result) => ({
+          context: result.formattedForLlm,
+          sources: result.sources,
+          queries: result.queries,
+          summary: result.summary,
+        }))
+      : Promise.resolve({
+          context: "",
+          sources: [] as IdaResearchSource[],
+          queries: [] as string[],
+          summary: "",
+        }),
   ]);
 
+  const researchWithRag = prefetchedResearch;
+
   const systemInstruction = buildIdaSystemPrompt(locale, {
-    retrievedContext: retrieval.usedRag ? retrieval.context : "",
+    retrievedContext: ragContext,
     conversationMemory: memoryContext,
+    researchContext: researchActive ? researchWithRag.context : "",
+    researchEnabled: researchActive && useGoogle,
     webSearchContext: prefetchedWebSearch.context,
-    webSearchEnabled: webSearchActive && useGoogle && !prefetchedWebSearch.context,
+    webSearchEnabled:
+      (webSearchActive || researchActive) &&
+      useGoogle &&
+      !prefetchedWebSearch.context,
     worksheetEnabled,
     worksheetPromptSection: worksheetEnabled
       ? buildWorksheetPromptSection(locale)
@@ -364,6 +412,10 @@ export async function prepareIdaChatContext(
     usedWebSearch: prefetchedWebSearch.sources.length > 0,
     webSearchQueries: prefetchedWebSearch.queries,
     webSearchSources: prefetchedWebSearch.sources,
+    usedResearch: researchWithRag.sources.length > 0,
+    researchQueries: researchWithRag.queries,
+    researchSources: researchWithRag.sources,
+    researchSummary: researchWithRag.summary || undefined,
   };
 
   return {
@@ -379,10 +431,27 @@ export async function prepareIdaChatContext(
     sessionId,
     userId,
     handoffResponse: handoffExecution.responseMessage,
-    webSearchEnabled: webSearchActive && useGoogle && !prefetchedWebSearch.context,
+    webSearchEnabled:
+      (webSearchActive || researchActive) &&
+      useGoogle &&
+      !prefetchedWebSearch.context,
     webSearchMaxResults,
     userRequestedWebSearch: webSearchActive,
+    userRequestedResearch: researchActive,
     worksheetEnabled,
+  };
+}
+
+function withResearchMeta(
+  context: IdaChatPreparedContext,
+  base: Omit<IdaChatStreamResult, "fullText" | "worksheet" | "worksheetError">,
+): Omit<IdaChatStreamResult, "fullText" | "worksheet" | "worksheetError"> {
+  return {
+    ...base,
+    usedResearch: base.usedResearch ?? context.meta.usedResearch,
+    researchSources: base.researchSources ?? context.meta.researchSources,
+    researchQueries: base.researchQueries ?? context.meta.researchQueries,
+    researchSummary: base.researchSummary ?? context.meta.researchSummary,
   };
 }
 
@@ -391,8 +460,10 @@ function finalizeStreamResult(
   fullText: string,
   base: Omit<IdaChatStreamResult, "fullText" | "worksheet" | "worksheetError">,
 ): IdaChatStreamResult {
+  const merged = withResearchMeta(context, base);
+
   if (!context.worksheetEnabled) {
-    return { ...base, fullText };
+    return { ...merged, fullText };
   }
 
   const { chatMessage, worksheet, error } = parseWorksheetFromResponse(
@@ -401,7 +472,7 @@ function finalizeStreamResult(
   );
 
   return {
-    ...base,
+    ...merged,
     fullText: chatMessage,
     worksheet,
     ...(error ? { worksheetError: error } : {}),

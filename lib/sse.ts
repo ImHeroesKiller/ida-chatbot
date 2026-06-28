@@ -11,6 +11,10 @@ export interface IdaSseWorksheetPayload {
   content: string;
 }
 
+export interface IdaResearchSourcePayload extends IdaWebSearchSourcePayload {
+  query?: string;
+}
+
 export interface IdaSseMetaPayload {
   retrievedChunks: number;
   usedRag: boolean;
@@ -26,6 +30,10 @@ export interface IdaSseMetaPayload {
   usedWebSearch?: boolean;
   webSearchQueries?: string[];
   webSearchSources?: IdaWebSearchSourcePayload[];
+  usedResearch?: boolean;
+  researchQueries?: string[];
+  researchSources?: IdaResearchSourcePayload[];
+  researchSummary?: string;
   usedFallbackModel?: boolean;
   activeModel?: string;
   activeProvider?: string;
@@ -40,6 +48,10 @@ export interface IdaSseDonePayload {
   message: string;
   usedWebSearch?: boolean;
   webSearchSources?: IdaWebSearchSourcePayload[];
+  usedResearch?: boolean;
+  researchQueries?: string[];
+  researchSources?: IdaResearchSourcePayload[];
+  researchSummary?: string;
   worksheet?: IdaSseWorksheetPayload;
   worksheetError?: string;
 }

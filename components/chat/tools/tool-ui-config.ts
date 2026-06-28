@@ -12,6 +12,7 @@ export type ToolLabelKey =
 
 export type ToolMenuKind =
   | "toggle-web-search"
+  | "toggle-research"
   | "toggle-worksheet"
   | "open-panel";
 
@@ -54,8 +55,7 @@ export const TOOL_UI_CONFIG: Record<ToolId, ToolUiConfig> = {
   research: {
     icon: Search,
     labelKey: "toolsResearch",
-    kind: "open-panel",
-    panel: "research",
+    kind: "toggle-research",
     railPanel: "research",
   },
 };

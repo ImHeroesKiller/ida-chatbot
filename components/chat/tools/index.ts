@@ -12,3 +12,6 @@ export * from "./worksheet";
 
 // Export web search module
 export * from "./web-search";
+
+// Export research module
+export * from "./research";
