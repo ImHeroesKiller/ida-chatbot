@@ -252,3 +252,49 @@ html[data-ida-animation="none"] *::after {
     opacity: 0.55;
   }
 }
+
+/* Worksheet TipTap editor */
+.worksheet-tiptap-editor.ProseMirror {
+  min-height: inherit;
+}
+
+.worksheet-tiptap-editor.ProseMirror:focus {
+  outline: none;
+}
+
+.worksheet-tiptap-editor.ProseMirror > p.is-editor-empty:first-child::before {
+  color: var(--muted-foreground);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.worksheet-print-prose.worksheet-tiptap-editor.ProseMirror
+  > p.is-editor-empty:first-child::before {
+  color: #999;
+}
+
+.worksheet-tiptap-editor .tableWrapper {
+  margin: 0.75em 0;
+  overflow-x: auto;
+}
+
+.worksheet-tiptap-editor table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.worksheet-tiptap-editor th,
+.worksheet-tiptap-editor td {
+  border: 1px solid var(--border);
+  min-width: 4rem;
+  padding: 0.35rem 0.5rem;
+  vertical-align: top;
+}
+
+.worksheet-tiptap-editor th {
+  background: color-mix(in oklab, var(--muted) 50%, transparent);
+  font-weight: 600;
+  text-align: left;
+}

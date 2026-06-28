@@ -197,8 +197,15 @@ export const COPY: Record<
     worksheetEditorToolbar: string;
     worksheetEditorBold: string;
     worksheetEditorItalic: string;
+    worksheetEditorHeading1: string;
     worksheetEditorHeading2: string;
     worksheetEditorHeading3: string;
+    worksheetEditorAlignLeft: string;
+    worksheetEditorAlignCenter: string;
+    worksheetEditorAlignRight: string;
+    worksheetEditorAlignJustify: string;
+    worksheetEditorUndo: string;
+    worksheetEditorRedo: string;
     worksheetEditorBulletList: string;
     worksheetEditorNumberedList: string;
     worksheetEditorLink: string;
@@ -467,8 +474,15 @@ export const COPY: Record<
     worksheetEditorToolbar: "Toolbar editor Markdown",
     worksheetEditorBold: "Tebal",
     worksheetEditorItalic: "Miring",
+    worksheetEditorHeading1: "Heading 1",
     worksheetEditorHeading2: "Heading 2",
     worksheetEditorHeading3: "Heading 3",
+    worksheetEditorAlignLeft: "Rata kiri",
+    worksheetEditorAlignCenter: "Rata tengah",
+    worksheetEditorAlignRight: "Rata kanan",
+    worksheetEditorAlignJustify: "Rata kanan-kiri",
+    worksheetEditorUndo: "Urungkan",
+    worksheetEditorRedo: "Ulangi",
     worksheetEditorBulletList: "Daftar bullet",
     worksheetEditorNumberedList: "Daftar bernomor",
     worksheetEditorLink: "Tautan",
@@ -744,8 +758,15 @@ export const COPY: Record<
     worksheetEditorToolbar: "Markdown editor toolbar",
     worksheetEditorBold: "Bold",
     worksheetEditorItalic: "Italic",
+    worksheetEditorHeading1: "Heading 1",
     worksheetEditorHeading2: "Heading 2",
     worksheetEditorHeading3: "Heading 3",
+    worksheetEditorAlignLeft: "Align left",
+    worksheetEditorAlignCenter: "Align center",
+    worksheetEditorAlignRight: "Align right",
+    worksheetEditorAlignJustify: "Justify",
+    worksheetEditorUndo: "Undo",
+    worksheetEditorRedo: "Redo",
     worksheetEditorBulletList: "Bullet list",
     worksheetEditorNumberedList: "Numbered list",
     worksheetEditorLink: "Link",
@@ -1012,8 +1033,15 @@ export const COPY: Record<
     worksheetEditorToolbar: "Markdown 编辑工具栏",
     worksheetEditorBold: "粗体",
     worksheetEditorItalic: "斜体",
+    worksheetEditorHeading1: "一级标题",
     worksheetEditorHeading2: "二级标题",
     worksheetEditorHeading3: "三级标题",
+    worksheetEditorAlignLeft: "左对齐",
+    worksheetEditorAlignCenter: "居中",
+    worksheetEditorAlignRight: "右对齐",
+    worksheetEditorAlignJustify: "两端对齐",
+    worksheetEditorUndo: "撤销",
+    worksheetEditorRedo: "重做",
     worksheetEditorBulletList: "无序列表",
     worksheetEditorNumberedList: "有序列表",
     worksheetEditorLink: "链接",

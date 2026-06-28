@@ -88,6 +88,38 @@ export function WorksheetSplitEditor({
           value={value}
           onChange={onChange}
         />
+      ) : layout === "split" ? (
+        <div
+          className={cn(
+            "grid min-h-[min(60vh,28rem)] gap-2",
+            embedded ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-2",
+          )}
+        >
+          <WorksheetWysiwygEditor
+            locale={locale}
+            value={value}
+            onChange={onChange}
+            className="min-h-[min(40vh,20rem)] lg:min-h-[min(60vh,28rem)]"
+          />
+          <ScrollArea className="min-h-[min(40vh,20rem)] rounded-xl border bg-card lg:min-h-[min(60vh,28rem)]">
+            <div className="p-3">
+              <p className="mb-2 text-[11px] font-medium text-muted-foreground">
+                {copy.previewLabel}
+              </p>
+              {value.trim() ? (
+                <MarkdownContent
+                  locale={locale}
+                  content={value}
+                  className="chat-text text-sm"
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  {copy.worksheetEditPreviewEmpty}
+                </p>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
       ) : (
         <>
           <WorksheetEditorToolbar
@@ -96,49 +128,13 @@ export function WorksheetSplitEditor({
             value={value}
             onChange={onChange}
           />
-
-          {layout === "markdown" ? (
-            <Textarea
-              ref={textareaRef}
-              value={value}
-              onChange={(event) => onChange(event.target.value)}
-              className="min-h-[min(60vh,28rem)] font-mono text-sm leading-relaxed"
-              spellCheck={false}
-            />
-          ) : (
-            <div
-              className={cn(
-                "grid min-h-[min(60vh,28rem)] gap-2",
-                embedded ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-2",
-              )}
-            >
-              <Textarea
-                ref={textareaRef}
-                value={value}
-                onChange={(event) => onChange(event.target.value)}
-                className="min-h-[min(40vh,20rem)] font-mono text-sm leading-relaxed lg:min-h-[min(60vh,28rem)]"
-                spellCheck={false}
-              />
-              <ScrollArea className="min-h-[min(40vh,20rem)] rounded-xl border bg-card lg:min-h-[min(60vh,28rem)]">
-                <div className="p-3">
-                  <p className="mb-2 text-[11px] font-medium text-muted-foreground">
-                    {copy.previewLabel}
-                  </p>
-                  {value.trim() ? (
-                    <MarkdownContent
-                      locale={locale}
-                      content={value}
-                      className="chat-text text-sm"
-                    />
-                  ) : (
-                    <p className="text-xs text-muted-foreground">
-                      {copy.worksheetEditPreviewEmpty}
-                    </p>
-                  )}
-                </div>
-              </ScrollArea>
-            </div>
-          )}
+          <Textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            className="min-h-[min(60vh,28rem)] font-mono text-sm leading-relaxed"
+            spellCheck={false}
+          />
         </>
       )}
     </div>
