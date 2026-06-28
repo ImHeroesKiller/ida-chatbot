@@ -74,6 +74,7 @@ import {
   useSpeechSynthesis,
 } from "@/lib/voice/use-speech-synthesis";
 import { useVoicePrefs } from "@/lib/voice/voice-prefs";
+import { useChatFontSize } from "@/lib/chat-font-prefs";
 import { useWebSearchPrefs } from "@/lib/web-search-prefs";
 
 function createMessageId() {
@@ -94,6 +95,7 @@ function ChatRoomContent() {
   const { prefs } = useVoicePrefs();
   const { enabled: webSearchEnabled, setEnabled: setWebSearchEnabled } =
     useWebSearchPrefs();
+  const { fontSize: chatFontSize } = useChatFontSize();
   const { speak } = useSpeechSynthesis();
   const appFeatures = useAppFeatures();
   const webSearchAvailable = Boolean(
@@ -126,6 +128,7 @@ function ChatRoomContent() {
   );
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -141,6 +144,16 @@ function ChatRoomContent() {
         message.id !== WELCOME_MESSAGE_ID &&
         message.content.trim()
       ) {
+        return message.id;
+      }
+    }
+    return null;
+  }, [messages]);
+
+  const lastUserMessageId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      const message = messages[i];
+      if (message?.role === "user") {
         return message.id;
       }
     }
@@ -187,6 +200,7 @@ function ChatRoomContent() {
     setError(null);
     setStreamingMessageId(null);
     setIsLoading(false);
+    setEditingMessageId(null);
   }, [hydrated, currentChat]);
 
   useEffect(() => {
@@ -487,6 +501,90 @@ function ChatRoomContent() {
     [currentChat, isLoading, messages, streamAssistantReply, apiUserId],
   );
 
+  const handleEditMessage = useCallback((messageId: string) => {
+    if (isLoading) return;
+    setEditingMessageId(messageId);
+  }, [isLoading]);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingMessageId(null);
+  }, []);
+
+  const handleSubmitEdit = useCallback(
+    async (messageId: string, newContent: string) => {
+      const text = newContent.trim();
+      if (!text || isLoading || !currentChat) return;
+
+      if (text.length > IDA_CONFIG.maxMessageLength) {
+        setError(copy.errors.tooLong);
+        return;
+      }
+
+      const messageIndex = messages.findIndex(
+        (message) => message.id === messageId,
+      );
+      if (messageIndex < 0) return;
+
+      const targetMessage = messages[messageIndex];
+      if (!targetMessage || targetMessage.role !== "user") return;
+
+      const updatedUserMessage: IdaMessage =
+        targetMessage.caption != null
+          ? { ...targetMessage, caption: text }
+          : { ...targetMessage, content: text };
+
+      const contextMessages = [
+        ...messages.slice(0, messageIndex),
+        updatedUserMessage,
+      ];
+
+      setError(null);
+      setEditingMessageId(null);
+
+      const streamId = createMessageId();
+
+      setMessages([
+        ...contextMessages,
+        {
+          id: streamId,
+          role: "assistant",
+          content: "",
+          createdAt: Date.now(),
+        },
+      ]);
+      setStreamingMessageId(streamId);
+      setIsLoading(true);
+
+      const chatIdAtSend = currentChat.id;
+
+      try {
+        await streamAssistantReply(
+          contextMessages,
+          streamId,
+          chatIdAtSend,
+          currentChat.apiSessionId,
+          apiUserId,
+          webSearchAvailable && webSearchEnabled,
+        );
+      } finally {
+        if (activeChatIdRef.current === chatIdAtSend) {
+          setStreamingMessageId(null);
+          setIsLoading(false);
+        }
+      }
+    },
+    [
+      apiUserId,
+      copy.errors.tooLong,
+      currentChat,
+      isLoading,
+      messages,
+      streamAssistantReply,
+      webSearchAvailable,
+      webSearchEnabled,
+    ],
+  );
+
   const handleQuickReply = (message: string) => {
     void sendMessage(message);
   };
@@ -507,6 +605,7 @@ function ChatRoomContent() {
     <MessageReactionsProvider>
       <div
         className="ida-chat-shell flex h-dvh w-full max-w-full overflow-hidden bg-background font-sans"
+        data-chat-font-size={chatFontSize}
         role="application"
         aria-label={copy.windowLabel}
       >
@@ -553,7 +652,13 @@ function ChatRoomContent() {
                       isStreaming={isStreaming}
                       isWelcome={message.id === WELCOME_MESSAGE_ID}
                       isLastAssistant={message.id === lastAssistantMessageId}
+                      isLastUser={message.id === lastUserMessageId}
+                      isEditing={editingMessageId === message.id}
+
                       onRegenerate={handleRegenerate}
+                      onEdit={handleEditMessage}
+                      onCancelEdit={handleCancelEdit}
+                      onSubmitEdit={handleSubmitEdit}
                     />
                   );
                 })}

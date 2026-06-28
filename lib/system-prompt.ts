@@ -47,7 +47,8 @@ Ini awal percakapan atau belum ada riwayat sebelumnya.`;
 
   const webSearchSection = webSearchContext?.trim()
     ? `## Konteks Web Search (Real-time)
-Gunakan hasil pencarian web berikut untuk pertanyaan yang membutuhkan data terkini. Sertakan URL sumber dalam jawaban.
+Gunakan hasil pencarian web berikut untuk pertanyaan yang membutuhkan data terkini.
+Jangan cantumkan daftar sumber atau URL di teks jawaban — sumber akan ditampilkan otomatis di UI.
 
 ${webSearchContext}`
     : "";
@@ -67,7 +68,7 @@ Jangan panggil tool untuk:
 
 Setelah menggunakan web search:
 - Rangkum fakta dengan jelas dan profesional
-- Selalu cantumkan sumber (judul + URL) di akhir jawaban
+- Jangan ulangi daftar sumber/URL di teks jawaban (sumber ditampilkan terpisah di UI)
 - Jika hasil search kosong/gagal, jawab dengan kemampuan yang ada dan jelaskan keterbatasannya`
     : "";
 

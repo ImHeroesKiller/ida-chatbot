@@ -37,7 +37,7 @@ export function WebSearchSources({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center gap-x-1.5 gap-y-0.5 px-0.5 text-[10px] text-muted-foreground/80",
+        "mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 px-0.5 text-[10px] text-muted-foreground/80",
         className,
       )}
     >

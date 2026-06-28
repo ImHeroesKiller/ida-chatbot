@@ -220,6 +220,24 @@ html[data-ida-animation="none"] *::after {
     max-width: 100%;
   }
 
+  .ida-chat-shell[data-chat-font-size="small"] {
+    --ida-font-chat: 15px;
+    --ida-font-chat-input: 15.5px;
+    --ida-line-height-chat: 1.6;
+  }
+
+  .ida-chat-shell[data-chat-font-size="medium"] {
+    --ida-font-chat: 16.5px;
+    --ida-font-chat-input: 17px;
+    --ida-line-height-chat: 1.65;
+  }
+
+  .ida-chat-shell[data-chat-font-size="large"] {
+    --ida-font-chat: 18px;
+    --ida-font-chat-input: 18.5px;
+    --ida-line-height-chat: 1.7;
+  }
+
   .ida-skeleton-pulse {
     animation: ida-pulse 1.5s ease-in-out infinite;
   }

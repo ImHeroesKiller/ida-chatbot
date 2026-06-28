@@ -3,6 +3,7 @@
 import {
   Check,
   Copy,
+  Pencil,
   Pause,
   RefreshCw,
   Share2,
@@ -29,7 +30,9 @@ interface MessageActionsProps {
   locale: Locale;
   isAssistant?: boolean;
   showRegenerate?: boolean;
+  showEdit?: boolean;
   onRegenerate?: () => void;
+  onEdit?: () => void;
   className?: string;
 }
 
@@ -39,7 +42,9 @@ export function MessageActions({
   locale,
   isAssistant = false,
   showRegenerate = false,
+  showEdit = false,
   onRegenerate,
+  onEdit,
   className,
 }: MessageActionsProps) {
   const copy = COPY[locale];
@@ -87,8 +92,8 @@ export function MessageActions({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center gap-1 pt-1.5",
-        "opacity-100 transition-opacity duration-200 sm:opacity-70 sm:group-hover/message:opacity-100",
+        "flex flex-wrap items-center gap-0.5 pt-1.5",
+        "opacity-100 transition-opacity duration-200 sm:opacity-0 sm:group-hover/message:opacity-100 sm:group-focus-within/message:opacity-100",
         className,
       )}
     >
@@ -104,11 +109,19 @@ export function MessageActions({
         )}
       </ActionButton>
 
-      <ActionButton label={copy.shareMessage} onClick={handleShare}>
-        <Share2 className="h-3.5 w-3.5" />
-      </ActionButton>
+      {showEdit && onEdit ? (
+        <ActionButton label={copy.editMessage} onClick={onEdit}>
+          <Pencil className="h-3.5 w-3.5" />
+        </ActionButton>
+      ) : null}
 
-      {isAssistant && isSupported && (
+      {isAssistant ? (
+        <ActionButton label={copy.shareMessage} onClick={handleShare}>
+          <Share2 className="h-3.5 w-3.5" />
+        </ActionButton>
+      ) : null}
+
+      {isAssistant && isSupported ? (
         <ActionButton
           label={isSpeaking ? copy.stopSpeaking : copy.speakMessage}
           onClick={() => toggle(messageId, content)}
@@ -120,15 +133,15 @@ export function MessageActions({
             <Volume2 className="h-3.5 w-3.5" />
           )}
         </ActionButton>
-      )}
+      ) : null}
 
-      {isAssistant && showRegenerate && onRegenerate && (
+      {isAssistant && showRegenerate && onRegenerate ? (
         <ActionButton label={copy.regenerate} onClick={onRegenerate}>
           <RefreshCw className="h-3.5 w-3.5" />
         </ActionButton>
-      )}
+      ) : null}
 
-      {isAssistant && (
+      {isAssistant ? (
         <>
           <span className="mx-0.5 h-4 w-px bg-border" aria-hidden />
           <ActionButton
@@ -156,7 +169,7 @@ export function MessageActions({
             />
           </ActionButton>
         </>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -173,21 +186,32 @@ function ActionButton({
   children: ReactNode;
 }) {
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      className={cn(
-        "h-7 gap-1.5 rounded-lg px-2 text-[11px] font-normal text-muted-foreground",
-        "hover:bg-muted hover:text-foreground active:scale-95",
-        active && "bg-primary/10 text-foreground",
-      )}
-    >
-      {children}
-      <span className="hidden sm:inline">{label}</span>
-    </Button>
+    <div className="group/action relative">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        onClick={onClick}
+        aria-label={label}
+        className={cn(
+          "h-7 w-7 rounded-lg text-muted-foreground",
+          "hover:bg-muted hover:text-foreground active:scale-95",
+          active && "bg-primary/10 text-foreground",
+        )}
+      >
+        {children}
+      </Button>
+      <span
+        role="tooltip"
+        className={cn(
+          "pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 -translate-x-1/2",
+          "whitespace-nowrap rounded-md border bg-popover px-2 py-1 text-[10px] text-popover-foreground shadow-md",
+          "opacity-0 transition-opacity duration-150",
+          "group-hover/action:opacity-100 group-focus-within/action:opacity-100",
+        )}
+      >
+        {label}
+      </span>
+    </div>
   );
 }

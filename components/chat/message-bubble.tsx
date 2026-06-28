@@ -6,6 +6,7 @@ import { Mic, User } from "lucide-react";
 import { IdaLogo } from "@/components/brand/ida-logo";
 import { AttachmentPreview } from "@/components/chat/attachment-preview";
 import { MarkdownContent } from "@/components/chat/markdown-content";
+import { MessageEditForm } from "@/components/chat/message-edit-form";
 import { WebSearchSources } from "@/components/chat/web-search-sources";
 import { MessageActions } from "@/components/chat/message-actions";
 import type { Locale } from "@/lib/config";
@@ -19,7 +20,13 @@ interface MessageBubbleProps {
   isStreaming?: boolean;
   isWelcome?: boolean;
   isLastAssistant?: boolean;
+  isLastUser?: boolean;
+  isEditing?: boolean;
+
   onRegenerate?: (messageId: string) => void;
+  onEdit?: (messageId: string) => void;
+  onCancelEdit?: () => void;
+  onSubmitEdit?: (messageId: string, content: string) => void;
 }
 
 function formatMessageTime(timestamp: number, locale: Locale): string {
@@ -38,7 +45,13 @@ export function MessageBubble({
   isStreaming,
   isWelcome,
   isLastAssistant,
+  isLastUser = false,
+  isEditing = false,
+
   onRegenerate,
+  onEdit,
+  onCancelEdit,
+  onSubmitEdit,
 }: MessageBubbleProps) {
   const copy = COPY[locale];
   const isUser = message.role === "user";
@@ -51,7 +64,12 @@ export function MessageBubble({
     : message.content;
 
   const showActions =
-    !isStreaming && message.content.trim() && !isWelcome;
+    !isStreaming &&
+    !isEditing &&
+    displayText.trim() &&
+    !isWelcome;
+
+  const actionContent = displayText.trim();
 
   return (
     <motion.div
@@ -89,16 +107,31 @@ export function MessageBubble({
           isUser ? "items-end" : "items-start",
         )}
       >
-        {message.attachment && (
+        {message.attachment && !isEditing ? (
           <AttachmentPreview
             attachment={message.attachment}
             extractedLabel={copy.extractedTextLabel}
             compact
             className={cn(isUser ? "w-full" : "")}
           />
-        )}
+        ) : null}
 
-        {(displayText.trim() || message.isVoiceNote) && (
+        {isEditing && isUser ? (
+          <div
+            className={cn(
+              "w-full rounded-2xl border bg-card px-3 py-3 shadow-sm",
+              "rounded-br-md dark:border-border/80",
+            )}
+          >
+            <MessageEditForm
+              locale={locale}
+              initialValue={displayText}
+
+              onSubmit={(value) => onSubmitEdit?.(message.id, value)}
+              onCancel={() => onCancelEdit?.()}
+            />
+          </div>
+        ) : (displayText.trim() || message.isVoiceNote) ? (
           <div
             className={cn(
               "rounded-2xl px-4 py-3 transition-shadow duration-200",
@@ -126,40 +159,43 @@ export function MessageBubble({
               <MarkdownContent
                 content={message.content}
                 isStreaming={isStreaming}
+                locale={locale}
                 className="chat-text"
               />
             )}
           </div>
-        )}
+        ) : null}
 
-        {!isUser && message.webSearchSources?.length ? (
+        {!isUser && !isEditing && message.webSearchSources?.length ? (
           <WebSearchSources
             sources={message.webSearchSources}
             locale={locale}
           />
         ) : null}
 
-        {showActions && (
+        {showActions ? (
           <MessageActions
             messageId={message.id}
-            content={message.content}
+            content={actionContent}
             locale={locale}
             isAssistant={!isUser}
             showRegenerate={isLastAssistant}
+            showEdit={isUser && isLastUser}
             onRegenerate={
               onRegenerate ? () => onRegenerate(message.id) : undefined
             }
+            onEdit={onEdit ? () => onEdit(message.id) : undefined}
           />
-        )}
+        ) : null}
 
-        {timestamp && (
+        {timestamp && !isEditing ? (
           <time
             dateTime={new Date(message.createdAt!).toISOString()}
             className="px-1 text-[11px] text-muted-foreground"
           >
             {timestamp}
           </time>
-        )}
+        ) : null}
       </div>
     </motion.div>
   );

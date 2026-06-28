@@ -109,6 +109,14 @@ export const COPY: Record<
     webSearchOn: string;
     webSearchOff: string;
     webSearchUnavailable: string;
+    editMessage: string;
+    editSave: string;
+    editCancel: string;
+    copyCode: string;
+    fontSizeSetting: string;
+    fontSizeSmall: string;
+    fontSizeMedium: string;
+    fontSizeLarge: string;
     errors: {
       generic: string;
       rateLimit: string;
@@ -228,6 +236,14 @@ export const COPY: Record<
     webSearchOn: "Pencarian web aktif",
     webSearchOff: "Pencarian web nonaktif",
     webSearchUnavailable: "Pencarian web belum dikonfigurasi",
+    editMessage: "Edit pesan",
+    editSave: "Kirim ulang",
+    editCancel: "Batal",
+    copyCode: "Salin kode",
+    fontSizeSetting: "Ukuran teks",
+    fontSizeSmall: "Kecil",
+    fontSizeMedium: "Sedang",
+    fontSizeLarge: "Besar",
     errors: {
       generic: "Gagal mendapatkan respons. Coba lagi.",
       rateLimit: "Terlalu banyak permintaan. Tunggu sebentar.",
@@ -346,6 +362,14 @@ export const COPY: Record<
     webSearchOn: "Web search on",
     webSearchOff: "Web search off",
     webSearchUnavailable: "Web search is not configured",
+    editMessage: "Edit message",
+    editSave: "Resend",
+    editCancel: "Cancel",
+    copyCode: "Copy code",
+    fontSizeSetting: "Text size",
+    fontSizeSmall: "Small",
+    fontSizeMedium: "Medium",
+    fontSizeLarge: "Large",
     errors: {
       generic: "Failed to get a response. Please try again.",
       rateLimit: "Too many requests. Please wait a moment.",
@@ -464,6 +488,14 @@ export const COPY: Record<
     webSearchOn: "已开启联网搜索",
     webSearchOff: "已关闭联网搜索",
     webSearchUnavailable: "联网搜索未配置",
+    editMessage: "编辑消息",
+    editSave: "重新发送",
+    editCancel: "取消",
+    copyCode: "复制代码",
+    fontSizeSetting: "字体大小",
+    fontSizeSmall: "小",
+    fontSizeMedium: "中",
+    fontSizeLarge: "大",
     errors: {
       generic: "获取回复失败，请重试。",
       rateLimit: "请求过多，请稍后再试。",

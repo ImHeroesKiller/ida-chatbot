@@ -6,6 +6,7 @@ import {
   Settings,
   Sun,
   Trash2,
+  Type,
   User,
   Volume2,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import { useChatContext } from "@/components/chat/chat-provider";
 import { useThemeContext } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { LOCALES, type Locale } from "@/lib/config";
+import { useChatFontSize } from "@/lib/chat-font-prefs";
 import { COPY } from "@/lib/i18n";
 import { useVoicePrefs } from "@/lib/voice/voice-prefs";
 import { cn } from "@/lib/utils";
@@ -43,7 +45,14 @@ export function SidebarSettings({
   const { locale: appLocale, setLocale } = useChatContext();
   const { theme, hydrated: themeHydrated, toggleTheme } = useThemeContext();
   const { prefs, setPrefs } = useVoicePrefs();
+  const { fontSize, setFontSize } = useChatFontSize();
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const fontSizeOptions = [
+    { value: "small" as const, label: copy.fontSizeSmall },
+    { value: "medium" as const, label: copy.fontSizeMedium },
+    { value: "large" as const, label: copy.fontSizeLarge },
+  ];
 
   const handleToggleSettings = () => {
     if (!expanded) onExpand?.();
@@ -135,6 +144,27 @@ export function SidebarSettings({
 
       {settingsOpen && (
         <div className="mt-2 space-y-3 rounded-xl border bg-background/70 p-2.5 shadow-sm">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5 px-0.5 text-[11px] font-medium text-muted-foreground">
+              <Type className="h-3.5 w-3.5" />
+              {copy.fontSizeSetting}
+            </div>
+            <div className="grid grid-cols-3 gap-1">
+              {fontSizeOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  type="button"
+                  variant={fontSize === option.value ? "default" : "outline"}
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => setFontSize(option.value)}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <div className="flex items-center gap-1.5 px-0.5 text-[11px] font-medium text-muted-foreground">
               <Globe className="h-3.5 w-3.5" />
