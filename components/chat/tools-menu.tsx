@@ -27,8 +27,10 @@ interface ToolsMenuProps {
   disabled?: boolean;
   webSearchEnabled: boolean;
   webSearchAvailable: boolean;
+  worksheetEnabled: boolean;
   activePanel: RightSidebarPanel | null;
   onWebSearchChange: (enabled: boolean) => void;
+  onWorksheetChange: (enabled: boolean) => void;
   onOpenPanel: (panel: RightSidebarPanel) => void;
 }
 
@@ -37,8 +39,10 @@ export function ToolsMenu({
   disabled = false,
   webSearchEnabled,
   webSearchAvailable,
+  worksheetEnabled,
   activePanel,
   onWebSearchChange,
+  onWorksheetChange,
   onOpenPanel,
 }: ToolsMenuProps) {
   const copy = COPY[locale];
@@ -47,21 +51,19 @@ export function ToolsMenu({
   const anchorRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const isActive = webSearchEnabled || activePanel !== null;
+  const isActive =
+    webSearchEnabled || worksheetEnabled || activePanel !== null;
 
-  const activePanelLabel =
-    activePanel === "worksheet"
-      ? copy.toolsWorksheet
-      : activePanel === "map"
-        ? copy.toolsMap
-        : activePanel === "research"
-          ? copy.toolsResearch
-          : null;
+  const activeToolLabels = [
+    webSearchEnabled ? copy.toolsWebSearch : null,
+    worksheetEnabled ? copy.toolsWorksheet : null,
+    activePanel === "map" ? copy.toolsMap : null,
+    activePanel === "research" ? copy.toolsResearch : null,
+  ].filter(Boolean);
 
-  const buttonTitle = activePanelLabel
-    ? `${copy.toolsMenu} — ${activePanelLabel}`
-    : webSearchEnabled
-      ? `${copy.toolsMenu} — ${copy.toolsWebSearch} (${copy.toolsOn})`
+  const buttonTitle =
+    activeToolLabels.length > 0
+      ? `${copy.toolsMenu} — ${activeToolLabels.join(", ")}`
       : copy.toolsMenu;
 
   const updateMenuPosition = useCallback(() => {
@@ -197,17 +199,27 @@ export function ToolsMenu({
             type="button"
             role="menuitem"
             onClick={() => {
-              onOpenPanel("worksheet");
+              onWorksheetChange(!worksheetEnabled);
               setOpen(false);
             }}
             className={cn(
               "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs",
               "transition-colors hover:bg-muted",
-              activePanel === "worksheet" && "bg-primary/10 ring-1 ring-primary/20",
+              worksheetEnabled && "bg-primary/10 ring-1 ring-primary/20",
             )}
           >
             <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
             <span className="flex-1 font-medium">{copy.toolsWorksheet}</span>
+            <span
+              className={cn(
+                "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                worksheetEnabled
+                  ? "bg-primary/15 text-primary"
+                  : "bg-muted text-muted-foreground",
+              )}
+            >
+              {worksheetEnabled ? copy.toolsOn : copy.toolsOff}
+            </span>
           </button>
 
           {!webSearchAvailable ? (

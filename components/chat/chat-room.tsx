@@ -144,6 +144,7 @@ function ChatRoomContent() {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [rightPanel, setRightPanel] = useState<RightSidebarPanel | null>(null);
+  const [worksheetToolEnabled, setWorksheetToolEnabled] = useState(false);
   const [worksheetWorkspace, setWorksheetWorkspace] =
     useState<WorksheetDocument>(() => createEmptyWorksheetWorkspace(locale));
   const isMobileViewport = useIsMobileViewport();
@@ -234,6 +235,10 @@ function ChatRoomContent() {
     setIsLoading(false);
     setEditingMessageId(null);
     setRightPanel(currentChat.activeRightPanel ?? null);
+    setWorksheetToolEnabled(
+      currentChat.worksheetToolEnabled ??
+        currentChat.activeRightPanel === "worksheet",
+    );
     setWorksheetWorkspace(
       normalizeWorksheetDocument(currentChat.worksheet, locale),
     );
@@ -255,7 +260,27 @@ function ChatRoomContent() {
   }, [lastWorksheetPrompt]);
 
   useEffect(() => {
-    if (!hydrated || isLoading) return;
+    if (!hydrated || isLoading || !currentChat) return;
+    if (activeChatIdRef.current !== currentChat.id) return;
+
+    persistCurrentChat({
+      messages,
+      activeRightPanel: rightPanel,
+      worksheetToolEnabled,
+    });
+  }, [
+    currentChat,
+    hydrated,
+    isLoading,
+    messages,
+    persistCurrentChat,
+    rightPanel,
+    worksheetToolEnabled,
+  ]);
+
+  useEffect(() => {
+    if (!hydrated || !currentChat) return;
+    if (activeChatIdRef.current !== currentChat.id) return;
 
     const worksheet = hasWorksheetWorkspaceContent(worksheetWorkspace)
       ? syncWorkspaceLegacyFields({
@@ -264,15 +289,8 @@ function ChatRoomContent() {
         })
       : null;
 
-    persistCurrentChat({ messages, activeRightPanel: rightPanel, worksheet });
-  }, [
-    messages,
-    rightPanel,
-    worksheetWorkspace,
-    hydrated,
-    isLoading,
-    persistCurrentChat,
-  ]);
+    persistCurrentChat({ worksheet });
+  }, [currentChat, hydrated, persistCurrentChat, worksheetWorkspace]);
 
   useEffect(() => {
     const handleEscape = (event: globalThis.KeyboardEvent) => {
@@ -406,6 +424,7 @@ function ChatRoomContent() {
           if (activeChatIdRef.current === chatIdAtSend) {
             setWorksheetWorkspace(next);
             setWorksheetErrorDetail(null);
+            setWorksheetToolEnabled(true);
             setRightPanel("worksheet");
             toast.success(copy.worksheetCreated);
           }
@@ -413,6 +432,7 @@ function ChatRoomContent() {
           persistCurrentChat({
             worksheet: persisted,
             activeRightPanel: "worksheet",
+            worksheetToolEnabled: true,
           });
         };
 
@@ -431,12 +451,14 @@ function ChatRoomContent() {
           if (activeChatIdRef.current === chatIdAtSend) {
             setWorksheetWorkspace(next);
             setWorksheetErrorDetail(null);
+            setWorksheetToolEnabled(true);
             setRightPanel("worksheet");
           }
 
           persistCurrentChat({
             worksheet: persisted,
             activeRightPanel: "worksheet",
+            worksheetToolEnabled: true,
           });
         };
 
@@ -518,6 +540,7 @@ function ChatRoomContent() {
             );
             setWorksheetWorkspace(next);
             setWorksheetErrorDetail(errorMessage);
+            setWorksheetToolEnabled(true);
             setRightPanel("worksheet");
           }
         }
@@ -534,6 +557,7 @@ function ChatRoomContent() {
               updatedAt: Date.now(),
             }),
             activeRightPanel: "worksheet",
+            worksheetToolEnabled: true,
           });
         }
 
@@ -574,11 +598,12 @@ function ChatRoomContent() {
 
       setError(null);
 
-      const worksheetAtSend = rightPanel === "worksheet";
+      const worksheetAtSend = worksheetToolEnabled;
       if (worksheetAtSend && text) {
         setLastWorksheetPrompt(text);
       }
       if (worksheetAtSend) {
+        setRightPanel("worksheet");
         setWorksheetWorkspace((prev) =>
           prev.error ? { ...prev, error: undefined } : prev,
         );
@@ -636,7 +661,7 @@ function ChatRoomContent() {
       currentChat,
       isLoading,
       messages,
-      rightPanel,
+      worksheetToolEnabled,
       streamAssistantReply,
       webSearchAvailable,
       webSearchEnabled,
@@ -690,7 +715,7 @@ function ChatRoomContent() {
 
       const chatIdAtSend = currentChat.id;
 
-      const worksheetAtSend = rightPanel === "worksheet";
+      const worksheetAtSend = worksheetToolEnabled;
 
       try {
         await streamAssistantReply(
@@ -714,7 +739,7 @@ function ChatRoomContent() {
       currentChat,
       isLoading,
       messages,
-      rightPanel,
+      worksheetToolEnabled,
       streamAssistantReply,
       webSearchAvailable,
       webSearchEnabled,
@@ -777,7 +802,7 @@ function ChatRoomContent() {
 
       const chatIdAtSend = currentChat.id;
 
-      const worksheetAtSend = rightPanel === "worksheet";
+      const worksheetAtSend = worksheetToolEnabled;
 
       try {
         await streamAssistantReply(
@@ -802,7 +827,7 @@ function ChatRoomContent() {
       currentChat,
       isLoading,
       messages,
-      rightPanel,
+      worksheetToolEnabled,
       streamAssistantReply,
       webSearchAvailable,
       webSearchEnabled,
@@ -853,6 +878,22 @@ function ChatRoomContent() {
   const handleWorksheetRegenerate = useCallback(() => {
     handleWorksheetRetry();
   }, [handleWorksheetRetry]);
+
+  const handleWorksheetToolChange = useCallback(
+    (enabled: boolean) => {
+      setWorksheetToolEnabled(enabled);
+
+      if (enabled) {
+        if (hasWorksheetWorkspaceContent(worksheetWorkspace)) {
+          setRightPanel("worksheet");
+        }
+        return;
+      }
+
+      setRightPanel((panel) => (panel === "worksheet" ? null : panel));
+    },
+    [worksheetWorkspace],
+  );
 
   const handleOpenToolPanel = useCallback((panel: RightSidebarPanel) => {
     setRightPanel(panel);
@@ -962,8 +1003,10 @@ function ChatRoomContent() {
               isLoading={isLoading}
               webSearchEnabled={webSearchEnabled}
               webSearchAvailable={webSearchAvailable}
+              worksheetEnabled={worksheetToolEnabled}
               activeToolPanel={rightPanel}
               onWebSearchChange={setWebSearchEnabled}
+              onWorksheetChange={handleWorksheetToolChange}
               onOpenToolPanel={handleOpenToolPanel}
               onInputChange={setInput}
               onSend={(content, options) =>
@@ -980,7 +1023,7 @@ function ChatRoomContent() {
               panel={rightPanel}
               worksheet={worksheetWorkspace}
               worksheetErrorDetail={worksheetErrorDetail}
-              worksheetGenerating={isLoading && rightPanel === "worksheet"}
+              worksheetGenerating={isLoading && worksheetToolEnabled}
               worksheetCanRegenerate={Boolean(lastWorksheetPrompt.trim())}
               onWorksheetChange={handleWorksheetChange}
               onWorksheetApplyTemplate={handleWorksheetApplyTemplate}
@@ -1013,7 +1056,7 @@ function ChatRoomContent() {
               panel={rightPanel}
               worksheet={worksheetWorkspace}
               worksheetErrorDetail={worksheetErrorDetail}
-              worksheetGenerating={isLoading && rightPanel === "worksheet"}
+              worksheetGenerating={isLoading && worksheetToolEnabled}
               worksheetCanRegenerate={Boolean(lastWorksheetPrompt.trim())}
               onWorksheetChange={handleWorksheetChange}
               onWorksheetApplyTemplate={handleWorksheetApplyTemplate}

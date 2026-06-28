@@ -550,11 +550,13 @@ export function syncWorkspaceLegacyFields(
   };
 }
 
-export function hasWorksheetWorkspaceContent(workspace: WorksheetDocument): boolean {
+export function hasWorksheetWorkspaceContent(
+  workspace: WorksheetDocument,
+): boolean {
   return Boolean(
     workspace.documents?.length ||
       workspace.content?.trim() ||
-      workspace.title?.trim() ||
+      workspace.versions?.length ||
       workspace.error,
   );
 }

@@ -28,6 +28,7 @@ export interface ChatSession {
   messages: IdaMessage[];
   apiSessionId: string;
   activeRightPanel?: RightSidebarPanel | null;
+  worksheetToolEnabled?: boolean;
   worksheet?: WorksheetDocument | null;
   pinned?: boolean;
   createdAt: number;
@@ -230,6 +231,7 @@ export function createChatSession(locale: Locale): ChatSession {
     messages: [],
     apiSessionId: createId("ida"),
     activeRightPanel: null,
+    worksheetToolEnabled: false,
     worksheet: null,
     pinned: false,
     createdAt: now,
@@ -260,6 +262,8 @@ function normalizeSession(
     messages: stripWelcomeMessages(session.messages),
     apiSessionId: ensureApiSessionId(rest.apiSessionId),
     activeRightPanel: panel,
+    worksheetToolEnabled:
+      rest.worksheetToolEnabled ?? panel === "worksheet",
     worksheet: rest.worksheet ?? null,
     pinned: Boolean(session.pinned),
   };
@@ -643,7 +647,11 @@ export function useChatStore(locale: Locale) {
       patch: Partial<
         Pick<
           ChatSession,
-          "messages" | "title" | "activeRightPanel" | "worksheet"
+          | "messages"
+          | "title"
+          | "activeRightPanel"
+          | "worksheetToolEnabled"
+          | "worksheet"
         >
       >,
     ) => {
@@ -665,6 +673,10 @@ export function useChatStore(locale: Locale) {
             patch.activeRightPanel !== undefined
               ? patch.activeRightPanel
               : chat.activeRightPanel ?? null,
+          worksheetToolEnabled:
+            patch.worksheetToolEnabled !== undefined
+              ? patch.worksheetToolEnabled
+              : Boolean(chat.worksheetToolEnabled),
           worksheet:
             patch.worksheet !== undefined
               ? patch.worksheet

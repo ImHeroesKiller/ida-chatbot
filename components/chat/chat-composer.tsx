@@ -58,8 +58,10 @@ interface ChatComposerProps {
   isLoading: boolean;
   webSearchEnabled: boolean;
   webSearchAvailable: boolean;
+  worksheetEnabled: boolean;
   activeToolPanel: RightSidebarPanel | null;
   onWebSearchChange: (enabled: boolean) => void;
+  onWorksheetChange: (enabled: boolean) => void;
   onOpenToolPanel: (panel: RightSidebarPanel) => void;
   onInputChange: (value: string) => void;
   onSend: (content: string, options?: {
@@ -80,8 +82,10 @@ export function ChatComposer({
   isLoading,
   webSearchEnabled,
   webSearchAvailable,
+  worksheetEnabled,
   activeToolPanel,
   onWebSearchChange,
+  onWorksheetChange,
   onOpenToolPanel,
   onInputChange,
   onSend,
@@ -450,8 +454,10 @@ export function ChatComposer({
             disabled={isLoading || isExtracting || isTranscribing}
             webSearchEnabled={webSearchEnabled}
             webSearchAvailable={webSearchAvailable}
+            worksheetEnabled={worksheetEnabled}
             activePanel={activeToolPanel}
             onWebSearchChange={onWebSearchChange}
+            onWorksheetChange={onWorksheetChange}
             onOpenPanel={onOpenToolPanel}
           />
 
