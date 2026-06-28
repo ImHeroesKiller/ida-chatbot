@@ -63,7 +63,7 @@ import { consumeIdaSseStream } from "@/lib/client/parse-sse";
 import { useAppFeatures } from "@/lib/client/use-app-features";
 import { useChatStore, WELCOME_MESSAGE_ID } from "@/lib/chat-store";
 import { IDA_CONFIG } from "@/lib/config";
-import { filterQuickReplies, getQuickReplies } from "@/lib/handoff";
+import { filterQuickReplies } from "@/lib/handoff";
 import { COPY } from "@/lib/i18n";
 import { MessageReactionsProvider } from "@/lib/message-reactions";
 import { useSidebarExpanded } from "@/lib/sidebar-prefs";
@@ -125,9 +125,7 @@ function ChatRoomContent() {
   );
   const [messages, setMessages] = useState<IdaMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [quickReplies, setQuickReplies] = useState<string[]>(
-    filterQuickReplies(getQuickReplies(locale)),
-  );
+  const [quickReplies, setQuickReplies] = useState<string[]>([]);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -137,7 +135,25 @@ function ChatRoomContent() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeChatIdRef = useRef<string | null>(null);
 
-  const hasUserMessages = messages.some((message) => message.role === "user");
+  const visibleMessages = useMemo(
+    () => messages.filter((message) => message.id !== WELCOME_MESSAGE_ID),
+    [messages],
+  );
+
+  const hasUserMessages = visibleMessages.some(
+    (message) => message.role === "user",
+  );
+
+  const conversationMessageCount = useMemo(
+    () =>
+      visibleMessages.filter((message) => message.content.trim()).length,
+    [visibleMessages],
+  );
+
+  const showQuickReplies =
+    conversationMessageCount >= 3 &&
+    quickReplies.length > 0 &&
+    !isLoading;
 
   const lastAssistantMessageId = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i -= 1) {
@@ -594,7 +610,7 @@ function ChatRoomContent() {
   };
 
   const handleOpenToolPanel = useCallback((panel: RightSidebarPanel) => {
-    setRightPanel((current) => (current === panel ? null : panel));
+    setRightPanel(panel);
   }, []);
 
   const sidebarProps = {
@@ -644,7 +660,7 @@ function ChatRoomContent() {
               <div className="ida-message-width mx-auto flex w-full flex-col gap-[calc(1.5rem*var(--ida-gap-scale))]">
                 {!hasUserMessages && <ChatEmptyState locale={locale} />}
 
-                {messages.map((message) => {
+                {visibleMessages.map((message) => {
                   const isStreaming = message.id === streamingMessageId;
                   const isEmptyStreaming =
                     isStreaming && message.content.length === 0;
@@ -659,7 +675,6 @@ function ChatRoomContent() {
                       message={message}
                       locale={locale}
                       isStreaming={isStreaming}
-                      isWelcome={message.id === WELCOME_MESSAGE_ID}
                       isLastAssistant={message.id === lastAssistantMessageId}
                       isLastUser={message.id === lastUserMessageId}
                       isEditing={editingMessageId === message.id}
@@ -671,6 +686,16 @@ function ChatRoomContent() {
                     />
                   );
                 })}
+
+                {showQuickReplies ? (
+                  <div className="pt-1">
+                    <QuickReplies
+                      replies={quickReplies}
+                      disabled={isLoading}
+                      onSelect={handleQuickReply}
+                    />
+                  </div>
+                ) : null}
 
                 <div ref={messagesEndRef} className="h-px" aria-hidden />
               </div>
@@ -690,17 +715,8 @@ function ChatRoomContent() {
           )}
 
           <div className="shrink-0">
-            <div className="ida-message-width mx-auto w-full max-w-full overflow-hidden px-2.5 sm:px-5">
-              <div className="mb-2 min-w-0 pt-2 sm:mb-3 sm:pt-3">
-                <QuickReplies
-                  replies={quickReplies}
-                  disabled={isLoading}
-                  onSelect={handleQuickReply}
-                />
-              </div>
-            </div>
-
             <ChatComposer
+              key={currentChat?.id}
               locale={locale}
               sessionId={currentChat?.apiSessionId}
               input={input}

@@ -21,8 +21,12 @@ function detectTopicHints(text) {
 
 function testWelcomeStage() {
   const userMessages = [];
-  const pass = userMessages.length === 0;
-  return { pass, checks: pass ? [] : ["expected empty user messages for welcome"] };
+  const replies = userMessages.length === 0 ? [] : ["should-not-happen"];
+  const pass = replies.length === 0;
+  return {
+    pass,
+    checks: pass ? [] : ["expected no quick replies before conversation starts"],
+  };
 }
 
 function testRealtimeHints() {

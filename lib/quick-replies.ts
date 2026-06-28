@@ -28,24 +28,6 @@ export interface QuickReplyContext {
 
 const MAX_QUICK_REPLIES = 3;
 
-const WELCOME_REPLIES: Record<Locale, string[]> = {
-  id: [
-    "Apa yang bisa kamu bantu hari ini?",
-    "Jelaskan fitur utama IDA",
-    "Berikan contoh pertanyaan yang cocok untuk IDA",
-  ],
-  en: [
-    "What can you help me with today?",
-    "Explain IDA's main features",
-    "Give me example questions I can ask",
-  ],
-  zh: [
-    "今天你能帮我什么？",
-    "介绍 IDA 的主要功能",
-    "给我一些适合提问的例子",
-  ],
-};
-
 const EXPLORATION_REPLIES: Record<Locale, string[]> = {
   id: [
     "Bisa jelaskan lebih sederhana?",
@@ -310,7 +292,7 @@ export function inferQuickReplies(context: QuickReplyContext): string[] {
     .trim();
 
   if (userMessages.length === 0) {
-    return filterQuickReplies(WELCOME_REPLIES[locale]);
+    return [];
   }
 
   const hints = detectTopicHints(`${combined}\n${lastAssistant}`);
@@ -355,5 +337,5 @@ export function inferQuickReplies(context: QuickReplyContext): string[] {
   const replies = pickUnique(locale, groups);
   if (replies.length > 0) return replies;
 
-  return filterQuickReplies(WELCOME_REPLIES[locale]);
+  return [];
 }

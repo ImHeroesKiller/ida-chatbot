@@ -85,7 +85,7 @@ export function ToolsMenu({
         <div
           role="menu"
           className={cn(
-            "absolute bottom-full left-0 z-50 mb-2 w-52",
+            "absolute bottom-full left-0 z-[60] mb-2 w-52",
             "rounded-xl border bg-popover p-1.5 shadow-lg",
           )}
         >

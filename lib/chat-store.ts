@@ -10,8 +10,6 @@ import {
 } from "@/lib/client/sync-sessions";
 import { getOrCreateAnonymousUserId } from "@/lib/client/user-id";
 import type { Locale } from "@/lib/config";
-import { inferQuickReplies } from "@/lib/quick-replies";
-import { COPY } from "@/lib/i18n";
 import type { IdaMessage } from "@/lib/types";
 
 export const WELCOME_MESSAGE_ID = "ida-welcome";
@@ -45,36 +43,83 @@ function createId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export function createWelcomeMessage(locale: Locale): IdaMessage {
-  return {
-    id: WELCOME_MESSAGE_ID,
-    role: "assistant",
-    content: COPY[locale].welcome,
-    createdAt: Date.now(),
-  };
+const GENERIC_CHAT_TITLES: Record<Locale, string> = {
+  id: "Chat baru",
+  en: "New chat",
+  zh: "新对话",
+};
+
+const MAX_TITLE_WORDS = 7;
+
+const TITLE_FILLER_PATTERNS = [
+  /^(bantu|tolong|mohon|hai|halo|hello|hi|hey|please|help me|can you|could you|bisakah|apakah kamu bisa|我想|请|帮我)\s+/i,
+  /^(buatkan|buat|create|make|generate|write|draft)\s+(saya\s+|me\s+)?/i,
+];
+
+export function isGenericChatTitle(title: string, locale: Locale): boolean {
+  const normalized = title.trim().toLowerCase();
+  return (
+    normalized === GENERIC_CHAT_TITLES[locale].toLowerCase() ||
+    normalized === GENERIC_CHAT_TITLES.id.toLowerCase() ||
+    normalized === GENERIC_CHAT_TITLES.en.toLowerCase() ||
+    normalized === GENERIC_CHAT_TITLES.zh.toLowerCase()
+  );
+}
+
+function stripWelcomeMessages(messages: IdaMessage[]): IdaMessage[] {
+  return messages.filter((message) => message.id !== WELCOME_MESSAGE_ID);
+}
+
+function cleanTitleSource(text: string): string {
+  let cleaned = text.trim().replace(/\s+/g, " ");
+
+  for (const pattern of TITLE_FILLER_PATTERNS) {
+    cleaned = cleaned.replace(pattern, "");
+  }
+
+  return cleaned.replace(/[?.!,;:]+$/g, "").trim();
+}
+
+function toTitleWords(text: string): string {
+  const words = text.split(/\s+/).filter(Boolean).slice(0, MAX_TITLE_WORDS);
+  if (words.length === 0) return "";
+
+  return words
+    .map((word) => {
+      if (/^[A-Z0-9]{2,}$/.test(word)) return word;
+      if (/^[A-Z][a-z]+/.test(word)) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
 }
 
 export function deriveChatTitle(
   messages: IdaMessage[],
   locale: Locale,
 ): string {
-  const fallback: Record<Locale, string> = {
-    id: "Chat baru",
-    en: "New chat",
-    zh: "新对话",
-  };
-
-  const firstUser = messages.find(
-    (message) =>
-      message.role === "user" &&
-      message.id !== WELCOME_MESSAGE_ID &&
-      message.content.trim(),
+  const fallback = GENERIC_CHAT_TITLES[locale];
+  const conversationMessages = stripWelcomeMessages(messages);
+  const userMessages = conversationMessages.filter(
+    (message) => message.role === "user" && message.content.trim(),
+  );
+  const assistantMessages = conversationMessages.filter(
+    (message) => message.role === "assistant" && message.content.trim(),
   );
 
-  if (!firstUser) return fallback[locale];
+  if (userMessages.length < 2 || assistantMessages.length < 2) {
+    return fallback;
+  }
 
-  const trimmed = firstUser.content.trim();
-  return trimmed.length > 42 ? `${trimmed.slice(0, 39)}...` : trimmed;
+  const primary = cleanTitleSource(userMessages[0]!.content);
+  let title = toTitleWords(primary);
+
+  if (title.split(/\s+/).length < 3 && userMessages[1]) {
+    const secondary = cleanTitleSource(userMessages[1].content);
+    const combined = `${primary} ${secondary}`.trim();
+    title = toTitleWords(combined);
+  }
+
+  return title || fallback;
 }
 
 export function sortSessions(sessions: ChatSession[]): ChatSession[] {
@@ -89,13 +134,12 @@ export function sortSessions(sessions: ChatSession[]): ChatSession[] {
 
 export function createChatSession(locale: Locale): ChatSession {
   const now = Date.now();
-  const welcomeMessage = createWelcomeMessage(locale);
 
   return {
     id: createId("chat"),
-    title: locale === "zh" ? "新对话" : locale === "en" ? "New chat" : "Chat baru",
-    messages: [welcomeMessage],
-    quickReplies: inferQuickReplies({ locale, messages: [] }),
+    title: GENERIC_CHAT_TITLES[locale],
+    messages: [],
+    quickReplies: [],
     apiSessionId: createId("ida"),
     pinned: false,
     createdAt: now,
@@ -114,7 +158,19 @@ export function createInitialStore(locale: Locale): ChatStoreState {
 }
 
 function normalizeSession(session: ChatSession): ChatSession {
-  return { ...session, pinned: Boolean(session.pinned) };
+  const messages = stripWelcomeMessages(session.messages);
+  const conversationCount = messages.filter(
+    (message) => message.content.trim(),
+  ).length;
+  const quickReplies =
+    conversationCount >= 3 ? session.quickReplies : [];
+
+  return {
+    ...session,
+    messages,
+    quickReplies,
+    pinned: Boolean(session.pinned),
+  };
 }
 
 function parseChatStoreState(raw: string): ChatStoreState | null {
@@ -496,12 +552,18 @@ export function useChatStore(locale: Locale) {
         const messages = patch.messages ?? chat.messages;
         const quickReplies = patch.quickReplies ?? chat.quickReplies;
 
+        const nextTitle =
+          patch.title ??
+          (isGenericChatTitle(chat.title, locale)
+            ? deriveChatTitle(messages, locale)
+            : chat.title);
+
         return {
           ...chat,
           ...patch,
           messages,
           quickReplies,
-          title: patch.title ?? deriveChatTitle(messages, locale),
+          title: nextTitle,
           updatedAt: Date.now(),
         };
       });

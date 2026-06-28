@@ -35,31 +35,6 @@ interface SidebarSettingsProps {
   onExpand?: () => void;
 }
 
-function CollapsedLanguageSelector({
-  appLocale,
-  onSelect,
-}: {
-  appLocale: Locale;
-  onSelect: (loc: Locale) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      {LOCALES.map((loc) => (
-        <Button
-          key={loc}
-          type="button"
-          variant={appLocale === loc ? "default" : "ghost"}
-          size="sm"
-          className="h-8 w-full justify-center px-2 text-xs"
-          onClick={() => onSelect(loc)}
-        >
-          {LOCALE_LABELS[loc]}
-        </Button>
-      ))}
-    </div>
-  );
-}
-
 export function SidebarSettings({
   locale,
   expanded,
@@ -86,7 +61,8 @@ export function SidebarSettings({
 
   const handleToggleSettings = () => {
     if (!expanded) {
-      setSettingsOpen((open) => !open);
+      onExpand?.();
+      setSettingsOpen(true);
       return;
     }
     setSettingsOpen((open) => !open);
@@ -94,7 +70,7 @@ export function SidebarSettings({
 
   if (!expanded) {
     return (
-      <div className="relative shrink-0 border-t p-1.5">
+      <div className="shrink-0 border-t p-1.5">
         <Button
           type="button"
           variant="ghost"
@@ -103,67 +79,9 @@ export function SidebarSettings({
           onClick={handleToggleSettings}
           title={copy.settings}
           aria-label={copy.settings}
-          aria-expanded={settingsOpen}
         >
           <Settings className="h-4 w-4" />
         </Button>
-
-        {settingsOpen ? (
-          <div
-            className={cn(
-              "absolute bottom-0 left-full z-[60] ml-1.5 w-36",
-              "rounded-xl border bg-popover p-2 shadow-lg",
-            )}
-          >
-            <p className="mb-1.5 px-0.5 text-[10px] font-medium text-muted-foreground">
-              {copy.appLanguage}
-            </p>
-            <CollapsedLanguageSelector
-              appLocale={appLocale}
-              onSelect={setLocale}
-            />
-
-            <div className="mt-2 space-y-1 border-t pt-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-8 w-full justify-start gap-2 px-2 text-xs"
-                onClick={toggleTheme}
-              >
-                {themeHydrated && theme === "dark" ? (
-                  <Sun className="h-3.5 w-3.5" />
-                ) : (
-                  <Moon className="h-3.5 w-3.5" />
-                )}
-                <span className="truncate">{copy.toggleTheme}</span>
-              </Button>
-              <Link
-                href="/account"
-                className={cn(
-                  "inline-flex h-8 w-full items-center justify-start gap-2 rounded-lg px-2 text-xs",
-                  "text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-                )}
-              >
-                <User className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{copy.account}</span>
-              </Link>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-8 w-full justify-start gap-2 px-2 text-xs"
-                onClick={() => {
-                  onExpand?.();
-                  setSettingsOpen(false);
-                }}
-              >
-                <Settings className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{copy.settings}</span>
-              </Button>
-            </div>
-          </div>
-        ) : null}
       </div>
     );
   }

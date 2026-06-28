@@ -23,6 +23,7 @@ export const COPY: Record<
     openSessions: string;
     expandSidebar: string;
     collapseSidebar: string;
+    openChatHistory: string;
     emptyStateTitle: string;
     emptyStateHint: string;
     emptyStateTipsTitle: string;
@@ -164,9 +165,10 @@ export const COPY: Record<
     openSessions: "Buka daftar percakapan",
     expandSidebar: "Perluas sidebar",
     collapseSidebar: "Ciutkan sidebar",
+    openChatHistory: "Buka riwayat chat",
     emptyStateTitle: "Selamat datang di IDA",
     emptyStateSubtitle: "Asisten AI yang siap membantu kapan saja",
-    emptyStateHint: "Ketik pesan di bawah atau pilih saran cepat untuk memulai.",
+    emptyStateHint: "Ketik pesan di bawah untuk memulai percakapan.",
     emptyStateTipsTitle: "Tips singkat",
     emptyStateTips: [
       "Tanyakan apa saja — bahasa Indonesia, Inggris, atau Mandarin.",
@@ -314,9 +316,10 @@ export const COPY: Record<
     openSessions: "Open chat sessions",
     expandSidebar: "Expand sidebar",
     collapseSidebar: "Collapse sidebar",
+    openChatHistory: "Open chat history",
     emptyStateTitle: "Welcome to IDA",
     emptyStateSubtitle: "Your AI assistant, ready whenever you need",
-    emptyStateHint: "Type a message below or pick a quick suggestion to begin.",
+    emptyStateHint: "Type a message below to start a conversation.",
     emptyStateTipsTitle: "Quick tips",
     emptyStateTips: [
       "Ask anything — Indonesian, English, or Chinese.",
@@ -464,9 +467,10 @@ export const COPY: Record<
     openSessions: "打开对话列表",
     expandSidebar: "展开侧边栏",
     collapseSidebar: "收起侧边栏",
+    openChatHistory: "打开聊天记录",
     emptyStateTitle: "欢迎使用 IDA",
     emptyStateSubtitle: "随时为你提供帮助的 AI 助手",
-    emptyStateHint: "在下方输入消息或选择快捷建议开始。",
+    emptyStateHint: "在下方输入消息开始对话。",
     emptyStateTipsTitle: "小贴士",
     emptyStateTips: [
       "随意提问 — 支持印尼语、英语和中文。",

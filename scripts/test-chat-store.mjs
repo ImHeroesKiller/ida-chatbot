@@ -6,12 +6,30 @@
 
 function deriveChatTitle(messages, locale) {
   const fallback = { id: "Chat baru", en: "New chat", zh: "新对话" };
-  const firstUser = messages.find(
-    (m) => m.role === "user" && m.id !== "ida-welcome" && m.content.trim(),
+  const conversation = messages.filter((m) => m.id !== "ida-welcome");
+  const userMessages = conversation.filter(
+    (m) => m.role === "user" && m.content.trim(),
   );
-  if (!firstUser) return fallback[locale];
-  const trimmed = firstUser.content.trim();
-  return trimmed.length > 42 ? `${trimmed.slice(0, 39)}...` : trimmed;
+  const assistantMessages = conversation.filter(
+    (m) => m.role === "assistant" && m.content.trim(),
+  );
+
+  if (userMessages.length < 2 || assistantMessages.length < 2) {
+    return fallback[locale];
+  }
+
+  const cleaned = userMessages[0].content
+    .trim()
+    .replace(/^(bantu|tolong|please|help me)\s+/i, "")
+    .replace(/^(buatkan|buat|create|make)\s+(saya\s+)?/i, "")
+    .replace(/[?.!]+$/, "");
+  const words = cleaned.split(/\s+/).slice(0, 7);
+  return words
+    .map((word) => {
+      if (/^[A-Z0-9]{2,}$/.test(word)) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
 }
 
 function sortSessions(sessions) {
@@ -73,22 +91,33 @@ function simulateStoreRoundtrip() {
 
 function testDeriveTitle() {
   const checks = [];
-  const title = deriveChatTitle(
+  const earlyTitle = deriveChatTitle(
     [
-      { id: "ida-welcome", role: "assistant", content: "x" },
       { id: "u1", role: "user", content: "Bagaimana cara mulai konsultasi?" },
+      { id: "a1", role: "assistant", content: "Berikut langkahnya..." },
     ],
     "id",
   );
 
-  if (title !== "Bagaimana cara mulai konsultasi?") {
-    checks.push(`expected user message as title, got "${title}"`);
+  if (earlyTitle !== "Chat baru") {
+    checks.push(`expected generic title before 2 exchanges, got "${earlyTitle}"`);
   }
 
-  const fallback = deriveChatTitle(
-    [{ id: "ida-welcome", role: "assistant", content: "x" }],
+  const title = deriveChatTitle(
+    [
+      { id: "u1", role: "user", content: "Bantu buatkan proposal proyek PLTS" },
+      { id: "a1", role: "assistant", content: "Berikut struktur proposal..." },
+      { id: "u2", role: "user", content: "Untuk rooftop komersial" },
+      { id: "a2", role: "assistant", content: "Baik, untuk rooftop..." },
+    ],
     "id",
   );
+
+  if (title !== "Proposal Proyek PLTS") {
+    checks.push(`expected cleaned title, got "${title}"`);
+  }
+
+  const fallback = deriveChatTitle([], "id");
   if (fallback !== "Chat baru") {
     checks.push(`expected fallback title, got "${fallback}"`);
   }
