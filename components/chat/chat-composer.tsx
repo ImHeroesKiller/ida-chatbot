@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe, Loader2, Mic, MicOff, Paperclip, Send } from "lucide-react";
+import { Globe, Loader2, Mic, Paperclip, Send } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -9,6 +9,7 @@ import {
   useState,
   type FormEvent,
   type KeyboardEvent,
+  type PointerEvent,
 } from "react";
 import toast from "react-hot-toast";
 
@@ -89,6 +90,7 @@ export function ChatComposer({
   const [hasVoiceInput, setHasVoiceInput] = useState(false);
   const sendingRef = useRef(false);
   const skipVoiceAutoSendRef = useRef(false);
+  const holdingMicRef = useRef(false);
 
   const { prefs } = useVoicePrefs();
   const appFeatures = useAppFeatures();
@@ -214,10 +216,9 @@ export function ChatComposer({
     isListening,
     error: speechError,
     waveformLevels,
-    toggleListening,
+    startListening,
     stopListening,
     isTranscribing,
-    mode: voiceMode,
   } = useVoiceInput(locale, sessionId, {
     onTranscriptionComplete: handleTranscriptionComplete,
   });
@@ -225,23 +226,53 @@ export function ChatComposer({
   const voiceErrorMessage = getVoiceErrorMessage(locale, speechError);
 
   const handleSend = async () => {
-    if (isTranscribing) return;
-
-    let text = input.trim();
-
-    if (isListening) {
-      skipVoiceAutoSendRef.current = true;
-      const transcribed = await stopListening();
-      skipVoiceAutoSendRef.current = false;
-      text = transcribed.trim() || text;
-      if (transcribed.trim()) {
-        onInputChange(transcribed.trim());
-        setHasVoiceInput(true);
-      }
-    }
-
-    await performSend(text);
+    if (isTranscribing || isListening) return;
+    await performSend(input.trim());
   };
+
+  const handleMicRelease = useCallback(async () => {
+    if (!holdingMicRef.current) return;
+    holdingMicRef.current = false;
+    skipVoiceAutoSendRef.current = false;
+    await stopListening();
+  }, [stopListening]);
+
+  const handleMicPointerDown = useCallback(
+    (event: PointerEvent<HTMLButtonElement>) => {
+      if (
+        !speechSupported ||
+        isLoading ||
+        isExtracting ||
+        isTranscribing ||
+        isListening
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      holdingMicRef.current = true;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      void startListening();
+    },
+    [
+      isExtracting,
+      isListening,
+      isLoading,
+      isTranscribing,
+      speechSupported,
+      startListening,
+    ],
+  );
+
+  const handleMicPointerUp = useCallback(
+    (event: PointerEvent<HTMLButtonElement>) => {
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      void handleMicRelease();
+    },
+    [handleMicRelease],
+  );
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -324,8 +355,8 @@ export function ChatComposer({
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "shrink-0 overflow-x-hidden border-t bg-muted/30 px-3 pt-3 dark:bg-muted/20",
-        "pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-5 sm:pb-4",
+        "shrink-0 overflow-x-hidden border-t bg-muted/30 px-2.5 pt-2.5 dark:bg-muted/20",
+        "pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-5 sm:pt-3 sm:pb-4",
       )}
     >
       <div className="ida-message-width mx-auto w-full max-w-full space-y-2.5">
@@ -333,25 +364,38 @@ export function ChatComposer({
           <div
             role="status"
             aria-live="polite"
-            className="flex items-center justify-between rounded-xl border border-primary/20 bg-primary/5 px-3 py-2"
+            className={cn(
+              "flex items-center justify-between rounded-xl border px-3 py-2.5",
+              isListening
+                ? "border-destructive/30 bg-destructive/5"
+                : "border-primary/20 bg-primary/5",
+            )}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
               {isTranscribing ? (
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
               ) : (
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+                <span className="relative flex h-3 w-3 shrink-0">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive/70" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-destructive" />
                 </span>
               )}
-              <VoiceWaveform levels={waveformLevels} />
+              <VoiceWaveform
+                levels={waveformLevels}
+                className={isListening ? "text-destructive" : undefined}
+              />
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p
+              className={cn(
+                "shrink-0 pl-2 text-xs",
+                isListening
+                  ? "font-medium text-destructive"
+                  : "text-muted-foreground",
+              )}
+            >
               {isTranscribing
                 ? copy.voiceTranscribing
-                : voiceMode === "recorder"
-                  ? copy.voiceRecorderMode
-                  : copy.listening}
+                : copy.releaseToSend}
             </p>
           </div>
         )}
@@ -383,7 +427,7 @@ export function ChatComposer({
           />
         )}
 
-        <div className="flex min-w-0 items-end gap-1.5 sm:gap-2">
+        <div className="flex min-w-0 items-end gap-2">
           <input
             ref={fileInputRef}
             type="file"
@@ -406,7 +450,7 @@ export function ChatComposer({
               }
               aria-pressed={webSearchEnabled}
               title={copy.webSearchToggle}
-              className="h-11 w-11 shrink-0"
+              className="h-12 w-12 shrink-0 sm:h-11 sm:w-11"
               onClick={() => onWebSearchChange(!webSearchEnabled)}
             >
               <Globe className="h-4 w-4" />
@@ -421,7 +465,7 @@ export function ChatComposer({
               disabled={isLoading || isExtracting || isTranscribing}
               aria-label={copy.attachFile}
               title={copy.attachFile}
-              className="h-11 w-11 shrink-0"
+              className="h-12 w-12 shrink-0 sm:h-11 sm:w-11"
               onClick={() => fileInputRef.current?.click()}
             >
               <Paperclip className="h-4 w-4" />
@@ -451,7 +495,7 @@ export function ChatComposer({
               rows={1}
               disabled={isLoading || isExtracting || isTranscribing || isListening}
               className={cn(
-                "chat-input max-h-28 min-h-11 resize-none rounded-2xl",
+                "chat-input max-h-28 min-h-12 resize-none rounded-2xl sm:min-h-11",
                 "focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/20",
                 "dark:bg-background/60",
               )}
@@ -461,25 +505,28 @@ export function ChatComposer({
           {voiceEnabled && (
             <Button
               type="button"
-              variant={isListening ? "default" : "outline"}
+              variant={isListening ? "destructive" : "outline"}
               size="icon"
               disabled={
                 isLoading || isExtracting || isTranscribing || !speechSupported
               }
-              aria-label={isListening ? copy.stopListening : copy.startListening}
+              aria-label={copy.holdToRecord}
               title={
                 speechSupported
-                  ? isListening
-                    ? copy.stopListening
-                    : copy.startListening
+                  ? copy.holdToRecord
                   : copy.voiceErrorUnsupported
               }
-              className="h-11 w-11 shrink-0"
-              onClick={toggleListening}
+              className={cn(
+                "h-12 w-12 shrink-0 touch-none select-none sm:h-11 sm:w-11",
+                isListening && "scale-105 shadow-md",
+              )}
+              style={{ touchAction: "none" }}
+              onPointerDown={handleMicPointerDown}
+              onPointerUp={handleMicPointerUp}
+              onPointerCancel={handleMicPointerUp}
+              onContextMenu={(event) => event.preventDefault()}
             >
-              {isListening ? (
-                <MicOff className="h-4 w-4" />
-              ) : isTranscribing ? (
+              {isTranscribing ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Mic className="h-4 w-4" />
@@ -492,7 +539,7 @@ export function ChatComposer({
             size="icon"
             disabled={!canSend}
             aria-label={copy.send}
-            className="h-11 w-11 shrink-0 transition-transform hover:scale-105 active:scale-95"
+            className="h-12 w-12 shrink-0 transition-transform hover:scale-105 active:scale-95 sm:h-11 sm:w-11"
           >
             {isExtracting || isTranscribing ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -502,10 +549,15 @@ export function ChatComposer({
           </Button>
         </div>
 
-        <p className="text-center text-[11px] text-muted-foreground">
+        <p className="hidden text-center text-[11px] text-muted-foreground sm:block">
           {copy.sendShortcut}
         </p>
-        <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
+        {voiceEnabled && speechSupported ? (
+          <p className="text-center text-[11px] text-muted-foreground sm:hidden">
+            {copy.holdToRecord}
+          </p>
+        ) : null}
+        <p className="text-center text-[10px] leading-relaxed text-muted-foreground sm:text-[11px]">
           {copy.disclaimer}
         </p>
       </div>

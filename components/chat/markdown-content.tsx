@@ -72,7 +72,7 @@ function CodeBlock({
             onClick={handleCopy}
             aria-label={copy.copyCode}
             className={cn(
-              "h-7 w-7 rounded-md bg-background/80 text-muted-foreground backdrop-blur-sm",
+              "h-9 w-9 rounded-md bg-background/80 text-muted-foreground backdrop-blur-sm sm:h-7 sm:w-7",
               "opacity-100 sm:opacity-0 sm:group-hover/code:opacity-100",
               "hover:bg-background hover:text-foreground",
             )}

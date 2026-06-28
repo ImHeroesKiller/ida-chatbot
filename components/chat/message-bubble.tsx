@@ -1,9 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mic, User } from "lucide-react";
 
-import { IdaLogo } from "@/components/brand/ida-logo";
 import { AttachmentPreview } from "@/components/chat/attachment-preview";
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { MessageEditForm } from "@/components/chat/message-edit-form";
@@ -73,37 +71,17 @@ export function MessageBubble({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.22, ease: "easeOut" }}
-      whileHover={{ scale: 1.002 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
       className={cn(
-        "group/message flex w-full items-start gap-3",
-        isUser ? "flex-row-reverse" : "flex-row",
+        "group/message flex w-full",
+        isUser ? "justify-end" : "justify-start",
       )}
     >
-      {isUser ? (
-        <div
-          className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm",
-            "transition-transform duration-200 group-hover/message:scale-105",
-          )}
-          aria-hidden
-        >
-          <User className="h-4 w-4" />
-        </div>
-      ) : (
-        <IdaLogo
-          size="md"
-          variant="avatar"
-          className="transition-transform duration-200 group-hover/message:scale-105"
-          aria-hidden
-        />
-      )}
-
       <div
         className={cn(
-          "flex min-w-0 max-w-[min(88%,34rem)] flex-col gap-1",
+          "flex min-w-0 w-full max-w-[min(92%,34rem)] flex-col gap-1 sm:max-w-[min(88%,34rem)]",
           isUser ? "items-end" : "items-start",
         )}
       >
@@ -126,7 +104,6 @@ export function MessageBubble({
             <MessageEditForm
               locale={locale}
               initialValue={displayText}
-
               onSubmit={(value) => onSubmitEdit?.(message.id, value)}
               onCancel={() => onCancelEdit?.()}
             />
@@ -134,20 +111,17 @@ export function MessageBubble({
         ) : (displayText.trim() || message.isVoiceNote) ? (
           <div
             className={cn(
-              "rounded-2xl px-4 py-3 transition-shadow duration-200",
-              "group-hover/message:shadow-md",
+              "rounded-2xl px-3.5 py-2.5 transition-shadow duration-200 sm:px-4 sm:py-3",
+              "group-hover/message:shadow-sm",
               isUser
                 ? "rounded-br-md bg-primary text-primary-foreground shadow-sm"
                 : "rounded-bl-md border bg-card text-card-foreground shadow-sm dark:border-border/80",
               isWelcome && "ring-1 ring-primary/15",
             )}
           >
-            {message.isVoiceNote && (
-              <div className="mb-1.5 flex items-center gap-1.5 text-[11px] opacity-80">
-                <Mic className="h-3 w-3" />
-                <span>{copy.voiceNoteLabel}</span>
-              </div>
-            )}
+            {message.isVoiceNote ? (
+              <p className="mb-1 text-[11px] opacity-80">{copy.voiceNoteLabel}</p>
+            ) : null}
 
             {isUser ? (
               displayText.trim() ? (
@@ -191,7 +165,7 @@ export function MessageBubble({
         {timestamp && !isEditing ? (
           <time
             dateTime={new Date(message.createdAt!).toISOString()}
-            className="px-1 text-[11px] text-muted-foreground"
+            className="px-1 text-[10px] text-muted-foreground sm:text-[11px]"
           >
             {timestamp}
           </time>

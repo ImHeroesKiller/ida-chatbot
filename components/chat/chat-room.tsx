@@ -630,7 +630,7 @@ function ChatRoomContent() {
           <div className="relative min-h-0 flex-1">
             <div
               ref={scrollContainerRef}
-              className="h-full overflow-y-auto overscroll-y-contain px-3 py-4 sm:px-5"
+              className="h-full overflow-y-auto overscroll-y-contain px-2.5 py-3 sm:px-5 sm:py-4"
             >
               <div className="ida-message-width mx-auto flex w-full flex-col gap-[calc(1.5rem*var(--ida-gap-scale))]">
                 {!hasUserMessages && <ChatEmptyState locale={locale} />}
@@ -681,8 +681,8 @@ function ChatRoomContent() {
           )}
 
           <div className="shrink-0">
-            <div className="ida-message-width mx-auto w-full max-w-full overflow-hidden px-3 sm:px-5">
-              <div className="mb-3 min-w-0 pt-3">
+            <div className="ida-message-width mx-auto w-full max-w-full overflow-hidden px-2.5 sm:px-5">
+              <div className="mb-2 min-w-0 pt-2 sm:mb-3 sm:pt-3">
                 <QuickReplies
                   replies={quickReplies}
                   disabled={isLoading}
@@ -709,7 +709,7 @@ function ChatRoomContent() {
       <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
         <SheetContent
           side="left"
-          className="w-[min(85vw,300px)] max-w-full gap-0 overflow-hidden p-0"
+          className="w-[min(88vw,300px)] max-w-full gap-0 overflow-hidden p-0 [&>button]:h-10 [&>button]:w-10"
         >
           <SheetHeader className="border-b px-4 py-3">
             <SheetTitle className="text-sm">{copy.sessionsLabel}</SheetTitle>

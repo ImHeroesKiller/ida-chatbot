@@ -82,6 +82,9 @@ export const COPY: Record<
     voiceErrorTranscribe: string;
     voiceTranscribing: string;
     voiceRecorderMode: string;
+    holdToRecord: string;
+    releaseToSend: string;
+    voiceRecording: string;
     voiceNoteLabel: string;
     speakMessage: string;
     stopSpeaking: string;
@@ -209,6 +212,9 @@ export const COPY: Record<
     voiceErrorTranscribe: "Gagal mentranskripsikan rekaman. Coba rekam ulang.",
     voiceTranscribing: "Mentranskripsikan rekaman...",
     voiceRecorderMode: "Mode rekaman — bicara lalu hentikan",
+    holdToRecord: "Tahan untuk merekam",
+    releaseToSend: "Lepas untuk kirim",
+    voiceRecording: "Merekam...",
     voiceNoteLabel: "Pesan suara",
     speakMessage: "Dengarkan pesan",
     stopSpeaking: "Hentikan suara",
@@ -335,6 +341,9 @@ export const COPY: Record<
     voiceErrorTranscribe: "Failed to transcribe recording. Try recording again.",
     voiceTranscribing: "Transcribing recording...",
     voiceRecorderMode: "Recording mode — speak then stop",
+    holdToRecord: "Hold to record",
+    releaseToSend: "Release to send",
+    voiceRecording: "Recording...",
     voiceNoteLabel: "Voice note",
     speakMessage: "Listen to message",
     stopSpeaking: "Stop speaking",
@@ -461,6 +470,9 @@ export const COPY: Record<
     voiceErrorTranscribe: "转录失败。请重新录音。",
     voiceTranscribing: "正在转录录音...",
     voiceRecorderMode: "录音模式 — 说话后停止",
+    holdToRecord: "按住录音",
+    releaseToSend: "松开发送",
+    voiceRecording: "录音中...",
     voiceNoteLabel: "语音消息",
     speakMessage: "播放消息",
     stopSpeaking: "停止播放",

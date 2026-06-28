@@ -110,8 +110,8 @@ export function ChatSidebar({
     return (
       <aside
         className={cn(
-          "flex h-full flex-col overflow-hidden bg-muted/20 transition-[width] duration-200 ease-in-out dark:bg-muted/10",
-          expanded ? "w-[260px]" : "w-14",
+          "flex h-full flex-col bg-muted/20 transition-[width] duration-200 ease-in-out dark:bg-muted/10",
+          expanded ? "w-[260px] overflow-hidden" : "w-14 overflow-x-visible overflow-y-hidden",
           className,
         )}
         aria-label={copy.sessionsLabel}
@@ -126,8 +126,8 @@ export function ChatSidebar({
     <>
       <aside
         className={cn(
-          "flex h-full flex-col overflow-hidden bg-muted/20 transition-[width] duration-200 ease-in-out dark:bg-muted/10",
-          expanded ? "w-[260px]" : "w-14",
+          "flex h-full flex-col bg-muted/20 transition-[width] duration-200 ease-in-out dark:bg-muted/10",
+          expanded ? "w-[260px] overflow-hidden" : "w-14 overflow-x-visible overflow-y-hidden",
           className,
         )}
         aria-label={copy.sessionsLabel}

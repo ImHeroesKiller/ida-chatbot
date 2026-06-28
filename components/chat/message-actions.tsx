@@ -92,7 +92,7 @@ export function MessageActions({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center gap-0.5 pt-1.5",
+        "flex flex-wrap items-center gap-1 pt-1",
         "opacity-100 transition-opacity duration-200 sm:opacity-0 sm:group-hover/message:opacity-100 sm:group-focus-within/message:opacity-100",
         className,
       )}
@@ -194,7 +194,7 @@ function ActionButton({
         onClick={onClick}
         aria-label={label}
         className={cn(
-          "h-7 w-7 rounded-lg text-muted-foreground",
+          "h-9 w-9 rounded-lg text-muted-foreground sm:h-7 sm:w-7",
           "hover:bg-muted hover:text-foreground active:scale-95",
           active && "bg-primary/10 text-foreground",
         )}

@@ -2,7 +2,6 @@
 
 import { Menu, MessageSquarePlus } from "lucide-react";
 
-import { IdaLogo } from "@/components/brand/ida-logo";
 import { Button } from "@/components/ui/button";
 import { IDA_CONFIG } from "@/lib/config";
 
@@ -24,37 +23,37 @@ export function ChatHeader({
   onNewChat,
 }: ChatHeaderProps) {
   return (
-    <header className="flex shrink-0 items-center gap-2.5 border-b px-3 py-3 sm:gap-3 sm:px-5">
+    <header className="flex shrink-0 items-center gap-2 border-b px-2.5 py-2.5 sm:gap-3 sm:px-5 sm:py-3">
       <Button
         type="button"
         variant="ghost"
-        size="icon-sm"
-        className="shrink-0 transition-transform hover:scale-105 active:scale-95 md:hidden"
+        size="icon"
+        className="h-10 w-10 shrink-0 md:hidden"
         aria-label={openSessionsLabel}
         onClick={onOpenMobileSidebar}
       >
         <Menu className="h-4 w-4" />
       </Button>
 
-      <IdaLogo size="header" priority />
-
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold tracking-tight">
           {title || IDA_CONFIG.name}
         </p>
-        <p className="truncate text-[11px] text-muted-foreground">{subtitle}</p>
+        <p className="hidden truncate text-[11px] text-muted-foreground sm:block">
+          {subtitle}
+        </p>
       </div>
 
       <Button
         type="button"
         variant="outline"
-        size="sm"
-        className="h-8 shrink-0 gap-1.5 px-2.5 text-xs sm:h-9 sm:px-3"
+        size="icon"
+        className="h-10 w-10 shrink-0 sm:h-9 sm:w-auto sm:gap-1.5 sm:px-3"
         onClick={onNewChat}
         aria-label={newChatLabel}
         title={newChatLabel}
       >
-        <MessageSquarePlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        <MessageSquarePlus className="h-4 w-4" />
         <span className="hidden sm:inline">{newChatLabel}</span>
       </Button>
     </header>

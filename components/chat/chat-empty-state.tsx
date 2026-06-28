@@ -1,9 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Lightbulb, Zap } from "lucide-react";
-
-import { IdaLogo } from "@/components/brand/ida-logo";
 
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
@@ -23,27 +20,12 @@ export function ChatEmptyState({ locale, className }: ChatEmptyStateProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-dashed",
-        "bg-gradient-to-br from-primary/5 via-muted/30 to-transparent",
-        "px-5 py-8 text-center sm:px-8 sm:py-10",
-        "dark:from-primary/10 dark:via-muted/15",
+        "rounded-2xl border border-dashed bg-muted/20 px-4 py-6 text-center sm:px-8 sm:py-10",
+        "dark:bg-muted/10",
         className,
       )}
     >
-      <div
-        className="pointer-events-none absolute -top-10 left-1/2 h-36 w-36 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl"
-        aria-hidden
-      />
-
-      <div className="relative mx-auto flex max-w-md flex-col items-center">
-        <motion.div
-          animate={{ scale: [1, 1.04, 1] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          className="mb-4"
-        >
-          <IdaLogo size="xl" />
-        </motion.div>
-
+      <div className="mx-auto flex max-w-md flex-col items-center">
         <p className="text-base font-semibold tracking-tight">
           {copy.emptyStateTitle}
         </p>
@@ -54,22 +36,20 @@ export function ChatEmptyState({ locale, className }: ChatEmptyStateProps) {
           {copy.emptyStateHint}
         </p>
 
-        <div className="mt-6 w-full rounded-xl border bg-background/80 p-4 text-left shadow-sm backdrop-blur-sm dark:bg-background/60">
-          <div className="mb-3 flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <Lightbulb className="h-4 w-4 text-amber-500 dark:text-amber-400" />
+        <div className="mt-5 w-full rounded-xl border bg-background/80 p-4 text-left dark:bg-background/60">
+          <p className="mb-3 text-xs font-medium text-muted-foreground">
             {copy.emptyStateTipsTitle}
-          </div>
-          <ul className="space-y-2.5">
+          </p>
+          <ul className="space-y-2">
             {copy.emptyStateTips.map((tip, index) => (
               <motion.li
                 key={tip}
                 initial={{ opacity: 0, x: -6 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 + index * 0.06 }}
-                className="flex items-start gap-2.5 text-sm leading-relaxed text-muted-foreground"
+                className="text-sm leading-relaxed text-muted-foreground"
               >
-                <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary/70" />
-                <span>{tip}</span>
+                {tip}
               </motion.li>
             ))}
           </ul>

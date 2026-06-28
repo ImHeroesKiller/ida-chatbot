@@ -11,7 +11,7 @@ import {
   Volume2,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useChatContext } from "@/components/chat/chat-provider";
 import { useThemeContext } from "@/components/theme-provider";
@@ -35,6 +35,31 @@ interface SidebarSettingsProps {
   onExpand?: () => void;
 }
 
+function CollapsedLanguageSelector({
+  appLocale,
+  onSelect,
+}: {
+  appLocale: Locale;
+  onSelect: (loc: Locale) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      {LOCALES.map((loc) => (
+        <Button
+          key={loc}
+          type="button"
+          variant={appLocale === loc ? "default" : "ghost"}
+          size="sm"
+          className="h-8 w-full justify-center px-2 text-xs"
+          onClick={() => onSelect(loc)}
+        >
+          {LOCALE_LABELS[loc]}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
 export function SidebarSettings({
   locale,
   expanded,
@@ -54,14 +79,22 @@ export function SidebarSettings({
     { value: "large" as const, label: copy.fontSizeLarge },
   ];
 
+  useEffect(() => {
+    if (expanded) return;
+    setSettingsOpen(false);
+  }, [expanded]);
+
   const handleToggleSettings = () => {
-    if (!expanded) onExpand?.();
+    if (!expanded) {
+      setSettingsOpen((open) => !open);
+      return;
+    }
     setSettingsOpen((open) => !open);
   };
 
   if (!expanded) {
     return (
-      <div className="shrink-0 space-y-1 border-t p-1.5">
+      <div className="relative shrink-0 border-t p-1.5">
         <Button
           type="button"
           variant="ghost"
@@ -75,50 +108,62 @@ export function SidebarSettings({
           <Settings className="h-4 w-4" />
         </Button>
 
-        {settingsOpen && (
-          <div className="space-y-1 rounded-lg border bg-background/90 p-1.5 shadow-sm">
-            <div className="flex gap-1">
-              {LOCALES.map((loc) => (
-                <Button
-                  key={loc}
-                  type="button"
-                  variant={appLocale === loc ? "default" : "ghost"}
-                  size="xs"
-                  className="flex-1 px-0 text-[10px]"
-                  onClick={() => setLocale(loc)}
-                >
-                  {LOCALE_LABELS[loc]}
-                </Button>
-              ))}
+        {settingsOpen ? (
+          <div
+            className={cn(
+              "absolute bottom-0 left-full z-[60] ml-1.5 w-36",
+              "rounded-xl border bg-popover p-2 shadow-lg",
+            )}
+          >
+            <p className="mb-1.5 px-0.5 text-[10px] font-medium text-muted-foreground">
+              {copy.appLanguage}
+            </p>
+            <CollapsedLanguageSelector
+              appLocale={appLocale}
+              onSelect={setLocale}
+            />
+
+            <div className="mt-2 space-y-1 border-t pt-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 w-full justify-start gap-2 px-2 text-xs"
+                onClick={toggleTheme}
+              >
+                {themeHydrated && theme === "dark" ? (
+                  <Sun className="h-3.5 w-3.5" />
+                ) : (
+                  <Moon className="h-3.5 w-3.5" />
+                )}
+                <span className="truncate">{copy.toggleTheme}</span>
+              </Button>
+              <Link
+                href="/account"
+                className={cn(
+                  "inline-flex h-8 w-full items-center justify-start gap-2 rounded-lg px-2 text-xs",
+                  "text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <User className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{copy.account}</span>
+              </Link>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 w-full justify-start gap-2 px-2 text-xs"
+                onClick={() => {
+                  onExpand?.();
+                  setSettingsOpen(false);
+                }}
+              >
+                <Settings className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{copy.settings}</span>
+              </Button>
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              className="h-8 w-full"
-              onClick={toggleTheme}
-              title={copy.toggleTheme}
-              aria-label={copy.toggleTheme}
-            >
-              {themeHydrated && theme === "dark" ? (
-                <Sun className="h-3.5 w-3.5" />
-              ) : (
-                <Moon className="h-3.5 w-3.5" />
-              )}
-            </Button>
-            <Link
-              href="/account"
-              title={copy.account}
-              aria-label={copy.account}
-              className={cn(
-                "inline-flex h-8 w-full items-center justify-center rounded-lg",
-                "text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-              )}
-            >
-              <User className="h-3.5 w-3.5" />
-            </Link>
           </div>
-        )}
+        ) : null}
       </div>
     );
   }
@@ -156,7 +201,7 @@ export function SidebarSettings({
                   type="button"
                   variant={fontSize === option.value ? "default" : "outline"}
                   size="sm"
-                  className="h-8 text-xs"
+                  className="h-9 text-xs sm:h-8"
                   onClick={() => setFontSize(option.value)}
                 >
                   {option.label}
@@ -177,7 +222,7 @@ export function SidebarSettings({
                   type="button"
                   variant={appLocale === loc ? "default" : "outline"}
                   size="sm"
-                  className="h-8 text-xs"
+                  className="h-9 text-xs sm:h-8"
                   onClick={() => setLocale(loc)}
                 >
                   {LOCALE_LABELS[loc]}
@@ -191,7 +236,7 @@ export function SidebarSettings({
               type="button"
               variant="ghost"
               size="sm"
-              className="h-8 w-full justify-start gap-2 text-xs"
+              className="h-9 w-full justify-start gap-2 text-xs sm:h-8"
               onClick={toggleTheme}
             >
               {themeHydrated && theme === "dark" ? (
@@ -205,7 +250,7 @@ export function SidebarSettings({
             <Link
               href="/account"
               className={cn(
-                "inline-flex h-8 w-full items-center justify-start gap-2 rounded-lg px-2 text-xs",
+                "inline-flex h-9 w-full items-center justify-start gap-2 rounded-lg px-2 text-xs sm:h-8",
                 "text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
               )}
             >
@@ -218,7 +263,7 @@ export function SidebarSettings({
               variant="ghost"
               size="sm"
               className={cn(
-                "h-8 w-full justify-start gap-2 text-xs text-destructive",
+                "h-9 w-full justify-start gap-2 text-xs text-destructive sm:h-8",
                 "hover:bg-destructive/10 hover:text-destructive",
               )}
               onClick={onClearAllChats}
@@ -283,7 +328,7 @@ export function SidebarSettings({
                 onChange={(event) =>
                   setPrefs({ voiceLanguage: event.target.value as Locale })
                 }
-                className="h-8 w-full rounded-md border bg-background px-2 text-xs"
+                className="h-9 w-full rounded-md border bg-background px-2 text-xs sm:h-8"
               >
                 {LOCALES.map((loc) => (
                   <option key={loc} value={loc}>

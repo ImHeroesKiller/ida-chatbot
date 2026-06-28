@@ -1,7 +1,5 @@
 "use client";
 
-import { Globe } from "lucide-react";
-
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import type { IdaWebSearchSource } from "@/lib/types";
@@ -41,8 +39,7 @@ export function WebSearchSources({
         className,
       )}
     >
-      <Globe className="size-3 shrink-0 opacity-50" aria-hidden />
-      <span className="shrink-0">{copy.webSearchSources}:</span>
+      <span className="shrink-0 font-medium">{copy.webSearchSources}:</span>
       {visible.map((source, index) => (
         <span key={source.url} className="inline-flex items-center">
           {index > 0 ? (
