@@ -204,6 +204,11 @@ export const COPY: Record<
     worksheetEditorLink: string;
     worksheetEditorCode: string;
     worksheetEditorTable: string;
+    worksheetEditorBlockquote: string;
+    worksheetEditorLinkPrompt: string;
+    worksheetEditVisual: string;
+    worksheetEditVisualHint: string;
+    worksheetEditVisualPlaceholder: string;
     worksheetBranding: string;
     worksheetBrandingTitle: string;
     worksheetBrandingDescription: string;
@@ -454,6 +459,11 @@ export const COPY: Record<
     worksheetEditorLink: "Tautan",
     worksheetEditorCode: "Kode inline",
     worksheetEditorTable: "Tabel",
+    worksheetEditorBlockquote: "Kutipan",
+    worksheetEditorLinkPrompt: "URL tautan",
+    worksheetEditVisual: "Visual",
+    worksheetEditVisualHint: "Edit teks terformat langsung (WYSIWYG). Disimpan sebagai Markdown.",
+    worksheetEditVisualPlaceholder: "Mulai mengetik dokumen Anda…",
     worksheetBranding: "Branding",
     worksheetBrandingTitle: "Branding dokumen",
     worksheetBrandingDescription:
@@ -709,6 +719,11 @@ export const COPY: Record<
     worksheetEditorLink: "Link",
     worksheetEditorCode: "Inline code",
     worksheetEditorTable: "Table",
+    worksheetEditorBlockquote: "Blockquote",
+    worksheetEditorLinkPrompt: "Link URL",
+    worksheetEditVisual: "Visual",
+    worksheetEditVisualHint: "Edit formatted text directly (WYSIWYG). Stored as Markdown.",
+    worksheetEditVisualPlaceholder: "Start typing your document…",
     worksheetBranding: "Branding",
     worksheetBrandingTitle: "Document branding",
     worksheetBrandingDescription:
@@ -955,6 +970,11 @@ export const COPY: Record<
     worksheetEditorLink: "链接",
     worksheetEditorCode: "行内代码",
     worksheetEditorTable: "表格",
+    worksheetEditorBlockquote: "引用",
+    worksheetEditorLinkPrompt: "链接 URL",
+    worksheetEditVisual: "可视化",
+    worksheetEditVisualHint: "直接编辑格式化文本（WYSIWYG），保存为 Markdown。",
+    worksheetEditVisualPlaceholder: "开始输入文档内容…",
     worksheetBranding: "品牌",
     worksheetBrandingTitle: "文档品牌设置",
     worksheetBrandingDescription:

@@ -96,7 +96,7 @@ export function WorksheetPanel({
   const { prefs: brandingPrefs } = useWorksheetBrandingPrefs();
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editLayout, setEditLayout] = useState<WorksheetEditLayout>("split");
+  const [editLayout, setEditLayout] = useState<WorksheetEditLayout>("visual");
   const [draftContent, setDraftContent] = useState(content);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
