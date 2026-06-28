@@ -30,7 +30,7 @@ export function WorksheetBrandingDialog({
   onClose,
 }: WorksheetBrandingDialogProps) {
   const copy = COPY[locale];
-  const { prefs, hydrated, updatePrefs, resetPrefs } =
+  const { prefs, adminDefaults, hydrated, updatePrefs, resetPrefs } =
     useWorksheetBrandingPrefs();
   const [draft, setDraft] = useState<WorksheetBrandingPrefs>(prefs);
 
@@ -187,7 +187,7 @@ export function WorksheetBrandingDialog({
                     className="flex-1"
                     onClick={() => {
                       resetPrefs();
-                      setDraft(DEFAULT_WORKSHEET_BRANDING);
+                      setDraft(adminDefaults);
                       toast.success(copy.worksheetBrandingReset);
                     }}
                   >

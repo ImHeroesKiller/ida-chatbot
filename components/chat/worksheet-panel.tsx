@@ -23,7 +23,10 @@ import toast from "react-hot-toast";
 
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { WorksheetBrandingDialog } from "@/components/chat/worksheet-branding-dialog";
-import { WorksheetEditorToolbar } from "@/components/chat/worksheet-editor-toolbar";
+import {
+  WorksheetSplitEditor,
+  type WorksheetEditLayout,
+} from "@/components/chat/worksheet-split-editor";
 import {
   WorksheetExportPdfDialog,
   type WorksheetPdfExportSettings,
@@ -34,7 +37,6 @@ import { WorksheetVersionHistoryDialog } from "@/components/chat/worksheet-versi
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
 import { type Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import { exportWorksheetToPdf } from "@/lib/pdf-export";
@@ -94,6 +96,7 @@ export function WorksheetPanel({
   const { prefs: brandingPrefs } = useWorksheetBrandingPrefs();
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [editLayout, setEditLayout] = useState<WorksheetEditLayout>("split");
   const [draftContent, setDraftContent] = useState(content);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -103,7 +106,6 @@ export function WorksheetPanel({
   const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
   const [brandingDialogOpen, setBrandingDialogOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
-  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const pendingTemplateEditRef = useRef(false);
 
   const hasContent = Boolean(content.trim());
@@ -129,11 +131,6 @@ export function WorksheetPanel({
     setDraftContent(content);
     setIsEditing(true);
   }, [content, isGenerating]);
-
-  useEffect(() => {
-    if (!isEditing) return;
-    editTextareaRef.current?.focus();
-  }, [isEditing]);
 
   const errorMessage = useMemo(() => {
     if (!error) return null;
@@ -451,21 +448,14 @@ export function WorksheetPanel({
               </p>
             </div>
           ) : isEditing ? (
-            <div className="space-y-2">
-              <WorksheetEditorToolbar
-                locale={locale}
-                textareaRef={editTextareaRef}
-                value={draftContent}
-                onChange={setDraftContent}
-              />
-              <Textarea
-                ref={editTextareaRef}
-                value={draftContent}
-                onChange={(event) => setDraftContent(event.target.value)}
-                className="min-h-[min(60vh,28rem)] font-mono text-sm leading-relaxed"
-                spellCheck={false}
-              />
-            </div>
+            <WorksheetSplitEditor
+              locale={locale}
+              value={draftContent}
+              onChange={setDraftContent}
+              layout={editLayout}
+              onLayoutChange={setEditLayout}
+              embedded={embedded}
+            />
           ) : hasContent ? (
             <div className="rounded-xl border bg-card p-3 shadow-sm">
               <MarkdownContent

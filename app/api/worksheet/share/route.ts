@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const record = createSharedWorksheet({
+    const record = await createSharedWorksheet({
       title: body.title ?? "",
       content: body.content ?? "",
       locale,

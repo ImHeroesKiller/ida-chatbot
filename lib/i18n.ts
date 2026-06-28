@@ -217,6 +217,11 @@ export const COPY: Record<
     worksheetShare: string;
     worksheetShareCopied: string;
     worksheetShareError: string;
+    worksheetEditMarkdown: string;
+    worksheetEditSplit: string;
+    worksheetEditMarkdownHint: string;
+    worksheetEditSplitHint: string;
+    worksheetEditPreviewEmpty: string;
     mapPlaceholderDesc: string;
     mapPlaceholderContent: string;
     researchPlaceholderDesc: string;
@@ -452,7 +457,7 @@ export const COPY: Record<
     worksheetBranding: "Branding",
     worksheetBrandingTitle: "Branding dokumen",
     worksheetBrandingDescription:
-      "Atur nama perusahaan, teks footer, dan logo untuk PDF serta pratinjau cetak. Disimpan di browser ini.",
+      "Atur nama perusahaan, teks footer, dan logo untuk PDF serta pratinjau cetak. Override pribadi di browser ini; default organisasi dari admin.",
     worksheetBrandingBrandName: "Nama brand",
     worksheetBrandingFooterText: "Teks footer",
     worksheetBrandingLogo: "Logo",
@@ -463,6 +468,11 @@ export const COPY: Record<
     worksheetShare: "Bagikan",
     worksheetShareCopied: "Tautan dibagikan dan disalin",
     worksheetShareError: "Gagal membuat tautan. Coba lagi.",
+    worksheetEditMarkdown: "Markdown",
+    worksheetEditSplit: "Split",
+    worksheetEditMarkdownHint: "Mode sumber Markdown penuh.",
+    worksheetEditSplitHint: "Edit Markdown dengan pratinjau langsung.",
+    worksheetEditPreviewEmpty: "Pratinjau akan muncul saat Anda mengetik.",
     mapPlaceholderDesc:
       "Peta interaktif akan ditampilkan di sini untuk pertanyaan berbasis lokasi.",
     mapPlaceholderContent:
@@ -702,7 +712,7 @@ export const COPY: Record<
     worksheetBranding: "Branding",
     worksheetBrandingTitle: "Document branding",
     worksheetBrandingDescription:
-      "Set company name, footer text, and logo for PDF export and print preview. Saved in this browser.",
+      "Set company name, footer text, and logo for PDF export and print preview. Personal override in this browser; org defaults from admin.",
     worksheetBrandingBrandName: "Brand name",
     worksheetBrandingFooterText: "Footer text",
     worksheetBrandingLogo: "Logo",
@@ -713,6 +723,11 @@ export const COPY: Record<
     worksheetShare: "Share",
     worksheetShareCopied: "Share link created and copied",
     worksheetShareError: "Failed to create share link. Please try again.",
+    worksheetEditMarkdown: "Markdown",
+    worksheetEditSplit: "Split",
+    worksheetEditMarkdownHint: "Full Markdown source mode.",
+    worksheetEditSplitHint: "Edit Markdown with a live preview.",
+    worksheetEditPreviewEmpty: "Preview appears as you type.",
     mapPlaceholderDesc:
       "An interactive map will appear here for location-based questions.",
     mapPlaceholderContent:
@@ -943,7 +958,7 @@ export const COPY: Record<
     worksheetBranding: "品牌",
     worksheetBrandingTitle: "文档品牌设置",
     worksheetBrandingDescription:
-      "设置公司名称、页脚文字和 Logo，用于 PDF 导出和打印预览。保存在本浏览器。",
+      "设置公司名称、页脚文字和 Logo，用于 PDF 导出和打印预览。本浏览器个人覆盖；组织默认来自管理后台。",
     worksheetBrandingBrandName: "品牌名称",
     worksheetBrandingFooterText: "页脚文字",
     worksheetBrandingLogo: "Logo",
@@ -954,6 +969,11 @@ export const COPY: Record<
     worksheetShare: "分享",
     worksheetShareCopied: "分享链接已创建并复制",
     worksheetShareError: "创建分享链接失败，请重试。",
+    worksheetEditMarkdown: "Markdown",
+    worksheetEditSplit: "分屏",
+    worksheetEditMarkdownHint: "完整 Markdown 源码模式。",
+    worksheetEditSplitHint: "编辑 Markdown 并实时预览。",
+    worksheetEditPreviewEmpty: "输入内容后将显示预览。",
     mapPlaceholderDesc: "交互式地图将在此显示，用于位置相关问题。",
     mapPlaceholderContent: "[ 地图 ]\n\n地图预览将显示在此面板。",
     researchPlaceholderDesc: "深度研究结果将显示在此面板。",

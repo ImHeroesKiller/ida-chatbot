@@ -19,7 +19,8 @@
     "test:worksheet-versions": "node scripts/test-worksheet-versions.mjs",
     "test:worksheet-templates": "node scripts/test-worksheet-templates.mjs",
     "test:worksheet-editor": "node scripts/test-worksheet-editor.mjs",
-    "test:worksheet-share": "node scripts/test-worksheet-share.mjs"
+    "test:worksheet-share": "node scripts/test-worksheet-share.mjs",
+    "test:worksheet-branding": "node scripts/test-worksheet-branding.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

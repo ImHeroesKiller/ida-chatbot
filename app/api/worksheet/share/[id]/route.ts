@@ -8,7 +8,7 @@ interface RouteContext {
 
 export async function GET(_request: Request, context: RouteContext) {
   const { id } = await context.params;
-  const record = getSharedWorksheet(id);
+  const record = await getSharedWorksheet(id);
 
   if (!record) {
     return NextResponse.json({ error: "Share not found or expired." }, { status: 404 });

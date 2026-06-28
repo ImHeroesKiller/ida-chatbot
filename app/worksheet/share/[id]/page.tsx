@@ -13,7 +13,7 @@ export async function generateMetadata({
   params,
 }: SharePageProps): Promise<Metadata> {
   const { id } = await params;
-  const record = getSharedWorksheet(id);
+  const record = await getSharedWorksheet(id);
 
   if (!record) {
     return {
@@ -31,7 +31,7 @@ export async function generateMetadata({
 
 export default async function SharedWorksheetPage({ params }: SharePageProps) {
   const { id } = await params;
-  const record = getSharedWorksheet(id);
+  const record = await getSharedWorksheet(id);
 
   if (!record) {
     notFound();

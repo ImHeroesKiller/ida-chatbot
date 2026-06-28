@@ -2,76 +2,143 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { IDA_CONFIG } from "@/lib/config";
+import {
+  DEFAULT_WORKSHEET_BRANDING_CONFIG,
+  mergeWorksheetBrandingPrefs,
+  type WorksheetBrandingConfig,
+} from "@/lib/worksheet-branding-config";
 
-export interface WorksheetBrandingPrefs {
-  brandName: string;
-  footerText: string;
-  logoDataUrl: string | null;
-}
+export type WorksheetBrandingPrefs = WorksheetBrandingConfig;
 
 const STORAGE_KEY = "ida-worksheet-branding";
+const OVERRIDE_FLAG_KEY = "ida-worksheet-branding-override";
 const MAX_LOGO_BYTES = 180_000;
 
-export const DEFAULT_WORKSHEET_BRANDING: WorksheetBrandingPrefs = {
-  brandName: IDA_CONFIG.name,
-  footerText: "Worksheet",
-  logoDataUrl: null,
-};
+export const DEFAULT_WORKSHEET_BRANDING: WorksheetBrandingPrefs =
+  DEFAULT_WORKSHEET_BRANDING_CONFIG;
 
-function parseStoredBranding(raw: string | null): WorksheetBrandingPrefs {
-  if (!raw) return DEFAULT_WORKSHEET_BRANDING;
+function parseStoredBranding(raw: string | null): Partial<WorksheetBrandingPrefs> | null {
+  if (!raw) return null;
 
   try {
     const parsed = JSON.parse(raw) as Partial<WorksheetBrandingPrefs>;
     return {
-      brandName: parsed.brandName?.trim() || DEFAULT_WORKSHEET_BRANDING.brandName,
-      footerText: parsed.footerText?.trim() || DEFAULT_WORKSHEET_BRANDING.footerText,
+      brandName: parsed.brandName?.trim() || undefined,
+      footerText: parsed.footerText?.trim() || undefined,
       logoDataUrl:
-        typeof parsed.logoDataUrl === "string" && parsed.logoDataUrl.startsWith("data:image/")
+        typeof parsed.logoDataUrl === "string" &&
+        parsed.logoDataUrl.startsWith("data:image/")
           ? parsed.logoDataUrl
-          : null,
+          : parsed.logoDataUrl === null
+            ? null
+            : undefined,
     };
   } catch {
-    return DEFAULT_WORKSHEET_BRANDING;
+    return null;
   }
 }
 
-export function loadWorksheetBrandingPrefs(): WorksheetBrandingPrefs {
-  if (typeof window === "undefined") return DEFAULT_WORKSHEET_BRANDING;
-  return parseStoredBranding(window.localStorage.getItem(STORAGE_KEY));
+function hasUserOverrideFlag(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.localStorage.getItem(OVERRIDE_FLAG_KEY) === "1";
+}
+
+function setUserOverrideFlag(enabled: boolean): void {
+  if (typeof window === "undefined") return;
+  if (enabled) {
+    window.localStorage.setItem(OVERRIDE_FLAG_KEY, "1");
+    return;
+  }
+  window.localStorage.removeItem(OVERRIDE_FLAG_KEY);
+}
+
+export function loadWorksheetBrandingPrefs(
+  adminDefaults: WorksheetBrandingPrefs = DEFAULT_WORKSHEET_BRANDING,
+): WorksheetBrandingPrefs {
+  if (typeof window === "undefined") return adminDefaults;
+
+  const stored = parseStoredBranding(window.localStorage.getItem(STORAGE_KEY));
+  return mergeWorksheetBrandingPrefs(
+    adminDefaults,
+    stored,
+    hasUserOverrideFlag(),
+  );
 }
 
 export function saveWorksheetBrandingPrefs(prefs: WorksheetBrandingPrefs): void {
   if (typeof window === "undefined") return;
+  setUserOverrideFlag(true);
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+}
+
+async function fetchAdminBrandingDefaults(): Promise<WorksheetBrandingPrefs> {
+  try {
+    const response = await fetch("/api/worksheet/branding", {
+      cache: "no-store",
+    });
+
+    if (!response.ok) return DEFAULT_WORKSHEET_BRANDING;
+
+    const data = (await response.json()) as {
+      config?: Partial<WorksheetBrandingPrefs>;
+    };
+
+    return mergeWorksheetBrandingPrefs(
+      DEFAULT_WORKSHEET_BRANDING,
+      data.config ?? null,
+      false,
+    );
+  } catch {
+    return DEFAULT_WORKSHEET_BRANDING;
+  }
 }
 
 export function useWorksheetBrandingPrefs() {
   const [prefs, setPrefs] = useState<WorksheetBrandingPrefs>(
     DEFAULT_WORKSHEET_BRANDING,
   );
+  const [adminDefaults, setAdminDefaults] = useState<WorksheetBrandingPrefs>(
+    DEFAULT_WORKSHEET_BRANDING,
+  );
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setPrefs(loadWorksheetBrandingPrefs());
-    setHydrated(true);
+    let cancelled = false;
+
+    void (async () => {
+      const defaults = await fetchAdminBrandingDefaults();
+      if (cancelled) return;
+
+      setAdminDefaults(defaults);
+      setPrefs(loadWorksheetBrandingPrefs(defaults));
+      setHydrated(true);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const updatePrefs = useCallback((patch: Partial<WorksheetBrandingPrefs>) => {
-    setPrefs((current) => {
-      const next = { ...current, ...patch };
-      saveWorksheetBrandingPrefs(next);
-      return next;
-    });
-  }, []);
+  const updatePrefs = useCallback(
+    (patch: Partial<WorksheetBrandingPrefs>) => {
+      setPrefs((current) => {
+        const next = { ...current, ...patch };
+        saveWorksheetBrandingPrefs(next);
+        return next;
+      });
+    },
+    [],
+  );
 
   const resetPrefs = useCallback(() => {
-    saveWorksheetBrandingPrefs(DEFAULT_WORKSHEET_BRANDING);
-    setPrefs(DEFAULT_WORKSHEET_BRANDING);
-  }, []);
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(STORAGE_KEY);
+      setUserOverrideFlag(false);
+    }
+    setPrefs(adminDefaults);
+  }, [adminDefaults]);
 
-  return { prefs, hydrated, updatePrefs, resetPrefs };
+  return { prefs, adminDefaults, hydrated, updatePrefs, resetPrefs };
 }
 
 export async function readLogoFileAsDataUrl(file: File): Promise<string> {
