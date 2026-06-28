@@ -18,6 +18,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import type { ModelDefinition } from "@/lib/admin/models";
 import { WorksheetBrandingTab } from "@/components/admin/worksheet-branding-tab";
+import { WorksheetLetterheadTemplatesTab } from "@/components/admin/worksheet-letterhead-templates";
 import type { IdaAppConfig, ModelSelection, TtsEngine } from "@/lib/admin/types";
 
 interface ConfigResponse {
@@ -436,6 +437,7 @@ export function SettingsTab() {
       </Card>
 
       <WorksheetBrandingTab />
+      <WorksheetLetterheadTemplatesTab />
 
       <Button onClick={() => void handleSave()} disabled={saving}>
         <Save className="size-4" />

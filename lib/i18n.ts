@@ -255,6 +255,19 @@ export const COPY: Record<
     worksheetBrandingFontSerif: string;
     worksheetBrandingPreview: string;
     worksheetBrandingPreviewDocTitle: string;
+    worksheetBrandingTemplateReadOnly: string;
+    worksheetBrandingSelectionSaved: string;
+    worksheetLetterheadSourceTitle: string;
+    worksheetLetterheadSourceDescription: string;
+    worksheetLetterheadSourcePersonal: string;
+    worksheetLetterheadSourcePersonalHint: string;
+    worksheetLetterheadSourceTemplate: string;
+    worksheetLetterheadSourceTemplateHint: string;
+    worksheetLetterheadNoTemplates: string;
+    worksheetLetterheadTemplateLabel: string;
+    worksheetLetterheadDefaultBadge: string;
+    worksheetLetterheadActiveTemplate: string;
+    worksheetLetterheadActivePersonal: string;
     worksheetShare: string;
     worksheetShareCopied: string;
     worksheetShareError: string;
@@ -563,6 +576,21 @@ export const COPY: Record<
     worksheetBrandingFontSerif: "Serif",
     worksheetBrandingPreview: "Pratinjau",
     worksheetBrandingPreviewDocTitle: "Judul Dokumen",
+    worksheetBrandingTemplateReadOnly:
+      "Branding diatur oleh template perusahaan. Ubah template di Admin atau pilih Personal Branding.",
+    worksheetBrandingSelectionSaved: "Pilihan letterhead disimpan",
+    worksheetLetterheadSourceTitle: "Sumber letterhead",
+    worksheetLetterheadSourceDescription:
+      "Pilih branding pribadi atau template perusahaan untuk dokumen ini.",
+    worksheetLetterheadSourcePersonal: "Personal Branding",
+    worksheetLetterheadSourcePersonalHint: "Pengaturan branding Anda sendiri",
+    worksheetLetterheadSourceTemplate: "Template Perusahaan",
+    worksheetLetterheadSourceTemplateHint: "Gunakan template yang dibuat admin",
+    worksheetLetterheadNoTemplates: "Belum ada template perusahaan",
+    worksheetLetterheadTemplateLabel: "Pilih template",
+    worksheetLetterheadDefaultBadge: "Default",
+    worksheetLetterheadActiveTemplate: "Template aktif: {name}",
+    worksheetLetterheadActivePersonal: "Menggunakan personal branding",
     worksheetShare: "Bagikan",
     worksheetShareCopied: "Tautan dibagikan dan disalin",
     worksheetShareError: "Gagal membuat tautan. Coba lagi.",
@@ -877,6 +905,21 @@ export const COPY: Record<
     worksheetBrandingFontSerif: "Serif",
     worksheetBrandingPreview: "Preview",
     worksheetBrandingPreviewDocTitle: "Document Title",
+    worksheetBrandingTemplateReadOnly:
+      "Branding is managed by the company template. Change it in Admin or switch to Personal Branding.",
+    worksheetBrandingSelectionSaved: "Letterhead selection saved",
+    worksheetLetterheadSourceTitle: "Letterhead source",
+    worksheetLetterheadSourceDescription:
+      "Choose personal branding or a company template for this document.",
+    worksheetLetterheadSourcePersonal: "Personal branding",
+    worksheetLetterheadSourcePersonalHint: "Your own branding settings",
+    worksheetLetterheadSourceTemplate: "Company template",
+    worksheetLetterheadSourceTemplateHint: "Use an admin-managed template",
+    worksheetLetterheadNoTemplates: "No company templates available yet",
+    worksheetLetterheadTemplateLabel: "Select template",
+    worksheetLetterheadDefaultBadge: "Default",
+    worksheetLetterheadActiveTemplate: "Active template: {name}",
+    worksheetLetterheadActivePersonal: "Using personal branding",
     worksheetShare: "Share",
     worksheetShareCopied: "Share link created and copied",
     worksheetShareError: "Failed to create share link. Please try again.",
@@ -1181,6 +1224,20 @@ export const COPY: Record<
     worksheetBrandingFontSerif: "衬线",
     worksheetBrandingPreview: "预览",
     worksheetBrandingPreviewDocTitle: "文档标题",
+    worksheetBrandingTemplateReadOnly:
+      "品牌样式由公司模板管理。请在管理后台修改，或切换为个人品牌设置。",
+    worksheetBrandingSelectionSaved: "信笺模板选择已保存",
+    worksheetLetterheadSourceTitle: "信笺来源",
+    worksheetLetterheadSourceDescription: "为此文档选择个人品牌或公司模板。",
+    worksheetLetterheadSourcePersonal: "个人品牌",
+    worksheetLetterheadSourcePersonalHint: "您自己的品牌设置",
+    worksheetLetterheadSourceTemplate: "公司模板",
+    worksheetLetterheadSourceTemplateHint: "使用管理员创建的公司模板",
+    worksheetLetterheadNoTemplates: "暂无公司模板",
+    worksheetLetterheadTemplateLabel: "选择模板",
+    worksheetLetterheadDefaultBadge: "默认",
+    worksheetLetterheadActiveTemplate: "当前模板：{name}",
+    worksheetLetterheadActivePersonal: "使用个人品牌设置",
     worksheetShare: "分享",
     worksheetShareCopied: "分享链接已创建并复制",
     worksheetShareError: "创建分享链接失败，请重试。",

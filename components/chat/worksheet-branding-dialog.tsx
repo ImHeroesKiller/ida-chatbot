@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Eye, ImageIcon, Palette, Trash2 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 
@@ -23,10 +23,17 @@ import {
   type WorksheetBrandingConfig,
   type WorksheetBrandingFontFamily,
 } from "@/lib/worksheet-branding-config";
+import { WorksheetLetterheadTemplatePicker } from "@/components/chat/worksheet-template-picker";
 import {
   readLogoFileAsDataUrl,
   useWorksheetBrandingPrefs,
 } from "@/lib/worksheet-branding-prefs";
+import {
+  findDefaultLetterheadTemplate,
+  findLetterheadTemplateById,
+  type WorksheetLetterheadSelection,
+  type WorksheetLetterheadTemplate,
+} from "@/lib/worksheet-letterhead-template";
 import { WORKSHEET_MODAL_OVERLAY_CLASS } from "@/lib/worksheet-overlay";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +42,12 @@ type BrandingTab = "header" | "footer" | "styling" | "preview";
 interface WorksheetBrandingDialogProps {
   open: boolean;
   locale: Locale;
+  selection: WorksheetLetterheadSelection;
+  templates: WorksheetLetterheadTemplate[];
+  templatesHydrated: boolean;
+  activeTemplateName?: string | null;
+  previewBranding: WorksheetBrandingConfig;
+  onSelectionChange: (selection: WorksheetLetterheadSelection) => void;
   onClose: () => void;
 }
 
@@ -84,24 +97,55 @@ function BrandingField({
 export function WorksheetBrandingDialog({
   open,
   locale,
+  selection,
+  templates,
+  templatesHydrated,
+  activeTemplateName,
+  previewBranding,
+  onSelectionChange,
   onClose,
 }: WorksheetBrandingDialogProps) {
   const copy = COPY[locale];
   const { prefs, adminDefaults, hydrated, updatePrefs, resetPrefs } =
     useWorksheetBrandingPrefs();
   const [draft, setDraft] = useState<WorksheetBrandingConfig>(prefs);
+  const [draftSelection, setDraftSelection] =
+    useState<WorksheetLetterheadSelection>(selection);
   const [tab, setTab] = useState<BrandingTab>("header");
+  const isTemplateMode = draftSelection.brandingSource === "template";
+  const draftTemplate = useMemo(() => {
+    if (!isTemplateMode) return null;
+    return (
+      findLetterheadTemplateById(templates, draftSelection.letterheadTemplateId) ??
+      findDefaultLetterheadTemplate(templates)
+    );
+  }, [draftSelection.letterheadTemplateId, isTemplateMode, templates]);
+  const previewConfig = isTemplateMode
+    ? (draftTemplate?.brandingConfig ?? previewBranding)
+    : draft;
 
   useEffect(() => {
     if (open && hydrated) {
       setDraft(prefs);
-      setTab("header");
+      setDraftSelection(selection);
+      setTab(selection.brandingSource === "template" ? "preview" : "header");
     }
-  }, [hydrated, open, prefs]);
+  }, [hydrated, open, prefs, selection]);
+
+  useEffect(() => {
+    if (isTemplateMode && tab !== "preview") {
+      setTab("preview");
+    }
+  }, [isTemplateMode, tab]);
 
   const handleSave = () => {
-    updatePrefs(parseWorksheetBrandingConfig(draft));
-    toast.success(copy.worksheetBrandingSaved);
+    if (!isTemplateMode) {
+      updatePrefs(parseWorksheetBrandingConfig(draft));
+      toast.success(copy.worksheetBrandingSaved);
+    } else {
+      toast.success(copy.worksheetBrandingSelectionSaved);
+    }
+    onSelectionChange(draftSelection);
     onClose();
   };
 
@@ -172,30 +216,34 @@ export function WorksheetBrandingDialog({
                   {copy.worksheetBrandingDescription}
                 </p>
                 <div className="flex flex-wrap gap-1 rounded-lg border bg-muted/20 p-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className={tabButtonClass("header")}
-                    onClick={() => setTab("header")}
-                  >
-                    {copy.worksheetBrandingTabHeader}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className={tabButtonClass("footer")}
-                    onClick={() => setTab("footer")}
-                  >
-                    {copy.worksheetBrandingTabFooter}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className={tabButtonClass("styling")}
-                    onClick={() => setTab("styling")}
-                  >
-                    {copy.worksheetBrandingTabStyling}
-                  </Button>
+                  {!isTemplateMode ? (
+                    <>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className={tabButtonClass("header")}
+                        onClick={() => setTab("header")}
+                      >
+                        {copy.worksheetBrandingTabHeader}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className={tabButtonClass("footer")}
+                        onClick={() => setTab("footer")}
+                      >
+                        {copy.worksheetBrandingTabFooter}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className={tabButtonClass("styling")}
+                        onClick={() => setTab("styling")}
+                      >
+                        {copy.worksheetBrandingTabStyling}
+                      </Button>
+                    </>
+                  ) : null}
                   <Button
                     type="button"
                     variant="ghost"
@@ -211,7 +259,24 @@ export function WorksheetBrandingDialog({
               <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
                 <div className="h-0 min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
                   <div className="space-y-5 px-6 py-5">
-                    {tab === "header" ? (
+                    <WorksheetLetterheadTemplatePicker
+                      locale={locale}
+                      templates={templates}
+                      selection={draftSelection}
+                      activeTemplateName={
+                        draftTemplate?.name ?? activeTemplateName
+                      }
+                      loading={!templatesHydrated}
+                      onSelectionChange={setDraftSelection}
+                    />
+
+                    {isTemplateMode ? (
+                      <p className="rounded-lg border border-dashed bg-muted/20 px-3 py-2.5 text-[11px] leading-relaxed text-muted-foreground">
+                        {copy.worksheetBrandingTemplateReadOnly}
+                      </p>
+                    ) : null}
+
+                    {!isTemplateMode && tab === "header" ? (
                       <>
                         <BrandingFormSection title={copy.worksheetBrandingLetterheadSection}>
                           <BrandingField
@@ -412,7 +477,7 @@ export function WorksheetBrandingDialog({
                       </>
                     ) : null}
 
-                    {tab === "footer" ? (
+                    {!isTemplateMode && tab === "footer" ? (
                       <BrandingFormSection title={copy.worksheetBrandingFooterSection}>
                         <BrandingField
                           id="worksheet-footer-text"
@@ -456,7 +521,7 @@ export function WorksheetBrandingDialog({
                       </BrandingFormSection>
                     ) : null}
 
-                    {tab === "styling" ? (
+                    {!isTemplateMode && tab === "styling" ? (
                       <BrandingFormSection title={copy.worksheetBrandingTabStyling}>
                         <BrandingField
                           id="worksheet-primary-color"
@@ -550,7 +615,7 @@ export function WorksheetBrandingDialog({
                             {copy.worksheetBrandingPreview}
                           </p>
                           <WorksheetLetterheadHeader
-                            branding={draft}
+                            branding={previewConfig}
                             documentTitle={copy.worksheetBrandingPreviewDocTitle}
                             compact
                           />
@@ -559,7 +624,7 @@ export function WorksheetBrandingDialog({
                             className="my-4 h-9 rounded-md border border-dashed border-[#ddd] bg-[#f7f7f7]"
                           />
                           <WorksheetLetterheadFooter
-                            branding={draft}
+                            branding={previewConfig}
                             locale={locale}
                             pageLabel="1 / 3"
                           />
@@ -570,18 +635,20 @@ export function WorksheetBrandingDialog({
                 </div>
 
                 <div className="flex shrink-0 gap-2 border-t bg-muted/10 px-6 py-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => {
-                      resetPrefs();
-                      setDraft(adminDefaults);
-                      toast.success(copy.worksheetBrandingReset);
-                    }}
-                  >
-                    {copy.worksheetBrandingReset}
-                  </Button>
+                  {!isTemplateMode ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        resetPrefs();
+                        setDraft(adminDefaults);
+                        toast.success(copy.worksheetBrandingReset);
+                      }}
+                    >
+                      {copy.worksheetBrandingReset}
+                    </Button>
+                  ) : null}
                   <Button
                     type="button"
                     variant="outline"

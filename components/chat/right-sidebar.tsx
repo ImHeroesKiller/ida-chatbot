@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
+import type { WorksheetLetterheadSelection } from "@/lib/worksheet-letterhead-template";
 import type { WorksheetErrorCode, WorksheetVersion } from "@/lib/worksheet";
 import type { WorksheetTemplate } from "@/lib/worksheet-templates";
 import { COPY } from "@/lib/i18n";
@@ -30,6 +31,10 @@ interface RightSidebarProps {
   onWorksheetRetry?: () => void;
   onWorksheetRegenerate?: () => void;
   onWorksheetClear?: () => void;
+  worksheetLetterheadSelection?: WorksheetLetterheadSelection;
+  onWorksheetLetterheadSelectionChange?: (
+    selection: WorksheetLetterheadSelection,
+  ) => void;
   onClose: () => void;
   className?: string;
   embedded?: boolean;
@@ -59,6 +64,8 @@ export function RightSidebar({
   onWorksheetRetry,
   onWorksheetRegenerate,
   onWorksheetClear,
+  worksheetLetterheadSelection,
+  onWorksheetLetterheadSelectionChange,
   onClose,
   className,
   embedded = false,
@@ -84,6 +91,8 @@ export function RightSidebar({
         onRetry={onWorksheetRetry}
         onRegenerate={onWorksheetRegenerate}
         onClear={onWorksheetClear}
+        letterheadSelection={worksheetLetterheadSelection}
+        onLetterheadSelectionChange={onWorksheetLetterheadSelectionChange}
         onClose={onClose}
         className={className}
         embedded={embedded}

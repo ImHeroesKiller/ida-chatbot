@@ -1,4 +1,8 @@
 import type { Locale } from "@/lib/config";
+import type {
+  WorksheetBrandingSource,
+  WorksheetLetterheadSelection,
+} from "@/lib/worksheet-letterhead-template";
 
 export const WORKSHEET_START_MARKER = "<<<IDA_WORKSHEET>>>";
 export const WORKSHEET_END_MARKER = "<<<END_IDA_WORKSHEET>>>";
@@ -34,7 +38,11 @@ export interface WorksheetDocument {
   updatedAt: number;
   error?: WorksheetErrorCode;
   versions?: WorksheetVersion[];
+  brandingSource?: WorksheetBrandingSource;
+  letterheadTemplateId?: string | null;
 }
+
+export type { WorksheetBrandingSource, WorksheetLetterheadSelection };
 
 export const MAX_WORKSHEET_VERSIONS = 20;
 

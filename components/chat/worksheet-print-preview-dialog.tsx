@@ -17,7 +17,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import { formatPdfPageLabel } from "@/lib/pdf-export";
-import { useWorksheetBrandingPrefs } from "@/lib/worksheet-branding-prefs";
+import type { WorksheetBrandingConfig } from "@/lib/worksheet-branding-config";
 import { openWorksheetPrintPreview } from "@/lib/worksheet-print";
 import { WORKSHEET_MODAL_OVERLAY_CLASS } from "@/lib/worksheet-overlay";
 import { WORKSHEET_PRINT_PAPER_CLASS } from "@/lib/worksheet-print-typography";
@@ -28,6 +28,7 @@ interface WorksheetPrintPreviewDialogProps {
   locale: Locale;
   title: string;
   content: string;
+  branding: WorksheetBrandingConfig;
   onClose: () => void;
 }
 
@@ -36,10 +37,10 @@ export function WorksheetPrintPreviewDialog({
   locale,
   title,
   content,
+  branding,
   onClose,
 }: WorksheetPrintPreviewDialogProps) {
   const copy = COPY[locale];
-  const { prefs } = useWorksheetBrandingPrefs();
   const samplePageLabel = formatPdfPageLabel(1, 3, locale);
 
   const handlePrint = () => {
@@ -47,7 +48,7 @@ export function WorksheetPrintPreviewDialog({
       openWorksheetPrintPreview({
         title,
         content,
-        branding: prefs,
+        branding,
         locale,
       });
     } catch {
@@ -97,7 +98,7 @@ export function WorksheetPrintPreviewDialog({
                     )}
                   >
                     <WorksheetLetterheadHeader
-                      branding={prefs}
+                      branding={branding}
                       documentTitle={title}
                       compact
                       className="mb-6"
@@ -110,7 +111,7 @@ export function WorksheetPrintPreviewDialog({
                     />
 
                     <WorksheetLetterheadFooter
-                      branding={prefs}
+                      branding={branding}
                       locale={locale}
                       pageLabel={samplePageLabel}
                       className="mt-8"

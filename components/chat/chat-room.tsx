@@ -80,6 +80,11 @@ import {
   type WorksheetVersion,
 } from "@/lib/worksheet";
 import {
+  DEFAULT_WORKSHEET_LETTERHEAD_SELECTION,
+  parseWorksheetLetterheadSelection,
+  type WorksheetLetterheadSelection,
+} from "@/lib/worksheet-letterhead-template";
+import {
   resolveWorksheetTemplate,
   type WorksheetTemplate,
 } from "@/lib/worksheet-templates";
@@ -156,6 +161,8 @@ function ChatRoomContent() {
   const [worksheetErrorDetail, setWorksheetErrorDetail] = useState<
     string | null
   >(null);
+  const [worksheetLetterheadSelection, setWorksheetLetterheadSelection] =
+    useState<WorksheetLetterheadSelection>(DEFAULT_WORKSHEET_LETTERHEAD_SELECTION);
   const pendingSendRef = useRef<{
     rawText: string;
     options?: {
@@ -245,6 +252,12 @@ function ChatRoomContent() {
     setWorksheetContent(currentChat.worksheet?.content ?? "");
     setWorksheetError(currentChat.worksheet?.error ?? null);
     setWorksheetVersions(currentChat.worksheet?.versions ?? []);
+    setWorksheetLetterheadSelection(
+      parseWorksheetLetterheadSelection({
+        brandingSource: currentChat.worksheet?.brandingSource,
+        letterheadTemplateId: currentChat.worksheet?.letterheadTemplateId,
+      }),
+    );
 
     const lastUserMessage = [...currentChat.messages]
       .reverse()
@@ -273,6 +286,9 @@ function ChatRoomContent() {
             ...(worksheetVersions.length > 0
               ? { versions: worksheetVersions }
               : {}),
+            brandingSource: worksheetLetterheadSelection.brandingSource,
+            letterheadTemplateId:
+              worksheetLetterheadSelection.letterheadTemplateId,
           }
         : null;
 
@@ -284,6 +300,7 @@ function ChatRoomContent() {
     worksheetContent,
     worksheetError,
     worksheetVersions,
+    worksheetLetterheadSelection,
     hydrated,
     isLoading,
     locale,
@@ -865,6 +882,13 @@ function ChatRoomContent() {
     setWorksheetContent(content);
   }, []);
 
+  const handleWorksheetLetterheadSelectionChange = useCallback(
+    (selection: WorksheetLetterheadSelection) => {
+      setWorksheetLetterheadSelection(selection);
+    },
+    [],
+  );
+
   const handleWorksheetApplyTemplate = useCallback(
     (template: WorksheetTemplate) => {
       const { title, content } = resolveWorksheetTemplate(template, locale);
@@ -1101,6 +1125,10 @@ function ChatRoomContent() {
               onWorksheetRetry={handleWorksheetRetry}
               onWorksheetRegenerate={handleWorksheetRegenerate}
               onWorksheetClear={handleWorksheetClear}
+              worksheetLetterheadSelection={worksheetLetterheadSelection}
+              onWorksheetLetterheadSelectionChange={
+                handleWorksheetLetterheadSelectionChange
+              }
               onClose={handleCloseToolPanel}
               className="relative z-10 hidden shrink-0 md:flex"
             />
@@ -1140,6 +1168,10 @@ function ChatRoomContent() {
               onWorksheetRetry={handleWorksheetRetry}
               onWorksheetRegenerate={handleWorksheetRegenerate}
               onWorksheetClear={handleWorksheetClear}
+              worksheetLetterheadSelection={worksheetLetterheadSelection}
+              onWorksheetLetterheadSelectionChange={
+                handleWorksheetLetterheadSelectionChange
+              }
               onClose={handleCloseToolPanel}
               embedded
             />

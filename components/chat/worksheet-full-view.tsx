@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
-import { useWorksheetBrandingPrefs } from "@/lib/worksheet-branding-prefs";
+import type { WorksheetBrandingConfig } from "@/lib/worksheet-branding-config";
 import { formatPrintExportDate } from "@/lib/worksheet-print";
 import { WORKSHEET_PRINT_PAPER_CLASS } from "@/lib/worksheet-print-typography";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,7 @@ interface WorksheetFullViewProps {
   locale: Locale;
   title: string;
   content: string;
+  branding: WorksheetBrandingConfig;
   onTitleChange: (title: string) => void;
   onContentChange: (content: string) => void;
   onClose: () => void;
@@ -38,12 +39,12 @@ export function WorksheetFullView({
   locale,
   title,
   content,
+  branding,
   onTitleChange,
   onContentChange,
   onClose,
 }: WorksheetFullViewProps) {
   const copy = COPY[locale];
-  const { prefs } = useWorksheetBrandingPrefs();
   const exportDate = formatPrintExportDate(locale);
 
   const handleContentChange = useCallback(
@@ -136,7 +137,7 @@ export function WorksheetFullView({
                 )}
               >
                 <WorksheetLetterheadHeader
-                  branding={prefs}
+                  branding={branding}
                   documentTitle={title}
                   titleEditable
                   onTitleChange={onTitleChange}
@@ -153,7 +154,7 @@ export function WorksheetFullView({
                 />
 
                 <WorksheetLetterheadFooter
-                  branding={prefs}
+                  branding={branding}
                   locale={locale}
                   exportDate={exportDate}
                   className="mt-10"

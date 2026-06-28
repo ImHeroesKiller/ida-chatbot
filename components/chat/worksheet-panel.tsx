@@ -52,7 +52,11 @@ import { type Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import { exportWorksheetToDocx } from "@/lib/worksheet-docx-export";
 import { exportWorksheetToPdf } from "@/lib/pdf-export";
-import { useWorksheetBrandingPrefs } from "@/lib/worksheet-branding-prefs";
+import { useResolvedWorksheetBranding } from "@/lib/worksheet-letterhead-branding";
+import {
+  DEFAULT_WORKSHEET_LETTERHEAD_SELECTION,
+  type WorksheetLetterheadSelection,
+} from "@/lib/worksheet-letterhead-template";
 import {
   copyTextToClipboard,
   createWorksheetShare,
@@ -83,6 +87,10 @@ interface WorksheetPanelProps {
   onRegenerate?: () => void;
   onClear?: () => void;
   onClose: () => void;
+  letterheadSelection?: WorksheetLetterheadSelection;
+  onLetterheadSelectionChange?: (
+    selection: WorksheetLetterheadSelection,
+  ) => void;
   className?: string;
   embedded?: boolean;
 }
@@ -105,11 +113,19 @@ export function WorksheetPanel({
   onRegenerate,
   onClear,
   onClose,
+  letterheadSelection = DEFAULT_WORKSHEET_LETTERHEAD_SELECTION,
+  onLetterheadSelectionChange,
   className,
   embedded = false,
 }: WorksheetPanelProps) {
   const copy = COPY[locale];
-  const { prefs: brandingPrefs } = useWorksheetBrandingPrefs();
+  const {
+    branding: resolvedBranding,
+    activeTemplate,
+    templates,
+    templatesHydrated,
+    hydrated: brandingHydrated,
+  } = useResolvedWorksheetBranding(letterheadSelection);
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editLayout, setEditLayout] = useState<WorksheetEditLayout>("visual");
@@ -205,7 +221,7 @@ export function WorksheetPanel({
       await exportWorksheetToDocx({
         title,
         content,
-        branding: brandingPrefs,
+        branding: resolvedBranding,
         locale,
         includeBranding: true,
         showExportDate: true,
@@ -219,7 +235,7 @@ export function WorksheetPanel({
     }
   }, [
     content,
-    brandingPrefs,
+    resolvedBranding,
     copy.worksheetExportDocxError,
     copy.worksheetExportDocxSuccess,
     hasContent,
@@ -241,7 +257,7 @@ export function WorksheetPanel({
           paper: settings.paper,
           orientation: settings.orientation,
           branding: {
-            ...brandingPrefs,
+            ...resolvedBranding,
             enabled: settings.includeBranding,
             showPageNumbers: settings.showPageNumbers,
             showExportDate: settings.showExportDate,
@@ -262,7 +278,7 @@ export function WorksheetPanel({
       copy.worksheetExportPdfSuccess,
       hasContent,
       isEditing,
-      brandingPrefs,
+      resolvedBranding,
       isExportingPdf,
       locale,
       title,
@@ -845,6 +861,7 @@ export function WorksheetPanel({
         locale={locale}
         title={title}
         content={content}
+        branding={resolvedBranding}
         onClose={() => setPrintPreviewOpen(false)}
       />
 
@@ -869,6 +886,14 @@ export function WorksheetPanel({
       <WorksheetBrandingDialog
         open={brandingDialogOpen}
         locale={locale}
+        selection={letterheadSelection}
+        templates={templates}
+        templatesHydrated={templatesHydrated && brandingHydrated}
+        activeTemplateName={activeTemplate?.name ?? null}
+        previewBranding={resolvedBranding}
+        onSelectionChange={(selection) =>
+          onLetterheadSelectionChange?.(selection)
+        }
         onClose={() => setBrandingDialogOpen(false)}
       />
 
@@ -877,6 +902,7 @@ export function WorksheetPanel({
         locale={locale}
         title={title}
         content={content}
+        branding={resolvedBranding}
         onTitleChange={onTitleChange}
         onContentChange={handleFullViewContentChange}
         onClose={() => setIsFullViewOpen(false)}
