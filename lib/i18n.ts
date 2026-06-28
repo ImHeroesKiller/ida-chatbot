@@ -160,6 +160,14 @@ export const COPY: Record<
     worksheetSaved: string;
     worksheetDiscardChanges: string;
     worksheetExportPdf: string;
+    worksheetExportPdfTitle: string;
+    worksheetExportPdfPaper: string;
+    worksheetExportPdfPaperA4: string;
+    worksheetExportPdfPaperLetter: string;
+    worksheetExportPdfOrientation: string;
+    worksheetExportPdfPortrait: string;
+    worksheetExportPdfLandscape: string;
+    worksheetExportPdfGenerating: string;
     worksheetExportPdfSuccess: string;
     worksheetExportPdfError: string;
     mapPlaceholderDesc: string;
@@ -345,6 +353,14 @@ export const COPY: Record<
     worksheetDiscardChanges:
       "Buang perubahan yang belum disimpan dan tutup mode edit?",
     worksheetExportPdf: "Export PDF",
+    worksheetExportPdfTitle: "Export ke PDF",
+    worksheetExportPdfPaper: "Ukuran kertas",
+    worksheetExportPdfPaperA4: "A4",
+    worksheetExportPdfPaperLetter: "Letter",
+    worksheetExportPdfOrientation: "Orientasi",
+    worksheetExportPdfPortrait: "Portrait",
+    worksheetExportPdfLandscape: "Landscape",
+    worksheetExportPdfGenerating: "Sedang membuat PDF...",
     worksheetExportPdfSuccess: "PDF berhasil diunduh",
     worksheetExportPdfError: "Gagal membuat PDF. Coba lagi.",
     mapPlaceholderDesc:
@@ -533,6 +549,14 @@ export const COPY: Record<
     worksheetDiscardChanges:
       "Discard unsaved changes and exit edit mode?",
     worksheetExportPdf: "Export PDF",
+    worksheetExportPdfTitle: "Export to PDF",
+    worksheetExportPdfPaper: "Paper size",
+    worksheetExportPdfPaperA4: "A4",
+    worksheetExportPdfPaperLetter: "Letter",
+    worksheetExportPdfOrientation: "Orientation",
+    worksheetExportPdfPortrait: "Portrait",
+    worksheetExportPdfLandscape: "Landscape",
+    worksheetExportPdfGenerating: "Generating PDF...",
     worksheetExportPdfSuccess: "PDF downloaded successfully",
     worksheetExportPdfError: "Failed to generate PDF. Please try again.",
     mapPlaceholderDesc:
@@ -717,6 +741,14 @@ export const COPY: Record<
     worksheetSaved: "更改已保存",
     worksheetDiscardChanges: "放弃未保存的更改并退出编辑模式？",
     worksheetExportPdf: "导出 PDF",
+    worksheetExportPdfTitle: "导出 PDF",
+    worksheetExportPdfPaper: "纸张大小",
+    worksheetExportPdfPaperA4: "A4",
+    worksheetExportPdfPaperLetter: "Letter",
+    worksheetExportPdfOrientation: "方向",
+    worksheetExportPdfPortrait: "纵向",
+    worksheetExportPdfLandscape: "横向",
+    worksheetExportPdfGenerating: "正在生成 PDF...",
     worksheetExportPdfSuccess: "PDF 下载成功",
     worksheetExportPdfError: "PDF 生成失败，请重试。",
     mapPlaceholderDesc: "交互式地图将在此显示，用于位置相关问题。",

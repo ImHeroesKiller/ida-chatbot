@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import { MarkdownContent } from "@/components/chat/markdown-content";
+import { WorksheetExportPdfDialog } from "@/components/chat/worksheet-export-pdf-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -68,6 +69,7 @@ export function WorksheetPanel({
   const [isEditing, setIsEditing] = useState(false);
   const [draftContent, setDraftContent] = useState(content);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [exportPdfDialogOpen, setExportPdfDialogOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -137,27 +139,41 @@ export function WorksheetPanel({
     toast.success(copy.worksheetDownloaded);
   }, [content, copy.worksheetDownloaded, hasContent, isEditing, title]);
 
-  const handleExportPdf = useCallback(async () => {
+  const handleOpenExportPdfDialog = useCallback(() => {
     if (!hasContent || isEditing || isExportingPdf) return;
+    setExportPdfDialogOpen(true);
+  }, [hasContent, isEditing, isExportingPdf]);
 
-    setIsExportingPdf(true);
-    try {
-      await exportWorksheetToPdf({ title, content });
-      toast.success(copy.worksheetExportPdfSuccess);
-    } catch {
-      toast.error(copy.worksheetExportPdfError);
-    } finally {
-      setIsExportingPdf(false);
-    }
-  }, [
-    content,
-    copy.worksheetExportPdfError,
-    copy.worksheetExportPdfSuccess,
-    hasContent,
-    isEditing,
-    isExportingPdf,
-    title,
-  ]);
+  const handleExportPdfConfirm = useCallback(
+    async (settings: { paper: "a4" | "letter"; orientation: "portrait" | "landscape" }) => {
+      if (!hasContent || isEditing || isExportingPdf) return;
+
+      setIsExportingPdf(true);
+      try {
+        await exportWorksheetToPdf({
+          title,
+          content,
+          paper: settings.paper,
+          orientation: settings.orientation,
+        });
+        toast.success(copy.worksheetExportPdfSuccess);
+        setExportPdfDialogOpen(false);
+      } catch {
+        toast.error(copy.worksheetExportPdfError);
+      } finally {
+        setIsExportingPdf(false);
+      }
+    },
+    [
+      content,
+      copy.worksheetExportPdfError,
+      copy.worksheetExportPdfSuccess,
+      hasContent,
+      isEditing,
+      isExportingPdf,
+      title,
+    ],
+  );
 
   const handleStartEdit = useCallback(() => {
     if (!hasContent || isGenerating) return;
@@ -459,7 +475,7 @@ export function WorksheetPanel({
                 size="sm"
                 className={cn("flex-1", actionButtonClass)}
                 disabled={!hasContent || isGenerating || isExportingPdf}
-                onClick={() => void handleExportPdf()}
+                onClick={handleOpenExportPdfDialog}
               >
                 {isExportingPdf ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -472,6 +488,16 @@ export function WorksheetPanel({
           </>
         )}
       </div>
+
+      <WorksheetExportPdfDialog
+        open={exportPdfDialogOpen}
+        locale={locale}
+        isExporting={isExportingPdf}
+        onConfirm={(settings) => void handleExportPdfConfirm(settings)}
+        onCancel={() => {
+          if (!isExportingPdf) setExportPdfDialogOpen(false);
+        }}
+      />
     </aside>
   );
 }

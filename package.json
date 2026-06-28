@@ -14,7 +14,8 @@
     "test:handoff": "node scripts/test-handoff-tool.mjs",
     "test:web-search": "node scripts/test-web-search.mjs",
     "test:sessions": "node scripts/test-chat-store.mjs",
-    "test:worksheet": "node scripts/test-worksheet.mjs"
+    "test:worksheet": "node scripts/test-worksheet.mjs",
+    "test:pdf-export": "node scripts/test-pdf-export.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -31,7 +32,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.42.0",
-    "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "langchain": "^1.5.2",
     "lucide-react": "^1.21.0",
