@@ -229,7 +229,11 @@ export const COPY: Record<
     worksheetBrandingTabHeader: string;
     worksheetBrandingTabFooter: string;
     worksheetBrandingTabStyling: string;
+    worksheetBrandingTabPreview: string;
     worksheetBrandingLetterheadSection: string;
+    worksheetBrandingContactSection: string;
+    worksheetBrandingFooterSection: string;
+    worksheetBrandingPreviewHint: string;
     worksheetBrandingTagline: string;
     worksheetBrandingTaglinePlaceholder: string;
     worksheetBrandingAddress: string;
@@ -532,7 +536,12 @@ export const COPY: Record<
     worksheetBrandingTabHeader: "Header",
     worksheetBrandingTabFooter: "Footer",
     worksheetBrandingTabStyling: "Styling",
+    worksheetBrandingTabPreview: "Pratinjau",
     worksheetBrandingLetterheadSection: "Kop Surat (Letterhead)",
+    worksheetBrandingContactSection: "Kontak & Alamat",
+    worksheetBrandingFooterSection: "Footer Dokumen",
+    worksheetBrandingPreviewHint:
+      "Pratinjau tampilan header dan footer pada dokumen yang diekspor.",
     worksheetBrandingTagline: "Tagline / Slogan",
     worksheetBrandingTaglinePlaceholder: "Solusi Digital Terpercaya",
     worksheetBrandingAddress: "Alamat",
@@ -841,7 +850,12 @@ export const COPY: Record<
     worksheetBrandingTabHeader: "Header",
     worksheetBrandingTabFooter: "Footer",
     worksheetBrandingTabStyling: "Styling",
+    worksheetBrandingTabPreview: "Preview",
     worksheetBrandingLetterheadSection: "Letterhead",
+    worksheetBrandingContactSection: "Address & Contact",
+    worksheetBrandingFooterSection: "Document Footer",
+    worksheetBrandingPreviewHint:
+      "Preview how the header and footer will appear on exported documents.",
     worksheetBrandingTagline: "Tagline / Slogan",
     worksheetBrandingTaglinePlaceholder: "Your Trusted Digital Partner",
     worksheetBrandingAddress: "Address",
@@ -1141,7 +1155,11 @@ export const COPY: Record<
     worksheetBrandingTabHeader: "页眉",
     worksheetBrandingTabFooter: "页脚",
     worksheetBrandingTabStyling: "样式",
+    worksheetBrandingTabPreview: "预览",
     worksheetBrandingLetterheadSection: "信笺抬头",
+    worksheetBrandingContactSection: "地址与联系方式",
+    worksheetBrandingFooterSection: "文档页脚",
+    worksheetBrandingPreviewHint: "预览导出文档中页眉与页脚的显示效果。",
     worksheetBrandingTagline: "标语 / Slogan",
     worksheetBrandingTaglinePlaceholder: "您值得信赖的数字化伙伴",
     worksheetBrandingAddress: "地址",

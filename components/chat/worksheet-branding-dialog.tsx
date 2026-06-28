@@ -1,8 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ImageIcon, Palette, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Eye, ImageIcon, Palette, Trash2 } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 
@@ -31,12 +31,55 @@ import {
 import { WORKSHEET_MODAL_OVERLAY_CLASS } from "@/lib/worksheet-overlay";
 import { cn } from "@/lib/utils";
 
-type BrandingTab = "header" | "footer" | "styling";
+type BrandingTab = "header" | "footer" | "styling" | "preview";
 
 interface WorksheetBrandingDialogProps {
   open: boolean;
   locale: Locale;
   onClose: () => void;
+}
+
+function BrandingFormSection({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      className={cn(
+        "space-y-4 border-b border-border/60 pb-5 last:border-b-0 last:pb-0",
+        className,
+      )}
+    >
+      <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+        {title}
+      </h3>
+      <div className="space-y-4">{children}</div>
+    </section>
+  );
+}
+
+function BrandingField({
+  id,
+  label,
+  children,
+}: {
+  id: string;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id} className="text-xs font-medium">
+        {label}
+      </Label>
+      {children}
+    </div>
+  );
 }
 
 export function WorksheetBrandingDialog({
@@ -105,7 +148,7 @@ export function WorksheetBrandingDialog({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className={cn(
-            "fixed inset-0 flex items-center justify-center bg-black/50 p-4",
+            "fixed inset-0 flex items-center justify-center bg-black/50 p-4 sm:p-6",
             WORKSHEET_MODAL_OVERLAY_CLASS,
           )}
           onClick={onClose}
@@ -115,18 +158,21 @@ export function WorksheetBrandingDialog({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             onClick={(event) => event.stopPropagation()}
-            className="flex max-h-[min(92vh,40rem)] w-full max-w-2xl flex-col"
+            className="flex max-h-[min(92vh,44rem)] w-full max-w-2xl flex-col"
+            role="dialog"
+            aria-modal="true"
+            aria-label={copy.worksheetBrandingTitle}
           >
-            <Card className="flex min-h-0 flex-1 flex-col shadow-2xl">
-              <CardHeader className="shrink-0 pb-2">
+            <Card className="flex min-h-0 flex-1 flex-col overflow-hidden shadow-2xl">
+              <CardHeader className="shrink-0 space-y-3 border-b px-6 pt-6 pb-4">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Palette className="h-4 w-4 text-primary" />
                   {copy.worksheetBrandingTitle}
                 </CardTitle>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs leading-relaxed text-muted-foreground">
                   {copy.worksheetBrandingDescription}
                 </p>
-                <div className="mt-3 inline-flex rounded-lg border bg-muted/20 p-0.5">
+                <div className="flex flex-wrap gap-1 rounded-lg border bg-muted/20 p-1">
                   <Button
                     type="button"
                     variant="ghost"
@@ -151,203 +197,228 @@ export function WorksheetBrandingDialog({
                   >
                     {copy.worksheetBrandingTabStyling}
                   </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className={tabButtonClass("preview")}
+                    onClick={() => setTab("preview")}
+                  >
+                    <Eye className="mr-1 h-3.5 w-3.5" />
+                    {copy.worksheetBrandingTabPreview}
+                  </Button>
                 </div>
               </CardHeader>
 
-              <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
-                <ScrollArea className="min-h-0 flex-1 pr-3">
-                  <div className="space-y-4 pb-2">
+              <CardContent className="flex min-h-0 flex-1 flex-col gap-0 p-0">
+                <ScrollArea className="min-h-0 flex-1">
+                  <div className="space-y-5 px-6 py-5">
                     {tab === "header" ? (
                       <>
-                        <p className="text-[11px] font-medium text-muted-foreground">
-                          {copy.worksheetBrandingLetterheadSection}
-                        </p>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="worksheet-brand-name" className="text-xs">
-                            {copy.worksheetBrandingBrandName}
-                          </Label>
-                          <Input
+                        <BrandingFormSection title={copy.worksheetBrandingLetterheadSection}>
+                          <BrandingField
                             id="worksheet-brand-name"
-                            value={draft.brandName}
-                            onChange={(event) =>
-                              setDraft((current) => ({
-                                ...current,
-                                brandName: event.target.value,
-                              }))
-                            }
-                            placeholder={DEFAULT_WORKSHEET_BRANDING_CONFIG.brandName}
-                            className="h-9 text-sm"
-                          />
-                        </div>
+                            label={copy.worksheetBrandingBrandName}
+                          >
+                            <Input
+                              id="worksheet-brand-name"
+                              value={draft.brandName}
+                              onChange={(event) =>
+                                setDraft((current) => ({
+                                  ...current,
+                                  brandName: event.target.value,
+                                }))
+                              }
+                              placeholder={
+                                DEFAULT_WORKSHEET_BRANDING_CONFIG.brandName
+                              }
+                              className="h-9 text-sm"
+                            />
+                          </BrandingField>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="worksheet-brand-tagline" className="text-xs">
-                            {copy.worksheetBrandingTagline}
-                          </Label>
-                          <Input
+                          <BrandingField
                             id="worksheet-brand-tagline"
-                            value={draft.tagline}
-                            onChange={(event) =>
-                              setDraft((current) => ({
-                                ...current,
-                                tagline: event.target.value,
-                              }))
-                            }
-                            placeholder={copy.worksheetBrandingTaglinePlaceholder}
-                            className="h-9 text-sm"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="worksheet-brand-address" className="text-xs">
-                            {copy.worksheetBrandingAddress}
-                          </Label>
-                          <Textarea
-                            id="worksheet-brand-address"
-                            value={draft.address}
-                            onChange={(event) =>
-                              setDraft((current) => ({
-                                ...current,
-                                address: event.target.value,
-                              }))
-                            }
-                            placeholder={copy.worksheetBrandingAddressPlaceholder}
-                            className="min-h-20 text-sm"
-                            spellCheck={false}
-                          />
-                        </div>
-
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <div className="space-y-2">
-                            <Label htmlFor="worksheet-brand-phone" className="text-xs">
-                              {copy.worksheetBrandingPhone}
-                            </Label>
+                            label={copy.worksheetBrandingTagline}
+                          >
                             <Input
-                              id="worksheet-brand-phone"
-                              value={draft.phone}
+                              id="worksheet-brand-tagline"
+                              value={draft.tagline}
                               onChange={(event) =>
                                 setDraft((current) => ({
                                   ...current,
-                                  phone: event.target.value,
+                                  tagline: event.target.value,
                                 }))
                               }
-                              placeholder={copy.worksheetBrandingPhonePlaceholder}
-                              className="h-9 text-sm"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="worksheet-brand-email" className="text-xs">
-                              {copy.worksheetBrandingEmail}
-                            </Label>
-                            <Input
-                              id="worksheet-brand-email"
-                              value={draft.email}
-                              onChange={(event) =>
-                                setDraft((current) => ({
-                                  ...current,
-                                  email: event.target.value,
-                                }))
+                              placeholder={
+                                copy.worksheetBrandingTaglinePlaceholder
                               }
-                              placeholder={copy.worksheetBrandingEmailPlaceholder}
                               className="h-9 text-sm"
                             />
-                          </div>
-                        </div>
+                          </BrandingField>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="worksheet-brand-website" className="text-xs">
-                            {copy.worksheetBrandingWebsite}
-                          </Label>
-                          <Input
-                            id="worksheet-brand-website"
-                            value={draft.website}
-                            onChange={(event) =>
-                              setDraft((current) => ({
-                                ...current,
-                                website: event.target.value,
-                              }))
-                            }
-                            placeholder={copy.worksheetBrandingWebsitePlaceholder}
-                            className="h-9 text-sm"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="worksheet-brand-logo" className="text-xs">
-                            {copy.worksheetBrandingLogo}
-                          </Label>
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted/30">
-                              {draft.logoDataUrl ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img
-                                  src={draft.logoDataUrl}
-                                  alt=""
-                                  className="h-full w-full object-contain"
-                                />
-                              ) : (
-                                <ImageIcon className="h-5 w-5 text-muted-foreground/60" />
-                              )}
-                            </div>
-                            <div className="flex min-w-0 flex-1 flex-col gap-2">
-                              <Input
-                                id="worksheet-brand-logo"
-                                type="file"
-                                accept="image/png,image/jpeg,image/webp,image/gif"
-                                className="h-9 text-xs file:mr-2 file:text-xs"
-                                onChange={(event) =>
-                                  void handleLogoChange(event.target.files?.[0])
-                                }
-                              />
-                              {draft.logoDataUrl ? (
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-7 w-fit gap-1.5 px-2 text-xs text-destructive hover:text-destructive"
-                                  onClick={() =>
-                                    setDraft((current) => ({
-                                      ...current,
-                                      logoDataUrl: null,
-                                    }))
+                          <BrandingField
+                            id="worksheet-brand-logo"
+                            label={copy.worksheetBrandingLogo}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted/30">
+                                {draft.logoDataUrl ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={draft.logoDataUrl}
+                                    alt=""
+                                    className="h-full w-full object-contain"
+                                  />
+                                ) : (
+                                  <ImageIcon className="h-5 w-5 text-muted-foreground/60" />
+                                )}
+                              </div>
+                              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                                <Input
+                                  id="worksheet-brand-logo"
+                                  type="file"
+                                  accept="image/png,image/jpeg,image/webp,image/gif"
+                                  className="h-9 text-xs file:mr-2 file:text-xs"
+                                  onChange={(event) =>
+                                    void handleLogoChange(
+                                      event.target.files?.[0],
+                                    )
                                   }
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                  {copy.worksheetBrandingRemoveLogo}
-                                </Button>
-                              ) : (
-                                <p className="text-[11px] text-muted-foreground">
-                                  {copy.worksheetBrandingLogoHint}
-                                </p>
-                              )}
+                                />
+                                {draft.logoDataUrl ? (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-fit gap-1.5 px-2 text-xs text-destructive hover:text-destructive"
+                                    onClick={() =>
+                                      setDraft((current) => ({
+                                        ...current,
+                                        logoDataUrl: null,
+                                      }))
+                                    }
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                    {copy.worksheetBrandingRemoveLogo}
+                                  </Button>
+                                ) : (
+                                  <p className="text-[11px] text-muted-foreground">
+                                    {copy.worksheetBrandingLogoHint}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </div>
+                          </BrandingField>
+                        </BrandingFormSection>
 
-                        <label className="flex items-center gap-2 text-xs text-foreground">
-                          <input
-                            type="checkbox"
-                            checked={draft.showHeaderDivider}
-                            onChange={(event) =>
-                              setDraft((current) => ({
-                                ...current,
-                                showHeaderDivider: event.target.checked,
-                              }))
-                            }
-                            className="rounded border-input"
-                          />
-                          {copy.worksheetBrandingShowHeaderDivider}
-                        </label>
+                        <BrandingFormSection title={copy.worksheetBrandingContactSection}>
+                          <BrandingField
+                            id="worksheet-brand-address"
+                            label={copy.worksheetBrandingAddress}
+                          >
+                            <Textarea
+                              id="worksheet-brand-address"
+                              value={draft.address}
+                              onChange={(event) =>
+                                setDraft((current) => ({
+                                  ...current,
+                                  address: event.target.value,
+                                }))
+                              }
+                              placeholder={
+                                copy.worksheetBrandingAddressPlaceholder
+                              }
+                              className="min-h-20 text-sm"
+                              spellCheck={false}
+                            />
+                          </BrandingField>
+
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            <BrandingField
+                              id="worksheet-brand-phone"
+                              label={copy.worksheetBrandingPhone}
+                            >
+                              <Input
+                                id="worksheet-brand-phone"
+                                value={draft.phone}
+                                onChange={(event) =>
+                                  setDraft((current) => ({
+                                    ...current,
+                                    phone: event.target.value,
+                                  }))
+                                }
+                                placeholder={
+                                  copy.worksheetBrandingPhonePlaceholder
+                                }
+                                className="h-9 text-sm"
+                              />
+                            </BrandingField>
+                            <BrandingField
+                              id="worksheet-brand-email"
+                              label={copy.worksheetBrandingEmail}
+                            >
+                              <Input
+                                id="worksheet-brand-email"
+                                value={draft.email}
+                                onChange={(event) =>
+                                  setDraft((current) => ({
+                                    ...current,
+                                    email: event.target.value,
+                                  }))
+                                }
+                                placeholder={
+                                  copy.worksheetBrandingEmailPlaceholder
+                                }
+                                className="h-9 text-sm"
+                              />
+                            </BrandingField>
+                          </div>
+
+                          <BrandingField
+                            id="worksheet-brand-website"
+                            label={copy.worksheetBrandingWebsite}
+                          >
+                            <Input
+                              id="worksheet-brand-website"
+                              value={draft.website}
+                              onChange={(event) =>
+                                setDraft((current) => ({
+                                  ...current,
+                                  website: event.target.value,
+                                }))
+                              }
+                              placeholder={
+                                copy.worksheetBrandingWebsitePlaceholder
+                              }
+                              className="h-9 text-sm"
+                            />
+                          </BrandingField>
+                        </BrandingFormSection>
+
+                        <BrandingFormSection title={copy.worksheetBrandingTabStyling}>
+                          <label className="flex items-center gap-2.5 rounded-lg border bg-muted/20 px-3 py-2.5 text-xs text-foreground">
+                            <input
+                              type="checkbox"
+                              checked={draft.showHeaderDivider}
+                              onChange={(event) =>
+                                setDraft((current) => ({
+                                  ...current,
+                                  showHeaderDivider: event.target.checked,
+                                }))
+                              }
+                              className="rounded border-input"
+                            />
+                            {copy.worksheetBrandingShowHeaderDivider}
+                          </label>
+                        </BrandingFormSection>
                       </>
                     ) : null}
 
                     {tab === "footer" ? (
-                      <>
-                        <div className="space-y-2">
-                          <Label htmlFor="worksheet-footer-text" className="text-xs">
-                            {copy.worksheetBrandingFooterText}
-                          </Label>
+                      <BrandingFormSection title={copy.worksheetBrandingFooterSection}>
+                        <BrandingField
+                          id="worksheet-footer-text"
+                          label={copy.worksheetBrandingFooterText}
+                        >
                           <Input
                             id="worksheet-footer-text"
                             value={draft.footerText}
@@ -357,18 +428,17 @@ export function WorksheetBrandingDialog({
                                 footerText: event.target.value,
                               }))
                             }
-                            placeholder={DEFAULT_WORKSHEET_BRANDING_CONFIG.footerText}
+                            placeholder={
+                              DEFAULT_WORKSHEET_BRANDING_CONFIG.footerText
+                            }
                             className="h-9 text-sm"
                           />
-                        </div>
+                        </BrandingField>
 
-                        <div className="space-y-2">
-                          <Label
-                            htmlFor="worksheet-footer-contact"
-                            className="text-xs"
-                          >
-                            {copy.worksheetBrandingFooterContact}
-                          </Label>
+                        <BrandingField
+                          id="worksheet-footer-contact"
+                          label={copy.worksheetBrandingFooterContact}
+                        >
                           <Input
                             id="worksheet-footer-contact"
                             value={draft.footerContactLine}
@@ -378,20 +448,22 @@ export function WorksheetBrandingDialog({
                                 footerContactLine: event.target.value,
                               }))
                             }
-                            placeholder={copy.worksheetBrandingFooterContactPlaceholder}
+                            placeholder={
+                              copy.worksheetBrandingFooterContactPlaceholder
+                            }
                             className="h-9 text-sm"
                           />
-                        </div>
-                      </>
+                        </BrandingField>
+                      </BrandingFormSection>
                     ) : null}
 
                     {tab === "styling" ? (
-                      <>
-                        <div className="space-y-2">
-                          <Label htmlFor="worksheet-primary-color" className="text-xs">
-                            {copy.worksheetBrandingPrimaryColor}
-                          </Label>
-                          <div className="flex items-center gap-2">
+                      <BrandingFormSection title={copy.worksheetBrandingTabStyling}>
+                        <BrandingField
+                          id="worksheet-primary-color"
+                          label={copy.worksheetBrandingPrimaryColor}
+                        >
+                          <div className="flex items-center gap-3">
                             <input
                               id="worksheet-primary-color"
                               type="color"
@@ -416,13 +488,13 @@ export function WorksheetBrandingDialog({
                               spellCheck={false}
                             />
                           </div>
-                        </div>
+                        </BrandingField>
 
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <div className="space-y-2">
-                            <Label htmlFor="worksheet-header-font" className="text-xs">
-                              {copy.worksheetBrandingHeaderFont}
-                            </Label>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <BrandingField
+                            id="worksheet-header-font"
+                            label={copy.worksheetBrandingHeaderFont}
+                          >
                             <select
                               id="worksheet-header-font"
                               value={draft.headerFontFamily}
@@ -441,11 +513,11 @@ export function WorksheetBrandingDialog({
                               <option value="sans">{fontLabel("sans")}</option>
                               <option value="serif">{fontLabel("serif")}</option>
                             </select>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="worksheet-footer-font" className="text-xs">
-                              {copy.worksheetBrandingFooterFont}
-                            </Label>
+                          </BrandingField>
+                          <BrandingField
+                            id="worksheet-footer-font"
+                            label={copy.worksheetBrandingFooterFont}
+                          >
                             <select
                               id="worksheet-footer-font"
                               value={draft.footerFontFamily}
@@ -464,33 +536,41 @@ export function WorksheetBrandingDialog({
                               <option value="sans">{fontLabel("sans")}</option>
                               <option value="serif">{fontLabel("serif")}</option>
                             </select>
-                          </div>
+                          </BrandingField>
                         </div>
-                      </>
+                      </BrandingFormSection>
+                    ) : null}
+
+                    {tab === "preview" ? (
+                      <div className="space-y-4">
+                        <p className="text-xs leading-relaxed text-muted-foreground">
+                          {copy.worksheetBrandingPreviewHint}
+                        </p>
+                        <div className="mx-auto w-full max-w-md rounded-xl border bg-white p-5 text-[#181818] shadow-sm">
+                          <p className="mb-3 text-[10px] font-medium tracking-wide text-[#888] uppercase">
+                            {copy.worksheetBrandingPreview}
+                          </p>
+                          <WorksheetLetterheadHeader
+                            branding={draft}
+                            documentTitle={copy.worksheetBrandingPreviewDocTitle}
+                            compact
+                          />
+                          <div
+                            aria-hidden
+                            className="my-4 h-9 rounded-md border border-dashed border-[#ddd] bg-[#f7f7f7]"
+                          />
+                          <WorksheetLetterheadFooter
+                            branding={draft}
+                            locale={locale}
+                            pageLabel="1 / 3"
+                          />
+                        </div>
+                      </div>
                     ) : null}
                   </div>
                 </ScrollArea>
 
-                <div className="shrink-0 space-y-2">
-                  <p className="text-[11px] font-medium text-muted-foreground">
-                    {copy.worksheetBrandingPreview}
-                  </p>
-                  <div className="rounded-lg border bg-white p-4 text-[#181818] shadow-sm">
-                    <WorksheetLetterheadHeader
-                      branding={draft}
-                      documentTitle={copy.worksheetBrandingPreviewDocTitle}
-                      compact
-                    />
-                    <div className="my-3 h-8 rounded bg-muted/30" />
-                    <WorksheetLetterheadFooter
-                      branding={draft}
-                      locale={locale}
-                      pageLabel="1 / 3"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 gap-2 border-t bg-muted/10 px-6 py-4">
                   <Button
                     type="button"
                     variant="outline"
