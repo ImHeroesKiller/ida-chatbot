@@ -137,6 +137,28 @@ export const COPY: Record<
     worksheetDocumentsTitle: string;
     worksheetDocumentsNoSummary: string;
     worksheetDocumentsBack: string;
+    worksheetDocumentsCreated: string;
+    worksheetDocumentsEdited: string;
+    worksheetDocumentsExportedLabel: string;
+    worksheetDocumentsExportedPdf: string;
+    worksheetDocumentsExportedDocx: string;
+    worksheetDocumentsSearchPlaceholder: string;
+    worksheetDocumentsFilterLabel: string;
+    worksheetDocumentsFilterStatus: string;
+    worksheetDocumentsFilterStatusAll: string;
+    worksheetDocumentsFilterStatusGenerated: string;
+    worksheetDocumentsFilterStatusEdited: string;
+    worksheetDocumentsFilterStatusExported: string;
+    worksheetDocumentsFilterTime: string;
+    worksheetDocumentsFilterTimeAll: string;
+    worksheetDocumentsFilterTimeToday: string;
+    worksheetDocumentsFilterTimeWeek: string;
+    worksheetDocumentsFilterTimeMonth: string;
+    worksheetDocumentsFilterResults: string;
+    worksheetDocumentsFilterActive: string;
+    worksheetDocumentsNoResults: string;
+    worksheetDocumentsNoResultsHint: string;
+    worksheetEmptyStepsTitle: string;
     worksheetDeleteDocument: string;
     worksheetDeleteDocumentConfirm: string;
     worksheetDeleteDocumentSuccess: string;
@@ -149,6 +171,18 @@ export const COPY: Record<
     worksheetSaveTemplateSuccess: string;
     worksheetSaveTemplateError: string;
     worksheetSaveTemplateNameRequired: string;
+    worksheetSaveTemplateSaveTypeLabel: string;
+    worksheetSaveTemplateBrandingOnly: string;
+    worksheetSaveTemplateBrandingOnlyHint: string;
+    worksheetSaveTemplateBrandingAndStructure: string;
+    worksheetSaveTemplateBrandingAndStructureHint: string;
+    worksheetSaveTemplatePreviewLabel: string;
+    worksheetSaveTemplateReviewAction: string;
+    worksheetSaveTemplateConfirmTitle: string;
+    worksheetSaveTemplateConfirmDescription: string;
+    worksheetSaveTemplateConfirmAction: string;
+    worksheetSaveTemplateBack: string;
+    worksheetSaveTemplateViewInAdmin: string;
     worksheetCopy: string;
     worksheetDownload: string;
     worksheetCopied: string;
@@ -458,6 +492,29 @@ export const COPY: Record<
     worksheetDocumentsTitle: "Dokumen tersimpan",
     worksheetDocumentsNoSummary: "Tanpa ringkasan",
     worksheetDocumentsBack: "Kembali ke daftar",
+    worksheetDocumentsCreated: "Dibuat",
+    worksheetDocumentsEdited: "Diedit",
+    worksheetDocumentsExportedLabel: "Diekspor",
+    worksheetDocumentsExportedPdf: "PDF",
+    worksheetDocumentsExportedDocx: "DOCX",
+    worksheetDocumentsSearchPlaceholder: "Cari judul, ringkasan, atau konten…",
+    worksheetDocumentsFilterLabel: "Filter",
+    worksheetDocumentsFilterStatus: "Status",
+    worksheetDocumentsFilterStatusAll: "Semua status",
+    worksheetDocumentsFilterStatusGenerated: "Generated",
+    worksheetDocumentsFilterStatusEdited: "Edited",
+    worksheetDocumentsFilterStatusExported: "Exported",
+    worksheetDocumentsFilterTime: "Waktu",
+    worksheetDocumentsFilterTimeAll: "Semua waktu",
+    worksheetDocumentsFilterTimeToday: "Hari ini",
+    worksheetDocumentsFilterTimeWeek: "7 hari terakhir",
+    worksheetDocumentsFilterTimeMonth: "Bulan ini",
+    worksheetDocumentsFilterResults: "Menampilkan {shown} dari {total} dokumen",
+    worksheetDocumentsFilterActive: "filter aktif",
+    worksheetDocumentsNoResults: "Tidak ada dokumen yang cocok",
+    worksheetDocumentsNoResultsHint:
+      "Coba ubah kata kunci pencarian atau reset filter status/waktu.",
+    worksheetEmptyStepsTitle: "Cara memulai",
     worksheetDeleteDocument: "Hapus dokumen ini",
     worksheetDeleteDocumentConfirm:
       "Hapus dokumen ini dari daftar? Tindakan ini tidak dapat dibatalkan.",
@@ -472,6 +529,21 @@ export const COPY: Record<
     worksheetSaveTemplateSuccess: "Template letterhead disimpan",
     worksheetSaveTemplateError: "Gagal menyimpan template",
     worksheetSaveTemplateNameRequired: "Nama template wajib diisi",
+    worksheetSaveTemplateSaveTypeLabel: "Yang disimpan",
+    worksheetSaveTemplateBrandingOnly: "Hanya branding",
+    worksheetSaveTemplateBrandingOnlyHint:
+      "Header, footer, logo, dan styling letterhead saja.",
+    worksheetSaveTemplateBrandingAndStructure: "Branding + struktur",
+    worksheetSaveTemplateBrandingAndStructureHint:
+      "Branding plus contoh struktur/konten dokumen sebagai sample.",
+    worksheetSaveTemplatePreviewLabel: "Pratinjau",
+    worksheetSaveTemplateReviewAction: "Tinjau & lanjut",
+    worksheetSaveTemplateConfirmTitle: "Konfirmasi simpan template",
+    worksheetSaveTemplateConfirmDescription:
+      "Periksa kembali detail template sebelum disimpan ke daftar letterhead perusahaan.",
+    worksheetSaveTemplateConfirmAction: "Ya, simpan template",
+    worksheetSaveTemplateBack: "Kembali",
+    worksheetSaveTemplateViewInAdmin: "Lihat template di Admin",
     worksheetCopy: "Salin",
     worksheetDownload: "Unduh .md",
     worksheetCopied: "Dokumen disalin",
@@ -804,6 +876,29 @@ export const COPY: Record<
     worksheetDocumentsTitle: "Saved documents",
     worksheetDocumentsNoSummary: "No summary",
     worksheetDocumentsBack: "Back to list",
+    worksheetDocumentsCreated: "Created",
+    worksheetDocumentsEdited: "Edited",
+    worksheetDocumentsExportedLabel: "Exported",
+    worksheetDocumentsExportedPdf: "PDF",
+    worksheetDocumentsExportedDocx: "DOCX",
+    worksheetDocumentsSearchPlaceholder: "Search title, summary, or content…",
+    worksheetDocumentsFilterLabel: "Filter",
+    worksheetDocumentsFilterStatus: "Status",
+    worksheetDocumentsFilterStatusAll: "All statuses",
+    worksheetDocumentsFilterStatusGenerated: "Generated",
+    worksheetDocumentsFilterStatusEdited: "Edited",
+    worksheetDocumentsFilterStatusExported: "Exported",
+    worksheetDocumentsFilterTime: "Time",
+    worksheetDocumentsFilterTimeAll: "All time",
+    worksheetDocumentsFilterTimeToday: "Today",
+    worksheetDocumentsFilterTimeWeek: "Last 7 days",
+    worksheetDocumentsFilterTimeMonth: "This month",
+    worksheetDocumentsFilterResults: "Showing {shown} of {total} documents",
+    worksheetDocumentsFilterActive: "filters active",
+    worksheetDocumentsNoResults: "No matching documents",
+    worksheetDocumentsNoResultsHint:
+      "Try a different search term or reset the status/time filters.",
+    worksheetEmptyStepsTitle: "Getting started",
     worksheetDeleteDocument: "Delete this document",
     worksheetDeleteDocumentConfirm:
       "Delete this document from the list? This cannot be undone.",
@@ -818,6 +913,21 @@ export const COPY: Record<
     worksheetSaveTemplateSuccess: "Letterhead template saved",
     worksheetSaveTemplateError: "Failed to save template",
     worksheetSaveTemplateNameRequired: "Template name is required",
+    worksheetSaveTemplateSaveTypeLabel: "What to save",
+    worksheetSaveTemplateBrandingOnly: "Branding only",
+    worksheetSaveTemplateBrandingOnlyHint:
+      "Header, footer, logo, and letterhead styling only.",
+    worksheetSaveTemplateBrandingAndStructure: "Branding + structure",
+    worksheetSaveTemplateBrandingAndStructureHint:
+      "Branding plus document structure/content as a sample.",
+    worksheetSaveTemplatePreviewLabel: "Preview",
+    worksheetSaveTemplateReviewAction: "Review & continue",
+    worksheetSaveTemplateConfirmTitle: "Confirm save template",
+    worksheetSaveTemplateConfirmDescription:
+      "Review the template details before saving it to the company letterhead list.",
+    worksheetSaveTemplateConfirmAction: "Yes, save template",
+    worksheetSaveTemplateBack: "Back",
+    worksheetSaveTemplateViewInAdmin: "View template in Admin",
     worksheetCopy: "Copy",
     worksheetDownload: "Download .md",
     worksheetCopied: "Document copied",
@@ -1151,6 +1261,28 @@ export const COPY: Record<
     worksheetDocumentsTitle: "已保存文档",
     worksheetDocumentsNoSummary: "无摘要",
     worksheetDocumentsBack: "返回列表",
+    worksheetDocumentsCreated: "创建",
+    worksheetDocumentsEdited: "编辑",
+    worksheetDocumentsExportedLabel: "已导出",
+    worksheetDocumentsExportedPdf: "PDF",
+    worksheetDocumentsExportedDocx: "DOCX",
+    worksheetDocumentsSearchPlaceholder: "搜索标题、摘要或内容…",
+    worksheetDocumentsFilterLabel: "筛选",
+    worksheetDocumentsFilterStatus: "状态",
+    worksheetDocumentsFilterStatusAll: "全部状态",
+    worksheetDocumentsFilterStatusGenerated: "已生成",
+    worksheetDocumentsFilterStatusEdited: "已编辑",
+    worksheetDocumentsFilterStatusExported: "已导出",
+    worksheetDocumentsFilterTime: "时间",
+    worksheetDocumentsFilterTimeAll: "全部时间",
+    worksheetDocumentsFilterTimeToday: "今天",
+    worksheetDocumentsFilterTimeWeek: "最近 7 天",
+    worksheetDocumentsFilterTimeMonth: "本月",
+    worksheetDocumentsFilterResults: "显示 {shown} / {total} 个文档",
+    worksheetDocumentsFilterActive: "筛选已启用",
+    worksheetDocumentsNoResults: "没有匹配的文档",
+    worksheetDocumentsNoResultsHint: "请尝试其他搜索词或重置状态/时间筛选。",
+    worksheetEmptyStepsTitle: "开始使用",
     worksheetDeleteDocument: "删除此文档",
     worksheetDeleteDocumentConfirm: "从列表中删除此文档？此操作无法撤销。",
     worksheetDeleteDocumentSuccess: "文档已删除",
@@ -1163,6 +1295,20 @@ export const COPY: Record<
     worksheetSaveTemplateSuccess: "信笺模板已保存",
     worksheetSaveTemplateError: "保存模板失败",
     worksheetSaveTemplateNameRequired: "模板名称不能为空",
+    worksheetSaveTemplateSaveTypeLabel: "保存内容",
+    worksheetSaveTemplateBrandingOnly: "仅品牌样式",
+    worksheetSaveTemplateBrandingOnlyHint: "仅保存页眉、页脚、徽标和信笺样式。",
+    worksheetSaveTemplateBrandingAndStructure: "品牌 + 结构",
+    worksheetSaveTemplateBrandingAndStructureHint:
+      "品牌样式加上文档结构/内容示例。",
+    worksheetSaveTemplatePreviewLabel: "预览",
+    worksheetSaveTemplateReviewAction: "检查并继续",
+    worksheetSaveTemplateConfirmTitle: "确认保存模板",
+    worksheetSaveTemplateConfirmDescription:
+      "保存到公司信笺列表前，请再次确认模板详情。",
+    worksheetSaveTemplateConfirmAction: "确认保存",
+    worksheetSaveTemplateBack: "返回",
+    worksheetSaveTemplateViewInAdmin: "在管理后台查看模板",
     worksheetCopy: "复制",
     worksheetDownload: "下载 .md",
     worksheetCopied: "文档已复制",

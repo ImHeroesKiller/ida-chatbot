@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useWorksheetBrandingPrefs } from "@/lib/worksheet-branding-prefs";
 import {
@@ -37,20 +37,33 @@ export function useResolvedWorksheetBranding(
   const [templates, setTemplates] = useState<WorksheetLetterheadTemplate[]>([]);
   const [templatesHydrated, setTemplatesHydrated] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
+  const refreshTemplates = useCallback(async () => {
+    const loaded = await fetchLetterheadTemplates();
+    setTemplates(loaded);
+    setTemplatesHydrated(true);
+  }, []);
 
-    void (async () => {
-      const loaded = await fetchLetterheadTemplates();
-      if (cancelled) return;
-      setTemplates(loaded);
-      setTemplatesHydrated(true);
-    })();
+  useEffect(() => {
+    void refreshTemplates();
+  }, [refreshTemplates]);
+
+  useEffect(() => {
+    const handleTemplatesChanged = () => {
+      void refreshTemplates();
+    };
+
+    window.addEventListener(
+      "ida:letterhead-templates-changed",
+      handleTemplatesChanged,
+    );
 
     return () => {
-      cancelled = true;
+      window.removeEventListener(
+        "ida:letterhead-templates-changed",
+        handleTemplatesChanged,
+      );
     };
-  }, []);
+  }, [refreshTemplates]);
 
   const resolved = useMemo(
     () =>
@@ -74,5 +87,6 @@ export function useResolvedWorksheetBranding(
     hydrated: personal.hydrated && templatesHydrated,
     updatePersonalPrefs: personal.updatePrefs,
     resetPersonalPrefs: personal.resetPrefs,
+    refreshTemplates,
   };
 }

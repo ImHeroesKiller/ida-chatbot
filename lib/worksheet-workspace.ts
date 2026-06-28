@@ -13,6 +13,25 @@ import {
 } from "@/lib/worksheet";
 
 export type WorksheetDocumentStatus = "generated" | "edited" | "exported";
+export type WorksheetExportFormat = "pdf" | "docx";
+export type WorksheetDocumentFilterStatus = "all" | WorksheetDocumentStatus;
+export type WorksheetDocumentFilterTime = "all" | "today" | "week" | "month";
+
+export interface WorksheetDocumentListFilters {
+  status: WorksheetDocumentFilterStatus;
+  time: WorksheetDocumentFilterTime;
+}
+
+export interface WorksheetDocumentListQuery {
+  search: string;
+  filters: WorksheetDocumentListFilters;
+}
+
+export const DEFAULT_WORKSHEET_DOCUMENT_FILTERS: WorksheetDocumentListFilters =
+  {
+    status: "all",
+    time: "all",
+  };
 
 export interface WorksheetSavedDocument {
   id: string;
@@ -22,6 +41,7 @@ export interface WorksheetSavedDocument {
   status: WorksheetDocumentStatus;
   createdAt: number;
   updatedAt: number;
+  exportedFormats?: WorksheetExportFormat[];
   versions?: WorksheetVersion[];
   brandingSource?: WorksheetBrandingSource;
   letterheadTemplateId?: string | null;
@@ -272,6 +292,7 @@ export function updateWorksheetDocument(
       | "content"
       | "promptSummary"
       | "status"
+      | "exportedFormats"
       | "versions"
       | "brandingSource"
       | "letterheadTemplateId"
@@ -365,21 +386,122 @@ export function setWorksheetLetterheadSelection(
   };
 }
 
+export function countWorksheetWords(content: string): number {
+  const text = content
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/[#>*_\-\[\]`]/g, " ")
+    .trim();
+
+  if (!text) return 0;
+  return text.split(/\s+/).filter(Boolean).length;
+}
+
+export function getDefaultTemplateNameFromTitle(title: string): string {
+  const normalized = title.replace(/\s+/g, " ").trim();
+  if (!normalized) return "Template";
+  return normalized.slice(0, 120);
+}
+
+function matchesWorksheetTimeFilter(
+  timestamp: number,
+  time: WorksheetDocumentFilterTime,
+): boolean {
+  if (time === "all") return true;
+
+  const now = Date.now();
+  const date = new Date(timestamp);
+
+  if (time === "today") {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  }
+
+  if (time === "week") {
+    return timestamp >= now - 7 * 24 * 60 * 60 * 1000;
+  }
+
+  if (time === "month") {
+    const current = new Date();
+    return (
+      date.getMonth() === current.getMonth() &&
+      date.getFullYear() === current.getFullYear()
+    );
+  }
+
+  return true;
+}
+
+export function filterWorksheetDocuments(
+  documents: WorksheetSavedDocument[],
+  query: WorksheetDocumentListQuery,
+): WorksheetSavedDocument[] {
+  const search = query.search.trim().toLowerCase();
+
+  return documents.filter((document) => {
+    if (
+      query.filters.status !== "all" &&
+      document.status !== query.filters.status
+    ) {
+      return false;
+    }
+
+    const referenceTime = Math.max(document.updatedAt, document.createdAt);
+    if (!matchesWorksheetTimeFilter(referenceTime, query.filters.time)) {
+      return false;
+    }
+
+    if (!search) return true;
+
+    const haystack = [
+      document.title,
+      document.promptSummary,
+      document.content,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return haystack.includes(search);
+  });
+}
+
 export function markWorksheetDocumentExported(
   workspace: WorksheetDocument,
   documentId: string,
+  format: WorksheetExportFormat,
 ): WorksheetDocument {
-  return updateWorksheetDocument(workspace, documentId, { status: "exported" });
+  const target = getWorksheetDocumentById(workspace, documentId);
+  if (!target) return workspace;
+
+  const exportedFormats = Array.from(
+    new Set([...(target.exportedFormats ?? []), format]),
+  );
+
+  return updateWorksheetDocument(workspace, documentId, {
+    status: "exported",
+    exportedFormats,
+  });
 }
 
 export function formatWorksheetDocumentDate(
   timestamp: number,
   locale: Locale,
+  options?: { short?: boolean },
 ): string {
   return new Intl.DateTimeFormat(
     locale === "zh" ? "zh-CN" : locale === "en" ? "en-US" : "id-ID",
-    { dateStyle: "medium", timeStyle: "short" },
+    options?.short
+      ? { dateStyle: "short", timeStyle: "short" }
+      : { dateStyle: "medium", timeStyle: "short" },
   ).format(new Date(timestamp));
+}
+
+export function formatWorksheetWordCount(count: number, locale: Locale): string {
+  const labels: Record<Locale, string> = {
+    id: `${count.toLocaleString("id-ID")} kata`,
+    en: `${count.toLocaleString("en-US")} words`,
+    zh: `${count.toLocaleString("zh-CN")} 字`,
+  };
+  return labels[locale];
 }
 
 export function worksheetStatusLabel(

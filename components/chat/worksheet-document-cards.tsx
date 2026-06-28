@@ -1,13 +1,24 @@
 "use client";
 
-import { FileText, Layers, Trash2 } from "lucide-react";
+import {
+  Download,
+  FileText,
+  FileType,
+  Layers,
+  Pencil,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
-import type { WorksheetDocument } from "@/lib/worksheet";
 import {
+  countWorksheetWords,
   formatWorksheetDocumentDate,
+  formatWorksheetWordCount,
+  summarizeWorksheetPrompt,
   type WorksheetSavedDocument,
   worksheetStatusLabel,
 } from "@/lib/worksheet-workspace";
@@ -15,35 +26,103 @@ import { cn } from "@/lib/utils";
 
 interface WorksheetDocumentCardsProps {
   locale: Locale;
-  workspace: WorksheetDocument;
+  documents: WorksheetSavedDocument[];
+  totalCount: number;
+  activeDocumentId?: string | null;
   onSelectDocument: (documentId: string) => void;
   onDeleteDocument?: (documentId: string) => void;
   className?: string;
 }
 
-function statusClass(status: WorksheetSavedDocument["status"]): string {
-  switch (status) {
-    case "exported":
-      return "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
-    case "edited":
-      return "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300";
-    default:
-      return "border-primary/20 bg-primary/10 text-primary";
-  }
+function StatusBadge({
+  document,
+  locale,
+}: {
+  document: WorksheetSavedDocument;
+  locale: Locale;
+}) {
+  const label = worksheetStatusLabel(document.status, locale);
+
+  const config = {
+    generated: {
+      icon: Sparkles,
+      className:
+        "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+    },
+    edited: {
+      icon: Pencil,
+      className:
+        "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+    },
+    exported: {
+      icon: Download,
+      className:
+        "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    },
+  } as const;
+
+  const { icon: Icon, className } = config[document.status];
+
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium",
+        className,
+      )}
+    >
+      <Icon className="h-3 w-3" />
+      {label}
+    </span>
+  );
+}
+
+function ExportFormatBadges({
+  document,
+  locale,
+}: {
+  document: WorksheetSavedDocument;
+  locale: Locale;
+}) {
+  const copy = COPY[locale];
+  const formats =
+    document.exportedFormats ??
+    (document.status === "exported" ? (["pdf"] as const) : []);
+
+  if (formats.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      <span className="text-[10px] text-muted-foreground/80">
+        {copy.worksheetDocumentsExportedLabel}:
+      </span>
+      {formats.includes("pdf") ? (
+        <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px]">
+          <FileText className="h-3 w-3" />
+          {copy.worksheetDocumentsExportedPdf}
+        </Badge>
+      ) : null}
+      {formats.includes("docx") ? (
+        <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px]">
+          <FileType className="h-3 w-3" />
+          {copy.worksheetDocumentsExportedDocx}
+        </Badge>
+      ) : null}
+    </div>
+  );
 }
 
 export function WorksheetDocumentCards({
   locale,
-  workspace,
+  documents,
+  totalCount,
+  activeDocumentId,
   onSelectDocument,
   onDeleteDocument,
   className,
 }: WorksheetDocumentCardsProps) {
   const copy = COPY[locale];
-  const documents = workspace.documents ?? [];
-  const total = documents.length;
 
-  if (total === 0) {
+  if (documents.length === 0) {
     return null;
   }
 
@@ -53,71 +132,100 @@ export function WorksheetDocumentCards({
         <p className="text-xs font-medium text-muted-foreground">
           {copy.worksheetDocumentsTitle}
         </p>
-        <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1 rounded-full border bg-muted/30 px-2 py-0.5 text-[10px] text-muted-foreground">
           <Layers className="h-3 w-3" />
-          {total}
+          {totalCount}
         </span>
       </div>
 
-      <ul className="space-y-2">
-        {documents.map((document) => (
-          <li key={document.id}>
-            <div
-              className={cn(
-                "flex items-stretch gap-1 rounded-xl border bg-card shadow-sm transition-colors",
-                "hover:border-primary/30",
-                workspace.activeDocumentId === document.id &&
-                  "border-primary/40 ring-1 ring-primary/20",
-              )}
-            >
-              <button
-                type="button"
-                onClick={() => onSelectDocument(document.id)}
-                className="min-w-0 flex-1 rounded-l-xl p-3 text-left transition-colors hover:bg-primary/5"
+      <ul className="space-y-2.5">
+        {documents.map((document) => {
+          const wordCount = countWorksheetWords(document.content);
+          const wasEdited = document.updatedAt > document.createdAt + 1000;
+          const summary =
+            summarizeWorksheetPrompt(document.promptSummary, 80) ||
+            copy.worksheetDocumentsNoSummary;
+
+          return (
+            <li key={document.id}>
+              <div
+                className={cn(
+                  "group flex items-stretch overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-200",
+                  "hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md",
+                  activeDocumentId === document.id &&
+                    "border-primary/35 ring-1 ring-primary/15",
+                )}
               >
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border bg-muted/30">
-                    <FileText className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="truncate text-sm font-semibold">
-                        {document.title}
-                      </p>
-                      <span
-                        className={cn(
-                          "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium",
-                          statusClass(document.status),
-                        )}
-                      >
-                        {worksheetStatusLabel(document.status, locale)}
-                      </span>
-                    </div>
-                    <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
-                      {document.promptSummary || copy.worksheetDocumentsNoSummary}
-                    </p>
-                    <p className="mt-2 text-[10px] text-muted-foreground/80">
-                      {formatWorksheetDocumentDate(document.createdAt, locale)}
-                    </p>
-                  </div>
-                </div>
-              </button>
-              {onDeleteDocument ? (
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  className="my-2 mr-2 h-8 w-8 shrink-0 self-center text-muted-foreground hover:text-destructive"
-                  aria-label={copy.worksheetDeleteDocument}
-                  title={copy.worksheetDeleteDocument}
-                  onClick={() => onDeleteDocument(document.id)}
+                  onClick={() => onSelectDocument(document.id)}
+                  className="min-w-0 flex-1 p-3.5 text-left transition-colors group-hover:bg-primary/[0.03] sm:p-4"
                 >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              ) : null}
-            </div>
-          </li>
-        ))}
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border bg-gradient-to-br from-primary/10 to-primary/5">
+                      <FileText className="h-4 w-4 text-primary" />
+                    </div>
+
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="line-clamp-2 text-sm leading-snug font-semibold">
+                          {document.title}
+                        </p>
+                        <StatusBadge document={document} locale={locale} />
+                      </div>
+
+                      <p className="line-clamp-2 rounded-lg border border-dashed bg-muted/20 px-2.5 py-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                        {summary}
+                      </p>
+
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground/90">
+                        <span>{formatWorksheetWordCount(wordCount, locale)}</span>
+                        <span aria-hidden>·</span>
+                        <span>
+                          {copy.worksheetDocumentsCreated}{" "}
+                          {formatWorksheetDocumentDate(
+                            document.createdAt,
+                            locale,
+                            { short: true },
+                          )}
+                        </span>
+                        {wasEdited ? (
+                          <>
+                            <span aria-hidden>·</span>
+                            <span>
+                              {copy.worksheetDocumentsEdited}{" "}
+                              {formatWorksheetDocumentDate(
+                                document.updatedAt,
+                                locale,
+                                { short: true },
+                              )}
+                            </span>
+                          </>
+                        ) : null}
+                      </div>
+
+                      <ExportFormatBadges document={document} locale={locale} />
+                    </div>
+                  </div>
+                </button>
+
+                {onDeleteDocument ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="my-3 mr-2 h-8 w-8 shrink-0 self-start text-muted-foreground opacity-80 transition-opacity hover:text-destructive group-hover:opacity-100 sm:my-4"
+                    aria-label={copy.worksheetDeleteDocument}
+                    title={copy.worksheetDeleteDocument}
+                    onClick={() => onDeleteDocument(document.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                ) : null}
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

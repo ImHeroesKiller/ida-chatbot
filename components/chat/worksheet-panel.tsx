@@ -30,6 +30,8 @@ import toast from "react-hot-toast";
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { WorksheetBrandingDialog } from "@/components/chat/worksheet-branding-dialog";
 import { WorksheetDocumentCards } from "@/components/chat/worksheet-document-cards";
+import { WorksheetDocumentsEmptyState } from "@/components/chat/worksheet-documents-empty-state";
+import { WorksheetDocumentsToolbar } from "@/components/chat/worksheet-documents-toolbar";
 import { WorksheetFullView } from "@/components/chat/worksheet-full-view";
 import { WorksheetSaveTemplateDialog } from "@/components/chat/worksheet-save-template-dialog";
 import {
@@ -64,7 +66,14 @@ import {
   type WorksheetErrorCode,
 } from "@/lib/worksheet";
 import {
+  loadWorksheetDocumentFilters,
+  saveWorksheetDocumentFilters,
+} from "@/lib/worksheet-document-filter-prefs";
+import {
+  DEFAULT_WORKSHEET_DOCUMENT_FILTERS,
+  filterWorksheetDocuments,
   getActiveWorksheetDocument,
+  getDefaultTemplateNameFromTitle,
   getWorksheetLetterheadSelection,
   markWorksheetDocumentExported,
   recordWorksheetDocumentVersion,
@@ -73,6 +82,7 @@ import {
   setWorksheetLetterheadSelection,
   syncWorkspaceLegacyFields,
   updateWorksheetDocument,
+  type WorksheetDocumentListFilters,
 } from "@/lib/worksheet-workspace";
 import {
   copyTextToClipboard,
@@ -136,6 +146,7 @@ export function WorksheetPanel({
     templates,
     templatesHydrated,
     hydrated: brandingHydrated,
+    refreshTemplates,
   } = useResolvedWorksheetBranding(letterheadSelection);
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -151,11 +162,35 @@ export function WorksheetPanel({
   const [brandingDialogOpen, setBrandingDialogOpen] = useState(false);
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
   const [isFullViewOpen, setIsFullViewOpen] = useState(false);
+  const [documentSearch, setDocumentSearch] = useState("");
+  const [documentFilters, setDocumentFilters] =
+    useState<WorksheetDocumentListFilters>(DEFAULT_WORKSHEET_DOCUMENT_FILTERS);
+  const [filtersHydrated, setFiltersHydrated] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const pendingTemplateEditRef = useRef(false);
 
+  const allDocuments = workspace.documents ?? [];
+  const filteredDocuments = useMemo(
+    () =>
+      filterWorksheetDocuments(allDocuments, {
+        search: documentSearch,
+        filters: documentFilters,
+      }),
+    [allDocuments, documentFilters, documentSearch],
+  );
+
   const hasContent = Boolean(content.trim());
   const hasUnsavedChanges = isEditing && draftContent !== content;
+
+  useEffect(() => {
+    setDocumentFilters(loadWorksheetDocumentFilters());
+    setFiltersHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!filtersHydrated) return;
+    saveWorksheetDocumentFilters(documentFilters);
+  }, [documentFilters, filtersHydrated]);
 
   useEffect(() => {
     if (!embedded) return;
@@ -225,11 +260,16 @@ export function WorksheetPanel({
     setExportPdfDialogOpen(true);
   }, [hasContent, isEditing, isExportingPdf]);
 
-  const markExported = useCallback(() => {
-    const documentId = workspace.activeDocumentId;
-    if (!documentId) return;
-    commitWorkspace(markWorksheetDocumentExported(workspace, documentId));
-  }, [commitWorkspace, workspace]);
+  const markExported = useCallback(
+    (format: "pdf" | "docx") => {
+      const documentId = workspace.activeDocumentId;
+      if (!documentId) return;
+      commitWorkspace(
+        markWorksheetDocumentExported(workspace, documentId, format),
+      );
+    },
+    [commitWorkspace, workspace],
+  );
 
   const handleDownloadDocx = useCallback(async () => {
     if (!hasContent || isEditing || isExportingDocx) return;
@@ -245,7 +285,7 @@ export function WorksheetPanel({
         showExportDate: true,
         showPageNumbers: true,
       });
-      markExported();
+      markExported("docx");
       toast.success(copy.worksheetExportDocxSuccess);
     } catch {
       toast.error(copy.worksheetExportDocxError);
@@ -284,7 +324,7 @@ export function WorksheetPanel({
             locale,
           },
         });
-        markExported();
+        markExported("pdf");
         toast.success(copy.worksheetExportPdfSuccess);
         setExportPdfDialogOpen(false);
       } catch {
@@ -984,34 +1024,47 @@ export function WorksheetPanel({
                   </p>
                 </div>
               ) : null}
+
+              {!isGenerating && documentCount > 0 ? (
+                <WorksheetDocumentsToolbar
+                  locale={locale}
+                  search={documentSearch}
+                  filters={documentFilters}
+                  shownCount={filteredDocuments.length}
+                  totalCount={documentCount}
+                  onSearchChange={setDocumentSearch}
+                  onFiltersChange={setDocumentFilters}
+                  className="mb-4"
+                />
+              ) : null}
+
               <WorksheetDocumentCards
                 locale={locale}
-                workspace={workspace}
+                documents={filteredDocuments}
+                totalCount={documentCount}
+                activeDocumentId={workspace.activeDocumentId}
                 onSelectDocument={handleSelectDocument}
                 onDeleteDocument={handleDeleteDocument}
               />
+
+              {!isGenerating && documentCount > 0 && filteredDocuments.length === 0 ? (
+                <WorksheetDocumentsEmptyState
+                  locale={locale}
+                  variant="no-results"
+                  className="mt-3"
+                />
+              ) : null}
+
               {!isGenerating && documentCount === 0 ? (
-                <div className="flex min-h-[14rem] flex-col items-center justify-center rounded-xl border border-dashed bg-background/60 px-4 py-10 text-center dark:bg-background/40">
-                  <FileText className="mb-3 h-8 w-8 text-muted-foreground/50" />
-                  <p className="text-sm font-medium text-foreground/90">
-                    {copy.worksheetEmptyTitle}
-                  </p>
-                  <p className="mt-2 max-w-xs text-xs leading-relaxed text-muted-foreground">
-                    {copy.worksheetEmptyHint}
-                  </p>
-                  {onApplyTemplate ? (
-                    <Button
-                      type="button"
-                      variant="default"
-                      size="sm"
-                      className="mt-5 h-10 gap-1.5 px-4 text-xs"
-                      onClick={() => setTemplateDialogOpen(true)}
-                    >
-                      <LayoutTemplate className="h-3.5 w-3.5" />
-                      {copy.worksheetTemplates}
-                    </Button>
-                  ) : null}
-                </div>
+                <WorksheetDocumentsEmptyState
+                  locale={locale}
+                  variant="no-documents"
+                  onApplyTemplate={
+                    onApplyTemplate
+                      ? () => setTemplateDialogOpen(true)
+                      : undefined
+                  }
+                />
               ) : null}
             </>
           ) : isGenerating ? (
@@ -1113,10 +1166,11 @@ export function WorksheetPanel({
       <WorksheetSaveTemplateDialog
         open={saveTemplateDialogOpen}
         locale={locale}
-        defaultName={title}
+        defaultName={getDefaultTemplateNameFromTitle(title)}
         branding={resolvedBranding}
         sampleContent={content}
         onClose={() => setSaveTemplateDialogOpen(false)}
+        onSaved={() => void refreshTemplates()}
       />
     </aside>
   );
