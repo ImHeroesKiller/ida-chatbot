@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Printer } from "lucide-react";
 import toast from "react-hot-toast";
 
+import { WorksheetPrintTypographyStyles } from "@/components/chat/worksheet-print-typography-styles";
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,8 @@ import {
   formatPrintExportDate,
   openWorksheetPrintPreview,
 } from "@/lib/worksheet-print";
+import { WORKSHEET_PRINT_PAPER_CLASS } from "@/lib/worksheet-print-typography";
+import { cn } from "@/lib/utils";
 
 interface WorksheetPrintPreviewDialogProps {
   open: boolean;
@@ -68,7 +71,8 @@ export function WorksheetPrintPreviewDialog({
             onClick={(event) => event.stopPropagation()}
             className="flex max-h-[min(92vh,48rem)] w-full max-w-3xl flex-col"
           >
-            <Card className="flex min-h-0 flex-1 flex-col shadow-2xl">
+            <Card className="relative flex min-h-0 flex-1 flex-col shadow-2xl">
+              <WorksheetPrintTypographyStyles />
               <CardHeader className="shrink-0 pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Printer className="h-4 w-4 text-primary" />
@@ -80,7 +84,12 @@ export function WorksheetPrintPreviewDialog({
               </CardHeader>
               <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
                 <ScrollArea className="min-h-0 flex-1 rounded-xl border bg-muted/20 p-3">
-                  <div className="mx-auto max-w-[210mm] rounded-lg border bg-white p-8 text-[#181818] shadow-sm">
+                  <div
+                    className={cn(
+                      WORKSHEET_PRINT_PAPER_CLASS,
+                      "mx-auto max-w-[210mm] rounded-sm border border-[#ddd] bg-white px-[16mm] py-[18mm] text-[#181818]",
+                    )}
+                  >
                     <div className="mb-6 flex items-center justify-between gap-4 border-b border-[#ddd] pb-3 text-[11px] text-[#666]">
                       <div className="flex min-w-0 items-center gap-2">
                         {prefs.logoDataUrl ? (
@@ -101,7 +110,7 @@ export function WorksheetPrintPreviewDialog({
                     <MarkdownContent
                       locale={locale}
                       content={content}
-                      className="chat-text text-sm text-[#181818]"
+                      variant="print"
                     />
 
                     <div className="mt-8 flex items-center justify-between gap-4 border-t border-[#ddd] pt-3 text-[11px] text-[#666]">

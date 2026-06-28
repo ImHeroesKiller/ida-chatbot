@@ -1,5 +1,6 @@
 import type { Locale } from "@/lib/config";
 import { stripInlineMarkdown } from "@/lib/pdf-export";
+import { WORKSHEET_PRINT_PROSE_CSS } from "@/lib/worksheet-print-typography";
 
 function escapeHtml(value: string): string {
   return value
@@ -130,19 +131,7 @@ export function buildPrintPreviewDocumentHtml(params: {
       display: flex;
       justify-content: space-between;
     }
-    h1 { font-size: 24px; margin: 0 0 16px; }
-    h2 { font-size: 18px; margin: 20px 0 10px; }
-    h3 { font-size: 15px; margin: 16px 0 8px; }
-    p { margin: 0 0 10px; }
-    ul { margin: 8px 0 12px 20px; padding: 0; }
-    li { margin: 4px 0; }
-    code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      background: #f4f4f4;
-      padding: 1px 4px;
-      border-radius: 4px;
-      font-size: 0.92em;
-    }
+    ${WORKSHEET_PRINT_PROSE_CSS}
   </style>
 </head>
 <body>
@@ -153,7 +142,7 @@ export function buildPrintPreviewDocumentHtml(params: {
     </div>
     <span>${escapeHtml(title)}</span>
   </div>
-  <main>${body}</main>
+  <main class="worksheet-print-prose">${body}</main>
   <div class="print-footer">
     <span>${escapeHtml(date)}</span>
     <span>${escapeHtml(params.brandName)} ${escapeHtml(footerText)}</span>

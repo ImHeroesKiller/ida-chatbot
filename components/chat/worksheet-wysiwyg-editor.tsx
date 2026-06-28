@@ -11,7 +11,7 @@ import { WorksheetWysiwygToolbar } from "@/components/chat/worksheet-wysiwyg-too
 import type { Locale } from "@/lib/config";
 import {
   WORKSHEET_PANEL_PROSE_CLASS,
-  WORKSHEET_PRINT_PROSE_CLASS,
+  WORKSHEET_PRINT_PROSE_EDITOR_CLASS,
 } from "@/lib/worksheet-editor-styles";
 import { COPY } from "@/lib/i18n";
 import {
@@ -46,7 +46,9 @@ export function WorksheetWysiwygEditor({
   const mountedRef = useRef(false);
 
   const proseClass =
-    variant === "print" ? WORKSHEET_PRINT_PROSE_CLASS : WORKSHEET_PANEL_PROSE_CLASS;
+    variant === "print"
+      ? WORKSHEET_PRINT_PROSE_EDITOR_CLASS
+      : WORKSHEET_PANEL_PROSE_CLASS;
 
   const emitMarkdown = useCallback(() => {
     const editor = editorRef.current;
@@ -100,18 +102,27 @@ export function WorksheetWysiwygEditor({
   );
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div
+      className={cn(
+        variant === "print" ? "space-y-3" : "space-y-2",
+        className,
+      )}
+    >
       <div
         className={cn(
           toolbarSticky &&
-            "sticky top-0 z-10 rounded-lg border border-[#ddd] bg-white/95 p-1 backdrop-blur",
+            "sticky top-0 z-10 -mx-1 rounded-md border border-[#e5e5e5] bg-white/98 p-1 shadow-sm backdrop-blur",
         )}
       >
         <WorksheetWysiwygToolbar
           locale={locale}
           editorRef={editorRef}
           onCommand={emitMarkdown}
-          className={variant === "print" ? "border-[#ddd] bg-[#fafafa]" : undefined}
+          className={
+            variant === "print"
+              ? "border-0 bg-transparent shadow-none"
+              : undefined
+          }
         />
       </div>
       <div
