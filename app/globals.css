@@ -298,3 +298,36 @@ html[data-ida-animation="none"] *::after {
   font-weight: 600;
   text-align: left;
 }
+
+/* Full View print editor — match worksheet-print-typography.ts / pdf-export.ts */
+.worksheet-print-prose.worksheet-tiptap-editor.ProseMirror .tableWrapper {
+  margin: 0 0 5mm;
+  overflow-x: auto;
+}
+
+.worksheet-print-prose.worksheet-tiptap-editor.ProseMirror table {
+  font-size: 9.5pt;
+  line-height: 1.35;
+}
+
+.worksheet-print-prose.worksheet-tiptap-editor.ProseMirror th,
+.worksheet-print-prose.worksheet-tiptap-editor.ProseMirror td {
+  border: 1px solid #bebebe;
+  min-width: 4rem;
+  padding: 2mm;
+  vertical-align: top;
+}
+
+.worksheet-print-prose.worksheet-tiptap-editor.ProseMirror th {
+  background: #ececec;
+  font-size: 10pt;
+  font-weight: 600;
+  color: #181818;
+}
+
+.worksheet-print-prose.worksheet-tiptap-editor.ProseMirror
+  tbody
+  tr:nth-child(even)
+  td {
+  background: #fafafa;
+}

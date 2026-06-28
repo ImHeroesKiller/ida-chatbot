@@ -20,7 +20,10 @@ import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import type { WorksheetBrandingConfig } from "@/lib/worksheet-branding-config";
 import { formatPrintExportDate } from "@/lib/worksheet-print";
-import { WORKSHEET_PRINT_PAPER_CLASS } from "@/lib/worksheet-print-typography";
+import {
+  WORKSHEET_PRINT_MARGIN_MM,
+  WORKSHEET_PRINT_PAPER_CLASS,
+} from "@/lib/worksheet-print-typography";
 import { cn } from "@/lib/utils";
 
 interface WorksheetFullViewProps {
@@ -143,12 +146,16 @@ export function WorksheetFullView({
                 </span>
               </div>
 
+              {/* Paper padding mirrors PDF margin — keep aligned with pdf-export.ts */}
               <div
                 className={cn(
                   WORKSHEET_PRINT_PAPER_CLASS,
                   "mx-auto w-full max-w-[210mm] rounded-sm border border-[#ddd] bg-white",
-                  "px-[16mm] py-[18mm] text-[#181818]",
+                  "text-[#181818]",
                 )}
+                style={{
+                  padding: `${WORKSHEET_PRINT_MARGIN_MM}mm`,
+                }}
               >
                 <WorksheetLetterheadHeader
                   branding={branding}

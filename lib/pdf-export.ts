@@ -13,6 +13,16 @@ import {
   computePdfHeaderZoneMm,
   hexToRgb,
 } from "@/lib/worksheet-letterhead";
+import {
+  WORKSHEET_PRINT_BLOCKQUOTE,
+  WORKSHEET_PRINT_BODY,
+  WORKSHEET_PRINT_CODE,
+  WORKSHEET_PRINT_HR,
+  WORKSHEET_PRINT_LIST,
+  WORKSHEET_PRINT_MARGIN_MM,
+  WORKSHEET_PRINT_TABLE,
+  worksheetPrintHeadingForPdf,
+} from "@/lib/worksheet-print-typography";
 
 export type PdfPaperFormat = "a4" | "letter";
 export type PdfOrientation = "portrait" | "landscape";
@@ -75,24 +85,13 @@ type MarkdownBlock =
   | { kind: "blockquote"; lines: string[] }
   | { kind: "hr" };
 
-const MARGIN_MM = 20;
+// Typography tokens live in worksheet-print-typography.ts — keep PDF aligned with Full View.
+const MARGIN_MM = WORKSHEET_PRINT_MARGIN_MM;
 const FOOTER_ZONE_MM = 12;
-const CELL_PADDING_MM = 2;
+const CELL_PADDING_MM = WORKSHEET_PRINT_TABLE.cellPaddingMm;
 const PT_TO_MM = 0.352778;
 const LOGO_MAX_HEIGHT_MM = 8;
 const LOGO_MAX_WIDTH_MM = 22;
-
-const HEADING_STYLES: Record<
-  number,
-  { size: number; gapBefore: number; gapAfter: number }
-> = {
-  1: { size: 20, gapBefore: 2, gapAfter: 6 },
-  2: { size: 16, gapBefore: 5, gapAfter: 4 },
-  3: { size: 13, gapBefore: 4, gapAfter: 3 },
-  4: { size: 12, gapBefore: 3, gapAfter: 2.5 },
-  5: { size: 11, gapBefore: 2.5, gapAfter: 2 },
-  6: { size: 10.5, gapBefore: 2, gapAfter: 2 },
-};
 
 export function stripInlineMarkdown(text: string): string {
   return text
@@ -550,7 +549,10 @@ class WorksheetPdfRenderer {
     }
   }
 
-  private lineHeightMm(fontSizePt: number, factor = 1.45): number {
+  private lineHeightMm(
+    fontSizePt: number,
+    factor: number = WORKSHEET_PRINT_BODY.lineHeight,
+  ): number {
     return fontSizePt * PT_TO_MM * factor;
   }
 
@@ -568,7 +570,7 @@ class WorksheetPdfRenderer {
     fontSizePt: number,
     style: "normal" | "bold" | "italic" | "bolditalic" = "normal",
     maxWidth = this.contentWidth,
-    lineHeightFactor = 1.45,
+    lineHeightFactor: number = WORKSHEET_PRINT_BODY.lineHeight,
   ): void {
     this.setTextStyle(fontSizePt, style);
     const lines = this.pdf.splitTextToSize(text, maxWidth) as string[];
@@ -603,8 +605,12 @@ class WorksheetPdfRenderer {
         this.renderHeading(block.level, block.text);
         break;
       case "paragraph":
-        this.writeWrappedText(block.text, 11, "normal");
-        this.gap(3);
+        this.writeWrappedText(
+          block.text,
+          WORKSHEET_PRINT_BODY.fontSizePt,
+          "normal",
+        );
+        this.gap(WORKSHEET_PRINT_BODY.paragraphGapAfterMm);
         break;
       case "bullet_list":
         this.renderBulletList(block.items);
@@ -630,15 +636,21 @@ class WorksheetPdfRenderer {
   }
 
   private renderHeading(level: number, text: string): void {
-    const style = HEADING_STYLES[Math.min(level, 6)] ?? HEADING_STYLES[3];
+    const style = worksheetPrintHeadingForPdf(level);
     this.gap(style.gapBefore);
-    this.writeWrappedText(text, style.size, "bold", this.contentWidth, 1.3);
+    this.writeWrappedText(
+      text,
+      style.size,
+      "bold",
+      this.contentWidth,
+      style.lineHeight,
+    );
     this.gap(style.gapAfter);
   }
 
   private renderBulletList(items: string[]): void {
-    const fontSize = 11;
-    const bulletIndent = 5;
+    const fontSize = WORKSHEET_PRINT_LIST.fontSizePt;
+    const bulletIndent = WORKSHEET_PRINT_LIST.bulletIndentMm;
     const textWidth = this.contentWidth - bulletIndent;
     const lineHeight = this.lineHeightMm(fontSize);
 
@@ -655,14 +667,14 @@ class WorksheetPdfRenderer {
         this.pdf.text(lines[i]!, this.margin + bulletIndent, this.y);
         this.y += lineHeight;
       }
-      this.gap(1);
+      this.gap(WORKSHEET_PRINT_LIST.itemGapAfterMm);
     }
-    this.gap(3);
+    this.gap(WORKSHEET_PRINT_LIST.blockGapAfterMm);
   }
 
   private renderOrderedList(items: string[]): void {
-    const fontSize = 11;
-    const numberIndent = 8;
+    const fontSize = WORKSHEET_PRINT_LIST.fontSizePt;
+    const numberIndent = WORKSHEET_PRINT_LIST.orderedIndentMm;
     const textWidth = this.contentWidth - numberIndent;
     const lineHeight = this.lineHeightMm(fontSize);
 
@@ -680,14 +692,17 @@ class WorksheetPdfRenderer {
         this.pdf.text(lines[i]!, this.margin + numberIndent, this.y);
         this.y += lineHeight;
       }
-      this.gap(1);
+      this.gap(WORKSHEET_PRINT_LIST.itemGapAfterMm);
     });
-    this.gap(3);
+    this.gap(WORKSHEET_PRINT_LIST.blockGapAfterMm);
   }
 
   private renderCodeBlock(code: string): void {
-    const fontSize = 9;
-    const lineHeight = this.lineHeightMm(fontSize, 1.35);
+    const fontSize = WORKSHEET_PRINT_CODE.blockFontSizePt;
+    const lineHeight = this.lineHeightMm(
+      fontSize,
+      WORKSHEET_PRINT_CODE.lineHeight,
+    );
     const lines = code.split("\n");
 
     this.pdf.setFont("courier", "normal");
@@ -704,7 +719,7 @@ class WorksheetPdfRenderer {
         this.ensureSpace(lineHeight + 1);
         const blockTop = this.y;
         this.pdf.setFillColor(245, 245, 245);
-        this.pdf.setDrawColor(220, 220, 220);
+        this.pdf.setDrawColor(220, 220, 220); // matches WORKSHEET_PRINT_CODE.blockBorderColor
         this.pdf.rect(
           this.margin,
           blockTop,
@@ -721,21 +736,24 @@ class WorksheetPdfRenderer {
       }
     }
 
-    this.gap(3);
+    this.gap(WORKSHEET_PRINT_CODE.blockGapAfterMm);
     this.pdf.setTextColor(24, 24, 24);
   }
 
   private renderBlockquote(lines: string[]): void {
-    const fontSize = 11;
-    const indent = 6;
+    const fontSize = WORKSHEET_PRINT_BLOCKQUOTE.fontSizePt;
+    const indent = WORKSHEET_PRINT_BLOCKQUOTE.indentMm;
     const textWidth = this.contentWidth - indent - 3;
     const text = lines.join(" ");
     const wrapped = this.pdf.splitTextToSize(text, textWidth) as string[];
-    const lineHeight = this.lineHeightMm(fontSize, 1.4);
+    const lineHeight = this.lineHeightMm(
+      fontSize,
+      WORKSHEET_PRINT_BLOCKQUOTE.lineHeight,
+    );
     const blockHeight = wrapped.length * lineHeight + 4;
 
     this.ensureSpace(blockHeight);
-    this.pdf.setDrawColor(180, 180, 180);
+    this.pdf.setDrawColor(180, 180, 180); // matches WORKSHEET_PRINT_BLOCKQUOTE.borderColor
     this.pdf.setLineWidth(1);
     this.pdf.line(this.margin, this.y, this.margin, this.y + blockHeight - 2);
 
@@ -744,16 +762,16 @@ class WorksheetPdfRenderer {
       this.pdf.text(line, this.margin + indent, this.y);
       this.y += lineHeight;
     }
-    this.gap(4);
+    this.gap(WORKSHEET_PRINT_BLOCKQUOTE.blockGapAfterMm);
   }
 
   private renderHorizontalRule(): void {
-    this.gap(2);
+    this.gap(WORKSHEET_PRINT_HR.gapBeforeMm);
     this.ensureSpace(2);
-    this.pdf.setDrawColor(200, 200, 200);
+    this.pdf.setDrawColor(200, 200, 200); // matches WORKSHEET_PRINT_HR.color
     this.pdf.setLineWidth(0.4);
     this.pdf.line(this.margin, this.y, this.margin + this.contentWidth, this.y);
-    this.gap(4);
+    this.gap(WORKSHEET_PRINT_HR.gapAfterMm);
   }
 
   private renderTable(headers: string[], rows: string[][]): void {
@@ -767,9 +785,12 @@ class WorksheetPdfRenderer {
       Array.from({ length: colCount }, (_, i) => row[i] ?? ""),
     );
 
-    const fontSize = 9.5;
-    const headerFontSize = 10;
-    const lineHeight = this.lineHeightMm(fontSize, 1.35);
+    const fontSize = WORKSHEET_PRINT_TABLE.fontSizePt;
+    const headerFontSize = WORKSHEET_PRINT_TABLE.headerFontSizePt;
+    const lineHeight = this.lineHeightMm(
+      fontSize,
+      WORKSHEET_PRINT_TABLE.lineHeight,
+    );
     const colWidths = this.computeColumnWidths(
       normalizedHeaders,
       normalizedRows,
@@ -795,7 +816,7 @@ class WorksheetPdfRenderer {
       this.ensureSpace(rowHeight);
 
       if (isHeader) {
-        this.pdf.setFillColor(236, 236, 236);
+        this.pdf.setFillColor(236, 236, 236); // WORKSHEET_PRINT_TABLE.headerBackground
         this.pdf.rect(
           this.margin,
           this.y,
@@ -808,7 +829,7 @@ class WorksheetPdfRenderer {
       let x = this.margin;
       for (let col = 0; col < colCount; col += 1) {
         const width = colWidths[col]!;
-        this.pdf.setDrawColor(190, 190, 190);
+        this.pdf.setDrawColor(190, 190, 190); // WORKSHEET_PRINT_TABLE.borderColor
         this.pdf.setLineWidth(0.2);
         this.pdf.rect(x, this.y, width, rowHeight);
 
@@ -830,7 +851,7 @@ class WorksheetPdfRenderer {
       renderRow(row, false, fontSize, false);
     }
 
-    this.gap(5);
+    this.gap(WORKSHEET_PRINT_TABLE.blockGapAfterMm);
   }
 
   private computeColumnWidths(

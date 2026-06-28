@@ -25,6 +25,7 @@ export const WORKSHEET_PANEL_PROSE_CLASS = cn(
   "empty:before:text-muted-foreground empty:before:content-[attr(data-placeholder)]",
 );
 
+/** Full View editor — prose rules from worksheet-print-typography.ts (PDF/DOCX aligned). */
 export const WORKSHEET_PRINT_PROSE_EDITOR_CLASS = cn(
   WORKSHEET_PRINT_PROSE_CLASS,
   "min-h-[min(48vh,28rem)] w-full outline-none",

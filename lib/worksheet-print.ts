@@ -6,7 +6,11 @@ import {
   buildLetterheadFooterHtml,
   buildLetterheadHeaderHtml,
 } from "@/lib/worksheet-letterhead";
-import { WORKSHEET_PRINT_PROSE_CSS } from "@/lib/worksheet-print-typography";
+import {
+  WORKSHEET_PRINT_BODY,
+  WORKSHEET_PRINT_MARGIN_MM,
+  WORKSHEET_PRINT_PROSE_CSS,
+} from "@/lib/worksheet-print-typography";
 
 function escapeHtml(value: string): string {
   return value
@@ -103,12 +107,12 @@ export function buildPrintPreviewDocumentHtml(params: {
   <meta charset="utf-8" />
   <title>${escapeHtml(title)}</title>
   <style>
-    @page { margin: 18mm 16mm; }
+    @page { margin: ${WORKSHEET_PRINT_MARGIN_MM}mm; }
     body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      color: #181818;
-      line-height: 1.65;
-      font-size: 14px;
+      font-family: ${WORKSHEET_PRINT_BODY.fontFamily};
+      color: ${WORKSHEET_PRINT_BODY.color};
+      line-height: ${WORKSHEET_PRINT_BODY.lineHeight};
+      font-size: ${WORKSHEET_PRINT_BODY.fontSizePt}pt;
       margin: 0;
       padding: 0;
     }

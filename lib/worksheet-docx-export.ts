@@ -30,6 +30,13 @@ import {
   brandingContactLines,
   buildFooterSummary,
 } from "@/lib/worksheet-letterhead";
+import {
+  WORKSHEET_PRINT_BODY,
+  WORKSHEET_PRINT_CODE,
+  WORKSHEET_PRINT_HEADING_STYLES,
+  WORKSHEET_PRINT_LIST,
+  WORKSHEET_PRINT_TABLE,
+} from "@/lib/worksheet-print-typography";
 
 export interface WorksheetDocxExportOptions {
   title: string;
@@ -48,37 +55,53 @@ function mmToTwips(mm: number): number {
   return Math.round(mm * MM_TO_TWIPS);
 }
 
-const BODY_FONT_SIZE = 22;
-const PARAGRAPH_SPACING_AFTER = Math.round(MM_TO_TWIPS * 3);
-const LIST_ITEM_SPACING_AFTER = Math.round(MM_TO_TWIPS * 1);
-const LIST_BLOCK_SPACING_AFTER = Math.round(MM_TO_TWIPS * 3);
-const TABLE_BLOCK_SPACING_AFTER = Math.round(MM_TO_TWIPS * 5);
-const CODE_BLOCK_SPACING_AFTER = Math.round(MM_TO_TWIPS * 3);
+// Typography tokens live in worksheet-print-typography.ts — keep DOCX aligned with Full View.
+const BODY_FONT_SIZE = WORKSHEET_PRINT_BODY.fontSizePt * 2;
+const PARAGRAPH_SPACING_AFTER = mmToTwips(
+  WORKSHEET_PRINT_BODY.paragraphGapAfterMm,
+);
+const LIST_ITEM_SPACING_AFTER = mmToTwips(WORKSHEET_PRINT_LIST.itemGapAfterMm);
+const LIST_BLOCK_SPACING_AFTER = mmToTwips(
+  WORKSHEET_PRINT_LIST.blockGapAfterMm,
+);
+const TABLE_BLOCK_SPACING_AFTER = mmToTwips(
+  WORKSHEET_PRINT_TABLE.blockGapAfterMm,
+);
+const CODE_BLOCK_SPACING_AFTER = mmToTwips(
+  WORKSHEET_PRINT_CODE.blockGapAfterMm,
+);
 
 const DOCX_HEADING_STYLES: Record<
   number,
   { size: number; spacingBefore: number; spacingAfter: number }
-> = {
-  1: { size: 40, spacingBefore: mmToTwips(2), spacingAfter: mmToTwips(6) },
-  2: { size: 32, spacingBefore: mmToTwips(5), spacingAfter: mmToTwips(4) },
-  3: { size: 26, spacingBefore: mmToTwips(4), spacingAfter: mmToTwips(3) },
-  4: { size: 24, spacingBefore: mmToTwips(3), spacingAfter: mmToTwips(2.5) },
-  5: { size: 22, spacingBefore: mmToTwips(2.5), spacingAfter: mmToTwips(2) },
-  6: { size: 21, spacingBefore: mmToTwips(2), spacingAfter: mmToTwips(2) },
-};
+> = Object.fromEntries(
+  Object.entries(WORKSHEET_PRINT_HEADING_STYLES).map(([level, style]) => [
+    Number(level),
+    {
+      size: style.sizePt * 2,
+      spacingBefore: mmToTwips(style.gapBeforeMm),
+      spacingAfter: mmToTwips(style.gapAfterMm),
+    },
+  ]),
+);
+
+const TABLE_BORDER_COLOR = WORKSHEET_PRINT_TABLE.borderColor
+  .replace("#", "")
+  .toUpperCase();
 
 const TABLE_CELL_BORDER = {
-  top: { style: BorderStyle.SINGLE, size: 1, color: "BEBEBE" },
-  bottom: { style: BorderStyle.SINGLE, size: 1, color: "BEBEBE" },
-  left: { style: BorderStyle.SINGLE, size: 1, color: "BEBEBE" },
-  right: { style: BorderStyle.SINGLE, size: 1, color: "BEBEBE" },
+  top: { style: BorderStyle.SINGLE, size: 1, color: TABLE_BORDER_COLOR },
+  bottom: { style: BorderStyle.SINGLE, size: 1, color: TABLE_BORDER_COLOR },
+  left: { style: BorderStyle.SINGLE, size: 1, color: TABLE_BORDER_COLOR },
+  right: { style: BorderStyle.SINGLE, size: 1, color: TABLE_BORDER_COLOR },
 };
 
+const TABLE_CELL_PADDING_TWIPS = mmToTwips(WORKSHEET_PRINT_TABLE.cellPaddingMm);
 const TABLE_CELL_MARGINS = {
-  top: 80,
-  bottom: 80,
-  left: 120,
-  right: 120,
+  top: TABLE_CELL_PADDING_TWIPS,
+  bottom: TABLE_CELL_PADDING_TWIPS,
+  left: TABLE_CELL_PADDING_TWIPS,
+  right: TABLE_CELL_PADDING_TWIPS,
 };
 
 type DocxMarkdownBlock =
