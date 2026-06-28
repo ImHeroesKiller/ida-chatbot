@@ -21,7 +21,8 @@
     "test:worksheet-editor": "node scripts/test-worksheet-editor.mjs",
     "test:worksheet-share": "node scripts/test-worksheet-share.mjs",
     "test:worksheet-branding": "node scripts/test-worksheet-branding.mjs",
-    "test:worksheet-markdown-convert": "node scripts/test-worksheet-markdown-convert.mjs"
+    "test:worksheet-markdown-convert": "node scripts/test-worksheet-markdown-convert.mjs",
+    "test:worksheet-docx": "node scripts/test-worksheet-docx.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -37,6 +38,7 @@
     "@vercel/speed-insights": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "docx": "^9.7.1",
     "framer-motion": "^12.42.0",
     "jspdf": "^4.2.1",
     "langchain": "^1.5.2",

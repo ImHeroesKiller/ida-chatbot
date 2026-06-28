@@ -223,6 +223,12 @@ export const COPY: Record<
     worksheetShareCopied: string;
     worksheetShareError: string;
     worksheetMoreActions: string;
+    worksheetDownloadMenu: string;
+    worksheetDownloadPdf: string;
+    worksheetDownloadMd: string;
+    worksheetDownloadDocx: string;
+    worksheetExportDocxSuccess: string;
+    worksheetExportDocxError: string;
     worksheetEditMarkdown: string;
     worksheetEditSplit: string;
     worksheetEditMarkdownHint: string;
@@ -480,6 +486,12 @@ export const COPY: Record<
     worksheetShareCopied: "Tautan dibagikan dan disalin",
     worksheetShareError: "Gagal membuat tautan. Coba lagi.",
     worksheetMoreActions: "Lainnya",
+    worksheetDownloadMenu: "Unduh",
+    worksheetDownloadPdf: "PDF",
+    worksheetDownloadMd: "Markdown (.md)",
+    worksheetDownloadDocx: "Word (.docx)",
+    worksheetExportDocxSuccess: "DOCX berhasil diunduh",
+    worksheetExportDocxError: "Gagal membuat DOCX. Coba lagi.",
     worksheetEditMarkdown: "Markdown",
     worksheetEditSplit: "Split",
     worksheetEditMarkdownHint: "Mode sumber Markdown penuh.",
@@ -741,6 +753,12 @@ export const COPY: Record<
     worksheetShareCopied: "Share link created and copied",
     worksheetShareError: "Failed to create share link. Please try again.",
     worksheetMoreActions: "More",
+    worksheetDownloadMenu: "Download",
+    worksheetDownloadPdf: "PDF",
+    worksheetDownloadMd: "Markdown (.md)",
+    worksheetDownloadDocx: "Word (.docx)",
+    worksheetExportDocxSuccess: "DOCX downloaded successfully",
+    worksheetExportDocxError: "Failed to generate DOCX. Please try again.",
     worksheetEditMarkdown: "Markdown",
     worksheetEditSplit: "Split",
     worksheetEditMarkdownHint: "Full Markdown source mode.",
@@ -993,6 +1011,12 @@ export const COPY: Record<
     worksheetShareCopied: "分享链接已创建并复制",
     worksheetShareError: "创建分享链接失败，请重试。",
     worksheetMoreActions: "更多",
+    worksheetDownloadMenu: "下载",
+    worksheetDownloadPdf: "PDF",
+    worksheetDownloadMd: "Markdown (.md)",
+    worksheetDownloadDocx: "Word (.docx)",
+    worksheetExportDocxSuccess: "DOCX 下载成功",
+    worksheetExportDocxError: "DOCX 生成失败，请重试。",
     worksheetEditMarkdown: "Markdown",
     worksheetEditSplit: "分屏",
     worksheetEditMarkdownHint: "完整 Markdown 源码模式。",

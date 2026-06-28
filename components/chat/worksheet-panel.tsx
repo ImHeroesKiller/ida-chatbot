@@ -5,7 +5,9 @@ import {
   Check,
   Copy,
   Download,
+  FileCode2,
   FileText,
+  FileType,
   History,
   LayoutTemplate,
   Link2,
@@ -36,6 +38,7 @@ import { WorksheetPrintPreviewDialog } from "@/components/chat/worksheet-print-p
 import { WorksheetTemplateDialog } from "@/components/chat/worksheet-template-dialog";
 import {
   WorksheetIconAction,
+  WorksheetIconMenu,
   WorksheetOverflowMenu,
   type WorksheetOverflowMenuItem,
 } from "@/components/chat/worksheet-panel-actions";
@@ -45,6 +48,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { type Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
+import { exportWorksheetToDocx } from "@/lib/worksheet-docx-export";
 import { exportWorksheetToPdf } from "@/lib/pdf-export";
 import { useWorksheetBrandingPrefs } from "@/lib/worksheet-branding-prefs";
 import {
@@ -105,6 +109,7 @@ export function WorksheetPanel({
   const [editLayout, setEditLayout] = useState<WorksheetEditLayout>("visual");
   const [draftContent, setDraftContent] = useState(content);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isExportingDocx, setIsExportingDocx] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [exportPdfDialogOpen, setExportPdfDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
@@ -184,6 +189,28 @@ export function WorksheetPanel({
     if (!hasContent || isEditing || isExportingPdf) return;
     setExportPdfDialogOpen(true);
   }, [hasContent, isEditing, isExportingPdf]);
+
+  const handleDownloadDocx = useCallback(async () => {
+    if (!hasContent || isEditing || isExportingDocx) return;
+
+    setIsExportingDocx(true);
+    try {
+      await exportWorksheetToDocx({ title, content });
+      toast.success(copy.worksheetExportDocxSuccess);
+    } catch {
+      toast.error(copy.worksheetExportDocxError);
+    } finally {
+      setIsExportingDocx(false);
+    }
+  }, [
+    content,
+    copy.worksheetExportDocxError,
+    copy.worksheetExportDocxSuccess,
+    hasContent,
+    isEditing,
+    isExportingDocx,
+    title,
+  ]);
 
   const handleExportPdfConfirm = useCallback(
     async (settings: WorksheetPdfExportSettings) => {
@@ -323,22 +350,13 @@ export function WorksheetPanel({
       });
     }
 
-    items.push(
-      {
-        id: "download",
-        label: copy.worksheetDownload,
-        icon: <Download className="h-3.5 w-3.5" />,
-        disabled: !hasContent || isGenerating,
-        onClick: handleDownload,
-      },
-      {
-        id: "print",
-        label: copy.worksheetPrintPreview,
-        icon: <Printer className="h-3.5 w-3.5" />,
-        disabled: !hasContent || isGenerating,
-        onClick: () => setPrintPreviewOpen(true),
-      },
-    );
+    items.push({
+      id: "print",
+      label: copy.worksheetPrintPreview,
+      icon: <Printer className="h-3.5 w-3.5" />,
+      disabled: !hasContent || isGenerating,
+      onClick: () => setPrintPreviewOpen(true),
+    });
 
     if (versions.length > 0) {
       items.push({
@@ -375,14 +393,12 @@ export function WorksheetPanel({
   }, [
     canRegenerate,
     copy.worksheetClear,
-    copy.worksheetDownload,
     copy.worksheetHistory,
     copy.worksheetPrintPreview,
     copy.worksheetRegenerate,
     copy.worksheetTemplates,
     error,
     handleClear,
-    handleDownload,
     hasContent,
     isEditing,
     isGenerating,
@@ -391,6 +407,122 @@ export function WorksheetPanel({
     onRegenerate,
     versions.length,
   ]);
+
+  const downloadMenuItems = useMemo((): WorksheetOverflowMenuItem[] => {
+    const disabled = !hasContent || isGenerating || isEditing;
+
+    return [
+      {
+        id: "pdf",
+        label: copy.worksheetDownloadPdf,
+        icon: <FileText className="h-3.5 w-3.5" />,
+        disabled: disabled || isExportingPdf,
+        onClick: handleOpenExportPdfDialog,
+      },
+      {
+        id: "md",
+        label: copy.worksheetDownloadMd,
+        icon: <FileCode2 className="h-3.5 w-3.5" />,
+        disabled,
+        onClick: handleDownload,
+      },
+      {
+        id: "docx",
+        label: copy.worksheetDownloadDocx,
+        icon: <FileType className="h-3.5 w-3.5" />,
+        disabled: disabled || isExportingDocx,
+        onClick: () => void handleDownloadDocx(),
+      },
+    ];
+  }, [
+    copy.worksheetDownloadDocx,
+    copy.worksheetDownloadMd,
+    copy.worksheetDownloadPdf,
+    handleDownload,
+    handleDownloadDocx,
+    handleOpenExportPdfDialog,
+    hasContent,
+    isEditing,
+    isExportingDocx,
+    isExportingPdf,
+    isGenerating,
+  ]);
+
+  const renderDocumentActionBar = () => {
+    if (isGenerating) return null;
+
+    if (isEditing) {
+      return (
+        <div className="mt-3 flex items-center justify-end gap-1.5 border-t border-border/60 pt-3">
+          <WorksheetIconAction
+            label={copy.worksheetSave}
+            onClick={handleSaveEdit}
+          >
+            <Save className="h-4 w-4" />
+          </WorksheetIconAction>
+          <WorksheetIconAction
+            label={copy.worksheetCancel}
+            onClick={handleCancelEdit}
+          >
+            <X className="h-4 w-4" />
+          </WorksheetIconAction>
+        </div>
+      );
+    }
+
+    if (!hasContent) return null;
+
+    return (
+      <div className="mt-3 flex items-center justify-between gap-1.5 border-t border-border/60 pt-3">
+        <WorksheetIconAction
+          label={copy.worksheetEdit}
+          disabled={!hasContent || isGenerating}
+          onClick={handleStartEdit}
+        >
+          <Pencil className="h-4 w-4" />
+        </WorksheetIconAction>
+        <WorksheetIconAction
+          label={copied ? copy.worksheetCopied : copy.worksheetCopy}
+          disabled={!hasContent || isGenerating}
+          active={copied}
+          onClick={() => void handleCopy()}
+        >
+          {copied ? (
+            <Check className="h-4 w-4 text-primary" />
+          ) : (
+            <Copy className="h-4 w-4" />
+          )}
+        </WorksheetIconAction>
+        <WorksheetIconMenu
+          label={copy.worksheetDownloadMenu}
+          items={downloadMenuItems}
+          disabled={!hasContent || isGenerating}
+        >
+          {isExportingDocx ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="h-4 w-4" />
+          )}
+        </WorksheetIconMenu>
+        <WorksheetIconAction
+          label={copy.worksheetShare}
+          disabled={!hasContent || isGenerating || isSharing}
+          onClick={() => void handleShare()}
+        >
+          {isSharing ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Link2 className="h-4 w-4" />
+          )}
+        </WorksheetIconAction>
+        <WorksheetOverflowMenu
+          label={copy.worksheetMoreActions}
+          items={overflowMenuItems}
+          disabled={isGenerating}
+        />
+      </div>
+    );
+  };
 
   const handleClose = useCallback(() => {
     if (isEditing && hasUnsavedChanges) {
@@ -519,7 +651,13 @@ export function WorksheetPanel({
       </div>
 
       <ScrollArea className="min-h-0 flex-1">
-        <div className={cn(embedded ? "p-4" : "p-3")}>
+        <div
+          className={cn(
+            embedded
+              ? "p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
+              : "p-3 pb-4",
+          )}
+        >
           {isGenerating ? (
             <div className="flex min-h-[14rem] flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-background/60 px-4 py-10 text-center dark:bg-background/40">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -576,83 +714,10 @@ export function WorksheetPanel({
               ) : null}
             </div>
           )}
+
+          {renderDocumentActionBar()}
         </div>
       </ScrollArea>
-
-      <div
-        className={cn(
-          "flex shrink-0 flex-col gap-2.5 border-t bg-muted/10 dark:bg-muted/5",
-          embedded
-            ? "p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
-            : "p-3",
-        )}
-      >
-        {isEditing ? (
-          <div className="flex items-center justify-end gap-1.5">
-            <WorksheetIconAction
-              label={copy.worksheetSave}
-              onClick={handleSaveEdit}
-            >
-              <Save className="h-4 w-4" />
-            </WorksheetIconAction>
-            <WorksheetIconAction
-              label={copy.worksheetCancel}
-              onClick={handleCancelEdit}
-            >
-              <X className="h-4 w-4" />
-            </WorksheetIconAction>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between gap-1.5">
-            <WorksheetIconAction
-              label={copy.worksheetEdit}
-              disabled={!hasContent || isGenerating}
-              onClick={handleStartEdit}
-            >
-              <Pencil className="h-4 w-4" />
-            </WorksheetIconAction>
-            <WorksheetIconAction
-              label={copied ? copy.worksheetCopied : copy.worksheetCopy}
-              disabled={!hasContent || isGenerating}
-              active={copied}
-              onClick={() => void handleCopy()}
-            >
-              {copied ? (
-                <Check className="h-4 w-4 text-primary" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </WorksheetIconAction>
-            <WorksheetIconAction
-              label={copy.worksheetExportPdf}
-              disabled={!hasContent || isGenerating || isExportingPdf}
-              onClick={handleOpenExportPdfDialog}
-            >
-              {isExportingPdf ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <FileText className="h-4 w-4" />
-              )}
-            </WorksheetIconAction>
-            <WorksheetIconAction
-              label={copy.worksheetShare}
-              disabled={!hasContent || isGenerating || isSharing}
-              onClick={() => void handleShare()}
-            >
-              {isSharing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Link2 className="h-4 w-4" />
-              )}
-            </WorksheetIconAction>
-            <WorksheetOverflowMenu
-              label={copy.worksheetMoreActions}
-              items={overflowMenuItems}
-              disabled={isGenerating}
-            />
-          </div>
-        )}
-      </div>
 
       <WorksheetExportPdfDialog
         open={exportPdfDialogOpen}

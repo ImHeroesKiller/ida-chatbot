@@ -69,14 +69,16 @@ export interface WorksheetOverflowMenuItem {
   destructive?: boolean;
 }
 
-export function WorksheetOverflowMenu({
+export function WorksheetIconMenu({
   label,
   items,
   disabled = false,
+  children,
 }: {
   label: string;
   items: WorksheetOverflowMenuItem[];
   disabled?: boolean;
+  children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
@@ -150,7 +152,7 @@ export function WorksheetOverflowMenu({
           className="h-9 w-9 shrink-0"
           onClick={() => setOpen((current) => !current)}
         >
-          <MoreVertical className="h-4 w-4" />
+          {children}
         </Button>
         <span
           role="tooltip"
@@ -201,5 +203,21 @@ export function WorksheetOverflowMenu({
           )
         : null}
     </>
+  );
+}
+
+export function WorksheetOverflowMenu({
+  label,
+  items,
+  disabled = false,
+}: {
+  label: string;
+  items: WorksheetOverflowMenuItem[];
+  disabled?: boolean;
+}) {
+  return (
+    <WorksheetIconMenu label={label} items={items} disabled={disabled}>
+      <MoreVertical className="h-4 w-4" />
+    </WorksheetIconMenu>
   );
 }
