@@ -2,6 +2,7 @@
 
 import {
   AlertCircle,
+  Check,
   Copy,
   Download,
   FileText,
@@ -33,6 +34,11 @@ import {
 } from "@/components/chat/worksheet-export-pdf-dialog";
 import { WorksheetPrintPreviewDialog } from "@/components/chat/worksheet-print-preview-dialog";
 import { WorksheetTemplateDialog } from "@/components/chat/worksheet-template-dialog";
+import {
+  WorksheetIconAction,
+  WorksheetOverflowMenu,
+  type WorksheetOverflowMenuItem,
+} from "@/components/chat/worksheet-panel-actions";
 import { WorksheetVersionHistoryDialog } from "@/components/chat/worksheet-version-history-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -146,11 +152,6 @@ export function WorksheetPanel({
         return copy.errors.generic;
     }
   }, [copy, error]);
-
-  const actionButtonClass = cn(
-    "gap-1.5 text-xs",
-    embedded ? "h-10 min-h-10" : "h-9",
-  );
 
   const handleCopy = useCallback(async () => {
     if (!hasContent || isEditing) return;
@@ -308,6 +309,88 @@ export function WorksheetPanel({
     if (!window.confirm(copy.worksheetClearConfirm)) return;
     onClear?.();
   }, [copy.worksheetClearConfirm, error, hasContent, isEditing, onClear]);
+
+  const overflowMenuItems = useMemo((): WorksheetOverflowMenuItem[] => {
+    const items: WorksheetOverflowMenuItem[] = [];
+
+    if (onApplyTemplate) {
+      items.push({
+        id: "templates",
+        label: copy.worksheetTemplates,
+        icon: <LayoutTemplate className="h-3.5 w-3.5" />,
+        disabled: isGenerating || isEditing,
+        onClick: () => setTemplateDialogOpen(true),
+      });
+    }
+
+    items.push(
+      {
+        id: "download",
+        label: copy.worksheetDownload,
+        icon: <Download className="h-3.5 w-3.5" />,
+        disabled: !hasContent || isGenerating,
+        onClick: handleDownload,
+      },
+      {
+        id: "print",
+        label: copy.worksheetPrintPreview,
+        icon: <Printer className="h-3.5 w-3.5" />,
+        disabled: !hasContent || isGenerating,
+        onClick: () => setPrintPreviewOpen(true),
+      },
+    );
+
+    if (versions.length > 0) {
+      items.push({
+        id: "history",
+        label: copy.worksheetHistory,
+        icon: <History className="h-3.5 w-3.5" />,
+        disabled: isGenerating,
+        onClick: () => setHistoryDialogOpen(true),
+      });
+    }
+
+    if (canRegenerate && onRegenerate) {
+      items.push({
+        id: "regenerate",
+        label: copy.worksheetRegenerate,
+        icon: <RefreshCw className="h-3.5 w-3.5" />,
+        disabled: isGenerating,
+        onClick: onRegenerate,
+      });
+    }
+
+    if (onClear) {
+      items.push({
+        id: "clear",
+        label: copy.worksheetClear,
+        icon: <Trash2 className="h-3.5 w-3.5" />,
+        disabled: isGenerating || (!hasContent && !error),
+        destructive: true,
+        onClick: handleClear,
+      });
+    }
+
+    return items;
+  }, [
+    canRegenerate,
+    copy.worksheetClear,
+    copy.worksheetDownload,
+    copy.worksheetHistory,
+    copy.worksheetPrintPreview,
+    copy.worksheetRegenerate,
+    copy.worksheetTemplates,
+    error,
+    handleClear,
+    handleDownload,
+    hasContent,
+    isEditing,
+    isGenerating,
+    onApplyTemplate,
+    onClear,
+    onRegenerate,
+    versions.length,
+  ]);
 
   const handleClose = useCallback(() => {
     if (isEditing && hasUnsavedChanges) {
@@ -505,172 +588,69 @@ export function WorksheetPanel({
         )}
       >
         {isEditing ? (
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="default"
-              size="sm"
-              className={cn("flex-1", actionButtonClass)}
+          <div className="flex items-center justify-end gap-1.5">
+            <WorksheetIconAction
+              label={copy.worksheetSave}
               onClick={handleSaveEdit}
             >
-              <Save className="h-3.5 w-3.5" />
-              {copy.worksheetSave}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className={cn("flex-1", actionButtonClass)}
+              <Save className="h-4 w-4" />
+            </WorksheetIconAction>
+            <WorksheetIconAction
+              label={copy.worksheetCancel}
               onClick={handleCancelEdit}
             >
-              <X className="h-3.5 w-3.5" />
-              {copy.worksheetCancel}
-            </Button>
+              <X className="h-4 w-4" />
+            </WorksheetIconAction>
           </div>
         ) : (
-          <>
-            {(canRegenerate || onClear) && !isGenerating ? (
-              <div className="flex gap-2">
-                {canRegenerate && onRegenerate ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className={cn("flex-1", embedded ? "h-10 min-h-10" : "h-8")}
-                    onClick={onRegenerate}
-                  >
-                    <RefreshCw className="h-3.5 w-3.5" />
-                    {copy.worksheetRegenerate}
-                  </Button>
-                ) : null}
-                {onClear ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      "flex-1 gap-1.5 text-xs text-destructive hover:text-destructive",
-                      embedded ? "h-10 min-h-10" : "h-8",
-                    )}
-                    disabled={!hasContent && !error}
-                    onClick={handleClear}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    {copy.worksheetClear}
-                  </Button>
-                ) : null}
-              </div>
-            ) : null}
-
-            <div className="flex gap-2">
-              {onApplyTemplate ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className={cn("flex-1", actionButtonClass)}
-                  disabled={isGenerating || isEditing}
-                  onClick={() => setTemplateDialogOpen(true)}
-                >
-                  <LayoutTemplate className="h-3.5 w-3.5" />
-                  {copy.worksheetTemplates}
-                </Button>
-              ) : null}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className={cn("flex-1", actionButtonClass)}
-                disabled={!hasContent || isGenerating}
-                onClick={handleStartEdit}
-              >
-                <Pencil className="h-3.5 w-3.5" />
-                {copy.worksheetEdit}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className={cn("flex-1", actionButtonClass)}
-                disabled={!hasContent || isGenerating}
-                onClick={() => void handleCopy()}
-              >
-                <Copy className="h-3.5 w-3.5" />
-                {copied ? copy.worksheetCopied : copy.worksheetCopy}
-              </Button>
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className={cn("flex-1", actionButtonClass)}
-                disabled={!hasContent || isGenerating}
-                onClick={handleDownload}
-              >
-                <Download className="h-3.5 w-3.5" />
-                {copy.worksheetDownload}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className={cn("flex-1", actionButtonClass)}
-                disabled={!hasContent || isGenerating}
-                onClick={() => setPrintPreviewOpen(true)}
-              >
-                <Printer className="h-3.5 w-3.5" />
-                {copy.worksheetPrintPreview}
-              </Button>
-            </div>
-
-            <div className="flex gap-2">
-              {versions.length > 0 ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className={cn("flex-1", actionButtonClass)}
-                  disabled={isGenerating}
-                  onClick={() => setHistoryDialogOpen(true)}
-                >
-                  <History className="h-3.5 w-3.5" />
-                  {copy.worksheetHistory}
-                </Button>
-              ) : null}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className={cn("flex-1", actionButtonClass)}
-                disabled={!hasContent || isGenerating || isSharing}
-                onClick={() => void handleShare()}
-              >
-                {isSharing ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Link2 className="h-3.5 w-3.5" />
-                )}
-                {copy.worksheetShare}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className={cn("flex-1", actionButtonClass)}
-                disabled={!hasContent || isGenerating || isExportingPdf}
-                onClick={handleOpenExportPdfDialog}
-              >
-                {isExportingPdf ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <FileText className="h-3.5 w-3.5" />
-                )}
-                {copy.worksheetExportPdf}
-              </Button>
-            </div>
-          </>
+          <div className="flex items-center justify-between gap-1.5">
+            <WorksheetIconAction
+              label={copy.worksheetEdit}
+              disabled={!hasContent || isGenerating}
+              onClick={handleStartEdit}
+            >
+              <Pencil className="h-4 w-4" />
+            </WorksheetIconAction>
+            <WorksheetIconAction
+              label={copied ? copy.worksheetCopied : copy.worksheetCopy}
+              disabled={!hasContent || isGenerating}
+              active={copied}
+              onClick={() => void handleCopy()}
+            >
+              {copied ? (
+                <Check className="h-4 w-4 text-primary" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </WorksheetIconAction>
+            <WorksheetIconAction
+              label={copy.worksheetExportPdf}
+              disabled={!hasContent || isGenerating || isExportingPdf}
+              onClick={handleOpenExportPdfDialog}
+            >
+              {isExportingPdf ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileText className="h-4 w-4" />
+              )}
+            </WorksheetIconAction>
+            <WorksheetIconAction
+              label={copy.worksheetShare}
+              disabled={!hasContent || isGenerating || isSharing}
+              onClick={() => void handleShare()}
+            >
+              {isSharing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Link2 className="h-4 w-4" />
+              )}
+            </WorksheetIconAction>
+            <WorksheetOverflowMenu
+              label={copy.worksheetMoreActions}
+              items={overflowMenuItems}
+              disabled={isGenerating}
+            />
+          </div>
         )}
       </div>
 

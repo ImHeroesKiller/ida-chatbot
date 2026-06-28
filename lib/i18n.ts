@@ -222,6 +222,7 @@ export const COPY: Record<
     worksheetShare: string;
     worksheetShareCopied: string;
     worksheetShareError: string;
+    worksheetMoreActions: string;
     worksheetEditMarkdown: string;
     worksheetEditSplit: string;
     worksheetEditMarkdownHint: string;
@@ -478,6 +479,7 @@ export const COPY: Record<
     worksheetShare: "Bagikan",
     worksheetShareCopied: "Tautan dibagikan dan disalin",
     worksheetShareError: "Gagal membuat tautan. Coba lagi.",
+    worksheetMoreActions: "Lainnya",
     worksheetEditMarkdown: "Markdown",
     worksheetEditSplit: "Split",
     worksheetEditMarkdownHint: "Mode sumber Markdown penuh.",
@@ -738,6 +740,7 @@ export const COPY: Record<
     worksheetShare: "Share",
     worksheetShareCopied: "Share link created and copied",
     worksheetShareError: "Failed to create share link. Please try again.",
+    worksheetMoreActions: "More",
     worksheetEditMarkdown: "Markdown",
     worksheetEditSplit: "Split",
     worksheetEditMarkdownHint: "Full Markdown source mode.",
@@ -989,6 +992,7 @@ export const COPY: Record<
     worksheetShare: "分享",
     worksheetShareCopied: "分享链接已创建并复制",
     worksheetShareError: "创建分享链接失败，请重试。",
+    worksheetMoreActions: "更多",
     worksheetEditMarkdown: "Markdown",
     worksheetEditSplit: "分屏",
     worksheetEditMarkdownHint: "完整 Markdown 源码模式。",
