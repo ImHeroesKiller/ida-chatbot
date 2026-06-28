@@ -55,10 +55,10 @@ const HandoffDialog = dynamic(
 );
 
 import { useChatContext } from "@/components/chat/chat-provider";
-import { getTool } from "@/components/chat/tools";
-import { useResearch, researchTool } from "@/components/chat/tools/research";
-import { useWebSearch, webSearchTool } from "@/components/chat/tools/web-search";
-import { useWorksheet, worksheetTool } from "@/components/chat/tools/worksheet";
+import {
+  extractResearchTopicFromMessages,
+  useToolsCoordinator,
+} from "@/components/chat/tools/use-tools-coordinator";
 import {
   Sheet,
   SheetContent,
@@ -109,7 +109,6 @@ import {
 import { useVoicePrefs } from "@/lib/voice/voice-prefs";
 import { RightSidebar } from "@/components/chat/right-sidebar";
 import { RightToolsRail } from "@/components/chat/right-tools-rail";
-import type { RightSidebarPanel } from "@/lib/chat-tools";
 import { useChatFontSize } from "@/lib/chat-font-prefs";
 
 
@@ -117,28 +116,7 @@ function createMessageId() {
   return `ida-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-const WORKSHEET_PANEL = worksheetTool.id as RightSidebarPanel;
-const WEB_SEARCH_PANEL = webSearchTool.id as RightSidebarPanel;
-const RESEARCH_PANEL = researchTool.id as RightSidebarPanel;
-
-function isWorksheetToolAvailable(): boolean {
-  return getTool(worksheetTool.id)?.enabled ?? false;
-}
-
-function isWebSearchToolAvailable(): boolean {
-  return getTool(webSearchTool.id)?.enabled ?? false;
-}
-
-function isResearchToolAvailable(): boolean {
-  return getTool(researchTool.id)?.enabled ?? false;
-}
-
 function ChatRoomContent() {
-  const worksheet = useWorksheet();
-  void worksheet;
-  const webSearch = useWebSearch();
-  const research = useResearch();
-
   const { locale, openHandoff, closeHandoff } = useChatContext();
   const copy = COPY[locale];
   const { expanded: sidebarExpanded, setExpanded: setSidebarExpanded } =
@@ -150,7 +128,11 @@ function ChatRoomContent() {
   const webSearchAvailable = Boolean(
     appFeatures?.webSearchAvailable && appFeatures?.features.webSearch,
   );
-  const researchAvailable = webSearchAvailable;
+
+  const tools = useToolsCoordinator({
+    webSearchAvailable,
+    researchAvailable: webSearchAvailable,
+  });
 
   const {
     hydrated,
@@ -176,14 +158,10 @@ function ChatRoomContent() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-  const [rightPanel, setRightPanel] = useState<RightSidebarPanel | null>(null);
-  const [worksheetToolEnabled, setWorksheetToolEnabled] = useState(false);
-  const [webSearchToolEnabled, setWebSearchToolEnabled] = useState(false);
-  const [researchToolEnabled, setResearchToolEnabled] = useState(false);
   const [worksheetWorkspace, setWorksheetWorkspace] =
     useState<WorksheetDocument>(() => createEmptyWorksheetWorkspace(locale));
   const isMobileViewport = useIsMobileViewport();
-  const rightPanelSheetOpen = Boolean(rightPanel) && isMobileViewport;
+  const rightPanelSheetOpen = Boolean(tools.activePanel) && isMobileViewport;
 
   const worksheetWorkspaceRef = useRef<WorksheetDocument>(
     createEmptyWorksheetWorkspace(locale),
@@ -269,69 +247,7 @@ function ChatRoomContent() {
       setStreamingMessageId(null);
       setIsLoading(false);
       setEditingMessageId(null);
-      setRightPanel(currentChat.activeRightPanel ?? null);
-      setWorksheetToolEnabled(
-        isWorksheetToolAvailable() &&
-          (currentChat.worksheetToolEnabled ??
-            currentChat.activeRightPanel === WORKSHEET_PANEL),
-      );
-      setWebSearchToolEnabled(
-        isWebSearchToolAvailable() &&
-          (currentChat.webSearchEnabled ??
-            currentChat.activeRightPanel === WEB_SEARCH_PANEL),
-      );
-      setResearchToolEnabled(
-        isResearchToolAvailable() &&
-          (currentChat.researchEnabled ??
-            currentChat.activeRightPanel === RESEARCH_PANEL),
-      );
-
-      const lastWebSearchMessage = [...currentChat.messages]
-        .reverse()
-        .find((message) => message.webSearchSources?.length);
-      if (lastWebSearchMessage?.webSearchSources?.length) {
-        webSearch.setSearchResults(lastWebSearchMessage.webSearchSources);
-      } else {
-        webSearch.clearResults();
-      }
-      webSearch.setEnabled(
-        isWebSearchToolAvailable() &&
-          Boolean(
-            currentChat.webSearchEnabled ??
-              currentChat.activeRightPanel === WEB_SEARCH_PANEL,
-          ),
-      );
-
-      const lastResearchMessage = [...currentChat.messages]
-        .reverse()
-        .find(
-          (message) =>
-            message.researchSources?.length || message.researchSummary,
-        );
-      const lastResearchResult = lastResearchMessage?.researchSources?.length
-        ? {
-            topic:
-              [...currentChat.messages]
-                .reverse()
-                .find((message) => message.role === "user")?.content?.trim() ??
-              "Research",
-            depth: "standard" as const,
-            summary: lastResearchMessage.researchSummary ?? "",
-            sources: lastResearchMessage.researchSources ?? [],
-            queries: lastResearchMessage.researchQueries ?? [],
-          }
-        : null;
-
-      research.hydrateFromChat({
-        enabled:
-          isResearchToolAvailable() &&
-          Boolean(
-            currentChat.researchEnabled ??
-              currentChat.activeRightPanel === RESEARCH_PANEL,
-          ),
-        sessions: currentChat.researchSessions ?? [],
-        lastResult: lastResearchResult,
-      });
+      tools.hydrateFromChat(currentChat);
 
       const worksheet = normalizeWorksheetDocument(currentChat.worksheet, locale);
       setWorksheetWorkspace(worksheet);
@@ -346,7 +262,7 @@ function ChatRoomContent() {
 
     activeChatIdRef.current = currentChat.id;
     localStateChatIdRef.current = currentChat.id;
-  }, [hydrated, currentChat, locale]);
+  }, [hydrated, currentChat, locale, tools.hydrateFromChat]);
 
   useEffect(() => {
     worksheetWorkspaceRef.current = worksheetWorkspace;
@@ -368,11 +284,7 @@ function ChatRoomContent() {
 
     persistCurrentChat({
       messages,
-      activeRightPanel: rightPanel,
-      worksheetToolEnabled,
-      webSearchEnabled: webSearchToolEnabled,
-      researchEnabled: researchToolEnabled,
-      researchSessions: research.researchSessions,
+      ...tools.getPersistPatch(),
     });
   }, [
     currentChat,
@@ -381,11 +293,12 @@ function ChatRoomContent() {
     messages,
     canPersistCurrentChatState,
     persistCurrentChat,
-    research.researchSessions,
-    rightPanel,
-    researchToolEnabled,
-    webSearchToolEnabled,
-    worksheetToolEnabled,
+    tools.activePanel,
+    tools.getPersistPatch,
+    tools.research.researchSessions,
+    tools.research.isEnabled,
+    tools.webSearch.isEnabled,
+    tools.worksheet.isEnabled,
   ]);
 
   useEffect(() => {
@@ -412,8 +325,8 @@ function ChatRoomContent() {
     const handleEscape = (event: globalThis.KeyboardEvent) => {
       if (event.key !== "Escape") return;
 
-      if (rightPanel) {
-        setRightPanel(null);
+      if (tools.activePanel) {
+        tools.collapsePanel();
         return;
       }
 
@@ -423,7 +336,7 @@ function ChatRoomContent() {
 
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [closeHandoff, rightPanel]);
+  }, [closeHandoff, tools]);
 
   useEffect(() => {
     if (!rightPanelSheetOpen) return;
@@ -457,12 +370,7 @@ function ChatRoomContent() {
       setStreamingMessageId(null);
       setIsLoading(false);
       setEditingMessageId(null);
-      setRightPanel(null);
-      setWorksheetToolEnabled(false);
-      setWebSearchToolEnabled(false);
-      setResearchToolEnabled(false);
-      webSearch.resetForNewChat();
-      research.resetForNewChat();
+      tools.resetForNewChat();
 
       const emptyWorksheet = normalizeWorksheetDocument(
         createEmptyWorksheet(),
@@ -476,7 +384,7 @@ function ChatRoomContent() {
 
     createChat();
     setMobileSidebarOpen(false);
-  }, [createChat, locale, research, webSearch]);
+  }, [createChat, locale, tools]);
 
   const streamAssistantReply = useCallback(
     async (
@@ -548,17 +456,16 @@ function ChatRoomContent() {
 
           if (activeChatIdRef.current === chatIdAtSend) {
             setMessages(finalMessages);
-            webSearch.setSearchResults(sources);
+            tools.webSearch.setSearchResults(sources);
             if (queries?.length) {
-              webSearch.setLastQuery(queries[queries.length - 1] ?? null);
+              tools.webSearch.setLastQuery(queries[queries.length - 1] ?? null);
             }
-            setWebSearchToolEnabled(true);
-            setRightPanel(WEB_SEARCH_PANEL);
+            tools.activateWebSearch();
           } else {
             persistCurrentChat({
               messages: finalMessages,
               webSearchEnabled: true,
-              activeRightPanel: WEB_SEARCH_PANEL,
+              activeRightPanel: tools.webSearch.panelId,
             });
           }
         };
@@ -583,27 +490,22 @@ function ChatRoomContent() {
 
           const topic =
             researchTopic?.trim() ||
-            [...contextMessages]
-              .reverse()
-              .find((message) => message.role === "user")
-              ?.content?.trim() ||
-            "Research";
+            extractResearchTopicFromMessages(contextMessages);
 
           if (activeChatIdRef.current === chatIdAtSend) {
             setMessages(finalMessages);
-            research.applyResearchFromMessage({
+            tools.research.applyResearchFromMessage({
               topic,
               summary: summary ?? "",
               sources: sources ?? [],
               queries: queries ?? [],
             });
-            setResearchToolEnabled(true);
-            setRightPanel(RESEARCH_PANEL);
+            tools.activateResearch();
           } else {
             persistCurrentChat({
               messages: finalMessages,
               researchEnabled: true,
-              activeRightPanel: RESEARCH_PANEL,
+              activeRightPanel: tools.research.panelId,
             });
           }
         };
@@ -630,14 +532,13 @@ function ChatRoomContent() {
           if (activeChatIdRef.current === chatIdAtSend) {
             setWorksheetWorkspace(next);
             setWorksheetErrorDetail(null);
-            setWorksheetToolEnabled(true);
-            setRightPanel(WORKSHEET_PANEL);
+            tools.activateWorksheet();
             toast.success(copy.worksheetCreated);
           }
 
           persistCurrentChat({
             worksheet: persisted,
-            activeRightPanel: WORKSHEET_PANEL,
+            activeRightPanel: tools.worksheet.panelId,
             worksheetToolEnabled: true,
           });
         };
@@ -657,13 +558,12 @@ function ChatRoomContent() {
           if (activeChatIdRef.current === chatIdAtSend) {
             setWorksheetWorkspace(next);
             setWorksheetErrorDetail(null);
-            setWorksheetToolEnabled(true);
-            setRightPanel(WORKSHEET_PANEL);
+            tools.activateWorksheet();
           }
 
           persistCurrentChat({
             worksheet: persisted,
-            activeRightPanel: WORKSHEET_PANEL,
+            activeRightPanel: tools.worksheet.panelId,
             worksheetToolEnabled: true,
           });
         };
@@ -759,8 +659,7 @@ function ChatRoomContent() {
             );
             setWorksheetWorkspace(next);
             setWorksheetErrorDetail(errorMessage);
-            setWorksheetToolEnabled(true);
-            setRightPanel(WORKSHEET_PANEL);
+            tools.activateWorksheet();
           }
         }
 
@@ -775,22 +674,22 @@ function ChatRoomContent() {
               ...next,
               updatedAt: Date.now(),
             }),
-            activeRightPanel: WORKSHEET_PANEL,
+            activeRightPanel: tools.worksheet.panelId,
             worksheetToolEnabled: true,
           });
         }
 
         if (useWebSearch) {
           if (activeChatIdRef.current === chatIdAtSend) {
-            webSearch.finishSearchError(errorMessage);
-            setRightPanel(WEB_SEARCH_PANEL);
+            tools.webSearch.finishSearchError(errorMessage);
+            tools.openPanel(tools.webSearch.panelId);
           }
         }
 
         if (useResearch) {
           if (activeChatIdRef.current === chatIdAtSend) {
-            research.endChatResearch();
-            setRightPanel(RESEARCH_PANEL);
+            tools.research.endChatResearch();
+            tools.openPanel(tools.research.panelId);
           }
         }
 
@@ -807,9 +706,7 @@ function ChatRoomContent() {
       appFeatures?.features.autoSpeak,
       prefs.autoSpeak,
       speak,
-      research,
-      webSearch,
-      webSearchAvailable,
+      tools,
     ],
   );
 
@@ -832,22 +729,15 @@ function ChatRoomContent() {
 
       setError(null);
 
-      const worksheetAtSend = worksheetToolEnabled;
+      const worksheetAtSend = tools.worksheetAtSend;
       if (worksheetAtSend && text) {
         setLastWorksheetPrompt(text);
       }
-      const researchAtSend =
-        researchAvailable &&
-        researchToolEnabled &&
-        isResearchToolAvailable();
-      const webSearchAtSend =
-        !researchAtSend &&
-        webSearchAvailable &&
-        webSearchToolEnabled &&
-        isWebSearchToolAvailable();
+      const researchAtSend = tools.researchAtSend;
+      const webSearchAtSend = tools.webSearchAtSend;
 
       if (worksheetAtSend) {
-        setRightPanel(WORKSHEET_PANEL);
+        tools.openPanel(tools.worksheet.panelId);
         setWorksheetWorkspace((prev) =>
           prev.error ? { ...prev, error: undefined } : prev,
         );
@@ -855,13 +745,13 @@ function ChatRoomContent() {
       }
 
       if (webSearchAtSend && text) {
-        webSearch.beginSearch(text);
-        setRightPanel(WEB_SEARCH_PANEL);
+        tools.webSearch.beginSearch(text);
+        tools.openPanel(tools.webSearch.panelId);
       }
 
       if (researchAtSend && text) {
-        research.beginChatResearch();
-        setRightPanel(RESEARCH_PANEL);
+        tools.research.beginChatResearch();
+        tools.openPanel(tools.research.panelId);
       }
 
       const userMessage: IdaMessage = {
@@ -909,10 +799,10 @@ function ChatRoomContent() {
           setStreamingMessageId(null);
           setIsLoading(false);
           if (webSearchAtSend) {
-            webSearch.endSearch();
+            tools.webSearch.endSearch();
           }
           if (researchAtSend) {
-            research.endChatResearch();
+            tools.research.endChatResearch();
           }
         }
       }
@@ -923,14 +813,8 @@ function ChatRoomContent() {
       currentChat,
       isLoading,
       messages,
-      research,
-      webSearch,
-      worksheetToolEnabled,
+      tools,
       streamAssistantReply,
-      researchAvailable,
-      researchToolEnabled,
-      webSearchAvailable,
-      webSearchToolEnabled,
     ],
   );
 
@@ -981,12 +865,6 @@ function ChatRoomContent() {
 
       const chatIdAtSend = currentChat.id;
 
-      const researchAtSend =
-        researchAvailable &&
-        researchToolEnabled &&
-        isResearchToolAvailable();
-      const worksheetAtSend = worksheetToolEnabled;
-
       try {
         await streamAssistantReply(
           contextMessages,
@@ -994,9 +872,9 @@ function ChatRoomContent() {
           chatIdAtSend,
           currentChat.apiSessionId,
           apiUserId,
-          !researchAtSend && webSearchAvailable && webSearchToolEnabled,
-          researchAtSend,
-          worksheetAtSend,
+          tools.webSearchAtSend,
+          tools.researchAtSend,
+          tools.worksheetAtSend,
           lastMessage.content,
         );
       } finally {
@@ -1011,12 +889,8 @@ function ChatRoomContent() {
       currentChat,
       isLoading,
       messages,
-      worksheetToolEnabled,
       streamAssistantReply,
-      researchAvailable,
-      researchToolEnabled,
-      webSearchAvailable,
-      webSearchToolEnabled,
+      tools,
     ],
   );
 
@@ -1076,12 +950,6 @@ function ChatRoomContent() {
 
       const chatIdAtSend = currentChat.id;
 
-      const researchAtSend =
-        researchAvailable &&
-        researchToolEnabled &&
-        isResearchToolAvailable();
-      const worksheetAtSend = worksheetToolEnabled;
-
       try {
         await streamAssistantReply(
           contextMessages,
@@ -1089,9 +957,9 @@ function ChatRoomContent() {
           chatIdAtSend,
           currentChat.apiSessionId,
           apiUserId,
-          !researchAtSend && webSearchAvailable && webSearchToolEnabled,
-          researchAtSend,
-          worksheetAtSend,
+          tools.webSearchAtSend,
+          tools.researchAtSend,
+          tools.worksheetAtSend,
           text,
         );
       } finally {
@@ -1107,12 +975,8 @@ function ChatRoomContent() {
       currentChat,
       isLoading,
       messages,
-      worksheetToolEnabled,
       streamAssistantReply,
-      researchAvailable,
-      researchToolEnabled,
-      webSearchAvailable,
-      webSearchToolEnabled,
+      tools,
     ],
   );
 
@@ -1163,37 +1027,6 @@ function ChatRoomContent() {
     handleWorksheetRetry();
   }, [handleWorksheetRetry]);
 
-  const handleWorksheetToolChange = useCallback((enabled: boolean) => {
-    if (!isWorksheetToolAvailable()) return;
-
-    setWorksheetToolEnabled(enabled);
-
-    if (!enabled) {
-      setRightPanel((panel) => (panel === WORKSHEET_PANEL ? null : panel));
-    }
-  }, []);
-
-  const handleWebSearchToolChange = useCallback(
-    (enabled: boolean) => {
-      if (!isWebSearchToolAvailable() || !webSearchAvailable) return;
-
-      setWebSearchToolEnabled(enabled);
-      webSearch.setEnabled(enabled);
-
-      if (enabled) {
-        setRightPanel(WEB_SEARCH_PANEL);
-      } else {
-        setRightPanel((panel) => (panel === WEB_SEARCH_PANEL ? null : panel));
-        webSearch.clearResults();
-      }
-    },
-    [webSearch, webSearchAvailable],
-  );
-
-  const handleWebSearchClearResults = useCallback(() => {
-    webSearch.clearResults();
-  }, [webSearch]);
-
   const handleWebSearchUseAsContext = useCallback(
     (result: IdaWebSearchSource) => {
       const snippet = `${result.title}\n${result.url}\n${result.snippet}`.trim();
@@ -1203,47 +1036,28 @@ function ChatRoomContent() {
     [],
   );
 
-  const handleResearchToolChange = useCallback(
-    (enabled: boolean) => {
-      if (!isResearchToolAvailable() || !researchAvailable) return;
-
-      setResearchToolEnabled(enabled);
-      research.setEnabled(enabled);
-
-      if (enabled) {
-        setRightPanel(RESEARCH_PANEL);
-      } else {
-        setRightPanel((panel) => (panel === RESEARCH_PANEL ? null : panel));
-        research.clearResults();
-      }
-    },
-    [research, researchAvailable],
-  );
-
   const handleResearchStart = useCallback(
     (topic: string, depth: "quick" | "standard" | "deep") => {
-      void research.startResearch(topic, depth, locale);
-      setRightPanel(RESEARCH_PANEL);
+      void tools.research.startResearch(topic, depth, locale);
+      tools.openPanel(tools.research.panelId);
     },
-    [locale, research],
+    [locale, tools],
   );
 
-  const handleResearchClearResults = useCallback(() => {
-    research.clearResults();
-  }, [research]);
-
   const handleResearchSaveSession = useCallback(() => {
-    const saved = research.saveResearchSession();
+    const saved = tools.research.saveResearchSession();
     if (!saved) return;
 
     const nextSessions = [
       saved,
-      ...research.researchSessions.filter((session) => session.id !== saved.id),
+      ...tools.research.researchSessions.filter(
+        (session) => session.id !== saved.id,
+      ),
     ];
-    research.setSessions(nextSessions);
+    tools.research.setSessions(nextSessions);
     persistCurrentChat({ researchSessions: nextSessions });
     toast.success(copy.researchSessionSaved);
-  }, [copy.researchSessionSaved, persistCurrentChat, research]);
+  }, [copy.researchSessionSaved, persistCurrentChat, tools.research]);
 
   const createWorksheetFromResearch = useCallback(
     (session: ResearchSession) => {
@@ -1263,21 +1077,20 @@ function ChatRoomContent() {
       });
 
       setWorksheetWorkspace(next);
-      setWorksheetToolEnabled(true);
-      setRightPanel(WORKSHEET_PANEL);
+      tools.activateWorksheet();
       persistCurrentChat({
         worksheet: persisted,
         worksheetToolEnabled: true,
-        activeRightPanel: WORKSHEET_PANEL,
+        activeRightPanel: tools.worksheet.panelId,
       });
       toast.success(copy.worksheetCreated);
     },
-    [copy.worksheetCreated, persistCurrentChat],
+    [copy.worksheetCreated, persistCurrentChat, tools],
   );
 
   const handleResearchOpenSession = useCallback(
     (session: ResearchSession) => {
-      research.applyResearchFromMessage({
+      tools.research.applyResearchFromMessage({
         topic: session.topic,
         summary: session.summary,
         sources: session.sources,
@@ -1285,7 +1098,7 @@ function ChatRoomContent() {
         depth: session.depth,
       });
     },
-    [research],
+    [tools.research],
   );
 
   const handleResearchCreateDocument = useCallback(
@@ -1296,21 +1109,36 @@ function ChatRoomContent() {
   );
 
   const handleResearchCreateDocumentFromCurrent = useCallback(() => {
-    if (!research.currentSession) return;
-    createWorksheetFromResearch(research.currentSession);
-  }, [createWorksheetFromResearch, research.currentSession]);
+    if (!tools.research.currentSession) return;
+    createWorksheetFromResearch(tools.research.currentSession);
+  }, [createWorksheetFromResearch, tools.research.currentSession]);
 
-  const handleToggleToolPanel = useCallback((panel: RightSidebarPanel) => {
-    setRightPanel((current) => (current === panel ? null : panel));
-  }, []);
-
-  const handleOpenToolPanel = useCallback((panel: RightSidebarPanel) => {
-    setRightPanel(panel);
-  }, []);
-
-  const handleCollapseToolPanel = useCallback(() => {
-    setRightPanel(null);
-  }, []);
+  const sharedToolPanelProps = {
+    locale,
+    webSearch: tools.webSearch,
+    research: tools.research,
+    worksheet: worksheetWorkspace,
+    worksheetErrorDetail,
+    worksheetGenerating: isLoading && tools.worksheet.isEnabled,
+    worksheetCanRegenerate: Boolean(lastWorksheetPrompt.trim()),
+    onWorksheetChange: handleWorksheetChange,
+    onWorksheetApplyTemplate: handleWorksheetApplyTemplate,
+    onWorksheetRetry: handleWorksheetRetry,
+    onWorksheetRegenerate: handleWorksheetRegenerate,
+    onWorksheetClear: handleWorksheetClear,
+    onWebSearchUseAsContext: handleWebSearchUseAsContext,
+    webSearchSearching:
+      isLoading && tools.webSearch.isEnabled && tools.webSearch.isSearching,
+    researchSearching:
+      tools.research.isResearching ||
+      (isLoading && tools.research.isEnabled && !tools.webSearch.isSearching),
+    onResearchStart: handleResearchStart,
+    onResearchSaveSession: handleResearchSaveSession,
+    onResearchOpenSession: handleResearchOpenSession,
+    onResearchCreateDocument: handleResearchCreateDocument,
+    onResearchCreateDocumentFromCurrent: handleResearchCreateDocumentFromCurrent,
+    onClose: tools.collapsePanel,
+  };
 
   const sidebarProps = {
     sessions,
@@ -1410,20 +1238,11 @@ function ChatRoomContent() {
               sessionId={currentChat?.apiSessionId}
               input={input}
               isLoading={isLoading}
-              webSearchEnabled={webSearchToolEnabled}
-              webSearchAvailable={webSearchAvailable}
-              researchEnabled={
-                isResearchToolAvailable() && researchToolEnabled
-              }
-              researchAvailable={researchAvailable}
-              worksheetEnabled={
-                isWorksheetToolAvailable() && worksheetToolEnabled
-              }
-              activeToolPanel={rightPanel}
-              onWebSearchChange={handleWebSearchToolChange}
-              onResearchChange={handleResearchToolChange}
-              onWorksheetChange={handleWorksheetToolChange}
-              onOpenToolPanel={handleOpenToolPanel}
+              webSearchAvailable={tools.webSearchAvailable}
+              researchAvailable={tools.researchAvailable}
+              isToolActive={tools.isToolActive}
+              isAnyToolActive={tools.isAnyToolActive}
+              onToolMenuClick={tools.handleMenuToolClick}
               onInputChange={setInput}
               onSend={(content, options) =>
                 void sendMessage(content, options)
@@ -1434,63 +1253,16 @@ function ChatRoomContent() {
 
           <RightToolsRail
             locale={locale}
-            activePanel={rightPanel}
-            worksheetEnabled={
-              isWorksheetToolAvailable() && worksheetToolEnabled
-            }
-            webSearchEnabled={
-              isWebSearchToolAvailable() && webSearchToolEnabled
-            }
-            webSearchAvailable={webSearchAvailable}
-            researchEnabled={
-              isResearchToolAvailable() && researchToolEnabled
-            }
-            researchAvailable={researchAvailable}
-            onWebSearchChange={handleWebSearchToolChange}
-            onResearchChange={handleResearchToolChange}
-            onSelectPanel={handleToggleToolPanel}
+            railItems={tools.railItems}
+            onRailClick={tools.handleRailClick}
             className="relative z-10 hidden shrink-0 md:flex"
           />
 
-          {rightPanel ? (
+          {tools.activePanel ? (
             <RightSidebar
-              key={`${currentChat?.id}-${rightPanel}`}
-              locale={locale}
-              panel={rightPanel}
-              worksheet={worksheetWorkspace}
-              worksheetErrorDetail={worksheetErrorDetail}
-              worksheetGenerating={isLoading && worksheetToolEnabled}
-              worksheetCanRegenerate={Boolean(lastWorksheetPrompt.trim())}
-              onWorksheetChange={handleWorksheetChange}
-              onWorksheetApplyTemplate={handleWorksheetApplyTemplate}
-              onWorksheetRetry={handleWorksheetRetry}
-              onWorksheetRegenerate={handleWorksheetRegenerate}
-              onWorksheetClear={handleWorksheetClear}
-              webSearchResults={webSearch.searchResults}
-              webSearchSearching={
-                isLoading && webSearchToolEnabled && webSearch.isSearching
-              }
-              webSearchLastQuery={webSearch.lastQuery}
-              webSearchError={webSearch.error}
-              onWebSearchClearResults={handleWebSearchClearResults}
-              onWebSearchUseAsContext={handleWebSearchUseAsContext}
-              researchResults={research.researchResults}
-              researchSessions={research.researchSessions}
-              researchSearching={
-                research.isResearching ||
-                (isLoading && researchToolEnabled && !webSearch.isSearching)
-              }
-              researchError={research.error}
-              onResearchStart={handleResearchStart}
-              onResearchClearResults={handleResearchClearResults}
-              onResearchSaveSession={handleResearchSaveSession}
-              onResearchOpenSession={handleResearchOpenSession}
-              onResearchCreateDocument={handleResearchCreateDocument}
-              onResearchCreateDocumentFromCurrent={
-                handleResearchCreateDocumentFromCurrent
-              }
-              onClose={handleCollapseToolPanel}
-              onCollapse={handleCollapseToolPanel}
+              key={`${currentChat?.id}-${tools.activePanel}`}
+              {...sharedToolPanelProps}
+              panel={tools.activePanel}
               className="relative z-10 hidden shrink-0 md:flex"
             />
           ) : null}
@@ -1501,7 +1273,7 @@ function ChatRoomContent() {
         open={rightPanelSheetOpen}
         modal
         onOpenChange={(open) => {
-          if (!open) handleCollapseToolPanel();
+          if (!open) tools.collapsePanel();
         }}
       >
         <SheetContent
@@ -1509,45 +1281,11 @@ function ChatRoomContent() {
           showCloseButton={false}
           className="w-[min(100vw,26rem)] max-w-full gap-0 overflow-hidden border-l p-0 shadow-xl"
         >
-          {rightPanel ? (
+          {tools.activePanel ? (
             <RightSidebar
               key={currentChat?.id}
-              locale={locale}
-              panel={rightPanel}
-              worksheet={worksheetWorkspace}
-              worksheetErrorDetail={worksheetErrorDetail}
-              worksheetGenerating={isLoading && worksheetToolEnabled}
-              worksheetCanRegenerate={Boolean(lastWorksheetPrompt.trim())}
-              onWorksheetChange={handleWorksheetChange}
-              onWorksheetApplyTemplate={handleWorksheetApplyTemplate}
-              onWorksheetRetry={handleWorksheetRetry}
-              onWorksheetRegenerate={handleWorksheetRegenerate}
-              onWorksheetClear={handleWorksheetClear}
-              webSearchResults={webSearch.searchResults}
-              webSearchSearching={
-                isLoading && webSearchToolEnabled && webSearch.isSearching
-              }
-              webSearchLastQuery={webSearch.lastQuery}
-              webSearchError={webSearch.error}
-              onWebSearchClearResults={handleWebSearchClearResults}
-              onWebSearchUseAsContext={handleWebSearchUseAsContext}
-              researchResults={research.researchResults}
-              researchSessions={research.researchSessions}
-              researchSearching={
-                research.isResearching ||
-                (isLoading && researchToolEnabled && !webSearch.isSearching)
-              }
-              researchError={research.error}
-              onResearchStart={handleResearchStart}
-              onResearchClearResults={handleResearchClearResults}
-              onResearchSaveSession={handleResearchSaveSession}
-              onResearchOpenSession={handleResearchOpenSession}
-              onResearchCreateDocument={handleResearchCreateDocument}
-              onResearchCreateDocumentFromCurrent={
-                handleResearchCreateDocumentFromCurrent
-              }
-              onClose={handleCollapseToolPanel}
-              onCollapse={handleCollapseToolPanel}
+              {...sharedToolPanelProps}
+              panel={tools.activePanel}
               embedded
             />
           ) : null}

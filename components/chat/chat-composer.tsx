@@ -32,7 +32,7 @@ import {
 import { useAppFeatures } from "@/lib/client/use-app-features";
 import { IDA_CONFIG, type Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
-import type { RightSidebarPanel } from "@/lib/chat-tools";
+
 import type { IdaAttachment, IdaAttachmentType } from "@/lib/types";
 import { getVoiceErrorMessage } from "@/lib/voice/voice-error-copy";
 import { useVoiceInput } from "@/lib/voice/use-voice-input";
@@ -57,16 +57,11 @@ interface ChatComposerProps {
   sessionId?: string;
   input: string;
   isLoading: boolean;
-  webSearchEnabled: boolean;
   webSearchAvailable: boolean;
-  researchEnabled: boolean;
   researchAvailable: boolean;
-  worksheetEnabled: boolean;
-  activeToolPanel: RightSidebarPanel | null;
-  onWebSearchChange: (enabled: boolean) => void;
-  onResearchChange: (enabled: boolean) => void;
-  onWorksheetChange: (enabled: boolean) => void;
-  onOpenToolPanel: (panel: RightSidebarPanel) => void;
+  isToolActive: (toolId: import("@/components/chat/tools/types").ToolId) => boolean;
+  isAnyToolActive: boolean;
+  onToolMenuClick: (toolId: import("@/components/chat/tools/types").ToolId) => void;
   onInputChange: (value: string) => void;
   onSend: (content: string, options?: {
     attachment?: IdaAttachment;
@@ -84,16 +79,11 @@ export function ChatComposer({
   sessionId,
   input,
   isLoading,
-  webSearchEnabled,
   webSearchAvailable,
-  researchEnabled,
   researchAvailable,
-  worksheetEnabled,
-  activeToolPanel,
-  onWebSearchChange,
-  onResearchChange,
-  onWorksheetChange,
-  onOpenToolPanel,
+  isToolActive,
+  isAnyToolActive,
+  onToolMenuClick,
   onInputChange,
   onSend,
 }: ChatComposerProps) {
@@ -470,16 +460,11 @@ export function ChatComposer({
           <ToolsMenu
             locale={locale}
             disabled={isLoading || isExtracting || isTranscribing}
-            webSearchEnabled={webSearchEnabled}
             webSearchAvailable={webSearchAvailable}
-            researchEnabled={researchEnabled}
             researchAvailable={researchAvailable}
-            worksheetEnabled={worksheetEnabled}
-            activePanel={activeToolPanel}
-            onWebSearchChange={onWebSearchChange}
-            onResearchChange={onResearchChange}
-            onWorksheetChange={onWorksheetChange}
-            onOpenPanel={onOpenToolPanel}
+            isToolActive={isToolActive}
+            isAnyToolActive={isAnyToolActive}
+            onToolClick={onToolMenuClick}
           />
 
           {ocrEnabled && (

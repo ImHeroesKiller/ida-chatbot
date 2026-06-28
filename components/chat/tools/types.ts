@@ -9,6 +9,7 @@ export interface Tool {
   enabled?: boolean;
 }
 
+/** @deprecated Use BaseToolState from base-tool-state.ts */
 export interface ToolState {
   enabled: boolean;
   activePanel?: boolean;

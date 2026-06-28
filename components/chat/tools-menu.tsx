@@ -20,38 +20,27 @@ import {
 import type { ToolId } from "@/components/chat/tools/types";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/config";
-import type { RightSidebarPanel } from "@/lib/chat-tools";
 import { COPY } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 interface ToolsMenuProps {
   locale: Locale;
   disabled?: boolean;
-  webSearchEnabled: boolean;
   webSearchAvailable: boolean;
-  researchEnabled: boolean;
   researchAvailable: boolean;
-  worksheetEnabled: boolean;
-  activePanel: RightSidebarPanel | null;
-  onWebSearchChange: (enabled: boolean) => void;
-  onResearchChange: (enabled: boolean) => void;
-  onWorksheetChange: (enabled: boolean) => void;
-  onOpenPanel: (panel: RightSidebarPanel) => void;
+  isToolActive: (toolId: ToolId) => boolean;
+  isAnyToolActive: boolean;
+  onToolClick: (toolId: ToolId) => void;
 }
 
 export function ToolsMenu({
   locale,
   disabled = false,
-  webSearchEnabled,
   webSearchAvailable,
-  researchEnabled,
   researchAvailable,
-  worksheetEnabled,
-  activePanel,
-  onWebSearchChange,
-  onResearchChange,
-  onWorksheetChange,
-  onOpenPanel,
+  isToolActive,
+  isAnyToolActive,
+  onToolClick,
 }: ToolsMenuProps) {
   const copy = COPY[locale];
   const [open, setOpen] = useState(false);
@@ -69,30 +58,6 @@ export function ToolsMenu({
         ),
     [],
   );
-
-  const isToolActive = useCallback(
-    (toolId: ToolId): boolean => {
-      switch (toolId) {
-        case "web-search":
-          return webSearchEnabled || activePanel === "web-search";
-        case "worksheet":
-          return worksheetEnabled;
-        case "map":
-          return activePanel === "map";
-        case "research":
-          return researchEnabled || activePanel === "research";
-        default:
-          return false;
-      }
-    },
-    [activePanel, researchEnabled, webSearchEnabled, worksheetEnabled],
-  );
-
-  const isActive =
-    webSearchEnabled ||
-    researchEnabled ||
-    worksheetEnabled ||
-    activePanel !== null;
 
   const activeToolLabels = tools
     .filter((tool) => isToolActive(tool.id))
@@ -155,40 +120,8 @@ export function ToolsMenu({
   }, [open]);
 
   const handleToolClick = (toolId: ToolId) => {
-    const config = TOOL_UI_CONFIG[toolId];
-
-    switch (config.kind) {
-      case "toggle-web-search":
-        if (!webSearchAvailable) return;
-        if (!webSearchEnabled) {
-          onWebSearchChange(true);
-          onOpenPanel("web-search");
-        } else {
-          onWebSearchChange(false);
-        }
-        setOpen(false);
-        break;
-      case "toggle-research":
-        if (!researchAvailable) return;
-        if (!researchEnabled) {
-          onResearchChange(true);
-          onOpenPanel("research");
-        } else {
-          onResearchChange(false);
-        }
-        setOpen(false);
-        break;
-      case "toggle-worksheet":
-        onWorksheetChange(!worksheetEnabled);
-        setOpen(false);
-        break;
-      case "open-panel":
-        if (config.panel) {
-          onOpenPanel(config.panel);
-          setOpen(false);
-        }
-        break;
-    }
+    onToolClick(toolId);
+    setOpen(false);
   };
 
   const menuContent = open ? (
@@ -273,7 +206,7 @@ export function ToolsMenu({
       <Button
         ref={anchorRef}
         type="button"
-        variant={isActive ? "default" : "outline"}
+        variant={isAnyToolActive ? "default" : "outline"}
         size="icon"
         disabled={disabled}
         aria-label={copy.toolsMenu}
@@ -282,13 +215,13 @@ export function ToolsMenu({
         title={buttonTitle}
         className={cn(
           "relative h-12 w-12 sm:h-11 sm:w-11",
-          isActive && "ring-2 ring-primary/40",
+          isAnyToolActive && "ring-2 ring-primary/40",
           open && "ring-2 ring-primary/60",
         )}
         onClick={() => setOpen((value) => !value)}
       >
         <Wrench className="h-4 w-4" />
-        {isActive ? (
+        {isAnyToolActive ? (
           <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
         ) : null}
       </Button>

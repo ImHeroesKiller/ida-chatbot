@@ -2,6 +2,12 @@
 
 import { useCallback, useState } from "react";
 
+import {
+  createBaseToolActions,
+  type BaseToolState,
+  type ToolHydrationInput,
+} from "@/components/chat/tools/base-tool-state";
+import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
 import type { Locale } from "@/lib/config";
 import type {
   ResearchDepth,
@@ -18,7 +24,35 @@ export interface ResearchResult {
   queries: string[];
 }
 
-export function useResearch() {
+const PANEL_ID = TOOL_PANEL_IDS.research;
+
+export function useResearch(): BaseToolState & {
+  researchSessions: ResearchSession[];
+  currentSession: ResearchSession | null;
+  isResearching: boolean;
+  researchResults: ResearchResult | null;
+  error: string | null;
+  setSessions: (sessions: ResearchSession[]) => void;
+  startResearch: (topic: string, depth: ResearchDepth, locale: Locale) => Promise<void>;
+  beginChatResearch: () => void;
+  endChatResearch: () => void;
+  saveResearchSession: () => ResearchSession | null;
+  clearResults: () => void;
+  applyResearchFromMessage: (params: {
+    topic: string;
+    summary: string;
+    sources: ResearchSource[];
+    queries: string[];
+    depth?: ResearchDepth;
+  }) => void;
+  hydrate: (
+    state: ToolHydrationInput & {
+      sessions?: ResearchSession[];
+      lastResult?: ResearchResult | null;
+    },
+  ) => void;
+  resetForNewChat: () => void;
+} {
   const [isEnabled, setIsEnabled] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [researchSessions, setResearchSessions] = useState<ResearchSession[]>([]);
@@ -31,32 +65,20 @@ export function useResearch() {
   );
   const [error, setError] = useState<string | null>(null);
 
-  const toggleTool = useCallback(() => {
-    setIsEnabled((prev) => {
-      const next = !prev;
-      setIsPanelOpen(next);
-      if (!next) {
-        setIsResearching(false);
-      }
-      return next;
-    });
+  const clearResearchData = useCallback(() => {
+    setResearchResults(null);
+    setCurrentSession(null);
+    setError(null);
+    setIsResearching(false);
   }, []);
 
-  const openPanel = useCallback(() => {
-    setIsPanelOpen(true);
-  }, []);
-
-  const closePanel = useCallback(() => {
-    setIsPanelOpen(false);
-  }, []);
-
-  const setEnabled = useCallback((value: boolean) => {
-    setIsEnabled(value);
-    if (!value) {
-      setIsPanelOpen(false);
-      setIsResearching(false);
-    }
-  }, []);
+  const { setEnabled, openPanel, closePanel, toggleTool } = createBaseToolActions(
+    {
+      setIsEnabled,
+      setIsPanelOpen,
+      onDisable: clearResearchData,
+    },
+  );
 
   const setSessions = useCallback((sessions: ResearchSession[]) => {
     setResearchSessions(sessions);
@@ -139,11 +161,8 @@ export function useResearch() {
   }, []);
 
   const clearResults = useCallback(() => {
-    setResearchResults(null);
-    setCurrentSession(null);
-    setError(null);
-    setIsResearching(false);
-  }, []);
+    clearResearchData();
+  }, [clearResearchData]);
 
   const applyResearchFromMessage = useCallback(
     (params: {
@@ -178,33 +197,25 @@ export function useResearch() {
     [],
   );
 
-  const resetForNewChat = useCallback(() => {
-    setIsEnabled(false);
-    setIsPanelOpen(false);
-    setResearchSessions([]);
-    setCurrentSession(null);
-    setResearchResults(null);
-    setIsResearching(false);
-    setError(null);
-  }, []);
-
-  const hydrateFromChat = useCallback(
-    (params: {
-      enabled: boolean;
-      sessions: ResearchSession[];
-      lastResult?: ResearchResult | null;
-    }) => {
-      setIsEnabled(params.enabled);
-      setResearchSessions(params.sessions);
-      if (params.lastResult) {
-        setResearchResults(params.lastResult);
+  const hydrate = useCallback(
+    (
+      state: ToolHydrationInput & {
+        sessions?: ResearchSession[];
+        lastResult?: ResearchResult | null;
+      },
+    ) => {
+      setIsEnabled(state.enabled);
+      setIsPanelOpen(Boolean(state.panelOpen));
+      setResearchSessions(state.sessions ?? []);
+      if (state.lastResult) {
+        setResearchResults(state.lastResult);
         setCurrentSession({
           id: createResearchSessionId(),
-          topic: params.lastResult.topic,
-          depth: params.lastResult.depth,
-          summary: params.lastResult.summary,
-          sources: params.lastResult.sources,
-          queries: params.lastResult.queries,
+          topic: state.lastResult.topic,
+          depth: state.lastResult.depth,
+          summary: state.lastResult.summary,
+          sources: state.lastResult.sources,
+          queries: state.lastResult.queries,
           createdAt: Date.now(),
           savedAt: 0,
         });
@@ -218,7 +229,15 @@ export function useResearch() {
     [],
   );
 
+  const resetForNewChat = useCallback(() => {
+    setIsEnabled(false);
+    setIsPanelOpen(false);
+    setResearchSessions([]);
+    clearResearchData();
+  }, [clearResearchData]);
+
   return {
+    panelId: PANEL_ID,
     isEnabled,
     isPanelOpen,
     researchSessions,
@@ -226,10 +245,10 @@ export function useResearch() {
     isResearching,
     researchResults,
     error,
+    setEnabled,
     toggleTool,
     openPanel,
     closePanel,
-    setEnabled,
     setSessions,
     startResearch,
     beginChatResearch,
@@ -237,7 +256,7 @@ export function useResearch() {
     saveResearchSession,
     clearResults,
     applyResearchFromMessage,
+    hydrate,
     resetForNewChat,
-    hydrateFromChat,
   };
 }

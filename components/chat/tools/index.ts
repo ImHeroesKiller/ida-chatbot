@@ -7,6 +7,12 @@ export * from "./registry";
 // Export shared UI config
 export * from "./tool-ui-config";
 
+// Export base tool patterns
+export * from "./base-tool-state";
+export * from "./tool-panel-ids";
+export * from "./use-tools-coordinator";
+export * from "./tool-panel-host";
+
 // Export worksheet module
 export * from "./worksheet";
 

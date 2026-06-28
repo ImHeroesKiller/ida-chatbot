@@ -2,11 +2,32 @@
 
 import { useCallback, useState } from "react";
 
+import {
+  createBaseToolActions,
+  type BaseToolState,
+  type ToolHydrationInput,
+} from "@/components/chat/tools/base-tool-state";
+import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
 import type { IdaWebSearchSource } from "@/lib/types";
 
 export type WebSearchResult = IdaWebSearchSource;
 
-export function useWebSearch() {
+const PANEL_ID = TOOL_PANEL_IDS["web-search"];
+
+export function useWebSearch(): BaseToolState & {
+  searchResults: WebSearchResult[];
+  isSearching: boolean;
+  lastQuery: string | null;
+  error: string | null;
+  setSearchResults: (results: WebSearchResult[]) => void;
+  setLastQuery: (query: string | null) => void;
+  clearResults: () => void;
+  beginSearch: (query: string) => void;
+  finishSearchError: (message: string) => void;
+  endSearch: () => void;
+  hydrate: (state: ToolHydrationInput & { results?: WebSearchResult[] }) => void;
+  resetForNewChat: () => void;
+} {
   const [isEnabled, setIsEnabled] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [searchResults, setSearchResultsState] = useState<WebSearchResult[]>([]);
@@ -14,32 +35,20 @@ export function useWebSearch() {
   const [lastQuery, setLastQuery] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const toggleTool = useCallback(() => {
-    setIsEnabled((prev) => {
-      const next = !prev;
-      setIsPanelOpen(next);
-      if (!next) {
-        setIsSearching(false);
-      }
-      return next;
-    });
+  const clearSearchData = useCallback(() => {
+    setSearchResultsState([]);
+    setLastQuery(null);
+    setError(null);
+    setIsSearching(false);
   }, []);
 
-  const openPanel = useCallback(() => {
-    setIsPanelOpen(true);
-  }, []);
-
-  const closePanel = useCallback(() => {
-    setIsPanelOpen(false);
-  }, []);
-
-  const setEnabled = useCallback((value: boolean) => {
-    setIsEnabled(value);
-    if (!value) {
-      setIsPanelOpen(false);
-      setIsSearching(false);
-    }
-  }, []);
+  const { setEnabled, openPanel, closePanel, toggleTool } = createBaseToolActions(
+    {
+      setIsEnabled,
+      setIsPanelOpen,
+      onDisable: clearSearchData,
+    },
+  );
 
   const setSearchResults = useCallback((results: WebSearchResult[]) => {
     setSearchResultsState(results);
@@ -48,11 +57,8 @@ export function useWebSearch() {
   }, []);
 
   const clearResults = useCallback(() => {
-    setSearchResultsState([]);
-    setLastQuery(null);
-    setError(null);
-    setIsSearching(false);
-  }, []);
+    clearSearchData();
+  }, [clearSearchData]);
 
   const beginSearch = useCallback((query: string) => {
     setLastQuery(query.trim() || null);
@@ -69,32 +75,47 @@ export function useWebSearch() {
     setIsSearching(false);
   }, []);
 
+  const hydrate = useCallback(
+    (state: ToolHydrationInput & { results?: WebSearchResult[] }) => {
+      setIsEnabled(state.enabled);
+      setIsPanelOpen(Boolean(state.panelOpen));
+      if (state.results?.length) {
+        setSearchResultsState(state.results);
+      } else {
+        setSearchResultsState([]);
+      }
+      setLastQuery(null);
+      setError(null);
+      setIsSearching(false);
+    },
+    [],
+  );
+
   const resetForNewChat = useCallback(() => {
     setIsEnabled(false);
     setIsPanelOpen(false);
-    setSearchResultsState([]);
-    setIsSearching(false);
-    setLastQuery(null);
-    setError(null);
-  }, []);
+    clearSearchData();
+  }, [clearSearchData]);
 
   return {
+    panelId: PANEL_ID,
     isEnabled,
     isPanelOpen,
     searchResults,
     isSearching,
     lastQuery,
     error,
+    setEnabled,
     toggleTool,
     openPanel,
     closePanel,
-    setEnabled,
     setSearchResults,
     setLastQuery,
     clearResults,
     beginSearch,
     finishSearchError,
     endSearch,
+    hydrate,
     resetForNewChat,
   };
 }
