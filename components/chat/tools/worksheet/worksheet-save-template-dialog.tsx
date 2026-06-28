@@ -117,23 +117,33 @@ export function WorksheetSaveTemplateDialog({
       window.dispatchEvent(new Event("ida:letterhead-templates-changed"));
       onSaved?.();
 
+      const savedName = name.trim();
       toast.success(
         (toastInstance) => (
-          <div className="flex max-w-sm flex-col gap-2">
-            <p className="text-sm font-medium">{copy.worksheetSaveTemplateSuccess}</p>
+          <div className="flex max-w-sm flex-col gap-2.5">
+            <p className="text-sm font-medium leading-snug">
+              {copy.worksheetSaveTemplateSuccessNamed.replace(
+                "{name}",
+                savedName,
+              )}
+            </p>
             {canViewAdmin ? (
               <Link
                 href="/admin"
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
                 onClick={() => toast.dismiss(toastInstance.id)}
+                className="inline-flex h-7 w-fit items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-xs font-medium hover:bg-muted"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
                 {copy.worksheetSaveTemplateViewInAdmin}
               </Link>
-            ) : null}
+            ) : (
+              <p className="text-[11px] text-muted-foreground">
+                {copy.worksheetSaveTemplateSuccess}
+              </p>
+            )}
           </div>
         ),
-        { duration: 5000 },
+        { duration: 6000 },
       );
 
       onClose();

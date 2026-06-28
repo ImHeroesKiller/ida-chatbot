@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { memo, useCallback, useRef } from "react";
 
+import { WorksheetGeneratingIndicator } from "@/components/chat/tools/worksheet/worksheet-generating-indicator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/config";
@@ -33,6 +34,7 @@ interface WorksheetDocumentCardsProps {
   documents: WorksheetSavedDocument[];
   totalCount: number;
   activeDocumentId?: string | null;
+  isGenerating?: boolean;
   onSelectDocument: (documentId: string) => void;
   onDeleteDocument?: (documentId: string) => void;
   className?: string;
@@ -244,6 +246,7 @@ export const WorksheetDocumentCards = memo(function WorksheetDocumentCards({
   documents,
   totalCount,
   activeDocumentId,
+  isGenerating = false,
   onSelectDocument,
   onDeleteDocument,
   className,
@@ -264,7 +267,7 @@ export const WorksheetDocumentCards = memo(function WorksheetDocumentCards({
     deleteRef.current?.(documentId);
   }, []);
 
-  if (documents.length === 0) {
+  if (documents.length === 0 && !isGenerating) {
     return null;
   }
 
@@ -279,7 +282,7 @@ export const WorksheetDocumentCards = memo(function WorksheetDocumentCards({
         </p>
         <span className="inline-flex items-center gap-1 rounded-full border bg-muted/30 px-2 py-0.5 text-[10px] text-muted-foreground">
           <Layers className="h-3 w-3" />
-          {totalCount}
+          {isGenerating ? totalCount + 1 : totalCount}
         </span>
       </div>
 
@@ -287,6 +290,9 @@ export const WorksheetDocumentCards = memo(function WorksheetDocumentCards({
         className="space-y-2.5"
         data-virtualization-ready={useVirtualizationHint ? "true" : undefined}
       >
+        {isGenerating ? (
+          <WorksheetGeneratingIndicator locale={locale} variant="card" />
+        ) : null}
         {documents.map((document) => (
           <WorksheetDocumentCard
             key={document.id}

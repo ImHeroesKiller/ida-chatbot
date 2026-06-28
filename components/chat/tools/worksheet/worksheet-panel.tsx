@@ -24,16 +24,19 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { requestChatComposerFocus } from "@/lib/client/focus-chat-composer";
 import { WorksheetBrandingDialog } from "@/components/chat/worksheet-branding-dialog";
+import { WorksheetConfirmDialog } from "@/components/chat/tools/worksheet/worksheet-confirm-dialog";
 import { WorksheetDocumentCards } from "@/components/chat/tools/worksheet/worksheet-document-cards";
 import { WorksheetDocumentsEmptyState } from "@/components/chat/tools/worksheet/worksheet-documents-empty-state";
 import { WorksheetDocumentsToolbar } from "@/components/chat/tools/worksheet/worksheet-documents-toolbar";
 import { WorksheetFullView } from "@/components/chat/tools/worksheet/worksheet-full-view";
+import { WorksheetGeneratingIndicator } from "@/components/chat/tools/worksheet/worksheet-generating-indicator";
 import { WorksheetSaveTemplateDialog } from "@/components/chat/tools/worksheet/worksheet-save-template-dialog";
 import {
   WorksheetSplitEditor,
@@ -109,6 +112,10 @@ interface WorksheetPanelProps {
   embedded?: boolean;
 }
 
+type WorksheetPanelConfirm =
+  | { kind: "delete"; documentId: string; title: string }
+  | { kind: "switch"; documentId: string; title: string };
+
 export function WorksheetPanel({
   locale,
   workspace,
@@ -167,8 +174,13 @@ export function WorksheetPanel({
   const [documentFilters, setDocumentFilters] =
     useState<WorksheetDocumentListFilters>(DEFAULT_WORKSHEET_DOCUMENT_FILTERS);
   const [filtersHydrated, setFiltersHydrated] = useState(false);
+  const [confirmDialog, setConfirmDialog] =
+    useState<WorksheetPanelConfirm | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [saveJustDone, setSaveJustDone] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const pendingTemplateEditRef = useRef(false);
+  const saveFeedbackTimerRef = useRef<number | null>(null);
 
   const allDocuments = workspace.documents ?? [];
   const filteredDocuments = useMemo(
@@ -197,6 +209,14 @@ export function WorksheetPanel({
     if (!embedded) return;
     panelRef.current?.focus({ preventScroll: true });
   }, [embedded]);
+
+  useEffect(() => {
+    return () => {
+      if (saveFeedbackTimerRef.current !== null) {
+        window.clearTimeout(saveFeedbackTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!isEditing) {
@@ -452,11 +472,42 @@ export function WorksheetPanel({
     [commitWorkspace, copy.worksheetHistoryRestoredToast, versions, workspace],
   );
 
-  const handleSelectDocument = useCallback(
+  const performSelectDocument = useCallback(
     (documentId: string) => {
+      const nextDocument = allDocuments.find((doc) => doc.id === documentId);
+      if (isEditing) {
+        setDraftContent(nextDocument?.content ?? "");
+        setIsEditing(false);
+      }
       commitWorkspace(setActiveWorksheetDocument(workspace, documentId));
     },
-    [commitWorkspace, workspace],
+    [allDocuments, commitWorkspace, isEditing, workspace],
+  );
+
+  const handleSelectDocument = useCallback(
+    (documentId: string) => {
+      if (documentId === workspace.activeDocumentId) return;
+
+      if (isEditing && hasUnsavedChanges) {
+        const nextDocument = allDocuments.find((doc) => doc.id === documentId);
+        setConfirmDialog({
+          kind: "switch",
+          documentId,
+          title: nextDocument?.title?.trim() || copy.toolsWorksheet,
+        });
+        return;
+      }
+
+      performSelectDocument(documentId);
+    },
+    [
+      allDocuments,
+      copy.toolsWorksheet,
+      hasUnsavedChanges,
+      isEditing,
+      performSelectDocument,
+      workspace.activeDocumentId,
+    ],
   );
 
   const handleBackToDocuments = useCallback(() => {
@@ -470,19 +521,34 @@ export function WorksheetPanel({
 
   const handleSaveEdit = useCallback(() => {
     const trimmed = draftContent.trim();
-    if (!trimmed) {
-      toast.error(copy.worksheetErrorEmptyDocument);
+    if (!trimmed || isSavingEdit) {
+      if (!trimmed) toast.error(copy.worksheetErrorEmptyDocument);
       return;
     }
 
-    handleContentSave(draftContent);
-    setIsEditing(false);
-    toast.success(copy.worksheetSaved);
+    setIsSavingEdit(true);
+    try {
+      handleContentSave(draftContent);
+      setIsEditing(false);
+      setSaveJustDone(true);
+      toast.success(copy.worksheetSaved);
+
+      if (saveFeedbackTimerRef.current !== null) {
+        window.clearTimeout(saveFeedbackTimerRef.current);
+      }
+      saveFeedbackTimerRef.current = window.setTimeout(() => {
+        setSaveJustDone(false);
+        saveFeedbackTimerRef.current = null;
+      }, 2000);
+    } finally {
+      setIsSavingEdit(false);
+    }
   }, [
     copy.worksheetErrorEmptyDocument,
     copy.worksheetSaved,
     draftContent,
     handleContentSave,
+    isSavingEdit,
   ]);
 
   const handleSelectTemplate = useCallback(
@@ -498,15 +564,33 @@ export function WorksheetPanel({
     [copy.worksheetTemplateOverwriteConfirm, hasContent, onApplyTemplate],
   );
 
-  const handleDeleteDocument = useCallback(
+  const requestDeleteDocument = useCallback(
     (documentId: string) => {
       if (isEditing) return;
-      if (!window.confirm(copy.worksheetDeleteDocumentConfirm)) return;
 
+      const target = allDocuments.find((doc) => doc.id === documentId);
+      setConfirmDialog({
+        kind: "delete",
+        documentId,
+        title: target?.title?.trim() || copy.toolsWorksheet,
+      });
+    },
+    [allDocuments, copy.toolsWorksheet, isEditing],
+  );
+
+  const executeDeleteDocument = useCallback(
+    (documentId: string, documentTitle: string) => {
       const next = removeWorksheetDocument(workspace, documentId, locale);
 
       if (!(next.documents?.length)) {
         onClear?.();
+        setConfirmDialog(null);
+        toast.success(
+          copy.worksheetDeleteDocumentSuccessNamed.replace(
+            "{title}",
+            documentTitle,
+          ),
+        );
         return;
       }
 
@@ -518,18 +602,34 @@ export function WorksheetPanel({
         setIsEditing(false);
       }
 
-      toast.success(copy.worksheetDeleteDocumentSuccess);
+      setConfirmDialog(null);
+      toast.success(
+        copy.worksheetDeleteDocumentSuccessNamed.replace(
+          "{title}",
+          documentTitle,
+        ),
+      );
     },
     [
       commitWorkspace,
-      copy.worksheetDeleteDocumentConfirm,
-      copy.worksheetDeleteDocumentSuccess,
-      isEditing,
+      copy.worksheetDeleteDocumentSuccessNamed,
       locale,
       onClear,
       workspace,
     ],
   );
+
+  const handleConfirmDialog = useCallback(() => {
+    if (!confirmDialog) return;
+
+    if (confirmDialog.kind === "delete") {
+      executeDeleteDocument(confirmDialog.documentId, confirmDialog.title);
+      return;
+    }
+
+    setConfirmDialog(null);
+    performSelectDocument(confirmDialog.documentId);
+  }, [confirmDialog, executeDeleteDocument, performSelectDocument]);
 
   const handleClearAll = useCallback(() => {
     if (isGenerating) return;
@@ -629,7 +729,7 @@ export function WorksheetPanel({
         destructive: true,
         onClick: () => {
           const documentId = workspace.activeDocumentId;
-          if (documentId) handleDeleteDocument(documentId);
+          if (documentId) requestDeleteDocument(documentId);
         },
       });
     }
@@ -644,7 +744,7 @@ export function WorksheetPanel({
     copy.worksheetShare,
     copy.worksheetTemplates,
     error,
-    handleDeleteDocument,
+    requestDeleteDocument,
     handleShare,
     hasContent,
     isEditing,
@@ -702,19 +802,45 @@ export function WorksheetPanel({
 
     if (isEditing) {
       return (
-        <div className="mt-3 flex items-center justify-end gap-1.5 border-t border-border/60 pt-3">
-          <WorksheetIconAction
-            label={copy.worksheetSave}
-            onClick={handleSaveEdit}
-          >
-            <Save className="h-4 w-4" />
-          </WorksheetIconAction>
-          <WorksheetIconAction
-            label={copy.worksheetCancel}
-            onClick={handleCancelEdit}
-          >
-            <X className="h-4 w-4" />
-          </WorksheetIconAction>
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-border/60 pt-3">
+          {hasUnsavedChanges ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-2.5 py-1 text-[10px] font-medium text-amber-700 dark:text-amber-300">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
+              {copy.worksheetUnsavedChanges}
+            </span>
+          ) : (
+            <span className="text-[10px] text-muted-foreground">
+              {copy.worksheetEdit}
+            </span>
+          )}
+          <div className="flex items-center gap-1.5">
+            <WorksheetIconAction
+              label={copy.worksheetSave}
+              onClick={handleSaveEdit}
+              disabled={isSavingEdit || !hasUnsavedChanges}
+              active={hasUnsavedChanges || saveJustDone}
+              className={cn(
+                hasUnsavedChanges &&
+                  "[&_button]:border-amber-500/35 [&_button]:bg-amber-500/10",
+                saveJustDone && "[&_button]:border-emerald-500/35 [&_button]:bg-emerald-500/10",
+              )}
+            >
+              {isSavingEdit ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : saveJustDone ? (
+                <Check className="h-4 w-4 text-emerald-600" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+            </WorksheetIconAction>
+            <WorksheetIconAction
+              label={copy.worksheetCancel}
+              onClick={handleCancelEdit}
+              disabled={isSavingEdit}
+            >
+              <X className="h-4 w-4" />
+            </WorksheetIconAction>
+          </div>
         </div>
       );
     }
@@ -921,7 +1047,7 @@ export function WorksheetPanel({
             type="button"
             variant="ghost"
             size="icon-sm"
-            onClick={() => handleDeleteDocument(workspace.activeDocumentId!)}
+            onClick={() => requestDeleteDocument(workspace.activeDocumentId!)}
             disabled={isGenerating}
             aria-label={copy.worksheetDeleteDocument}
             title={copy.worksheetDeleteDocument}
@@ -1017,15 +1143,6 @@ export function WorksheetPanel({
         >
           {!showEditor ? (
             <>
-              {isGenerating ? (
-                <div className="mb-4 flex min-h-[10rem] flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-background/60 px-4 py-8 text-center dark:bg-background/40">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  <p className="text-sm font-medium text-foreground/90">
-                    {copy.worksheetGenerating}
-                  </p>
-                </div>
-              ) : null}
-
               {!isGenerating && documentCount > 0 ? (
                 <WorksheetDocumentsToolbar
                   locale={locale}
@@ -1045,7 +1162,8 @@ export function WorksheetPanel({
                 totalCount={documentCount}
                 activeDocumentId={workspace.activeDocumentId}
                 onSelectDocument={handleSelectDocument}
-                onDeleteDocument={handleDeleteDocument}
+                onDeleteDocument={requestDeleteDocument}
+                isGenerating={isGenerating}
               />
 
               {!isGenerating && documentCount > 0 && filteredDocuments.length === 0 ? (
@@ -1076,34 +1194,45 @@ export function WorksheetPanel({
                 />
               ) : null}
             </>
-          ) : isGenerating ? (
-            <div className="flex min-h-[14rem] flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-background/60 px-4 py-10 text-center dark:bg-background/40">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <p className="text-sm font-medium text-foreground/90">
-                {copy.worksheetGenerating}
-              </p>
-              <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
-                {copy.worksheetGeneratingSubtext}
-              </p>
-            </div>
-          ) : isEditing ? (
-            <WorksheetSplitEditor
-              locale={locale}
-              value={draftContent}
-              onChange={setDraftContent}
-              layout={editLayout}
-              onLayoutChange={setEditLayout}
-              embedded={embedded}
-            />
-          ) : hasContent ? (
-            <div className="rounded-xl border bg-card p-3 shadow-sm">
-              <MarkdownContent
-                locale={locale}
-                content={content}
-                className="chat-text text-sm"
-              />
-            </div>
-          ) : null}
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={
+                  isGenerating
+                    ? "generating"
+                    : (workspace.activeDocumentId ?? "empty")
+                }
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+              >
+                {isGenerating ? (
+                  <WorksheetGeneratingIndicator
+                    locale={locale}
+                    className="min-h-[14rem]"
+                  />
+                ) : isEditing ? (
+                  <WorksheetSplitEditor
+                    locale={locale}
+                    value={draftContent}
+                    onChange={setDraftContent}
+                    layout={editLayout}
+                    onLayoutChange={setEditLayout}
+                    embedded={embedded}
+                  />
+                ) : hasContent ? (
+                  <div className="rounded-xl border bg-card p-3 shadow-sm">
+                    <MarkdownContent
+                      locale={locale}
+                      content={content}
+                      className="chat-text text-sm"
+                    />
+                  </div>
+                ) : null}
+              </motion.div>
+            </AnimatePresence>
+          )}
 
           {showEditor ? renderDocumentActionBar() : null}
         </div>
@@ -1163,6 +1292,7 @@ export function WorksheetPanel({
       <WorksheetFullView
         open={isFullViewOpen}
         locale={locale}
+        documentId={workspace.activeDocumentId}
         title={title}
         content={content}
         branding={resolvedBranding}
@@ -1170,6 +1300,32 @@ export function WorksheetPanel({
         onContentChange={handleFullViewContentChange}
         onSaveAsTemplate={() => setSaveTemplateDialogOpen(true)}
         onClose={() => setIsFullViewOpen(false)}
+      />
+
+      <WorksheetConfirmDialog
+        open={confirmDialog !== null}
+        locale={locale}
+        title={
+          confirmDialog?.kind === "delete"
+            ? copy.worksheetDeleteDocumentConfirmTitle
+            : copy.worksheetSwitchDocumentDiscardTitle
+        }
+        description={
+          confirmDialog?.kind === "delete"
+            ? copy.worksheetDeleteDocumentConfirmNamed.replace(
+                "{title}",
+                confirmDialog.title,
+              )
+            : copy.worksheetSwitchDocumentDiscard
+        }
+        confirmLabel={
+          confirmDialog?.kind === "delete"
+            ? copy.worksheetDeleteDocumentAction
+            : copy.worksheetSwitchDocumentAction
+        }
+        destructive={confirmDialog?.kind === "delete"}
+        onConfirm={handleConfirmDialog}
+        onCancel={() => setConfirmDialog(null)}
       />
 
       <WorksheetSaveTemplateDialog

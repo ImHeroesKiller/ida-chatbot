@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 interface WorksheetFullViewProps {
   open: boolean;
   locale: Locale;
+  documentId?: string | null;
   title: string;
   content: string;
   branding: WorksheetBrandingConfig;
@@ -41,6 +42,7 @@ interface WorksheetFullViewProps {
 export function WorksheetFullView({
   open,
   locale,
+  documentId,
   title,
   content,
   branding,
@@ -146,41 +148,47 @@ export function WorksheetFullView({
                 </span>
               </div>
 
-              {/* Paper padding mirrors PDF margin — keep aligned with pdf-export.ts */}
-              <div
-                className={cn(
-                  WORKSHEET_PRINT_PAPER_CLASS,
-                  "mx-auto w-full max-w-[210mm] rounded-sm border border-[#ddd] bg-white",
-                  "text-[#181818]",
-                )}
-                style={{
-                  padding: `${WORKSHEET_PRINT_MARGIN_MM}mm`,
-                }}
-              >
-                <WorksheetLetterheadHeader
-                  branding={branding}
-                  documentTitle={title}
-                  titleEditable
-                  onTitleChange={onTitleChange}
-                  titleAriaLabel={copy.worksheetTitleLabel}
-                  className="mb-7"
-                />
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={documentId ?? title}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                  className={cn(
+                    WORKSHEET_PRINT_PAPER_CLASS,
+                    "mx-auto w-full max-w-[210mm] rounded-sm border border-[#ddd] bg-white",
+                    "text-[#181818]",
+                  )}
+                  style={{
+                    padding: `${WORKSHEET_PRINT_MARGIN_MM}mm`,
+                  }}
+                >
+                  <WorksheetLetterheadHeader
+                    branding={branding}
+                    documentTitle={title}
+                    titleEditable
+                    onTitleChange={onTitleChange}
+                    titleAriaLabel={copy.worksheetTitleLabel}
+                    className="mb-7"
+                  />
 
-                <WorksheetWysiwygEditor
-                  locale={locale}
-                  value={content}
-                  onChange={handleContentChange}
-                  variant="print"
-                  toolbarSticky
-                />
+                  <WorksheetWysiwygEditor
+                    locale={locale}
+                    value={content}
+                    onChange={handleContentChange}
+                    variant="print"
+                    toolbarSticky
+                  />
 
-                <WorksheetLetterheadFooter
-                  branding={branding}
-                  locale={locale}
-                  exportDate={exportDate}
-                  className="mt-10"
-                />
-              </div>
+                  <WorksheetLetterheadFooter
+                    branding={branding}
+                    locale={locale}
+                    exportDate={exportDate}
+                    className="mt-10"
+                  />
+                </motion.div>
+              </AnimatePresence>
 
               <p className="mt-5 text-center text-[11px] text-muted-foreground">
                 {copy.worksheetFullViewShortcutHint}

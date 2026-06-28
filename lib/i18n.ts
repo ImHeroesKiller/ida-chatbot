@@ -164,7 +164,11 @@ export const COPY: Record<
     worksheetEmptyUseTemplate: string;
     worksheetDeleteDocument: string;
     worksheetDeleteDocumentConfirm: string;
+    worksheetDeleteDocumentConfirmTitle: string;
+    worksheetDeleteDocumentConfirmNamed: string;
+    worksheetDeleteDocumentAction: string;
     worksheetDeleteDocumentSuccess: string;
+    worksheetDeleteDocumentSuccessNamed: string;
     worksheetSaveTemplate: string;
     worksheetSaveTemplateTitle: string;
     worksheetSaveTemplateDescription: string;
@@ -172,6 +176,7 @@ export const COPY: Record<
     worksheetSaveTemplateNamePlaceholder: string;
     worksheetSaveTemplateAction: string;
     worksheetSaveTemplateSuccess: string;
+    worksheetSaveTemplateSuccessNamed: string;
     worksheetSaveTemplateError: string;
     worksheetSaveTemplateNameRequired: string;
     worksheetSaveTemplateSaveTypeLabel: string;
@@ -192,6 +197,7 @@ export const COPY: Record<
     worksheetDownloaded: string;
     worksheetGenerating: string;
     worksheetGeneratingSubtext: string;
+    worksheetGeneratingCardLabel: string;
     worksheetCreated: string;
     worksheetErrorParseFailed: string;
     worksheetErrorEmptyDocument: string;
@@ -211,6 +217,9 @@ export const COPY: Record<
     worksheetUnsavedChanges: string;
     worksheetSaved: string;
     worksheetDiscardChanges: string;
+    worksheetSwitchDocumentDiscardTitle: string;
+    worksheetSwitchDocumentDiscard: string;
+    worksheetSwitchDocumentAction: string;
     worksheetExportPdf: string;
     worksheetExportPdfTitle: string;
     worksheetExportPdfPaper: string;
@@ -525,7 +534,12 @@ export const COPY: Record<
     worksheetDeleteDocument: "Hapus dokumen ini",
     worksheetDeleteDocumentConfirm:
       "Hapus dokumen ini dari daftar? Tindakan ini tidak dapat dibatalkan.",
+    worksheetDeleteDocumentConfirmTitle: "Hapus dokumen?",
+    worksheetDeleteDocumentConfirmNamed:
+      'Hapus dokumen "{title}"? Tindakan ini tidak dapat dibatalkan.',
+    worksheetDeleteDocumentAction: "Ya, hapus",
     worksheetDeleteDocumentSuccess: "Dokumen dihapus",
+    worksheetDeleteDocumentSuccessNamed: '"{title}" berhasil dihapus',
     worksheetSaveTemplate: "Simpan sebagai template",
     worksheetSaveTemplateTitle: "Simpan sebagai template",
     worksheetSaveTemplateDescription:
@@ -534,6 +548,7 @@ export const COPY: Record<
     worksheetSaveTemplateNamePlaceholder: "Surat Resmi, Proposal Proyek…",
     worksheetSaveTemplateAction: "Simpan template",
     worksheetSaveTemplateSuccess: "Template letterhead disimpan",
+    worksheetSaveTemplateSuccessNamed: 'Template "{name}" berhasil disimpan',
     worksheetSaveTemplateError: "Gagal menyimpan template",
     worksheetSaveTemplateNameRequired: "Nama template wajib diisi",
     worksheetSaveTemplateSaveTypeLabel: "Yang disimpan",
@@ -558,6 +573,7 @@ export const COPY: Record<
     worksheetGenerating: "IDA sedang membuat dokumen...",
     worksheetGeneratingSubtext:
       "Dokumen akan muncul di panel ini setelah selesai.",
+    worksheetGeneratingCardLabel: "Membuat dokumen baru...",
     worksheetCreated: "Dokumen berhasil dibuat",
     worksheetErrorParseFailed:
       "Format respons tidak dikenali. Coba kirim ulang permintaan atau perjelas isi dokumen.",
@@ -585,6 +601,10 @@ export const COPY: Record<
     worksheetSaved: "Perubahan disimpan",
     worksheetDiscardChanges:
       "Buang perubahan yang belum disimpan dan tutup mode edit?",
+    worksheetSwitchDocumentDiscardTitle: "Buang perubahan?",
+    worksheetSwitchDocumentDiscard:
+      "Ada perubahan yang belum disimpan. Buang perubahan dan buka dokumen lain?",
+    worksheetSwitchDocumentAction: "Buang & buka dokumen",
     worksheetExportPdf: "Export PDF",
     worksheetExportPdfTitle: "Export ke PDF",
     worksheetExportPdfPaper: "Ukuran kertas",
@@ -913,7 +933,12 @@ export const COPY: Record<
     worksheetDeleteDocument: "Delete this document",
     worksheetDeleteDocumentConfirm:
       "Delete this document from the list? This cannot be undone.",
+    worksheetDeleteDocumentConfirmTitle: "Delete document?",
+    worksheetDeleteDocumentConfirmNamed:
+      'Delete "{title}"? This cannot be undone.',
+    worksheetDeleteDocumentAction: "Yes, delete",
     worksheetDeleteDocumentSuccess: "Document deleted",
+    worksheetDeleteDocumentSuccessNamed: '"{title}" was deleted',
     worksheetSaveTemplate: "Save as template",
     worksheetSaveTemplateTitle: "Save as template",
     worksheetSaveTemplateDescription:
@@ -922,6 +947,7 @@ export const COPY: Record<
     worksheetSaveTemplateNamePlaceholder: "Official Letter, Project Proposal…",
     worksheetSaveTemplateAction: "Save template",
     worksheetSaveTemplateSuccess: "Letterhead template saved",
+    worksheetSaveTemplateSuccessNamed: 'Template "{name}" saved successfully',
     worksheetSaveTemplateError: "Failed to save template",
     worksheetSaveTemplateNameRequired: "Template name is required",
     worksheetSaveTemplateSaveTypeLabel: "What to save",
@@ -946,6 +972,7 @@ export const COPY: Record<
     worksheetGenerating: "IDA is generating your document...",
     worksheetGeneratingSubtext:
       "Your document will appear in this panel when ready.",
+    worksheetGeneratingCardLabel: "Creating new document...",
     worksheetCreated: "Document created successfully",
     worksheetErrorParseFailed:
       "The response format was not recognized. Try sending your request again or clarify the document content.",
@@ -973,6 +1000,10 @@ export const COPY: Record<
     worksheetSaved: "Changes saved",
     worksheetDiscardChanges:
       "Discard unsaved changes and exit edit mode?",
+    worksheetSwitchDocumentDiscardTitle: "Discard changes?",
+    worksheetSwitchDocumentDiscard:
+      "You have unsaved changes. Discard them and open another document?",
+    worksheetSwitchDocumentAction: "Discard & open",
     worksheetExportPdf: "Export PDF",
     worksheetExportPdfTitle: "Export to PDF",
     worksheetExportPdfPaper: "Paper size",
@@ -1299,7 +1330,11 @@ export const COPY: Record<
     worksheetEmptyUseTemplate: "使用模板",
     worksheetDeleteDocument: "删除此文档",
     worksheetDeleteDocumentConfirm: "从列表中删除此文档？此操作无法撤销。",
+    worksheetDeleteDocumentConfirmTitle: "删除文档？",
+    worksheetDeleteDocumentConfirmNamed: "删除「{title}」？此操作无法撤销。",
+    worksheetDeleteDocumentAction: "确认删除",
     worksheetDeleteDocumentSuccess: "文档已删除",
+    worksheetDeleteDocumentSuccessNamed: "「{title}」已删除",
     worksheetSaveTemplate: "保存为模板",
     worksheetSaveTemplateTitle: "保存为模板",
     worksheetSaveTemplateDescription: "将此文档的品牌样式和结构保存为公司信笺模板。",
@@ -1307,6 +1342,7 @@ export const COPY: Record<
     worksheetSaveTemplateNamePlaceholder: "正式信函、项目提案…",
     worksheetSaveTemplateAction: "保存模板",
     worksheetSaveTemplateSuccess: "信笺模板已保存",
+    worksheetSaveTemplateSuccessNamed: "模板「{name}」已保存",
     worksheetSaveTemplateError: "保存模板失败",
     worksheetSaveTemplateNameRequired: "模板名称不能为空",
     worksheetSaveTemplateSaveTypeLabel: "保存内容",
@@ -1329,6 +1365,7 @@ export const COPY: Record<
     worksheetDownloaded: "文档已下载",
     worksheetGenerating: "IDA 正在生成文档...",
     worksheetGeneratingSubtext: "文档完成后将显示在此面板。",
+    worksheetGeneratingCardLabel: "正在创建新文档...",
     worksheetCreated: "文档创建成功",
     worksheetErrorParseFailed:
       "无法识别响应格式。请重新发送请求或说明文档内容。",
@@ -1352,6 +1389,10 @@ export const COPY: Record<
     worksheetUnsavedChanges: "有未保存的更改",
     worksheetSaved: "更改已保存",
     worksheetDiscardChanges: "放弃未保存的更改并退出编辑模式？",
+    worksheetSwitchDocumentDiscardTitle: "放弃更改？",
+    worksheetSwitchDocumentDiscard:
+      "您有未保存的更改。放弃更改并打开其他文档？",
+    worksheetSwitchDocumentAction: "放弃并打开",
     worksheetExportPdf: "导出 PDF",
     worksheetExportPdfTitle: "导出 PDF",
     worksheetExportPdfPaper: "纸张大小",
