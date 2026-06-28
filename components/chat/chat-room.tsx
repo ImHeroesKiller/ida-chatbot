@@ -60,6 +60,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { consumeIdaSseStream } from "@/lib/client/parse-sse";
+import { useIsMobileViewport } from "@/lib/client/use-media-query";
 import { useAppFeatures } from "@/lib/client/use-app-features";
 import { useChatStore, WELCOME_MESSAGE_ID } from "@/lib/chat-store";
 import { IDA_CONFIG } from "@/lib/config";
@@ -139,6 +140,8 @@ function ChatRoomContent() {
   const [worksheetError, setWorksheetError] =
     useState<WorksheetErrorCode | null>(null);
   const [overwriteConfirmOpen, setOverwriteConfirmOpen] = useState(false);
+  const isMobileViewport = useIsMobileViewport();
+  const rightPanelSheetOpen = Boolean(rightPanel) && isMobileViewport;
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -284,6 +287,15 @@ function ChatRoomContent() {
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, [closeHandoff, rightPanel]);
+
+  useEffect(() => {
+    if (!rightPanelSheetOpen) return;
+
+    const active = document.activeElement;
+    if (active instanceof HTMLElement) {
+      active.blur();
+    }
+  }, [rightPanelSheetOpen]);
 
   const handleSelectChat = useCallback(
     (chatId: string) => {
@@ -960,21 +972,23 @@ function ChatRoomContent() {
               onWorksheetRegenerate={handleWorksheetRegenerate}
               onWorksheetClear={handleWorksheetClear}
               onClose={handleCloseToolPanel}
-              className="hidden md:flex"
+              className="relative z-10 hidden shrink-0 md:flex"
             />
           ) : null}
         </div>
       </div>
 
       <Sheet
-        open={Boolean(rightPanel)}
+        open={rightPanelSheetOpen}
+        modal
         onOpenChange={(open) => {
           if (!open) handleCloseToolPanel();
         }}
       >
         <SheetContent
           side="right"
-          className="w-[min(92vw,24rem)] gap-0 overflow-hidden p-0 md:hidden [&>button]:h-10 [&>button]:w-10"
+          showCloseButton={false}
+          className="w-[min(100vw,26rem)] max-w-full gap-0 overflow-hidden border-l p-0 shadow-xl"
         >
           {rightPanel ? (
             <RightSidebar

@@ -10,7 +10,7 @@ import {
   RefreshCw,
   Trash2,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import { MarkdownContent } from "@/components/chat/markdown-content";
@@ -58,8 +58,14 @@ export function WorksheetPanel({
 }: WorksheetPanelProps) {
   const copy = COPY[locale];
   const [copied, setCopied] = useState(false);
+  const panelRef = useRef<HTMLElement>(null);
 
   const hasContent = Boolean(content.trim());
+
+  useEffect(() => {
+    if (!embedded) return;
+    panelRef.current?.focus({ preventScroll: true });
+  }, [embedded]);
 
   const errorMessage = useMemo(() => {
     if (!error) return null;
@@ -111,14 +117,24 @@ export function WorksheetPanel({
 
   return (
     <aside
+      ref={panelRef}
+      tabIndex={-1}
       className={cn(
-        "flex h-full min-h-0 flex-col border-l bg-muted/10 dark:bg-muted/5",
-        embedded ? "w-full" : "w-[min(100%,24rem)] shrink-0",
+        "flex h-full min-h-0 flex-col border-l bg-background outline-none",
+        embedded
+          ? "w-full"
+          : "relative z-10 w-[min(100%,24rem)] shrink-0 bg-muted/10 dark:bg-muted/5",
         className,
       )}
       aria-label={copy.toolsWorksheet}
+      role="complementary"
     >
-      <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2.5">
+      <div
+        className={cn(
+          "flex shrink-0 items-center gap-2 border-b",
+          embedded ? "px-4 py-3" : "px-3 py-2.5",
+        )}
+      >
         <FileText className="h-4 w-4 shrink-0 text-primary" />
         <h2 className="min-w-0 flex-1 truncate text-sm font-semibold">
           {copy.toolsWorksheet}
@@ -161,7 +177,12 @@ export function WorksheetPanel({
         </div>
       ) : null}
 
-      <div className="shrink-0 space-y-2 border-b px-3 py-3">
+      <div
+        className={cn(
+          "shrink-0 space-y-2 border-b",
+          embedded ? "px-4 py-3.5" : "px-3 py-3",
+        )}
+      >
         <label className="text-[11px] font-medium text-muted-foreground">
           {copy.worksheetTitleLabel}
         </label>
@@ -175,7 +196,7 @@ export function WorksheetPanel({
       </div>
 
       <ScrollArea className="min-h-0 flex-1">
-        <div className="p-3">
+        <div className={cn(embedded ? "p-4" : "p-3")}>
           {isGenerating ? (
             <div className="flex min-h-[14rem] flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-background/60 px-4 py-10 text-center dark:bg-background/40">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -211,7 +232,14 @@ export function WorksheetPanel({
         </div>
       </ScrollArea>
 
-      <div className="flex shrink-0 flex-col gap-2 border-t bg-muted/10 p-3 dark:bg-muted/5">
+      <div
+        className={cn(
+          "flex shrink-0 flex-col gap-2.5 border-t bg-muted/10 dark:bg-muted/5",
+          embedded
+            ? "p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
+            : "p-3",
+        )}
+      >
         {(canRegenerate || onClear) && !isGenerating ? (
           <div className="flex gap-2">
             {canRegenerate && onRegenerate ? (
@@ -219,7 +247,10 @@ export function WorksheetPanel({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-8 flex-1 gap-1.5 text-xs"
+                className={cn(
+                  "flex-1 gap-1.5 text-xs",
+                  embedded ? "h-10 min-h-10" : "h-8",
+                )}
                 onClick={onRegenerate}
               >
                 <RefreshCw className="h-3.5 w-3.5" />
@@ -231,7 +262,10 @@ export function WorksheetPanel({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-8 flex-1 gap-1.5 text-xs text-destructive hover:text-destructive"
+                className={cn(
+                  "flex-1 gap-1.5 text-xs text-destructive hover:text-destructive",
+                  embedded ? "h-10 min-h-10" : "h-8",
+                )}
                 disabled={!hasContent && !error}
                 onClick={handleClear}
               >
@@ -247,7 +281,10 @@ export function WorksheetPanel({
             type="button"
             variant="outline"
             size="sm"
-            className="h-9 flex-1 gap-1.5 text-xs"
+            className={cn(
+              "flex-1 gap-1.5 text-xs",
+              embedded ? "h-10 min-h-10" : "h-9",
+            )}
             disabled={!hasContent || isGenerating}
             onClick={() => void handleCopy()}
           >
@@ -258,7 +295,10 @@ export function WorksheetPanel({
             type="button"
             variant="outline"
             size="sm"
-            className="h-9 flex-1 gap-1.5 text-xs"
+            className={cn(
+              "flex-1 gap-1.5 text-xs",
+              embedded ? "h-10 min-h-10" : "h-9",
+            )}
             disabled={!hasContent || isGenerating}
             onClick={handleDownload}
           >
