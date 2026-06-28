@@ -16,6 +16,7 @@ import { getOrCreateAnonymousUserId } from "@/lib/client/user-id";
 import { normalizeRightSidebarPanel } from "@/lib/chat-tools";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 import type { WorksheetDocument } from "@/lib/worksheet";
+import { createEmptyWorksheetWorkspace } from "@/lib/worksheet-workspace";
 import type { Locale } from "@/lib/config";
 import type { IdaMessage } from "@/lib/types";
 
@@ -50,6 +51,10 @@ export type ChatStoreScope =
 
 function createId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function createEmptyWorksheet(locale: Locale): WorksheetDocument {
+  return createEmptyWorksheetWorkspace(locale);
 }
 
 const GENERIC_CHAT_TITLES: Record<Locale, string> = {
@@ -235,7 +240,7 @@ export function createChatSession(locale: Locale): ChatSession {
     apiSessionId: createId("ida"),
     activeRightPanel: null,
     worksheetToolEnabled: false,
-    worksheet: null,
+    worksheet: createEmptyWorksheet(locale),
     pinned: false,
     createdAt: now,
     updatedAt: now,

@@ -63,7 +63,11 @@ import { buildChatApiRequestBody } from "@/lib/client/chat-api-payload";
 import { consumeIdaSseStream } from "@/lib/client/parse-sse";
 import { useIsMobileViewport } from "@/lib/client/use-media-query";
 import { useAppFeatures } from "@/lib/client/use-app-features";
-import { useChatStore, WELCOME_MESSAGE_ID } from "@/lib/chat-store";
+import {
+  type ChatSession,
+  useChatStore,
+  WELCOME_MESSAGE_ID,
+} from "@/lib/chat-store";
 import { IDA_CONFIG } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import { MessageReactionsProvider } from "@/lib/message-reactions";
@@ -319,18 +323,66 @@ function ChatRoomContent() {
     }
   }, [rightPanelSheetOpen]);
 
+  const syncLocalStateFromChat = useCallback(
+    (chat: ChatSession) => {
+      activeChatIdRef.current = chat.id;
+      setMessages(chat.messages);
+      setInput("");
+      setError(null);
+      setStreamingMessageId(null);
+      setIsLoading(false);
+      setEditingMessageId(null);
+      setRightPanel(null);
+      setWorksheetToolEnabled(
+        chat.worksheetToolEnabled ?? chat.activeRightPanel === "worksheet",
+      );
+
+      const worksheet = normalizeWorksheetDocument(chat.worksheet, locale);
+      setWorksheetWorkspace(worksheet);
+      worksheetWorkspaceRef.current = worksheet;
+      setWorksheetErrorDetail(null);
+
+      const lastUserMessage = [...chat.messages]
+        .reverse()
+        .find((message) => message.role === "user");
+      setLastWorksheetPrompt(lastUserMessage?.content?.trim() ?? "");
+    },
+    [locale],
+  );
+
   const handleSelectChat = useCallback(
     (chatId: string) => {
+      const chat = sessions.find((session) => session.id === chatId);
+      if (!chat) return;
+
+      syncLocalStateFromChat(chat);
       switchChat(chatId);
       setMobileSidebarOpen(false);
     },
-    [switchChat],
+    [sessions, switchChat, syncLocalStateFromChat],
   );
 
   const handleNewChat = useCallback(() => {
-    createChat();
+    activeChatIdRef.current = "__pending__";
+    setMessages([]);
+    setInput("");
+    setError(null);
+    setStreamingMessageId(null);
+    setIsLoading(false);
+    setEditingMessageId(null);
+    setRightPanel(null);
+    setWorksheetToolEnabled(false);
+
+    const emptyWorksheet = createEmptyWorksheetWorkspace(locale);
+    setWorksheetWorkspace(emptyWorksheet);
+    worksheetWorkspaceRef.current = emptyWorksheet;
+    setWorksheetErrorDetail(null);
+    setLastWorksheetPrompt("");
+
+    const newChatId = createChat();
+    activeChatIdRef.current = newChatId;
     setMobileSidebarOpen(false);
-  }, [createChat]);
+  }, [createChat, locale]);
 
   const streamAssistantReply = useCallback(
     async (
