@@ -216,6 +216,8 @@ html[data-ida-animation="none"] *::after {
 
   .ida-chat-shell {
     contain: layout style;
+    overflow-x: hidden;
+    max-width: 100%;
   }
 
   .ida-skeleton-pulse {

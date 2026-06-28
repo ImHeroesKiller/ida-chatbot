@@ -1,7 +1,6 @@
 "use client";
 
-import { Menu, User } from "lucide-react";
-import Link from "next/link";
+import { Menu, MessageSquarePlus } from "lucide-react";
 
 import { IdaLogo } from "@/components/brand/ida-logo";
 import { Button } from "@/components/ui/button";
@@ -11,16 +10,18 @@ interface ChatHeaderProps {
   title: string;
   subtitle: string;
   openSessionsLabel: string;
-  accountLabel: string;
+  newChatLabel: string;
   onOpenMobileSidebar: () => void;
+  onNewChat: () => void;
 }
 
 export function ChatHeader({
   title,
   subtitle,
   openSessionsLabel,
-  accountLabel,
+  newChatLabel,
   onOpenMobileSidebar,
+  onNewChat,
 }: ChatHeaderProps) {
   return (
     <header className="flex shrink-0 items-center gap-2.5 border-b px-3 py-3 sm:gap-3 sm:px-5">
@@ -44,14 +45,18 @@ export function ChatHeader({
         <p className="truncate text-[11px] text-muted-foreground">{subtitle}</p>
       </div>
 
-      <Link
-        href="/account"
-        className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        aria-label={accountLabel}
-        title={accountLabel}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="h-8 shrink-0 gap-1.5 px-2.5 text-xs sm:h-9 sm:px-3"
+        onClick={onNewChat}
+        aria-label={newChatLabel}
+        title={newChatLabel}
       >
-        <User className="h-4 w-4" />
-      </Link>
+        <MessageSquarePlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        <span className="hidden sm:inline">{newChatLabel}</span>
+      </Button>
     </header>
   );
 }

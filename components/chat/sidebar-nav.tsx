@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 interface SidebarNavProps {
   locale: Locale;
   expanded?: boolean;
+  onExpand?: () => void;
 }
 
 const NAV_ITEMS = [
@@ -18,13 +19,20 @@ const NAV_ITEMS = [
   { href: "/agent", labelKey: "navAgent" as const, icon: Bot },
 ] as const;
 
-export function SidebarNav({ locale, expanded = true }: SidebarNavProps) {
+export function SidebarNav({
+  locale,
+  expanded = true,
+  onExpand,
+}: SidebarNavProps) {
   const pathname = usePathname();
   const copy = AGENT_COPY[locale];
 
   return (
     <nav
-      className={cn("flex gap-1", expanded ? "flex-row px-2" : "flex-col px-1.5")}
+      className={cn(
+        "flex gap-1",
+        expanded ? "flex-row px-2" : "flex-col px-1.5",
+      )}
       aria-label="Main navigation"
     >
       {NAV_ITEMS.map((item) => {
@@ -38,6 +46,9 @@ export function SidebarNav({ locale, expanded = true }: SidebarNavProps) {
             key={item.href}
             href={item.href}
             title={label}
+            onClick={() => {
+              if (!expanded) onExpand?.();
+            }}
             className={cn(
               "flex items-center rounded-lg text-xs font-medium transition-colors",
               expanded

@@ -58,6 +58,8 @@ export interface IdaChatHandlerInput {
   locale: Locale;
   sessionId?: string;
   userId?: string;
+  /** User-enabled web search toggle from chat composer */
+  webSearch?: boolean;
 }
 
 export interface IdaChatPreparedContext {
@@ -78,6 +80,7 @@ export interface IdaChatPreparedContext {
   handoffResponse?: string;
   webSearchEnabled: boolean;
   webSearchMaxResults: number;
+  userRequestedWebSearch: boolean;
 }
 
 export interface IdaChatStreamResult extends StreamChatResult {
@@ -200,16 +203,17 @@ async function maybePrefetchWebSearchContext(options: {
   query: string;
   enabled: boolean;
   maxResults: number;
+  force?: boolean;
 }): Promise<{
   context: string;
   sources: IdaWebSearchSource[];
   queries: string[];
 }> {
-  if (
-    !options.enabled ||
-    !isWebSearchConfigured() ||
-    !looksLikeRealtimeQuery(options.query)
-  ) {
+  if (!options.enabled || !isWebSearchConfigured()) {
+    return { context: "", sources: [], queries: [] };
+  }
+
+  if (!options.force && !looksLikeRealtimeQuery(options.query)) {
     return { context: "", sources: [], queries: [] };
   }
 
@@ -262,8 +266,10 @@ export async function prepareIdaChatContext(
     throw new Error("Last message must be from the user.");
   }
 
-  const webSearchEnabled =
+  const webSearchAvailable =
     appConfig.features.webSearch && isWebSearchConfigured();
+  const userRequestedWebSearch = input.webSearch === true;
+  const webSearchActive = webSearchAvailable && userRequestedWebSearch;
   const webSearchMaxResults = appConfig.webSearch.maxResults;
 
   const [retrieval, memoryContext, prefetchedWebSearch] = await Promise.all([
@@ -276,18 +282,21 @@ export async function prepareIdaChatContext(
       confidenceThreshold: appConfig.rag.confidenceThreshold,
     }),
     buildConversationMemoryContext(messages),
-    maybePrefetchWebSearchContext({
-      query: lastMessage.content,
-      enabled: webSearchEnabled && !useGoogle,
-      maxResults: webSearchMaxResults,
-    }),
+    webSearchActive
+      ? maybePrefetchWebSearchContext({
+          query: lastMessage.content,
+          enabled: true,
+          maxResults: webSearchMaxResults,
+          force: true,
+        })
+      : Promise.resolve({ context: "", sources: [], queries: [] }),
   ]);
 
   const systemInstruction = buildIdaSystemPrompt(locale, {
     retrievedContext: retrieval.usedRag ? retrieval.context : "",
     conversationMemory: memoryContext,
     webSearchContext: prefetchedWebSearch.context,
-    webSearchEnabled: webSearchEnabled && useGoogle,
+    webSearchEnabled: webSearchActive && useGoogle && !prefetchedWebSearch.context,
     basePromptOverride: appConfig.systemPromptOverride,
   });
 
@@ -364,8 +373,9 @@ export async function prepareIdaChatContext(
     sessionId,
     userId,
     handoffResponse: handoffExecution.responseMessage,
-    webSearchEnabled: webSearchEnabled && useGoogle,
+    webSearchEnabled: webSearchActive && useGoogle && !prefetchedWebSearch.context,
     webSearchMaxResults,
+    userRequestedWebSearch: webSearchActive,
   };
 }
 

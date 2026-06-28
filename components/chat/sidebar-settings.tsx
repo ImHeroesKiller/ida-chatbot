@@ -1,6 +1,15 @@
 "use client";
 
-import { Globe, Moon, Settings, Sun, Trash2, Volume2 } from "lucide-react";
+import {
+  Globe,
+  Moon,
+  Settings,
+  Sun,
+  Trash2,
+  User,
+  Volume2,
+} from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { useChatContext } from "@/components/chat/chat-provider";
@@ -21,18 +30,25 @@ interface SidebarSettingsProps {
   locale: Locale;
   expanded: boolean;
   onClearAllChats: () => void;
+  onExpand?: () => void;
 }
 
 export function SidebarSettings({
   locale,
   expanded,
   onClearAllChats,
+  onExpand,
 }: SidebarSettingsProps) {
   const copy = COPY[locale];
   const { locale: appLocale, setLocale } = useChatContext();
   const { theme, hydrated: themeHydrated, toggleTheme } = useThemeContext();
   const { prefs, setPrefs } = useVoicePrefs();
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const handleToggleSettings = () => {
+    if (!expanded) onExpand?.();
+    setSettingsOpen((open) => !open);
+  };
 
   if (!expanded) {
     return (
@@ -42,7 +58,7 @@ export function SidebarSettings({
           variant="ghost"
           size="icon-sm"
           className="h-9 w-full transition-transform hover:scale-105 active:scale-95"
-          onClick={() => setSettingsOpen((open) => !open)}
+          onClick={handleToggleSettings}
           title={copy.settings}
           aria-label={copy.settings}
           aria-expanded={settingsOpen}
@@ -81,6 +97,17 @@ export function SidebarSettings({
                 <Moon className="h-3.5 w-3.5" />
               )}
             </Button>
+            <Link
+              href="/account"
+              title={copy.account}
+              aria-label={copy.account}
+              className={cn(
+                "inline-flex h-8 w-full items-center justify-center rounded-lg",
+                "text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+              )}
+            >
+              <User className="h-3.5 w-3.5" />
+            </Link>
           </div>
         )}
       </div>
@@ -94,16 +121,16 @@ export function SidebarSettings({
         variant="ghost"
         size="sm"
         className={cn(
-          "h-9 w-full gap-2 text-xs text-muted-foreground",
+          "h-9 w-full justify-start gap-2 text-xs text-muted-foreground",
           "hover:bg-muted/80 hover:text-foreground",
           settingsOpen && "bg-muted/80 text-foreground",
         )}
-        onClick={() => setSettingsOpen((open) => !open)}
+        onClick={handleToggleSettings}
         aria-expanded={settingsOpen}
         aria-label={copy.settings}
       >
         <Settings className="h-4 w-4 shrink-0" />
-        <span className="sr-only">{copy.settings}</span>
+        <span>{copy.settings}</span>
       </Button>
 
       {settingsOpen && (
@@ -144,6 +171,17 @@ export function SidebarSettings({
               )}
               {copy.toggleTheme}
             </Button>
+
+            <Link
+              href="/account"
+              className={cn(
+                "inline-flex h-8 w-full items-center justify-start gap-2 rounded-lg px-2 text-xs",
+                "text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+              )}
+            >
+              <User className="h-3.5 w-3.5" />
+              {copy.account}
+            </Link>
 
             <Button
               type="button"

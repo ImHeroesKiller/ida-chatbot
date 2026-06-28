@@ -22,6 +22,7 @@ export interface AppFeaturesResponse {
   tts: AppTtsConfig;
   visionModel: ModelSelection;
   ttsEngines: Record<TtsEngine, boolean>;
+  webSearchAvailable: boolean;
 }
 
 const DEFAULT_FEATURES: AppFeatures = {
@@ -57,6 +58,7 @@ export async function fetchAppFeatures(): Promise<AppFeaturesResponse> {
           xai: false,
           groq: false,
         },
+        webSearchAvailable: false,
       };
     }
 
@@ -75,6 +77,7 @@ export async function fetchAppFeatures(): Promise<AppFeaturesResponse> {
         groq: false,
         ...data.ttsEngines,
       },
+      webSearchAvailable: Boolean(data.webSearchAvailable),
     };
     return cached;
   } catch {
@@ -88,6 +91,7 @@ export async function fetchAppFeatures(): Promise<AppFeaturesResponse> {
         xai: false,
         groq: false,
       },
+      webSearchAvailable: false,
     };
   }
 }

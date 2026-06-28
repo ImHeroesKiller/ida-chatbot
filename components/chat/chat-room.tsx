@@ -74,6 +74,7 @@ import {
   useSpeechSynthesis,
 } from "@/lib/voice/use-speech-synthesis";
 import { useVoicePrefs } from "@/lib/voice/voice-prefs";
+import { useWebSearchPrefs } from "@/lib/web-search-prefs";
 
 function createMessageId() {
   return `ida-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -88,11 +89,16 @@ function toApiMessages(messages: IdaMessage[]) {
 function ChatRoomContent() {
   const { locale, openHandoff, closeHandoff } = useChatContext();
   const copy = COPY[locale];
-  const { expanded: sidebarExpanded, toggle: toggleSidebar } =
+  const { expanded: sidebarExpanded, setExpanded: setSidebarExpanded } =
     useSidebarExpanded();
   const { prefs } = useVoicePrefs();
+  const { enabled: webSearchEnabled, setEnabled: setWebSearchEnabled } =
+    useWebSearchPrefs();
   const { speak } = useSpeechSynthesis();
   const appFeatures = useAppFeatures();
+  const webSearchAvailable = Boolean(
+    appFeatures?.webSearchAvailable && appFeatures?.features.webSearch,
+  );
 
   const {
     hydrated,
@@ -221,6 +227,7 @@ function ChatRoomContent() {
       chatIdAtSend: string,
       apiSessionId: string,
       apiUserId: string,
+      useWebSearch: boolean,
     ) => {
       const streamingPlaceholder: IdaMessage = {
         id: streamId,
@@ -239,6 +246,7 @@ function ChatRoomContent() {
             locale,
             sessionId: apiSessionId,
             ...(apiUserId ? { userId: apiUserId } : {}),
+            ...(useWebSearch ? { webSearch: true } : {}),
             messages: toApiMessages(contextMessages),
           }),
         });
@@ -362,6 +370,8 @@ function ChatRoomContent() {
       appFeatures?.features.autoSpeak,
       prefs.autoSpeak,
       speak,
+      webSearchAvailable,
+      webSearchEnabled,
     ],
   );
 
@@ -418,6 +428,7 @@ function ChatRoomContent() {
         chatIdAtSend,
         currentChat.apiSessionId,
         apiUserId,
+        webSearchAvailable && webSearchEnabled,
       );
     } finally {
       if (activeChatIdRef.current === chatIdAtSend) {
@@ -464,6 +475,7 @@ function ChatRoomContent() {
           chatIdAtSend,
           currentChat.apiSessionId,
           apiUserId,
+          webSearchAvailable && webSearchEnabled,
         );
       } finally {
         if (activeChatIdRef.current === chatIdAtSend) {
@@ -485,7 +497,6 @@ function ChatRoomContent() {
     locale,
     loading: !hydrated,
     onSelect: handleSelectChat,
-    onNewChat: handleNewChat,
     onPin: pinChat,
     onRename: renameChat,
     onDelete: deleteChat,
@@ -495,24 +506,26 @@ function ChatRoomContent() {
   return (
     <MessageReactionsProvider>
       <div
-        className="ida-chat-shell flex h-dvh w-full overflow-hidden bg-background font-sans"
+        className="ida-chat-shell flex h-dvh w-full max-w-full overflow-hidden bg-background font-sans"
         role="application"
         aria-label={copy.windowLabel}
       >
         <ChatSidebar
           {...sidebarProps}
           expanded={sidebarExpanded}
-          onToggleExpanded={toggleSidebar}
+          onExpand={() => setSidebarExpanded(true)}
+          onCollapse={() => setSidebarExpanded(false)}
           className="hidden shrink-0 border-r md:flex"
         />
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
           <ChatHeader
             title={currentChat?.title ?? IDA_CONFIG.name}
             subtitle={copy.subtitle}
             openSessionsLabel={copy.openSessions}
-            accountLabel={copy.account}
+            newChatLabel={copy.newChat}
             onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
+            onNewChat={handleNewChat}
           />
 
           <div className="relative min-h-0 flex-1">
@@ -563,8 +576,8 @@ function ChatRoomContent() {
           )}
 
           <div className="shrink-0">
-            <div className="ida-message-width mx-auto w-full px-3 sm:px-5">
-              <div className="mb-3 pt-3">
+            <div className="ida-message-width mx-auto w-full max-w-full overflow-hidden px-3 sm:px-5">
+              <div className="mb-3 min-w-0 pt-3">
                 <QuickReplies
                   replies={quickReplies}
                   disabled={isLoading}
@@ -578,6 +591,9 @@ function ChatRoomContent() {
               sessionId={currentChat?.apiSessionId}
               input={input}
               isLoading={isLoading}
+              webSearchEnabled={webSearchEnabled}
+              webSearchAvailable={webSearchAvailable}
+              onWebSearchChange={setWebSearchEnabled}
               onInputChange={setInput}
               onSend={(content, options) => void sendMessage(content, options)}
             />
@@ -586,7 +602,10 @@ function ChatRoomContent() {
       </div>
 
       <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
-        <SheetContent side="left" className="w-[min(85vw,300px)] gap-0 p-0">
+        <SheetContent
+          side="left"
+          className="w-[min(85vw,300px)] max-w-full gap-0 overflow-hidden p-0"
+        >
           <SheetHeader className="border-b px-4 py-3">
             <SheetTitle className="text-sm">{copy.sessionsLabel}</SheetTitle>
           </SheetHeader>

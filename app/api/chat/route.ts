@@ -39,6 +39,7 @@ const chatRequestSchema = z.object({
   locale: z.enum(LOCALES),
   sessionId: z.string().min(8).max(64).optional(),
   userId: z.string().uuid().optional(),
+  webSearch: z.boolean().optional(),
 });
 
 export async function POST(request: Request) {
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { messages, locale, sessionId, userId } = parsed.data;
+  const { messages, locale, sessionId, userId, webSearch } = parsed.data;
 
   if (userId && !isValidAnonymousUserId(userId)) {
     return NextResponse.json<IdaChatErrorResponse>(
@@ -113,6 +114,7 @@ export async function POST(request: Request) {
       locale,
       sessionId,
       userId,
+      webSearch,
     });
 
     preparedModel = {
@@ -259,7 +261,7 @@ export async function POST(request: Request) {
         });
 
         const fallbackContext = await prepareIdaChatContext(
-          { messages, locale, sessionId, userId },
+          { messages, locale, sessionId, userId, webSearch },
           { model: fallback },
         );
 

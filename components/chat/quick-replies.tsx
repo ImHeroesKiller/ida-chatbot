@@ -15,7 +15,7 @@ export function QuickReplies({ replies, disabled, onSelect }: QuickRepliesProps)
   return (
     <div
       className={cn(
-        "flex gap-2 overflow-x-auto overscroll-x-contain pb-0.5",
+        "flex max-w-full gap-2 overflow-x-auto overscroll-x-contain pb-0.5",
         "snap-x snap-mandatory scroll-smooth",
         "[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
       )}

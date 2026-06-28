@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Mic, MicOff, Paperclip, Send } from "lucide-react";
+import { Globe, Loader2, Mic, MicOff, Paperclip, Send } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -53,6 +53,9 @@ interface ChatComposerProps {
   sessionId?: string;
   input: string;
   isLoading: boolean;
+  webSearchEnabled: boolean;
+  webSearchAvailable: boolean;
+  onWebSearchChange: (enabled: boolean) => void;
   onInputChange: (value: string) => void;
   onSend: (content: string, options?: {
     attachment?: IdaAttachment;
@@ -70,6 +73,9 @@ export function ChatComposer({
   sessionId,
   input,
   isLoading,
+  webSearchEnabled,
+  webSearchAvailable,
+  onWebSearchChange,
   onInputChange,
   onSend,
 }: ChatComposerProps) {
@@ -243,10 +249,14 @@ export function ChatComposer({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-      event.preventDefault();
-      void handleSend();
+    if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
+
+    if (event.metaKey || event.ctrlKey) {
+      return;
     }
+
+    event.preventDefault();
+    void handleSend();
   };
 
   const handleFileSelect = async (file: File) => {
@@ -314,11 +324,11 @@ export function ChatComposer({
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "shrink-0 border-t bg-muted/30 px-3 pt-3 dark:bg-muted/20",
+        "shrink-0 overflow-x-hidden border-t bg-muted/30 px-3 pt-3 dark:bg-muted/20",
         "pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-5 sm:pb-4",
       )}
     >
-      <div className="ida-message-width mx-auto w-full space-y-2.5">
+      <div className="ida-message-width mx-auto w-full max-w-full space-y-2.5">
         {(isListening || isTranscribing) && (
           <div
             role="status"
@@ -373,7 +383,7 @@ export function ChatComposer({
           />
         )}
 
-        <div className="flex items-end gap-2">
+        <div className="flex min-w-0 items-end gap-1.5 sm:gap-2">
           <input
             ref={fileInputRef}
             type="file"
@@ -384,6 +394,24 @@ export function ChatComposer({
               if (file) void handleFileSelect(file);
             }}
           />
+
+          {webSearchAvailable ? (
+            <Button
+              type="button"
+              variant={webSearchEnabled ? "default" : "outline"}
+              size="icon"
+              disabled={isLoading || isExtracting || isTranscribing}
+              aria-label={
+                webSearchEnabled ? copy.webSearchOn : copy.webSearchOff
+              }
+              aria-pressed={webSearchEnabled}
+              title={copy.webSearchToggle}
+              className="h-11 w-11 shrink-0"
+              onClick={() => onWebSearchChange(!webSearchEnabled)}
+            >
+              <Globe className="h-4 w-4" />
+            </Button>
+          ) : null}
 
           {ocrEnabled && (
             <Button

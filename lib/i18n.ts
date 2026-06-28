@@ -32,6 +32,7 @@ export const COPY: Record<
     copySuccess: string;
     toggleTheme: string;
     sendShortcut: string;
+    chatHistory: string;
     searchSessions: string;
     noSearchResults: string;
     noSessionsHint: string;
@@ -104,6 +105,10 @@ export const COPY: Record<
     speechPitch: string;
     sendAsVoiceNote: string;
     webSearchSources: string;
+    webSearchToggle: string;
+    webSearchOn: string;
+    webSearchOff: string;
+    webSearchUnavailable: string;
     errors: {
       generic: string;
       rateLimit: string;
@@ -146,7 +151,8 @@ export const COPY: Record<
     copyMessage: "Salin pesan",
     copySuccess: "Pesan disalin",
     toggleTheme: "Ganti tema",
-    sendShortcut: "⌘/Ctrl + Enter untuk kirim",
+    sendShortcut: "Enter untuk kirim · ⌘/Ctrl + Enter untuk baris baru",
+    chatHistory: "Riwayat Chat",
     searchSessions: "Cari percakapan...",
     noSearchResults: "Tidak ada percakapan yang cocok",
     noSessionsHint: "Mulai chat baru untuk menyimpan riwayat di sini.",
@@ -217,7 +223,11 @@ export const COPY: Record<
     speechRate: "Kecepatan bicara",
     speechPitch: "Nada suara",
     sendAsVoiceNote: "Kirim sebagai voice note",
-    webSearchSources: "Sumber web",
+    webSearchSources: "Sumber",
+    webSearchToggle: "Cari di internet",
+    webSearchOn: "Pencarian web aktif",
+    webSearchOff: "Pencarian web nonaktif",
+    webSearchUnavailable: "Pencarian web belum dikonfigurasi",
     errors: {
       generic: "Gagal mendapatkan respons. Coba lagi.",
       rateLimit: "Terlalu banyak permintaan. Tunggu sebentar.",
@@ -259,7 +269,8 @@ export const COPY: Record<
     copyMessage: "Copy message",
     copySuccess: "Message copied",
     toggleTheme: "Toggle theme",
-    sendShortcut: "⌘/Ctrl + Enter to send",
+    sendShortcut: "Enter to send · ⌘/Ctrl + Enter for new line",
+    chatHistory: "History",
     searchSessions: "Search conversations...",
     noSearchResults: "No matching conversations",
     noSessionsHint: "Start a new chat to save history here.",
@@ -330,7 +341,11 @@ export const COPY: Record<
     speechRate: "Speech rate",
     speechPitch: "Voice pitch",
     sendAsVoiceNote: "Send as voice note",
-    webSearchSources: "Web sources",
+    webSearchSources: "Sources",
+    webSearchToggle: "Search the web",
+    webSearchOn: "Web search on",
+    webSearchOff: "Web search off",
+    webSearchUnavailable: "Web search is not configured",
     errors: {
       generic: "Failed to get a response. Please try again.",
       rateLimit: "Too many requests. Please wait a moment.",
@@ -372,7 +387,8 @@ export const COPY: Record<
     copyMessage: "复制消息",
     copySuccess: "消息已复制",
     toggleTheme: "切换主题",
-    sendShortcut: "⌘/Ctrl + Enter 发送",
+    sendShortcut: "Enter 发送 · ⌘/Ctrl + Enter 换行",
+    chatHistory: "历史记录",
     searchSessions: "搜索对话...",
     noSearchResults: "没有匹配的对话",
     noSessionsHint: "开始新对话以在此保存记录。",
@@ -443,7 +459,11 @@ export const COPY: Record<
     speechRate: "语速",
     speechPitch: "音调",
     sendAsVoiceNote: "作为语音消息发送",
-    webSearchSources: "网络来源",
+    webSearchSources: "来源",
+    webSearchToggle: "联网搜索",
+    webSearchOn: "已开启联网搜索",
+    webSearchOff: "已关闭联网搜索",
+    webSearchUnavailable: "联网搜索未配置",
     errors: {
       generic: "获取回复失败，请重试。",
       rateLimit: "请求过多，请稍后再试。",

@@ -10,6 +10,7 @@ export async function GET() {
     rag: config.rag,
     tts: config.tts,
     visionModel: config.visionModel,
+    webSearchAvailable: Boolean(process.env.TAVILY_API_KEY?.trim()),
     ttsEngines: {
       browser: true,
       openai: Boolean(process.env.OPENAI_API_KEY?.trim()),
