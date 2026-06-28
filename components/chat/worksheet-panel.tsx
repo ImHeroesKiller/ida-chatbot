@@ -6,6 +6,7 @@ import {
   Download,
   FileText,
   History,
+  LayoutTemplate,
   Loader2,
   PanelRightClose,
   Pencil,
@@ -19,6 +20,7 @@ import toast from "react-hot-toast";
 
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { WorksheetExportPdfDialog } from "@/components/chat/worksheet-export-pdf-dialog";
+import { WorksheetTemplateDialog } from "@/components/chat/worksheet-template-dialog";
 import { WorksheetVersionHistoryDialog } from "@/components/chat/worksheet-version-history-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +34,7 @@ import {
   type WorksheetErrorCode,
   type WorksheetVersion,
 } from "@/lib/worksheet";
+import type { WorksheetTemplate } from "@/lib/worksheet-templates";
 import { cn } from "@/lib/utils";
 
 interface WorksheetPanelProps {
@@ -45,6 +48,7 @@ interface WorksheetPanelProps {
   onContentSave?: (content: string) => void;
   versions?: WorksheetVersion[];
   onRestoreVersion?: (versionId: string) => void;
+  onApplyTemplate?: (template: WorksheetTemplate) => void;
   onRetry?: () => void;
   onRegenerate?: () => void;
   onClear?: () => void;
@@ -64,6 +68,7 @@ export function WorksheetPanel({
   onContentSave,
   versions = [],
   onRestoreVersion,
+  onApplyTemplate,
   onRetry,
   onRegenerate,
   onClear,
@@ -78,8 +83,10 @@ export function WorksheetPanel({
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [exportPdfDialogOpen, setExportPdfDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const pendingTemplateEditRef = useRef(false);
 
   const hasContent = Boolean(content.trim());
   const hasUnsavedChanges = isEditing && draftContent !== content;
@@ -94,6 +101,16 @@ export function WorksheetPanel({
       setDraftContent(content);
     }
   }, [content, isEditing]);
+
+  useEffect(() => {
+    if (!pendingTemplateEditRef.current || !content.trim() || isGenerating) {
+      return;
+    }
+
+    pendingTemplateEditRef.current = false;
+    setDraftContent(content);
+    setIsEditing(true);
+  }, [content, isGenerating]);
 
   useEffect(() => {
     if (!isEditing) return;
@@ -213,6 +230,19 @@ export function WorksheetPanel({
     draftContent,
     onContentSave,
   ]);
+
+  const handleSelectTemplate = useCallback(
+    (template: WorksheetTemplate) => {
+      if (hasContent && !window.confirm(copy.worksheetTemplateOverwriteConfirm)) {
+        return;
+      }
+
+      pendingTemplateEditRef.current = true;
+      onApplyTemplate?.(template);
+      setTemplateDialogOpen(false);
+    },
+    [copy.worksheetTemplateOverwriteConfirm, hasContent, onApplyTemplate],
+  );
 
   const handleClear = useCallback(() => {
     if (isEditing) return;
@@ -382,6 +412,18 @@ export function WorksheetPanel({
               <p className="mt-4 max-w-xs text-left text-[11px] leading-relaxed text-muted-foreground/90">
                 {copy.worksheetEmptyEditHint}
               </p>
+              {onApplyTemplate ? (
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  className="mt-5 h-10 gap-1.5 px-4 text-xs"
+                  onClick={() => setTemplateDialogOpen(true)}
+                >
+                  <LayoutTemplate className="h-3.5 w-3.5" />
+                  {copy.worksheetTemplates}
+                </Button>
+              ) : null}
             </div>
           )}
         </div>
@@ -454,6 +496,19 @@ export function WorksheetPanel({
             ) : null}
 
             <div className="flex gap-2">
+              {onApplyTemplate ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className={cn("flex-1", actionButtonClass)}
+                  disabled={isGenerating || isEditing}
+                  onClick={() => setTemplateDialogOpen(true)}
+                >
+                  <LayoutTemplate className="h-3.5 w-3.5" />
+                  {copy.worksheetTemplates}
+                </Button>
+              ) : null}
               <Button
                 type="button"
                 variant="outline"
@@ -534,6 +589,13 @@ export function WorksheetPanel({
         onCancel={() => {
           if (!isExportingPdf) setExportPdfDialogOpen(false);
         }}
+      />
+
+      <WorksheetTemplateDialog
+        open={templateDialogOpen}
+        locale={locale}
+        onSelect={handleSelectTemplate}
+        onClose={() => setTemplateDialogOpen(false)}
       />
 
       <WorksheetVersionHistoryDialog

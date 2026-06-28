@@ -35,6 +35,8 @@ function sourceLabel(
       return copy.worksheetHistoryManualSave;
     case "restored":
       return copy.worksheetHistoryRestored;
+    case "template":
+      return copy.worksheetHistoryTemplate;
     default:
       return copy.worksheetHistoryManualSave;
   }

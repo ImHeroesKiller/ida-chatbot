@@ -179,6 +179,12 @@ export const COPY: Record<
     worksheetHistoryGenerated: string;
     worksheetHistoryManualSave: string;
     worksheetHistoryRestored: string;
+    worksheetHistoryTemplate: string;
+    worksheetTemplates: string;
+    worksheetTemplatesTitle: string;
+    worksheetTemplatesDescription: string;
+    worksheetTemplateApplied: string;
+    worksheetTemplateOverwriteConfirm: string;
     mapPlaceholderDesc: string;
     mapPlaceholderContent: string;
     researchPlaceholderDesc: string;
@@ -382,6 +388,14 @@ export const COPY: Record<
     worksheetHistoryGenerated: "Dibuat IDA",
     worksheetHistoryManualSave: "Simpan manual",
     worksheetHistoryRestored: "Dipulihkan",
+    worksheetHistoryTemplate: "Dari template",
+    worksheetTemplates: "Template",
+    worksheetTemplatesTitle: "Pilih template dokumen",
+    worksheetTemplatesDescription:
+      "Mulai dari struktur siap pakai, lalu edit atau minta IDA melengkapi lewat chat.",
+    worksheetTemplateApplied: "Template diterapkan",
+    worksheetTemplateOverwriteConfirm:
+      "Terapkan template ini? Konten dokumen saat ini akan diganti.",
     mapPlaceholderDesc:
       "Peta interaktif akan ditampilkan di sini untuk pertanyaan berbasis lokasi.",
     mapPlaceholderContent:
@@ -589,6 +603,14 @@ export const COPY: Record<
     worksheetHistoryGenerated: "IDA generated",
     worksheetHistoryManualSave: "Manual save",
     worksheetHistoryRestored: "Restored",
+    worksheetHistoryTemplate: "From template",
+    worksheetTemplates: "Templates",
+    worksheetTemplatesTitle: "Choose a document template",
+    worksheetTemplatesDescription:
+      "Start from a ready-made structure, then edit or ask IDA to complete it in chat.",
+    worksheetTemplateApplied: "Template applied",
+    worksheetTemplateOverwriteConfirm:
+      "Apply this template? Current document content will be replaced.",
     mapPlaceholderDesc:
       "An interactive map will appear here for location-based questions.",
     mapPlaceholderContent:
@@ -790,6 +812,13 @@ export const COPY: Record<
     worksheetHistoryGenerated: "IDA 生成",
     worksheetHistoryManualSave: "手动保存",
     worksheetHistoryRestored: "已恢复",
+    worksheetHistoryTemplate: "来自模板",
+    worksheetTemplates: "模板",
+    worksheetTemplatesTitle: "选择文档模板",
+    worksheetTemplatesDescription:
+      "从现成结构开始，然后编辑或通过聊天让 IDA 补充内容。",
+    worksheetTemplateApplied: "模板已应用",
+    worksheetTemplateOverwriteConfirm: "应用此模板？当前文档内容将被替换。",
     mapPlaceholderDesc: "交互式地图将在此显示，用于位置相关问题。",
     mapPlaceholderContent: "[ 地图 ]\n\n地图预览将显示在此面板。",
     researchPlaceholderDesc: "深度研究结果将显示在此面板。",

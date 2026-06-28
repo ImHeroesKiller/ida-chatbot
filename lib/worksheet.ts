@@ -14,7 +14,11 @@ export type WorksheetParseSource =
   | "json_block"
   | "markdown_heuristic";
 
-export type WorksheetVersionSource = "generated" | "manual_save" | "restored";
+export type WorksheetVersionSource =
+  | "generated"
+  | "manual_save"
+  | "restored"
+  | "template";
 
 export interface WorksheetVersion {
   id: string;

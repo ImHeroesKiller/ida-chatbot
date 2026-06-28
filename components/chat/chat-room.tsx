@@ -79,6 +79,10 @@ import {
   type WorksheetVersion,
 } from "@/lib/worksheet";
 import {
+  resolveWorksheetTemplate,
+  type WorksheetTemplate,
+} from "@/lib/worksheet-templates";
+import {
   SpeechSynthesisProvider,
   useSpeechSynthesis,
 } from "@/lib/voice/use-speech-synthesis";
@@ -852,6 +856,24 @@ function ChatRoomContent() {
     [locale, worksheetTitle, worksheetVersions],
   );
 
+  const handleWorksheetApplyTemplate = useCallback(
+    (template: WorksheetTemplate) => {
+      const { title, content } = resolveWorksheetTemplate(template, locale);
+      const versions = recordWorksheetVersion(worksheetVersions, {
+        title,
+        content,
+        source: "template",
+      });
+
+      setWorksheetTitle(title);
+      setWorksheetContent(content);
+      setWorksheetError(null);
+      setWorksheetVersions(versions);
+      toast.success(copy.worksheetTemplateApplied);
+    },
+    [copy.worksheetTemplateApplied, locale, worksheetVersions],
+  );
+
   const handleWorksheetRestoreVersion = useCallback(
     (versionId: string) => {
       const version = findWorksheetVersion(worksheetVersions, versionId);
@@ -1063,6 +1085,7 @@ function ChatRoomContent() {
               onWorksheetContentSave={handleWorksheetContentSave}
               worksheetVersions={worksheetVersions}
               onWorksheetRestoreVersion={handleWorksheetRestoreVersion}
+              onWorksheetApplyTemplate={handleWorksheetApplyTemplate}
               onWorksheetRetry={handleWorksheetRetry}
               onWorksheetRegenerate={handleWorksheetRegenerate}
               onWorksheetClear={handleWorksheetClear}
@@ -1099,6 +1122,7 @@ function ChatRoomContent() {
               onWorksheetContentSave={handleWorksheetContentSave}
               worksheetVersions={worksheetVersions}
               onWorksheetRestoreVersion={handleWorksheetRestoreVersion}
+              onWorksheetApplyTemplate={handleWorksheetApplyTemplate}
               onWorksheetRetry={handleWorksheetRetry}
               onWorksheetRegenerate={handleWorksheetRegenerate}
               onWorksheetClear={handleWorksheetClear}

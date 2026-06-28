@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 import type { WorksheetErrorCode, WorksheetVersion } from "@/lib/worksheet";
+import type { WorksheetTemplate } from "@/lib/worksheet-templates";
 import { COPY } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ interface RightSidebarProps {
   onWorksheetContentSave?: (content: string) => void;
   worksheetVersions?: WorksheetVersion[];
   onWorksheetRestoreVersion?: (versionId: string) => void;
+  onWorksheetApplyTemplate?: (template: WorksheetTemplate) => void;
   onWorksheetRetry?: () => void;
   onWorksheetRegenerate?: () => void;
   onWorksheetClear?: () => void;
@@ -49,6 +51,7 @@ export function RightSidebar({
   onWorksheetContentSave,
   worksheetVersions = [],
   onWorksheetRestoreVersion,
+  onWorksheetApplyTemplate,
   onWorksheetRetry,
   onWorksheetRegenerate,
   onWorksheetClear,
@@ -71,6 +74,7 @@ export function RightSidebar({
         onContentSave={onWorksheetContentSave}
         versions={worksheetVersions}
         onRestoreVersion={onWorksheetRestoreVersion}
+        onApplyTemplate={onWorksheetApplyTemplate}
         onRetry={onWorksheetRetry}
         onRegenerate={onWorksheetRegenerate}
         onClear={onWorksheetClear}
