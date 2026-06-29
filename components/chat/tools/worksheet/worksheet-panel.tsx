@@ -65,9 +65,7 @@ import { exportWorksheetToPdf } from "@/lib/pdf-export";
 import { useResolvedWorksheetBranding } from "@/lib/worksheet-letterhead-branding";
 import {
   findWorksheetVersion,
-  recordWorksheetVersion,
   type WorksheetDocument,
-  type WorksheetErrorCode,
 } from "@/lib/worksheet";
 import {
   loadWorksheetDocumentFilters,
@@ -136,7 +134,10 @@ export function WorksheetPanel({
   const activeDocument = getActiveWorksheetDocument(workspace);
   const title = activeDocument?.title ?? workspace.title;
   const content = activeDocument?.content ?? workspace.content;
-  const versions = activeDocument?.versions ?? workspace.versions ?? [];
+  const versions = useMemo(
+    () => activeDocument?.versions ?? workspace.versions ?? [],
+    [activeDocument?.versions, workspace.versions],
+  );
   const letterheadSelection = getWorksheetLetterheadSelection(workspace);
   const showEditor = Boolean(workspace.activeDocumentId);
   const documentCount = workspace.documents?.length ?? 0;
@@ -182,7 +183,10 @@ export function WorksheetPanel({
   const pendingTemplateEditRef = useRef(false);
   const saveFeedbackTimerRef = useRef<number | null>(null);
 
-  const allDocuments = workspace.documents ?? [];
+  const allDocuments = useMemo(
+    () => workspace.documents ?? [],
+    [workspace.documents],
+  );
   const filteredDocuments = useMemo(
     () =>
       filterWorksheetDocuments(allDocuments, {
@@ -743,7 +747,6 @@ export function WorksheetPanel({
     copy.worksheetRegenerate,
     copy.worksheetShare,
     copy.worksheetTemplates,
-    error,
     requestDeleteDocument,
     handleShare,
     hasContent,

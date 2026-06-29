@@ -11,8 +11,11 @@ export const TOOL_PANEL_IDS = {
 
 export function isToggleToolPanel(
   panel: RightSidebarPanel,
-): panel is "worksheet" | "web-search" | "research" {
+): panel is "worksheet" | "web-search" | "research" | "map" {
   return (
-    panel === "worksheet" || panel === "web-search" || panel === "research"
+    panel === "worksheet" ||
+    panel === "web-search" ||
+    panel === "research" ||
+    panel === "map"
   );
 }

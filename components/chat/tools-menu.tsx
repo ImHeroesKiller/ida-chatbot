@@ -146,7 +146,8 @@ export function ToolsMenu({
         const isToggle =
           config.kind === "toggle-web-search" ||
           config.kind === "toggle-research" ||
-          config.kind === "toggle-worksheet";
+          config.kind === "toggle-worksheet" ||
+          config.kind === "toggle-map";
         const isWebSearch = tool.id === "web-search";
         const isResearch = tool.id === "research";
         const itemDisabled =

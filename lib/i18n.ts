@@ -400,6 +400,22 @@ export const COPY: Record<
     worksheetFullViewShortcutHint: string;
     mapPlaceholderDesc: string;
     mapPlaceholderContent: string;
+    mapAddMarker: string;
+    mapResetView: string;
+    mapMarkerLabel: string;
+    mapRemoveMarker: string;
+    mapSearchPlaceholder: string;
+    mapSearchNoResults: string;
+    mapSearchError: string;
+    mapClickToAdd: string;
+    mapClickToAddHint: string;
+    mapCopyCoordinates: string;
+    mapCopiedCoordinates: string;
+    mapCenterMarker: string;
+    mapEditMarker: string;
+    mapSaveMarker: string;
+    mapCancelEdit: string;
+    mapCoordinatesLabel: string;
     researchPlaceholderDesc: string;
     researchPlaceholderContent: string;
     errors: {
@@ -846,6 +862,22 @@ export const COPY: Record<
       "Peta interaktif akan ditampilkan di sini untuk pertanyaan berbasis lokasi.",
     mapPlaceholderContent:
       "[ Peta ]\n\nPratinjau peta akan muncul di panel ini.",
+    mapAddMarker: "Tambah marker",
+    mapResetView: "Reset tampilan",
+    mapMarkerLabel: "Marker",
+    mapRemoveMarker: "Hapus marker",
+    mapSearchPlaceholder: "Cari lokasi…",
+    mapSearchNoResults: "Lokasi tidak ditemukan.",
+    mapSearchError: "Pencarian lokasi gagal.",
+    mapClickToAdd: "Klik peta",
+    mapClickToAddHint: "Aktifkan lalu klik peta untuk menambah marker",
+    mapCopyCoordinates: "Salin",
+    mapCopiedCoordinates: "Koordinat disalin",
+    mapCenterMarker: "Fokus",
+    mapEditMarker: "Edit label marker",
+    mapSaveMarker: "Simpan",
+    mapCancelEdit: "Batal",
+    mapCoordinatesLabel: "Koordinat",
     researchPlaceholderDesc:
       "Hasil riset mendalam akan ditampilkan di panel ini.",
     researchPlaceholderContent:
@@ -1294,6 +1326,22 @@ export const COPY: Record<
       "An interactive map will appear here for location-based questions.",
     mapPlaceholderContent:
       "[ Map ]\n\nMap preview will appear in this panel.",
+    mapAddMarker: "Add marker",
+    mapResetView: "Reset view",
+    mapMarkerLabel: "Marker",
+    mapRemoveMarker: "Remove marker",
+    mapSearchPlaceholder: "Search location…",
+    mapSearchNoResults: "No locations found.",
+    mapSearchError: "Location search failed.",
+    mapClickToAdd: "Click map",
+    mapClickToAddHint: "Enable then click the map to drop a marker",
+    mapCopyCoordinates: "Copy",
+    mapCopiedCoordinates: "Coordinates copied",
+    mapCenterMarker: "Center",
+    mapEditMarker: "Edit marker label",
+    mapSaveMarker: "Save",
+    mapCancelEdit: "Cancel",
+    mapCoordinatesLabel: "Coordinates",
     researchPlaceholderDesc:
       "Deep research results will be displayed in this panel.",
     researchPlaceholderContent:
@@ -1721,6 +1769,22 @@ export const COPY: Record<
       "快捷键：F 或 Ctrl/Cmd+Shift+F 打开 · Esc 退出",
     mapPlaceholderDesc: "交互式地图将在此显示，用于位置相关问题。",
     mapPlaceholderContent: "[ 地图 ]\n\n地图预览将显示在此面板。",
+    mapAddMarker: "添加标记",
+    mapResetView: "重置视图",
+    mapMarkerLabel: "标记",
+    mapRemoveMarker: "删除标记",
+    mapSearchPlaceholder: "搜索地点…",
+    mapSearchNoResults: "未找到地点。",
+    mapSearchError: "地点搜索失败。",
+    mapClickToAdd: "点击地图",
+    mapClickToAddHint: "启用后点击地图添加标记",
+    mapCopyCoordinates: "复制",
+    mapCopiedCoordinates: "坐标已复制",
+    mapCenterMarker: "居中",
+    mapEditMarker: "编辑标记名称",
+    mapSaveMarker: "保存",
+    mapCancelEdit: "取消",
+    mapCoordinatesLabel: "坐标",
     researchPlaceholderDesc: "深度研究结果将显示在此面板。",
     researchPlaceholderContent:
       "## 研究摘要\n\n多来源研究结果将显示在此处。",

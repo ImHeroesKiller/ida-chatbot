@@ -15,6 +15,8 @@ import { ensureApiSessionId } from "@/lib/client/chat-api-payload";
 import { getOrCreateAnonymousUserId } from "@/lib/client/user-id";
 import { normalizeRightSidebarPanel } from "@/lib/chat-tools";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
+import type { MapViewState } from "@/lib/map-types";
+import { normalizeMapViewState } from "@/lib/map-types";
 import type { ResearchSession } from "@/lib/research-types";
 import type { WorksheetDocument } from "@/lib/worksheet";
 import type { Locale } from "@/lib/config";
@@ -35,7 +37,9 @@ export interface ChatSession {
   worksheetToolEnabled?: boolean;
   webSearchEnabled?: boolean;
   researchEnabled?: boolean;
+  mapEnabled?: boolean;
   researchSessions?: ResearchSession[];
+  mapViewState?: MapViewState;
   worksheet?: WorksheetDocument | null;
   pinned?: boolean;
   createdAt: number;
@@ -273,7 +277,9 @@ export function createChatSession(locale: Locale): ChatSession {
     worksheetToolEnabled: false,
     webSearchEnabled: false,
     researchEnabled: false,
+    mapEnabled: false,
     researchSessions: [],
+    mapViewState: normalizeMapViewState(null),
     worksheet: createEmptyWorksheet(),
     pinned: false,
     createdAt: now,
@@ -310,9 +316,11 @@ function normalizeSession(
       rest.webSearchEnabled ?? panel === "web-search",
     researchEnabled:
       rest.researchEnabled ?? panel === "research",
+    mapEnabled: rest.mapEnabled ?? panel === "map",
     researchSessions: Array.isArray(rest.researchSessions)
       ? rest.researchSessions
       : [],
+    mapViewState: normalizeMapViewState(rest.mapViewState),
     worksheet: rest.worksheet ?? null,
     pinned: Boolean(session.pinned),
   };
@@ -828,7 +836,9 @@ export function useChatStore(locale: Locale) {
           | "worksheetToolEnabled"
           | "webSearchEnabled"
           | "researchEnabled"
+          | "mapEnabled"
           | "researchSessions"
+          | "mapViewState"
           | "worksheet"
         >
       >,
@@ -863,10 +873,18 @@ export function useChatStore(locale: Locale) {
             patch.researchEnabled !== undefined
               ? patch.researchEnabled
               : Boolean(chat.researchEnabled),
+          mapEnabled:
+            patch.mapEnabled !== undefined
+              ? patch.mapEnabled
+              : Boolean(chat.mapEnabled),
           researchSessions:
             patch.researchSessions !== undefined
               ? patch.researchSessions
               : (chat.researchSessions ?? []),
+          mapViewState:
+            patch.mapViewState !== undefined
+              ? normalizeMapViewState(patch.mapViewState)
+              : normalizeMapViewState(chat.mapViewState),
           worksheet:
             patch.worksheet !== undefined
               ? resolvePersistedWorksheet(patch.worksheet)

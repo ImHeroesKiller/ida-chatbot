@@ -3,6 +3,7 @@
 import { PanelRightClose, FileText } from "lucide-react";
 
 import { MapPanel } from "@/components/chat/tools/map";
+import type { MapTool } from "@/components/chat/tools/map/use-map";
 import { ResearchPanel } from "@/components/chat/tools/research";
 import type { useResearch } from "@/components/chat/tools/research/use-research";
 import { WebSearchPanel } from "@/components/chat/tools/web-search";
@@ -23,6 +24,13 @@ import { cn } from "@/lib/utils";
 type WebSearchTool = ReturnType<typeof useWebSearch>;
 type ResearchTool = ReturnType<typeof useResearch>;
 
+const PANEL_RENDERERS = {
+  "web-search": "web-search",
+  research: "research",
+  map: "map",
+  worksheet: "worksheet",
+} as const;
+
 export interface ToolPanelHostProps {
   locale: Locale;
   panel: RightSidebarPanel;
@@ -31,6 +39,7 @@ export interface ToolPanelHostProps {
   className?: string;
   webSearch: WebSearchTool;
   research: ResearchTool;
+  map: MapTool;
   webSearchSearching?: boolean;
   researchSearching?: boolean;
   worksheet: WorksheetDocument;
@@ -58,6 +67,7 @@ export function ToolPanelHost({
   className,
   webSearch,
   research,
+  map,
   webSearchSearching = false,
   researchSearching = false,
   worksheet,
@@ -116,10 +126,11 @@ export function ToolPanelHost({
     );
   }
 
-  if (panel === "map") {
+  if (panel === PANEL_RENDERERS.map) {
     return (
       <MapPanel
         locale={locale}
+        map={map}
         onClose={onClose}
         className={className}
         embedded={embedded}

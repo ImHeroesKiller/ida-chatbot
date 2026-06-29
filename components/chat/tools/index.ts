@@ -9,6 +9,8 @@ export * from "./tool-ui-config";
 
 // Export base tool patterns
 export * from "./base-tool-state";
+export * from "./coordinator-types";
+export * from "./coordinator-helpers";
 export * from "./tool-panel-ids";
 export * from "./use-tools-coordinator";
 export * from "./tool-panel-host";

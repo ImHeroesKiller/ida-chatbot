@@ -14,6 +14,7 @@ export type ToolMenuKind =
   | "toggle-web-search"
   | "toggle-research"
   | "toggle-worksheet"
+  | "toggle-map"
   | "open-panel";
 
 export type ToolUiConfig = {
@@ -48,7 +49,7 @@ export const TOOL_UI_CONFIG: Record<ToolId, ToolUiConfig> = {
   map: {
     icon: Map,
     labelKey: "toolsMap",
-    kind: "open-panel",
+    kind: "toggle-map",
     panel: "map",
     railPanel: "map",
   },

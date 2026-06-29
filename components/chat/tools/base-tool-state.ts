@@ -1,3 +1,7 @@
+"use client";
+
+import { useCallback, useRef, useState } from "react";
+
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 
 /**
@@ -150,4 +154,87 @@ export function createBaseToolActions(options: {
   };
 
   return { setEnabled, openPanel, closePanel, toggleTool };
+}
+
+/**
+ * Standard async UI state for tools that call APIs or stream results.
+ * Domain-specific names (`isSearching`, `isResearching`) are allowed in the
+ * public tool type when they improve panel clarity.
+ */
+export interface ToolAsyncState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+export const INITIAL_TOOL_ASYNC_STATE: ToolAsyncState = {
+  isLoading: false,
+  error: null,
+};
+
+export function resetToolAsyncState(setters: {
+  setIsLoading: (value: boolean) => void;
+  setError: (value: string | null) => void;
+}): void {
+  setters.setIsLoading(false);
+  setters.setError(null);
+}
+
+export interface UseBaseToolStateOptions<
+  THydrate extends ToolHydrationInput = ToolHydrationInput,
+> {
+  /** Clears ephemeral tool data when the tool is disabled. Omit for session-backed tools. */
+  onDisable?: () => void;
+  /** Restores tool-specific state after base hydration fields are applied. */
+  onHydrate?: (state: THydrate) => void;
+  /** Clears tool-specific state when starting a new empty chat. */
+  onReset?: () => void;
+}
+
+/**
+ * Shared scaffold for every tool hook: armed state, panel visibility, and lifecycle.
+ *
+ * Tool hooks should call this once, then add tool-specific state and actions.
+ */
+export function useBaseToolState<
+  THydrate extends ToolHydrationInput = ToolHydrationInput,
+>(
+  panelId: RightSidebarPanel,
+  options: UseBaseToolStateOptions<THydrate> = {},
+) {
+  const { onDisable, onHydrate, onReset } = options;
+
+  const [isEnabled, setIsEnabled] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const baseSettersRef = useRef({ setIsEnabled, setIsPanelOpen });
+  baseSettersRef.current = { setIsEnabled, setIsPanelOpen };
+
+  const { setEnabled, openPanel, closePanel, toggleTool } = createBaseToolActions({
+    ...baseSettersRef.current,
+    onDisable,
+  });
+
+  const hydrate = useCallback(
+    (state: THydrate) => {
+      applyBaseHydration(state, baseSettersRef.current);
+      onHydrate?.(state);
+    },
+    [onHydrate],
+  );
+
+  const resetForNewChat = useCallback(() => {
+    resetBaseToolState(baseSettersRef.current);
+    onReset?.();
+  }, [onReset]);
+
+  return {
+    panelId,
+    isEnabled,
+    isPanelOpen,
+    setEnabled,
+    toggleTool,
+    openPanel,
+    closePanel,
+    hydrate,
+    resetForNewChat,
+  };
 }

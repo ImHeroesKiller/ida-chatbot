@@ -13,6 +13,8 @@ components/chat/tools/
 ├── tool-panel-ids.ts         # Konstanta panel id per tool
 ├── registry.ts               # Daftar tool & helper (getTool, getAllTools)
 ├── tool-ui-config.ts         # Ikon, label i18n, dan perilaku UI per tool
+├── coordinator-types.ts      # Shared coordinator types (ToolRailItem)
+├── coordinator-helpers.ts    # Hydration & rail builders
 ├── use-tools-coordinator.ts  # Orkestrasi multi-tool (panel, persist, rail)
 ├── tool-panel-host.tsx       # Router panel kanan → komponen panel tiap tool
 ├── worksheet/
@@ -27,6 +29,12 @@ components/chat/tools/
 │   ├── use-web-search.ts     # Hook state + hasil pencarian
 │   ├── web-search-panel.tsx
 │   └── …komponen UI
+├── map/
+│   ├── index.ts
+│   ├── map-tool.ts
+│   ├── use-map.ts
+│   ├── map-panel.tsx
+│   └── map-view.tsx
 └── research/
     ├── index.ts
     ├── research-tool.ts

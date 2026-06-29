@@ -3,9 +3,7 @@
 import { useCallback, useState } from "react";
 
 import {
-  applyBaseHydration,
-  createBaseToolActions,
-  resetBaseToolState,
+  useBaseToolState,
   type BaseToolLifecycle,
   type BaseToolState,
   type ToolHydrationInput,
@@ -76,13 +74,6 @@ export type ResearchTool = BaseToolState &
  * uses `beginChatResearch` / `applyResearchFromMessage` / `endChatResearch`.
  */
 export function useResearch(): ResearchTool {
-  // --- Base state (shared across all tools) ---
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-
-  const baseSetters = { setIsEnabled, setIsPanelOpen };
-
-  // --- Tool-specific state ---
   const [researchSessions, setResearchSessions] = useState<ResearchSession[]>([]);
   const [currentSession, setCurrentSession] = useState<ResearchSession | null>(
     null,
@@ -100,12 +91,50 @@ export function useResearch(): ResearchTool {
     setIsResearching(false);
   }, []);
 
-  const { setEnabled, openPanel, closePanel, toggleTool } = createBaseToolActions(
-    {
-      ...baseSetters,
-      onDisable: clearResearchData,
-    },
-  );
+  const hydrateResearchData = useCallback((state: ResearchHydrationInput) => {
+    setResearchSessions(state.sessions ?? []);
+
+    if (state.lastResult) {
+      setResearchResults(state.lastResult);
+      setCurrentSession({
+        id: createResearchSessionId(),
+        topic: state.lastResult.topic,
+        depth: state.lastResult.depth,
+        summary: state.lastResult.summary,
+        sources: state.lastResult.sources,
+        queries: state.lastResult.queries,
+        createdAt: Date.now(),
+        savedAt: 0,
+      });
+    } else {
+      setResearchResults(null);
+      setCurrentSession(null);
+    }
+
+    setError(null);
+    setIsResearching(false);
+  }, []);
+
+  const resetResearchData = useCallback(() => {
+    setResearchSessions([]);
+    clearResearchData();
+  }, [clearResearchData]);
+
+  const {
+    panelId,
+    isEnabled,
+    isPanelOpen,
+    setEnabled,
+    toggleTool,
+    openPanel,
+    closePanel,
+    hydrate,
+    resetForNewChat,
+  } = useBaseToolState<ResearchHydrationInput>(PANEL_ID, {
+    onDisable: clearResearchData,
+    onHydrate: hydrateResearchData,
+    onReset: resetResearchData,
+  });
 
   // --- Tool-specific actions ---
   const setSessions = useCallback((sessions: ResearchSession[]) => {
@@ -234,40 +263,8 @@ export function useResearch(): ResearchTool {
     [],
   );
 
-  // --- Lifecycle (hydrate / reset) ---
-  const hydrate = useCallback((state: ResearchHydrationInput) => {
-    applyBaseHydration(state, baseSetters);
-    setResearchSessions(state.sessions ?? []);
-
-    if (state.lastResult) {
-      setResearchResults(state.lastResult);
-      setCurrentSession({
-        id: createResearchSessionId(),
-        topic: state.lastResult.topic,
-        depth: state.lastResult.depth,
-        summary: state.lastResult.summary,
-        sources: state.lastResult.sources,
-        queries: state.lastResult.queries,
-        createdAt: Date.now(),
-        savedAt: 0,
-      });
-    } else {
-      setResearchResults(null);
-      setCurrentSession(null);
-    }
-
-    setError(null);
-    setIsResearching(false);
-  }, []);
-
-  const resetForNewChat = useCallback(() => {
-    resetBaseToolState(baseSetters);
-    setResearchSessions([]);
-    clearResearchData();
-  }, [clearResearchData]);
-
   return {
-    panelId: PANEL_ID,
+    panelId,
     isEnabled,
     isPanelOpen,
     researchSessions,

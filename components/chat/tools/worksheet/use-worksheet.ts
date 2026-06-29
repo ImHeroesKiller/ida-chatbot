@@ -1,14 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
-
 import {
-  applyBaseHydration,
-  createBaseToolActions,
-  resetBaseToolState,
+  useBaseToolState,
   type BaseToolLifecycle,
   type BaseToolState,
-  type ToolHydrationInput,
 } from "@/components/chat/tools/base-tool-state";
 import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
 
@@ -23,27 +18,20 @@ export type WorksheetTool = BaseToolState & BaseToolLifecycle;
  * only tracks whether the tool is enabled and whether its panel is open.
  */
 export function useWorksheet(): WorksheetTool {
-  // --- Base state (shared across all tools) ---
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-
-  const baseSetters = { setIsEnabled, setIsPanelOpen };
-
-  const { setEnabled, openPanel, closePanel, toggleTool } = createBaseToolActions(
-    { ...baseSetters },
-  );
-
-  // --- Lifecycle (hydrate / reset) ---
-  const hydrate = useCallback((state: ToolHydrationInput) => {
-    applyBaseHydration(state, baseSetters);
-  }, []);
-
-  const resetForNewChat = useCallback(() => {
-    resetBaseToolState(baseSetters);
-  }, []);
+  const {
+    panelId,
+    isEnabled,
+    isPanelOpen,
+    setEnabled,
+    toggleTool,
+    openPanel,
+    closePanel,
+    hydrate,
+    resetForNewChat,
+  } = useBaseToolState(PANEL_ID);
 
   return {
-    panelId: PANEL_ID,
+    panelId,
     isEnabled,
     isPanelOpen,
     setEnabled,

@@ -5,6 +5,3 @@ export const worksheetTool: Tool = {
   label: "Worksheet",
   enabled: true,
 };
-
-// Nanti di sini akan ditambahkan fungsi-fungsi terkait Worksheet
-// seperti toggle, state management, dll.

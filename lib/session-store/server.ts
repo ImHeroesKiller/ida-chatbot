@@ -1,6 +1,7 @@
 import type { ChatSession, ChatStoreState } from "@/lib/chat-store";
 import { createInitialStore } from "@/lib/chat-store";
 import { normalizeRightSidebarPanel } from "@/lib/chat-tools";
+import { normalizeMapViewState } from "@/lib/map-types";
 import type { Locale } from "@/lib/config";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 import type { IdaMessage } from "@/lib/types";
@@ -22,7 +23,9 @@ interface SessionDbRow {
   worksheet_tool_enabled: boolean | null;
   web_search_enabled: boolean | null;
   research_enabled: boolean | null;
+  map_enabled: boolean | null;
   research_sessions: unknown;
+  map_view_state: unknown;
   chat_created_at: string | null;
   chat_updated_at: string | null;
 }
@@ -47,6 +50,10 @@ function rowToChatSession(row: SessionDbRow): ChatSession {
     researchSessions: Array.isArray(row.research_sessions)
       ? row.research_sessions
       : [],
+    mapEnabled: row.map_enabled ?? panel === "map",
+    mapViewState: normalizeMapViewState(
+      row.map_view_state as ChatSession["mapViewState"],
+    ),
     createdAt: row.chat_created_at
       ? new Date(row.chat_created_at).getTime()
       : Date.now(),
@@ -73,7 +80,7 @@ export async function loadUserChatStore(
       supabase
         .from("ida_chat_sessions")
         .select(
-          "user_id, chat_id, session_id, locale, title, messages, quick_replies, pinned, worksheet, active_right_panel, worksheet_tool_enabled, web_search_enabled, research_enabled, research_sessions, chat_created_at, chat_updated_at",
+          "user_id, chat_id, session_id, locale, title, messages, quick_replies, pinned, worksheet, active_right_panel, worksheet_tool_enabled, web_search_enabled, research_enabled, map_enabled, research_sessions, map_view_state, chat_created_at, chat_updated_at",
         )
         .eq("user_id", userId)
         .not("chat_id", "is", null),
@@ -141,7 +148,9 @@ export async function saveUserChatStore(
       worksheet_tool_enabled: Boolean(chat.worksheetToolEnabled),
       web_search_enabled: Boolean(chat.webSearchEnabled),
       research_enabled: Boolean(chat.researchEnabled),
+      map_enabled: Boolean(chat.mapEnabled),
       research_sessions: chat.researchSessions ?? [],
+      map_view_state: normalizeMapViewState(chat.mapViewState),
       chat_created_at: new Date(chat.createdAt).toISOString(),
       chat_updated_at: new Date(chat.updatedAt).toISOString(),
       updated_at: now,
