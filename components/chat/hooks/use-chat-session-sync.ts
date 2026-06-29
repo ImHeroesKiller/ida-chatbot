@@ -22,7 +22,7 @@ interface UseChatSessionSyncOptions {
   currentChat: ChatSession | null;
   sessions: ChatSession[];
   switchChat: (chatId: string) => void;
-  createChat: () => void;
+  createChat: () => string;
   persistCurrentChat: (
     patch: Partial<Pick<ChatSession, "messages">> & ToolPersistPatch,
   ) => void;
@@ -65,7 +65,6 @@ export function useChatSessionSync({
   onAfterNewChat,
 }: UseChatSessionSyncOptions) {
   const {
-    activeChatIdRef,
     localStateChatIdRef,
     canPersistCurrentChatState,
     markChatSwitchPending,
@@ -145,6 +144,8 @@ export function useChatSessionSync({
     markChatSwitchPending();
 
     flushSync(() => {
+      const newChatId = createChat();
+
       setMessages([]);
       setInput("");
       setError(null);
@@ -153,12 +154,13 @@ export function useChatSessionSync({
       setEditingMessageId(null);
       tools.resetForNewChat();
       resetWorksheetForNewChat();
+      markChatActive(newChatId);
     });
 
-    createChat();
     onAfterNewChat?.();
   }, [
     createChat,
+    markChatActive,
     markChatSwitchPending,
     onAfterNewChat,
     resetWorksheetForNewChat,
@@ -172,7 +174,7 @@ export function useChatSessionSync({
   ]);
 
   return {
-    activeChatIdRef,
+    activeChatIdRef: sessionRefs.activeChatIdRef,
     canPersistCurrentChatState,
     handleSelectChat,
     handleNewChat,
