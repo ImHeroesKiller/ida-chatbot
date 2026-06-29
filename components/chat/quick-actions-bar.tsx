@@ -23,24 +23,24 @@ export function QuickActionsBar({
   if (actions.length === 0) return null;
 
   const containerVariants: Variants = {
-    hidden: { opacity: 0, y: 8 },
+    hidden: { opacity: 0, y: 10 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.3,
-        ease: "easeOut",
-        staggerChildren: 0.05,
+        duration: 0.4,
+        ease: [0.23, 1, 0.32, 1],
+        staggerChildren: 0.08,
       },
     },
   };
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, scale: 0.92 },
+    hidden: { opacity: 0, scale: 0.95 },
     visible: {
       opacity: 1,
       scale: 1,
-      transition: { duration: 0.2, ease: "easeOut" },
+      transition: { duration: 0.3, ease: "easeOut" },
     },
   };
 
@@ -50,7 +50,7 @@ export function QuickActionsBar({
       initial="hidden"
       animate="visible"
       className={cn(
-        "flex gap-2 overflow-x-auto pb-2 px-2.5 sm:px-5 scrollbar-hide",
+        "flex gap-3 overflow-x-auto pb-3 px-4 sm:px-5 scrollbar-hide",
         className
       )}
     >
@@ -61,19 +61,18 @@ export function QuickActionsBar({
           onClick={action.onClick}
           disabled={action.disabled}
           className={cn(
-            "flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium",
-            "bg-muted/60 hover:bg-muted transition-all duration-200",
-            "disabled:opacity-50 disabled:cursor-not-allowed",
-            "whitespace-nowrap shrink-0",
-            "active:scale-95 hover:scale-105 transition-transform"
+            "flex items-center gap-2.5 rounded-2xl px-5 py-3 text-base font-semibold",
+            "bg-muted/40 hover:bg-muted border border-border/40 transition-all duration-200",
+            "disabled:opacity-40 disabled:cursor-not-allowed",
+            "whitespace-nowrap shrink-0 shadow-sm",
+            "active:scale-95"
           )}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.96 }}
         >
-          <span className="flex h-5 w-5 items-center justify-center text-foreground/70">
+          <span className="flex h-5 w-5 items-center justify-center text-primary/80">
             {action.icon}
           </span>
-          <span className="hidden sm:inline">{action.label}</span>
+          <span>{action.label}</span>
         </motion.button>
       ))}
     </motion.div>
