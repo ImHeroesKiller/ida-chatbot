@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { notifyToolComingSoon } from "@/components/chat/tool-rail-notify";
 import type { ToolRailGroup } from "@/components/chat/tools/coordinator-types";
 import type { ToolId } from "@/components/chat/tools/types";
 import type { Locale } from "@/lib/config";
@@ -52,17 +53,22 @@ export function RightToolsRail({
                 type="button"
                 variant={item.isExpanded ? "default" : "ghost"}
                 size="icon"
-                disabled={item.isDisabled || item.comingSoon}
+                disabled={item.isDisabled}
                 className={cn(
                   "relative h-11 w-11",
                   item.isExpanded && "shadow-sm",
-                  (item.isDisabled || item.comingSoon) && "opacity-60",
+                  item.isDisabled && "opacity-60",
+                  item.comingSoon && "opacity-80 hover:opacity-100",
                 )}
                 aria-label={title}
                 aria-pressed={item.isExpanded}
                 title={title}
                 onClick={() => {
-                  if (item.comingSoon || !item.panel) return;
+                  if (item.comingSoon) {
+                    notifyToolComingSoon(locale, item.labelKey);
+                    return;
+                  }
+                  if (!item.panel) return;
                   onRailClick(item.id as ToolId, item.panel);
                 }}
               >

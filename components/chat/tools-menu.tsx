@@ -11,6 +11,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
+import { notifyToolComingSoon } from "@/components/chat/tool-rail-notify";
 import {
   isToolRailPlaceholder,
   TOOL_RAIL_GROUPS,
@@ -172,10 +173,13 @@ export function ToolsMenu({
                   key={entry.id}
                   type="button"
                   role="menuitem"
-                  disabled
+                  onClick={() => {
+                    notifyToolComingSoon(locale, entry.labelKey);
+                    setOpen(false);
+                  }}
                   className={cn(
                     "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs",
-                    "cursor-not-allowed opacity-60",
+                    "transition-colors hover:bg-muted",
                   )}
                 >
                   <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />

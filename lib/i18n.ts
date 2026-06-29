@@ -197,11 +197,15 @@ export const COPY: Record<
     toolsResearch: string;
     toolsWorksheet: string;
     toolsWorkflow: string;
+    toolsImage: string;
+    toolsVideo: string;
+    toolsMusic: string;
     toolsCoding: string;
     toolsIntegration: string;
     toolsVirtualComputer: string;
     railResearchTools: string;
     railProductivity: string;
+    railCreativeTools: string;
     railAdvancedTools: string;
     settingsAppearance: string;
     settingsData: string;
@@ -666,11 +670,15 @@ export const COPY: Record<
     toolsResearch: "Riset",
     toolsWorksheet: "Worksheet",
     toolsWorkflow: "Workflow",
+    toolsImage: "Gambar",
+    toolsVideo: "Video",
+    toolsMusic: "Musik",
     toolsCoding: "Coding",
     toolsIntegration: "Integrasi",
     toolsVirtualComputer: "Virtual Computer",
     railResearchTools: "Riset",
     railProductivity: "Produktivitas",
+    railCreativeTools: "Kreatif",
     railAdvancedTools: "Lanjutan",
     settingsAppearance: "Tampilan",
     settingsData: "Data",
@@ -1168,11 +1176,15 @@ export const COPY: Record<
     toolsResearch: "Research",
     toolsWorksheet: "Worksheet",
     toolsWorkflow: "Workflow",
+    toolsImage: "Image",
+    toolsVideo: "Video",
+    toolsMusic: "Music",
     toolsCoding: "Coding",
     toolsIntegration: "Integration",
     toolsVirtualComputer: "Virtual Computer",
     railResearchTools: "Research",
     railProductivity: "Productivity",
+    railCreativeTools: "Creative",
     railAdvancedTools: "Advanced",
     settingsAppearance: "Appearance",
     settingsData: "Data",
@@ -1666,11 +1678,15 @@ export const COPY: Record<
     toolsResearch: "研究",
     toolsWorksheet: "Worksheet",
     toolsWorkflow: "工作流",
+    toolsImage: "图像",
+    toolsVideo: "视频",
+    toolsMusic: "音乐",
     toolsCoding: "编程",
     toolsIntegration: "集成",
     toolsVirtualComputer: "虚拟电脑",
     railResearchTools: "研究工具",
     railProductivity: "效率工具",
+    railCreativeTools: "创作",
     railAdvancedTools: "高级工具",
     settingsAppearance: "外观",
     settingsData: "数据",

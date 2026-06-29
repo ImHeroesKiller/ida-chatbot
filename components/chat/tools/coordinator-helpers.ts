@@ -100,7 +100,7 @@ function buildRailEntry(
       isEnabled: false,
       isExpanded: false,
       isArmed: false,
-      isDisabled: true,
+      isDisabled: false,
       comingSoon: true,
     };
   }

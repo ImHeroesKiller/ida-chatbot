@@ -1,4 +1,8 @@
-import type { ToolRailEntryId, ToolRailLabelKey } from "@/components/chat/tool-rail-config";
+import type {
+  ToolRailEntryId,
+  ToolRailGroupLabelKey,
+  ToolRailLabelKey,
+} from "@/components/chat/tool-rail-config";
 import type { ToolRuntimeBundle } from "@/components/chat/tools/tool-coordinator-config";
 import type { ToolId } from "@/components/chat/tools/types";
 import type { ChatSession } from "@/lib/chat-store";
@@ -19,10 +23,7 @@ export interface ToolRailItem {
 
 export interface ToolRailGroup {
   id: string;
-  labelKey:
-    | "railResearchTools"
-    | "railProductivity"
-    | "railAdvancedTools";
+  labelKey: ToolRailGroupLabelKey;
   items: ToolRailItem[];
 }
 

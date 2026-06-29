@@ -3,18 +3,23 @@ import {
   FileText,
   GitBranch,
   Globe,
+  ImageIcon,
   Laptop,
   Map,
+  Music,
   Plug,
   Search,
+  Video,
   type LucideIcon,
 } from "lucide-react";
-
 import type { ToolId } from "@/components/chat/tools/types";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 
 export type ToolRailPlaceholderId =
   | "workflow"
+  | "image"
+  | "video"
+  | "music"
   | "coding"
   | "integration"
   | "virtual-computer";
@@ -27,16 +32,22 @@ export type ToolRailLabelKey =
   | "toolsResearch"
   | "toolsWorksheet"
   | "toolsWorkflow"
+  | "toolsImage"
+  | "toolsVideo"
+  | "toolsMusic"
   | "toolsCoding"
   | "toolsIntegration"
   | "toolsVirtualComputer";
 
+export type ToolRailGroupLabelKey =
+  | "railResearchTools"
+  | "railProductivity"
+  | "railCreativeTools"
+  | "railAdvancedTools";
+
 export interface ToolRailGroupConfig {
   id: string;
-  labelKey:
-    | "railResearchTools"
-    | "railProductivity"
-    | "railAdvancedTools";
+  labelKey: ToolRailGroupLabelKey;
   entries: ToolRailEntryConfig[];
 }
 
@@ -72,6 +83,15 @@ export const TOOL_RAIL_GROUPS: ToolRailGroupConfig[] = [
     ],
   },
   {
+    id: "creative",
+    labelKey: "railCreativeTools",
+    entries: [
+      { id: "image", labelKey: "toolsImage", icon: ImageIcon, comingSoon: true },
+      { id: "video", labelKey: "toolsVideo", icon: Video, comingSoon: true },
+      { id: "music", labelKey: "toolsMusic", icon: Music, comingSoon: true },
+    ],
+  },
+  {
     id: "advanced",
     labelKey: "railAdvancedTools",
     entries: [
@@ -97,8 +117,12 @@ export function isToolRailPlaceholder(
 ): id is ToolRailPlaceholderId {
   return (
     id === "workflow" ||
+    id === "image" ||
+    id === "video" ||
+    id === "music" ||
     id === "coding" ||
     id === "integration" ||
     id === "virtual-computer"
   );
 }
+
