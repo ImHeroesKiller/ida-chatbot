@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 
+import { resolveAuthRedirect } from "@/lib/auth/redirect";
 import { upsertIdaUser } from "@/lib/auth/user-service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/chat";
+  const next = resolveAuthRedirect(searchParams.get("next"));
 
   if (!code) {
     return NextResponse.redirect(`${origin}/?error=auth`);
@@ -22,8 +23,7 @@ export async function GET(request: Request) {
 
     await upsertIdaUser(data.user);
 
-    const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/chat";
-    return NextResponse.redirect(`${origin}${safeNext}`);
+    return NextResponse.redirect(`${origin}${next}`);
   } catch (error) {
     console.error("[IDA auth callback]", error);
     return NextResponse.redirect(`${origin}/?error=auth`);

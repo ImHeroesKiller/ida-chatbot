@@ -11,13 +11,19 @@ import {
   type ReactNode,
 } from "react";
 
+import { resolveAuthRedirect } from "@/lib/auth/redirect";
 import { getSupabasePublicConfig } from "@/lib/supabase/env";
 import { getSupabaseBrowser, isSupabaseBrowserConfigured } from "@/lib/supabase/client";
+
+interface SignInWithGoogleOptions {
+  /** Post-login redirect path (must pass `isAllowedAuthRedirect`). Defaults to `/chat`. */
+  next?: string;
+}
 
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: (options?: SignInWithGoogleOptions) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -50,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInWithGoogle = useCallback(async () => {
+  const signInWithGoogle = useCallback(async (options?: SignInWithGoogleOptions) => {
     if (!isSupabaseBrowserConfigured()) {
       throw new Error("Supabase auth is not configured.");
     }
@@ -62,7 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const supabase = getSupabaseBrowser();
     const origin = window.location.origin;
-    const redirectTo = `${origin}/auth/callback`;
+    const next = resolveAuthRedirect(options?.next);
+    const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",

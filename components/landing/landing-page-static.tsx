@@ -1,7 +1,9 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  Bot,
   Brain,
+  CheckCircle2,
   Globe2,
   MessageSquare,
   Shield,
@@ -9,11 +11,17 @@ import {
 } from "lucide-react";
 
 import { LandingFooter } from "@/components/landing/footer";
+import { LandingAgentFlowCtaLazy } from "@/components/landing/landing-agentflow-cta-lazy";
 import { LandingCtaLazy } from "@/components/landing/landing-cta-lazy";
+import { LandingHeaderActionsLazy } from "@/components/landing/landing-header-actions-lazy";
 import { LandingLcpLogo } from "@/components/landing/landing-lcp-logo";
 import { LandingLoginLazy } from "@/components/landing/landing-login-lazy";
 import { IDA_CONFIG } from "@/lib/config";
-import { LANDING_COPY, LANDING_FEATURES } from "@/lib/landing/content";
+import {
+  LANDING_AGENTFLOW,
+  LANDING_COPY,
+  LANDING_FEATURES,
+} from "@/lib/landing/content";
 
 const FEATURE_ICONS = [Brain, MessageSquare, Globe2, Shield] as const;
 
@@ -33,7 +41,7 @@ export function LandingPageStatic() {
               </span>
             </div>
           </div>
-          <LandingCtaLazy variant="header" />
+          <LandingHeaderActionsLazy />
         </div>
       </header>
 
@@ -123,6 +131,85 @@ export function LandingPageStatic() {
                 );
               })}
             </ul>
+          </div>
+        </section>
+
+        <section
+          id="agentflow"
+          className="scroll-mt-20 border-t bg-gradient-to-b from-primary/[0.04] to-background px-4 py-14 sm:px-6 sm:py-20"
+        >
+          <div className="mx-auto max-w-6xl">
+            <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+              <div className="space-y-6">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary sm:text-sm">
+                  <Bot className="size-3.5" aria-hidden />
+                  {LANDING_AGENTFLOW.badge}
+                </div>
+
+                <div className="space-y-3">
+                  <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
+                    {LANDING_AGENTFLOW.title}
+                  </h2>
+                  <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+                    {LANDING_AGENTFLOW.description}
+                  </p>
+                </div>
+
+                <ul className="space-y-3">
+                  {LANDING_AGENTFLOW.benefits.map((benefit) => (
+                    <li key={benefit.title} className="flex gap-3">
+                      <CheckCircle2
+                        className="mt-0.5 size-4 shrink-0 text-primary"
+                        aria-hidden
+                      />
+                      <div>
+                        <p className="text-sm font-medium">{benefit.title}</p>
+                        <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+                          {benefit.description}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="pt-2">
+                  <LandingAgentFlowCtaLazy />
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-primary/15 bg-card/60 p-6 shadow-sm backdrop-blur-sm dark:bg-card/30 sm:p-8">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Bot className="size-5" aria-hidden />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">AgentFlow AI</p>
+                    <p className="text-xs text-muted-foreground">
+                      Human-in-the-loop · Sandbox terisolasi
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-dashed bg-muted/20 p-4 text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <span className="size-2 rounded-full bg-primary" aria-hidden />
+                    <span>Analisis dokumen & validasi</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <span className="size-2 rounded-full bg-primary/70" aria-hidden />
+                    <span>Generate proposal workflow</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <span className="size-2 rounded-full bg-primary/40" aria-hidden />
+                    <span>Approval → eksekusi sandbox</span>
+                  </div>
+                </div>
+
+                <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+                  Login Google yang sama dengan chat IDA — tanpa akun terpisah.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 

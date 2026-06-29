@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "@/components/auth/auth-provider";
 import { GoogleIcon } from "@/components/landing/google-icon";
 import { Button } from "@/components/ui/button";
+import { resolveAuthRedirect } from "@/lib/auth/redirect";
 import { LANDING_COPY } from "@/lib/landing/content";
 import { COPY } from "@/lib/i18n";
 import { isSupabaseBrowserConfigured } from "@/lib/supabase/client";
@@ -30,8 +31,7 @@ export function LandingCtaButton({
   const [signingIn, setSigningIn] = useState(false);
   const supabaseReady = isSupabaseBrowserConfigured();
   const authError = searchParams.get("error") === "auth";
-  const nextPath = searchParams.get("next");
-  const chatHref = nextPath?.startsWith("/chat") ? nextPath : "/chat";
+  const redirectHref = resolveAuthRedirect(searchParams.get("next"));
 
   useEffect(() => {
     if (authError && variant !== "header") {
@@ -50,18 +50,18 @@ export function LandingCtaButton({
     setSigningIn(true);
 
     try {
-      await signInWithGoogle();
+      await signInWithGoogle({ next: redirectHref });
     } catch (error) {
       console.error("[IDA login]", error);
       toast.error(copy.authError);
       setSigningIn(false);
     }
-  }, [copy.authError, signInWithGoogle, supabaseReady]);
+  }, [copy.authError, redirectHref, signInWithGoogle, supabaseReady]);
 
   if (user) {
     return (
       <Link
-        href={chatHref}
+        href={redirectHref}
         className={cn(
           "inline-flex items-center justify-center rounded-lg bg-primary font-medium text-primary-foreground transition-colors hover:bg-primary/90",
           variant === "header" && "h-9 px-4 text-sm",
