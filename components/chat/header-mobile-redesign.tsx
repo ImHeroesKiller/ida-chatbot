@@ -25,27 +25,27 @@ export function ChatHeaderMobileRedesign({
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-      className="flex shrink-0 items-center justify-between gap-3 bg-background/80 backdrop-blur-md px-4 py-3 border-b border-border/30 sticky top-0 z-40"
+      className="flex shrink-0 items-center justify-between gap-3 bg-background/95 backdrop-blur-xl px-4 py-4 border-b border-border/40 fixed top-0 left-0 right-0 z-[50] h-[64px]"
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="h-10 w-10 shrink-0 md:hidden rounded-full hover:bg-muted/50"
+          className="h-11 w-11 shrink-0 md:hidden rounded-full hover:bg-muted/50 active:scale-90 transition-transform"
           aria-label={openSessionsLabel}
           onClick={onOpenMobileSidebar}
         >
-          <Menu className="h-6 w-6 text-foreground/80" />
+          <Menu className="h-7 w-7 text-foreground" />
         </Button>
 
-        <p className="truncate text-lg font-bold tracking-tight text-foreground/90">
+        <p className="truncate text-xl font-extrabold tracking-tight text-foreground leading-none">
           {title || IDA_CONFIG.name}
         </p>
       </div>
 
       {accountButton && (
-        <div className="shrink-0 scale-110 origin-right">
+        <div className="shrink-0 scale-125 origin-right pr-1">
           {accountButton}
         </div>
       )}

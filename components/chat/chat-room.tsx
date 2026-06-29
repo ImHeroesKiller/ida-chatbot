@@ -95,6 +95,7 @@ import { useVoicePrefs } from "@/lib/voice/voice-prefs";
 import { RightSidebar } from "@/components/chat/right-sidebar";
 import { RightToolsRail } from "@/components/chat/right-tools-rail";
 import { useChatFontSize } from "@/lib/chat-font-prefs";
+import { cn } from "@/lib/utils";
 
 function ChatRoomContent() {
   const { locale, openHandoff, closeHandoff } = useChatContext();
@@ -268,27 +269,27 @@ function ChatRoomContent() {
     {
       id: "web-search",
       label: copy.toolsWebSearch,
-      icon: <Globe className="h-4 w-4" />,
+      icon: <Globe className="h-5 w-5" />,
       onClick: () => tools.handleMenuToolClick("web-search"),
       disabled: !webSearchAvailable,
     },
     {
       id: "research",
       label: copy.toolsResearch,
-      icon: <BookOpen className="h-4 w-4" />,
+      icon: <BookOpen className="h-5 w-5" />,
       onClick: () => tools.handleMenuToolClick("research"),
       disabled: !webSearchAvailable,
     },
     {
       id: "map",
       label: copy.toolsMap,
-      icon: <MapIcon className="h-4 w-4" />,
+      icon: <MapIcon className="h-5 w-5" />,
       onClick: () => tools.handleMenuToolClick("map"),
     },
     {
       id: "new-chat",
       label: copy.newChat,
-      icon: <Search className="h-4 w-4" />,
+      icon: <Search className="h-5 w-5" />,
       onClick: handleNewChat,
     },
   ];
@@ -344,7 +345,10 @@ function ChatRoomContent() {
             />
           )}
 
-          <div className="relative min-h-0 flex-1">
+          <div className={cn(
+            "relative min-h-0 flex-1",
+            isMobileViewport && "pt-[64px]"
+          )}>
             <div
               ref={scrollContainerRef}
               className="h-full overflow-y-auto overscroll-y-contain px-2.5 py-3 sm:px-5 sm:py-4"

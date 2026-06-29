@@ -377,20 +377,20 @@ export function ChatComposerRedesign({
       onSubmit={handleSubmit}
       className={cn(
         "relative z-30 shrink-0 overflow-visible bg-background",
-        "px-3 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:px-5 sm:pt-3 sm:pb-4",
+        "px-3 pt-2 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:px-5 sm:pt-3 sm:pb-4",
       )}
     >
-      <div className="ida-message-width mx-auto w-full max-w-full space-y-3">
+      <div className="ida-message-width mx-auto w-full max-w-full space-y-4">
         <AnimatePresence>
           {showMoreActions && (
             <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              initial={{ opacity: 0, y: 12, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
+              exit={{ opacity: 0, y: 12, scale: 0.95 }}
+              transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
               className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide"
             >
-              <div className="flex items-center gap-2 bg-muted/40 p-1 rounded-full border border-border/40">
+              <div className="flex items-center gap-3 bg-muted/50 p-1.5 rounded-full border border-border/60 shadow-md">
                 <ToolsMenu
                   locale={locale}
                   disabled={isLoading || isExtracting || isTranscribing}
@@ -407,10 +407,10 @@ export function ChatComposerRedesign({
                     variant="ghost"
                     size="icon"
                     disabled={isLoading || isExtracting || isTranscribing}
-                    className="h-10 w-10 rounded-full hover:bg-muted/60"
+                    className="h-11 w-11 rounded-full hover:bg-muted/80 active:scale-90 transition-transform"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Paperclip className="h-5 w-5" />
+                    <Paperclip className="h-6 w-6" />
                   </Button>
                 )}
                 
@@ -418,10 +418,10 @@ export function ChatComposerRedesign({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 rounded-full hover:bg-muted/60"
+                  className="h-11 w-11 rounded-full hover:bg-muted/80 active:scale-90 transition-transform"
                   onClick={() => setShowMoreActions(false)}
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-6 w-6" />
                 </Button>
               </div>
             </motion.div>
@@ -433,19 +433,19 @@ export function ChatComposerRedesign({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
               className={cn(
-                "flex items-center justify-between rounded-2xl border px-4 py-3",
+                "flex items-center justify-between rounded-3xl border px-5 py-4",
                 isListening
-                  ? "border-destructive/30 bg-destructive/5"
-                  : "border-primary/20 bg-primary/5",
+                  ? "border-destructive/40 bg-destructive/10"
+                  : "border-primary/30 bg-primary/10",
               )}
             >
-              <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="flex min-w-0 flex-1 items-center gap-4">
                 {isTranscribing ? (
-                  <Loader2 className="h-5 w-5 shrink-0 animate-spin text-primary" />
+                  <Loader2 className="h-6 w-6 shrink-0 animate-spin text-primary" />
                 ) : (
-                  <span className="relative flex h-3 w-3 shrink-0">
+                  <span className="relative flex h-4 w-4 shrink-0">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive/70" />
-                    <span className="relative inline-flex h-3 w-3 rounded-full bg-destructive" />
+                    <span className="relative inline-flex h-4 w-4 rounded-full bg-destructive" />
                   </span>
                 )}
                 <VoiceWaveform
@@ -453,7 +453,7 @@ export function ChatComposerRedesign({
                   className={isListening ? "text-destructive" : undefined}
                 />
               </div>
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-base font-bold text-foreground/80">
                 {isTranscribing ? copy.voiceTranscribing : copy.releaseToSend}
               </p>
             </motion.div>
@@ -464,7 +464,7 @@ export function ChatComposerRedesign({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
-              className="pb-1"
+              className="pb-2"
             >
               <AttachmentPreview
                 attachment={pendingPreview}
@@ -477,7 +477,7 @@ export function ChatComposerRedesign({
           )}
         </AnimatePresence>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <input
             ref={fileInputRef}
             type="file"
@@ -490,17 +490,17 @@ export function ChatComposerRedesign({
           />
 
           <div className={cn(
-            "flex-1 flex items-center gap-1 bg-muted/30 rounded-[28px] border border-border/40 px-2 py-1.5 transition-all duration-200",
-            "focus-within:bg-muted/50 focus-within:border-primary/30 focus-within:ring-4 focus-within:ring-primary/5"
+            "flex-1 flex items-center gap-2 bg-muted/40 rounded-[32px] border border-border/50 px-2.5 py-2 transition-all duration-300",
+            "focus-within:bg-muted/60 focus-within:border-primary/40 focus-within:ring-8 focus-within:ring-primary/5"
           )}>
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="h-11 w-11 shrink-0 rounded-full text-muted-foreground hover:bg-muted/60"
+              className="h-12 w-12 shrink-0 rounded-full text-muted-foreground hover:bg-muted/80 active:scale-90 transition-transform"
               onClick={() => setShowMoreActions(!showMoreActions)}
             >
-              {showMoreActions ? <X className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
+              {showMoreActions ? <X className="h-7 w-7" /> : <Plus className="h-7 w-7" />}
             </Button>
 
             <Textarea
@@ -513,9 +513,9 @@ export function ChatComposerRedesign({
               rows={1}
               disabled={isLoading || isExtracting || isTranscribing || isListening}
               className={cn(
-                "flex-1 bg-transparent border-0 resize-none text-base py-2.5 px-1",
-                "focus-visible:ring-0 focus-visible:outline-none min-h-[44px] max-h-32",
-                "placeholder:text-muted-foreground/50",
+                "flex-1 bg-transparent border-0 resize-none text-lg font-medium py-3 px-1.5",
+                "focus-visible:ring-0 focus-visible:outline-none min-h-[48px] max-h-40",
+                "placeholder:text-muted-foreground/40",
               )}
             />
 
@@ -526,14 +526,14 @@ export function ChatComposerRedesign({
                 size="icon"
                 disabled={isLoading || isExtracting || isTranscribing || !speechSupported}
                 className={cn(
-                  "h-11 w-11 shrink-0 rounded-full transition-all duration-200",
-                  isListening ? "bg-destructive text-destructive-foreground" : "text-muted-foreground hover:bg-muted/60"
+                  "h-12 w-12 shrink-0 rounded-full transition-all duration-300 active:scale-90",
+                  isListening ? "bg-destructive text-destructive-foreground shadow-lg" : "text-muted-foreground hover:bg-muted/80"
                 )}
                 onPointerDown={handleMicPointerDown}
                 onPointerUp={handleMicPointerUp}
                 onPointerCancel={handleMicPointerUp}
               >
-                {isTranscribing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mic className="h-6 w-6" />}
+                {isTranscribing ? <Loader2 className="h-6 w-6 animate-spin" /> : <Mic className="h-7 w-7" />}
               </Button>
             )}
 
@@ -542,12 +542,12 @@ export function ChatComposerRedesign({
                 type="submit"
                 size="icon"
                 disabled={!canSend}
-                className="h-11 w-11 shrink-0 rounded-full bg-primary text-primary-foreground shadow-sm transition-transform active:scale-95"
+                className="h-12 w-12 shrink-0 rounded-full bg-primary text-primary-foreground shadow-md transition-all active:scale-90 hover:scale-105"
               >
                 {isExtracting || isTranscribing ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="h-6 w-6 animate-spin" />
                 ) : (
-                  <Send className="h-5 w-5" />
+                  <Send className="h-6 w-6" />
                 )}
               </Button>
             )}
