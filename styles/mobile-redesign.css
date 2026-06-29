@@ -1,0 +1,215 @@
+/* Mobile UI Redesign - Grok Inspired */
+/* Smooth animations and transitions */
+
+/* Scrollbar styling untuk quick actions */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth transitions untuk semua interactive elements */
+.transition-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Backdrop blur effect */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Chat input container - pill shaped */
+.chat-input-pill {
+  border-radius: 9999px;
+  background-color: rgba(var(--muted-rgb), 0.4);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chat-input-pill:focus-within {
+  background-color: rgba(var(--muted-rgb), 0.6);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1);
+}
+
+/* Smooth button hover effects */
+.btn-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-smooth:hover {
+  transform: scale(1.05);
+}
+
+.btn-smooth:active {
+  transform: scale(0.95);
+}
+
+/* Staggered animation for quick actions */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.quick-action-item {
+  animation: slideInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.quick-action-item:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.quick-action-item:nth-child(2) {
+  animation-delay: 50ms;
+}
+
+.quick-action-item:nth-child(3) {
+  animation-delay: 100ms;
+}
+
+.quick-action-item:nth-child(4) {
+  animation-delay: 150ms;
+}
+
+.quick-action-item:nth-child(5) {
+  animation-delay: 200ms;
+}
+
+/* Smooth message bubble animations */
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-bubble {
+  animation: messageSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Header animations */
+@keyframes headerSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header-redesign {
+  animation: headerSlideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Loading spinner smooth rotation */
+@keyframes smoothSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-smooth-spin {
+  animation: smoothSpin 1s linear infinite;
+}
+
+/* Pulse animation untuk indicator */
+@keyframes subtlePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-subtle-pulse {
+  animation: subtlePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Smooth color transitions */
+.color-transition {
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus ring smooth animation */
+.focus-ring-smooth {
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.focus-ring-smooth:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+}
+
+/* Responsive adjustments untuk mobile */
+@media (max-width: 640px) {
+  /* Reduce animations pada mobile untuk performa lebih baik */
+  .reduce-motion {
+    animation-duration: 0.15s !important;
+    transition-duration: 0.15s !important;
+  }
+
+  /* Optimize button sizes untuk touch */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Reduce padding untuk layar kecil */
+  .mobile-compact {
+    padding: 0.5rem;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .chat-input-pill {
+    background-color: rgba(var(--muted-rgb), 0.2);
+  }
+
+  .chat-input-pill:focus-within {
+    background-color: rgba(var(--muted-rgb), 0.3);
+  }
+}
+
+/* Accessibility - respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Optimize for high refresh rate displays */
+@supports (animation-timeline: view()) {
+  .scroll-animation {
+    animation-timeline: view();
+  }
+}
