@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface QuickAction {
@@ -22,7 +22,7 @@ export function QuickActionsBar({
 }: QuickActionsBarProps) {
   if (actions.length === 0) return null;
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0, y: 8 },
     visible: {
       opacity: 1,
@@ -35,7 +35,7 @@ export function QuickActionsBar({
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, scale: 0.92 },
     visible: {
       opacity: 1,
