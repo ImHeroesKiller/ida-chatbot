@@ -53,4 +53,20 @@ export const LANDING_COPY = {
   trustLine: "Gratis untuk digunakan · Login Google · Tanpa login wall di halaman ini",
 } as const;
 
+export const LANDING_AGENTFLOW = {
+  badge: "AgentFlow AI",
+  title: "Otomatisasi Workflow dengan AI Agent",
+  description:
+    "AgentFlow membantu Anda menganalisis dokumen, membuat workflow otomatis, dan menjalankan proses bisnis dengan bantuan AI serta persetujuan manusia.",
+  benefits: [
+    "Analisis dokumen multi-format secara otomatis",
+    "Pembuatan workflow dengan human-in-the-loop",
+    "Integrasi dengan Worksheet dan data perusahaan",
+    "Eksekusi sandbox yang aman dan terkontrol",
+  ],
+  cta: "Mulai Gunakan AgentFlow",
+  previewTitle: "Contoh Kemampuan AgentFlow",
+  headerLink: "AgentFlow",
+} as const;
+
 export { IDA_CONFIG };

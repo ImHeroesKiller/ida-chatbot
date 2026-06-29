@@ -157,17 +157,14 @@ export function LandingPageStatic() {
 
                 <ul className="space-y-3">
                   {LANDING_AGENTFLOW.benefits.map((benefit) => (
-                    <li key={benefit.title} className="flex gap-3">
+                    <li key={benefit} className="flex gap-3">
                       <CheckCircle2
                         className="mt-0.5 size-4 shrink-0 text-primary"
                         aria-hidden
                       />
-                      <div>
-                        <p className="text-sm font-medium">{benefit.title}</p>
-                        <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
-                          {benefit.description}
-                        </p>
-                      </div>
+                      <p className="text-sm leading-relaxed text-foreground/90">
+                        {benefit}
+                      </p>
                     </li>
                   ))}
                 </ul>
@@ -183,7 +180,9 @@ export function LandingPageStatic() {
                     <Bot className="size-5" aria-hidden />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold">AgentFlow AI</p>
+                    <p className="text-sm font-semibold">
+                      {LANDING_AGENTFLOW.previewTitle}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       Human-in-the-loop · Sandbox terisolasi
                     </p>
