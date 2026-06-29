@@ -1,8 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { Locale } from "@/lib/config";
-import { COPY } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 interface QuickAction {
@@ -14,13 +12,11 @@ interface QuickAction {
 }
 
 interface QuickActionsBarProps {
-  locale: Locale;
   actions: QuickAction[];
   className?: string;
 }
 
 export function QuickActionsBar({
-  locale,
   actions,
   className,
 }: QuickActionsBarProps) {

@@ -118,15 +118,18 @@ export function getResponsiveAnimationDuration(
  * Combine animation configs
  */
 export function mergeAnimationConfig(
-  base: Record<string, any>,
-  override: Record<string, any>
+  base: Record<string, unknown>,
+  override: Record<string, unknown>
 ) {
+  const baseTransition = (base.transition as Record<string, unknown>) || {};
+  const overrideTransition = (override.transition as Record<string, unknown>) || {};
+
   return {
     ...base,
     ...override,
     transition: {
-      ...base.transition,
-      ...override.transition,
+      ...baseTransition,
+      ...overrideTransition,
     },
   };
 }
@@ -135,7 +138,6 @@ export function mergeAnimationConfig(
  * Create staggered animation for list items
  */
 export function createStaggerAnimation(
-  itemCount: number,
   delay: number = 0.05
 ) {
   return {
@@ -171,13 +173,14 @@ export const prefersReducedMotion = () => {
  * Get safe animation config respecting user preferences
  */
 export function getSafeAnimationConfig(
-  config: Record<string, any>
-): Record<string, any> {
+  config: Record<string, unknown>
+): Record<string, unknown> {
   if (prefersReducedMotion()) {
+    const transition = (config.transition as Record<string, unknown>) || {};
     return {
       ...config,
       transition: {
-        ...config.transition,
+        ...transition,
         duration: 0.01,
       },
     };
