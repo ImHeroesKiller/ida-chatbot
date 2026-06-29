@@ -1,21 +1,13 @@
 import {
+  buildResearchSummaryMarkdown,
+  RESEARCH_DEPTH_CONFIG,
+} from "@/lib/research-format";
+import {
   executeWebSearch,
   isWebSearchConfigured,
   type WebSearchSource,
 } from "@/lib/tools/web-search";
 import type { ResearchDepth, ResearchSource } from "@/lib/research-types";
-
-const DEPTH_QUERY_COUNT: Record<ResearchDepth, number> = {
-  quick: 2,
-  standard: 4,
-  deep: 6,
-};
-
-const DEPTH_RESULTS_PER_QUERY: Record<ResearchDepth, number> = {
-  quick: 3,
-  standard: 4,
-  deep: 5,
-};
 
 export interface ResearchExecutionResult {
   success: boolean;
@@ -45,7 +37,7 @@ function buildQueryVariants(topic: string, depth: ResearchDepth): string[] {
     `${base} challenges and opportunities`,
   ];
 
-  return variants.slice(0, DEPTH_QUERY_COUNT[depth]);
+  return variants.slice(0, RESEARCH_DEPTH_CONFIG[depth].queryCount);
 }
 
 function dedupeSources(sources: ResearchSource[]): ResearchSource[] {
@@ -60,48 +52,6 @@ function dedupeSources(sources: ResearchSource[]): ResearchSource[] {
   }
 
   return result;
-}
-
-function buildResearchSummary(
-  topic: string,
-  sources: ResearchSource[],
-  queries: string[],
-): string {
-  if (!sources.length) {
-    return `No research results found for "${topic}".`;
-  }
-
-  const lines = [
-    `# Research: ${topic}`,
-    "",
-    `**Queries used:** ${queries.length}`,
-    "",
-    "## Summary",
-    "",
-  ];
-
-  const grouped = new Map<string, ResearchSource[]>();
-  for (const source of sources) {
-    const query = source.query ?? topic;
-    const list = grouped.get(query) ?? [];
-    list.push(source);
-    grouped.set(query, list);
-  }
-
-  for (const [query, querySources] of grouped) {
-    lines.push(`### ${query}`);
-    for (const source of querySources.slice(0, 3)) {
-      lines.push(`- **${source.title}**: ${source.snippet.slice(0, 200)}`);
-    }
-    lines.push("");
-  }
-
-  lines.push("## Sources", "");
-  sources.forEach((source, index) => {
-    lines.push(`${index + 1}. [${source.title}](${source.url})`);
-  });
-
-  return lines.join("\n").trim();
 }
 
 function formatResearchForLlm(
@@ -176,7 +126,7 @@ export async function executeResearch(options: {
   }
 
   const queries = buildQueryVariants(topic, depth);
-  const maxResults = DEPTH_RESULTS_PER_QUERY[depth];
+  const maxResults = RESEARCH_DEPTH_CONFIG[depth].resultsPerQuery;
   const collected: ResearchSource[] = [];
 
   try {
@@ -203,17 +153,23 @@ export async function executeResearch(options: {
       .filter(({ result }) => result.sources.length > 0)
       .map(({ query }) => query);
 
-    const summary = buildResearchSummary(
+    const resolvedQueries = successfulQueries.length
+      ? successfulQueries
+      : queries;
+
+    const summary = buildResearchSummaryMarkdown({
       topic,
+      depth,
       sources,
-      successfulQueries.length ? successfulQueries : queries,
-    );
+      queries: resolvedQueries,
+      usedRag: Boolean(options.ragContext?.trim()),
+    });
 
     return {
       success: sources.length > 0,
       topic,
       depth,
-      queries: successfulQueries.length ? successfulQueries : queries,
+      queries: resolvedQueries,
       sources,
       summary,
       formattedForLlm: formatResearchForLlm(

@@ -79,6 +79,7 @@ import { IDA_CONFIG } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import { MessageReactionsProvider } from "@/lib/message-reactions";
 import { useSidebarExpanded } from "@/lib/sidebar-prefs";
+import { formatResearchWorksheetContent } from "@/lib/research-format";
 import type { ResearchSession } from "@/lib/research-types";
 import type { IdaAttachment, IdaMessage, IdaWebSearchSource } from "@/lib/types";
 import type { IdaSseDonePayload, IdaSseMetaPayload } from "@/lib/sse";
@@ -1061,7 +1062,7 @@ function ChatRoomContent() {
 
   const createWorksheetFromResearch = useCallback(
     (session: ResearchSession) => {
-      const content = session.summary || session.topic;
+      const content = formatResearchWorksheetContent(session, locale);
       const next = addGeneratedWorksheetDocument(
         worksheetWorkspaceRef.current,
         {
@@ -1085,7 +1086,7 @@ function ChatRoomContent() {
       });
       toast.success(copy.worksheetCreated);
     },
-    [copy.worksheetCreated, persistCurrentChat, tools],
+    [copy.worksheetCreated, locale, persistCurrentChat, tools],
   );
 
   const handleResearchOpenSession = useCallback(

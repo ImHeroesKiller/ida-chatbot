@@ -138,6 +138,20 @@ export const COPY: Record<
     researchPanelSourceCount: string;
     researchPanelQueriesUsed: string;
     researchPanelQueryLabel: string;
+    researchPanelDepthLabel: string;
+    researchPanelDepthHint: {
+      quick: string;
+      standard: string;
+      deep: string;
+    };
+    researchPanelProgressStage: {
+      preparing: string;
+      knowledge: string;
+      searching: string;
+      synthesizing: string;
+    };
+    researchPanelExecutiveSummary: string;
+    researchPanelKeyFindings: string;
     researchPanelDepth: {
       quick: string;
       standard: string;
@@ -538,6 +552,20 @@ export const COPY: Record<
     researchPanelSourceCount: "{count} sumber",
     researchPanelQueriesUsed: "{count} kueri digunakan",
     researchPanelQueryLabel: "Kueri: {query}",
+    researchPanelDepthLabel: "Kedalaman riset",
+    researchPanelDepthHint: {
+      quick: "{queries} kueri · ~{sources} sumber",
+      standard: "{queries} kueri · ~{sources} sumber",
+      deep: "{queries} kueri · ~{sources} sumber",
+    },
+    researchPanelProgressStage: {
+      preparing: "Menyiapkan kueri",
+      knowledge: "Memeriksa knowledge base",
+      searching: "Mencari sumber web",
+      synthesizing: "Menyusun ringkasan",
+    },
+    researchPanelExecutiveSummary: "Ringkasan eksekutif",
+    researchPanelKeyFindings: "Temuan utama",
     researchPanelDepth: {
       quick: "Cepat",
       standard: "Standar",
@@ -971,6 +999,20 @@ export const COPY: Record<
     researchPanelSourceCount: "{count} sources",
     researchPanelQueriesUsed: "{count} queries used",
     researchPanelQueryLabel: "Query: {query}",
+    researchPanelDepthLabel: "Research depth",
+    researchPanelDepthHint: {
+      quick: "{queries} queries · ~{sources} sources",
+      standard: "{queries} queries · ~{sources} sources",
+      deep: "{queries} queries · ~{sources} sources",
+    },
+    researchPanelProgressStage: {
+      preparing: "Preparing queries",
+      knowledge: "Checking knowledge base",
+      searching: "Searching web sources",
+      synthesizing: "Synthesizing summary",
+    },
+    researchPanelExecutiveSummary: "Executive summary",
+    researchPanelKeyFindings: "Key findings",
     researchPanelDepth: {
       quick: "Quick",
       standard: "Standard",
@@ -1405,6 +1447,20 @@ export const COPY: Record<
     researchPanelSourceCount: "{count} 个来源",
     researchPanelQueriesUsed: "使用了 {count} 个查询",
     researchPanelQueryLabel: "查询：{query}",
+    researchPanelDepthLabel: "研究深度",
+    researchPanelDepthHint: {
+      quick: "{queries} 个查询 · 约 {sources} 个来源",
+      standard: "{queries} 个查询 · 约 {sources} 个来源",
+      deep: "{queries} 个查询 · 约 {sources} 个来源",
+    },
+    researchPanelProgressStage: {
+      preparing: "准备查询",
+      knowledge: "检索知识库",
+      searching: "搜索网络来源",
+      synthesizing: "生成摘要",
+    },
+    researchPanelExecutiveSummary: "执行摘要",
+    researchPanelKeyFindings: "主要发现",
     researchPanelDepth: {
       quick: "快速",
       standard: "标准",

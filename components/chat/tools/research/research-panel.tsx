@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FileText,
   Loader2,
@@ -10,13 +10,21 @@ import {
   SearchX,
 } from "lucide-react";
 
+import { ResearchDepthSelector } from "@/components/chat/tools/research/research-depth-selector";
+import { ResearchLoadingIndicator } from "@/components/chat/tools/research/research-loading-indicator";
 import { ResearchResultItem } from "@/components/chat/tools/research/research-result-item";
+import { ResearchResultsSkeleton } from "@/components/chat/tools/research/research-results-skeleton";
 import { ResearchSessionCard } from "@/components/chat/tools/research/research-session-card";
+import { ResearchSummaryView } from "@/components/chat/tools/research/research-summary-view";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
+import {
+  RESEARCH_PROGRESS_STAGES,
+  type ResearchProgressStage,
+} from "@/lib/research-format";
 import type { ResearchDepth, ResearchSession } from "@/lib/research-types";
 import type { ResearchResult } from "@/components/chat/tools/research/use-research";
 import { cn } from "@/lib/utils";
@@ -38,7 +46,7 @@ interface ResearchPanelProps {
   embedded?: boolean;
 }
 
-const DEPTH_OPTIONS: ResearchDepth[] = ["quick", "standard", "deep"];
+const STAGE_INTERVAL_MS = 2200;
 
 export function ResearchPanel({
   locale,
@@ -59,14 +67,40 @@ export function ResearchPanel({
   const copy = COPY[locale];
   const [topic, setTopic] = useState("");
   const [depth, setDepth] = useState<ResearchDepth>("standard");
+  const [activeTopic, setActiveTopic] = useState("");
+  const [progressStage, setProgressStage] =
+    useState<ResearchProgressStage>("preparing");
 
   const hasResults = Boolean(researchResults?.sources.length);
   const showEmpty = !isResearching && !hasResults && !error;
+  const stageIndex = RESEARCH_PROGRESS_STAGES.indexOf(progressStage);
+
+  useEffect(() => {
+    if (!isResearching) {
+      setProgressStage("preparing");
+      return;
+    }
+
+    setProgressStage("preparing");
+
+    const interval = window.setInterval(() => {
+      setProgressStage((current) => {
+        const index = RESEARCH_PROGRESS_STAGES.indexOf(current);
+        if (index < 0 || index >= RESEARCH_PROGRESS_STAGES.length - 1) {
+          return current;
+        }
+        return RESEARCH_PROGRESS_STAGES[index + 1];
+      });
+    }, STAGE_INTERVAL_MS);
+
+    return () => window.clearInterval(interval);
+  }, [isResearching]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     const trimmed = topic.trim();
     if (!trimmed || isResearching) return;
+    setActiveTopic(trimmed);
     onStartResearch(trimmed, depth);
   };
 
@@ -128,21 +162,12 @@ export function ResearchPanel({
             disabled={isResearching}
             className="h-9 text-sm"
           />
-          <div className="flex flex-wrap gap-1.5">
-            {DEPTH_OPTIONS.map((option) => (
-              <Button
-                key={option}
-                type="button"
-                variant={depth === option ? "default" : "outline"}
-                size="xs"
-                className="h-7 text-[10px] capitalize"
-                disabled={isResearching}
-                onClick={() => setDepth(option)}
-              >
-                {copy.researchPanelDepth[option]}
-              </Button>
-            ))}
-          </div>
+          <ResearchDepthSelector
+            locale={locale}
+            value={depth}
+            disabled={isResearching}
+            onChange={setDepth}
+          />
           <Button
             type="submit"
             size="sm"
@@ -164,29 +189,16 @@ export function ResearchPanel({
       <ScrollArea className="min-h-0 flex-1">
         <div className="space-y-3 p-3">
           {isResearching ? (
-            <div
-              className="flex min-h-[10rem] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-primary/25 bg-primary/[0.04] px-4 py-8 text-center"
-              role="status"
-              aria-live="polite"
-              aria-busy="true"
-            >
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground/90">
-                  {copy.researchPanelSearching}
-                </p>
-                {topic ? (
-                  <p className="max-w-xs text-xs text-muted-foreground">
-                    “{topic}”
-                  </p>
-                ) : null}
-              </div>
-              <div className="w-full max-w-xs space-y-2">
-                <div className="h-2.5 animate-pulse rounded-full bg-primary/10" />
-                <div className="h-2.5 w-[85%] animate-pulse rounded-full bg-primary/10" />
-                <div className="h-2.5 w-[70%] animate-pulse rounded-full bg-muted" />
-              </div>
-            </div>
+            <>
+              <ResearchLoadingIndicator
+                locale={locale}
+                topic={activeTopic || topic}
+                stage={progressStage}
+                stageIndex={stageIndex}
+                totalStages={RESEARCH_PROGRESS_STAGES.length}
+              />
+              <ResearchResultsSkeleton />
+            </>
           ) : null}
 
           {error && !isResearching ? (
@@ -215,6 +227,8 @@ export function ResearchPanel({
 
           {hasResults && researchResults && !isResearching ? (
             <>
+              <ResearchSummaryView locale={locale} result={researchResults} />
+
               {researchResults.summary ? (
                 <div className="rounded-xl border bg-card p-3.5 shadow-sm">
                   <p className="mb-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
@@ -249,17 +263,6 @@ export function ResearchPanel({
                       </Button>
                     ) : null}
                   </div>
-                </div>
-              ) : null}
-
-              {researchResults.queries.length ? (
-                <div className="rounded-lg border bg-muted/20 px-3 py-2">
-                  <p className="text-[10px] font-medium text-muted-foreground">
-                    {copy.researchPanelQueriesUsed.replace(
-                      "{count}",
-                      String(researchResults.queries.length),
-                    )}
-                  </p>
                 </div>
               ) : null}
 

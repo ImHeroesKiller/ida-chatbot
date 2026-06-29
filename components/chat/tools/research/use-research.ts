@@ -14,6 +14,10 @@ import type {
   ResearchSession,
   ResearchSource,
 } from "@/lib/research-types";
+import {
+  mapResearchApiError,
+  resolveResearchErrorMessage,
+} from "@/lib/research-format";
 import { createResearchSessionId } from "@/lib/research-types";
 
 export interface ResearchResult {
@@ -105,7 +109,10 @@ export function useResearch(): BaseToolState & {
         };
 
         if (!response.ok) {
-          throw new Error(data.error ?? "Research failed.");
+          const mapped = mapResearchApiError(response.status, data);
+          throw new Error(
+            resolveResearchErrorMessage(mapped.code, locale, mapped.message),
+          );
         }
 
         const result: ResearchResult = {
@@ -115,6 +122,10 @@ export function useResearch(): BaseToolState & {
           sources: data.sources ?? [],
           queries: data.queries ?? [],
         };
+
+        if (!result.sources.length) {
+          throw new Error(resolveResearchErrorMessage("no_results", locale));
+        }
 
         setResearchResults(result);
         setCurrentSession({
@@ -129,7 +140,9 @@ export function useResearch(): BaseToolState & {
         });
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "Research request failed.";
+          err instanceof Error
+            ? err.message
+            : resolveResearchErrorMessage("unknown", locale);
         setError(message);
         setResearchResults(null);
       } finally {
