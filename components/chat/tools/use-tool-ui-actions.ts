@@ -2,8 +2,9 @@
 
 import { useCallback, useMemo } from "react";
 
-import { buildRailItems } from "@/components/chat/tools/coordinator-helpers";
-import type { ToolRailItem } from "@/components/chat/tools/coordinator-types";
+import { buildRailGroups } from "@/components/chat/tools/coordinator-helpers";
+import { isToolRailPlaceholder } from "@/components/chat/tool-rail-config";
+
 import {
   getToolMenuKind,
   type ToolRuntimeContext,
@@ -138,6 +139,8 @@ export function useToolUiActions({
 
   const handleRailClick = useCallback(
     (toolId: ToolId, panel: RightSidebarPanel) => {
+      if (isToolRailPlaceholder(toolId)) return;
+
       const entry = entryById.get(toolId);
       const toggleSetter = toggleSetters.get(toolId);
       if (!entry || !toggleSetter) return;
@@ -154,9 +157,9 @@ export function useToolUiActions({
 
   const enabledFlags = entries.map((entry) => entry.tool.isEnabled);
 
-  const railItems = useMemo(
-    (): ToolRailItem[] =>
-      buildRailItems({
+  const railGroups = useMemo(
+    () =>
+      buildRailGroups({
         activePanel,
         toolStates: Object.fromEntries(
           entries.map((entry) => [
@@ -166,7 +169,7 @@ export function useToolUiActions({
               isAvailable: entry.isAvailable(ctx),
             },
           ]),
-        ) as Parameters<typeof buildRailItems>[0]["toolStates"],
+        ) as Parameters<typeof buildRailGroups>[0]["toolStates"],
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [activePanel, ctx.webSearchAvailable, ctx.researchAvailable, ...enabledFlags],
@@ -191,7 +194,7 @@ export function useToolUiActions({
     isToolActive,
     handleMenuToolClick,
     handleRailClick,
-    railItems,
+    railGroups,
     isAnyToolActive,
   };
 }

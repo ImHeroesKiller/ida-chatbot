@@ -1,12 +1,16 @@
+import {
+  isToolRailPlaceholder,
+  TOOL_RAIL_GROUPS,
+  type ToolRailEntryId,
+} from "@/components/chat/tool-rail-config";
 import { getTool } from "@/components/chat/tools/registry";
 import type { ResearchResult } from "@/components/chat/tools/research/use-research";
-import { TOOL_UI_CONFIG } from "@/components/chat/tools/tool-ui-config";
 import type { ToolId } from "@/components/chat/tools/types";
 import type { ChatSession } from "@/lib/chat-store";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 import type { IdaMessage } from "@/lib/types";
 
-import type { ToolRailItem } from "./coordinator-types";
+import type { ToolRailGroup, ToolRailItem } from "./coordinator-types";
 
 export function isToolAvailable(id: ToolId): boolean {
   return getTool(id)?.enabled ?? false;
@@ -80,38 +84,67 @@ interface RailToolState {
   isAvailable: boolean;
 }
 
-export function buildRailItems(options: {
+function buildRailEntry(
+  id: ToolRailEntryId,
+  options: {
+    activePanel: RightSidebarPanel | null;
+    toolStates: Record<ToolId, RailToolState | undefined>;
+    entry: (typeof TOOL_RAIL_GROUPS)[number]["entries"][number];
+  },
+): ToolRailItem | null {
+  if (options.entry.comingSoon || isToolRailPlaceholder(id)) {
+    return {
+      id,
+      labelKey: options.entry.labelKey,
+      icon: options.entry.icon,
+      isEnabled: false,
+      isExpanded: false,
+      isArmed: false,
+      isDisabled: true,
+      comingSoon: true,
+    };
+  }
+
+  const toolId = id as ToolId;
+  if (!isToolAvailable(toolId) || !options.entry.panel) return null;
+
+  const panel = options.entry.panel;
+  const state = options.toolStates[toolId];
+  const isEnabled = state?.isEnabled ?? false;
+  const isExpanded = options.activePanel === panel;
+  const isAvailable = state?.isAvailable ?? true;
+  const togglePanels: ToolId[] = ["web-search", "research", "worksheet", "map"];
+
+  return {
+    id: toolId,
+    panel,
+    labelKey: options.entry.labelKey,
+    icon: options.entry.icon,
+    isEnabled,
+    isExpanded,
+    isArmed:
+      togglePanels.includes(toolId) && isEnabled && !isExpanded && isAvailable,
+    isDisabled: !isAvailable,
+  };
+}
+
+export function buildRailGroups(options: {
   activePanel: RightSidebarPanel | null;
   toolStates: Record<ToolId, RailToolState | undefined>;
-}): ToolRailItem[] {
-  const togglePanels: ToolId[] = ["web-search", "research", "worksheet", "map"];
-  const order: ToolId[] = ["web-search", "map", "research", "worksheet"];
-
-  return order
-    .filter((id) => {
-      const config = TOOL_UI_CONFIG[id];
-      return isToolAvailable(id) && config.railPanel;
-    })
-    .map((id) => {
-      const config = TOOL_UI_CONFIG[id];
-      const panel = config.railPanel!;
-      const state = options.toolStates[id];
-      const isEnabled = state?.isEnabled ?? false;
-      const isExpanded = options.activePanel === panel;
-      const isAvailable = state?.isAvailable ?? true;
-
-      return {
-        id,
-        panel,
-        labelKey: config.labelKey,
-        icon: config.icon,
-        isEnabled,
-        isExpanded,
-        isArmed:
-          togglePanels.includes(id) && isEnabled && !isExpanded && isAvailable,
-        isDisabled: !isAvailable,
-      };
-    });
+}): ToolRailGroup[] {
+  return TOOL_RAIL_GROUPS.map((group) => ({
+    id: group.id,
+    labelKey: group.labelKey,
+    items: group.entries
+      .map((entry) =>
+        buildRailEntry(entry.id, {
+          activePanel: options.activePanel,
+          toolStates: options.toolStates,
+          entry,
+        }),
+      )
+      .filter((item): item is ToolRailItem => item !== null),
+  })).filter((group) => group.items.length > 0);
 }
 
 export function extractPersistedPanel(chat: ChatSession): RightSidebarPanel | null {

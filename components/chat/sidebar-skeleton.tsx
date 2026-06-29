@@ -16,29 +16,36 @@ export function SidebarSkeleton({
       <div
         className={cn(
           "shrink-0 rounded-xl bg-muted/80",
-          expanded ? "mx-1 h-10" : "mx-auto size-9",
+          expanded ? "mx-1 h-10" : "mx-auto size-11",
         )}
       />
-      <div className="h-9 animate-pulse rounded-lg bg-muted" />
-      {expanded && (
-        <div className="h-8 animate-pulse rounded-lg bg-muted/80" />
-      )}
+      <div className="mx-2 h-px bg-border/60" />
+      <div
+        className={cn(
+          "animate-pulse rounded-lg bg-muted",
+          expanded ? "mx-1 h-9" : "mx-auto size-11",
+        )}
+      />
+      <div className="mx-2 h-px bg-border/60" />
       {expanded ? (
-        <div className="mt-1 flex-1 space-y-2">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-12 animate-pulse rounded-xl bg-muted/70"
-            />
-          ))}
-        </div>
+        <>
+          <div className="mx-1 h-8 animate-pulse rounded-lg bg-muted/80" />
+          <div className="mt-1 flex-1 space-y-2">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div
+                key={index}
+                className="h-12 animate-pulse rounded-xl bg-muted/70"
+              />
+            ))}
+          </div>
+        </>
       ) : (
-        <div className="flex-1" />
+        <div className="mx-auto size-11 animate-pulse rounded-lg bg-muted/70" />
       )}
       <div
         className={cn(
           "mt-auto animate-pulse rounded-lg bg-muted/60",
-          expanded ? "h-20" : "h-11",
+          expanded ? "mx-1 h-9" : "mx-auto size-11",
         )}
       />
     </div>

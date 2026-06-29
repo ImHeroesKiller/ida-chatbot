@@ -40,6 +40,7 @@ export const DEFAULT_APP_CONFIG: IdaAppConfig = {
   webSearch: {
     maxResults: 5,
   },
+  toolModels: {},
 };
 
 function mergeConfig(partial: Partial<IdaAppConfig> | null): IdaAppConfig {
@@ -89,6 +90,10 @@ function mergeConfig(partial: Partial<IdaAppConfig> | null): IdaAppConfig {
       maxResults:
         partial.webSearch?.maxResults ??
         DEFAULT_APP_CONFIG.webSearch.maxResults,
+    },
+    toolModels: {
+      ...DEFAULT_APP_CONFIG.toolModels,
+      ...(partial.toolModels ?? {}),
     },
   };
 }

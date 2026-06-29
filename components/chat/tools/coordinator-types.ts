@@ -1,18 +1,29 @@
+import type { ToolRailEntryId, ToolRailLabelKey } from "@/components/chat/tool-rail-config";
 import type { ToolRuntimeBundle } from "@/components/chat/tools/tool-coordinator-config";
-import type { TOOL_UI_CONFIG } from "@/components/chat/tools/tool-ui-config";
 import type { ToolId } from "@/components/chat/tools/types";
 import type { ChatSession } from "@/lib/chat-store";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
+import type { LucideIcon } from "lucide-react";
 
 export interface ToolRailItem {
-  id: ToolId;
-  panel: RightSidebarPanel;
-  labelKey: (typeof TOOL_UI_CONFIG)[ToolId]["labelKey"];
-  icon: (typeof TOOL_UI_CONFIG)[ToolId]["icon"];
+  id: ToolRailEntryId;
+  panel?: RightSidebarPanel;
+  labelKey: ToolRailLabelKey;
+  icon: LucideIcon;
   isEnabled: boolean;
   isExpanded: boolean;
   isArmed: boolean;
   isDisabled: boolean;
+  comingSoon?: boolean;
+}
+
+export interface ToolRailGroup {
+  id: string;
+  labelKey:
+    | "railResearchTools"
+    | "railProductivity"
+    | "railAdvancedTools";
+  items: ToolRailItem[];
 }
 
 export interface ToolSendFlags {
@@ -59,7 +70,7 @@ export interface ToolUiCoordinator {
   isToolActive: (toolId: ToolId) => boolean;
   handleMenuToolClick: (toolId: ToolId) => void;
   handleRailClick: (toolId: ToolId, panel: RightSidebarPanel) => void;
-  railItems: ToolRailItem[];
+  railGroups: ToolRailGroup[];
   setWorksheetEnabled: (enabled: boolean) => void;
   setWebSearchEnabled: (enabled: boolean) => void;
   setResearchEnabled: (enabled: boolean) => void;

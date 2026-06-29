@@ -15,7 +15,8 @@ import {
   MODEL_LIBRARY,
   MODEL_PROVIDERS,
 } from "@/lib/admin/models";
-import type { IdaAppConfig } from "@/lib/admin/types";
+import type { IdaAppConfig, ToolModelKey } from "@/lib/admin/types";
+import { TOOL_MODEL_KEYS } from "@/lib/admin/types";
 
 const modelProviderSchema = z.enum(["google", "groq", "xai", "huggingface"]);
 
@@ -39,6 +40,7 @@ const configSchema = z.object({
     voice: z.boolean(),
     ocr: z.boolean(),
     autoSpeak: z.boolean(),
+    webSearch: z.boolean(),
   }),
   systemPromptOverride: z.string().nullable(),
   rag: z.object({
@@ -46,6 +48,14 @@ const configSchema = z.object({
     topK: z.number().int().min(1).max(20),
     retrievalThreshold: z.number().min(0).max(1),
   }),
+  webSearch: z
+    .object({
+      maxResults: z.number().int().min(1).max(20),
+    })
+    .optional(),
+  toolModels: z
+    .record(z.string(), modelSelectionSchema.nullable())
+    .optional(),
 });
 
 function validateModelSelection(
@@ -127,6 +137,24 @@ export async function PUT(request: Request) {
 
   if (!validateModelSelection(parsed.data.visionModel, "vision")) {
     return NextResponse.json({ error: "Unknown vision model." }, { status: 400 });
+  }
+
+  if (parsed.data.toolModels) {
+    for (const [key, selection] of Object.entries(parsed.data.toolModels)) {
+      if (!TOOL_MODEL_KEYS.includes(key as ToolModelKey)) {
+        return NextResponse.json(
+          { error: `Unknown tool model key: ${key}` },
+          { status: 400 },
+        );
+      }
+
+      if (selection && !validateModelSelection(selection, "chat")) {
+        return NextResponse.json(
+          { error: `Unknown chat model for tool: ${key}` },
+          { status: 400 },
+        );
+      }
+    }
   }
 
   try {

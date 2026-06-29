@@ -7,10 +7,30 @@ export interface ModelSelection {
   provider: ModelProvider;
 }
 
+export type ToolModelKey =
+  | "webSearch"
+  | "research"
+  | "workflow"
+  | "agent"
+  | "coding"
+  | "integration"
+  | "virtualComputer";
+
+export const TOOL_MODEL_KEYS: ToolModelKey[] = [
+  "webSearch",
+  "research",
+  "workflow",
+  "agent",
+  "coding",
+  "integration",
+  "virtualComputer",
+];
+
 export interface IdaAppConfig {
   defaultModel: ModelSelection;
   fallbackModel: ModelSelection | null;
   visionModel: ModelSelection;
+  toolModels: Partial<Record<ToolModelKey, ModelSelection | null>>;
   tts: {
     engine: TtsEngine;
     voiceId: string;
@@ -97,6 +117,24 @@ export interface AdminAlert {
   message: string;
 }
 
+export interface ActiveUserRow {
+  id: string;
+  email: string | null;
+  fullName: string | null;
+  avatarUrl: string | null;
+  lastLoginAt: string | null;
+}
+
+export interface PlatformStats {
+  totalUsers: number;
+  activeUsersToday: number;
+  activeUsersWeek: number;
+  totalChatSessions: number;
+  totalWorksheets: number;
+  totalResearchSessions: number;
+  activeUsers: ActiveUserRow[];
+}
+
 export interface AdminStats {
   todayTotal: number;
   last7DaysTotal: number;
@@ -131,4 +169,5 @@ export interface AdminStats {
   modelHealth: ModelHealthStatus[];
   alerts: AdminAlert[];
   recentActivity: RequestLogRow[];
+  platform: PlatformStats;
 }

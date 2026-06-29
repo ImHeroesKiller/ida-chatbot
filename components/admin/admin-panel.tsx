@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Bot,
   Database,
   LayoutDashboard,
   LogOut,
@@ -17,6 +18,7 @@ import { AppearanceTab } from "@/components/admin/appearance-tab";
 import { DashboardTab } from "@/components/admin/dashboard-tab";
 import { KnowledgeTab } from "@/components/admin/knowledge-tab";
 import { LogsTab } from "@/components/admin/logs-tab";
+import { AgentModelsTab } from "@/components/admin/agent-models-tab";
 import { ModelsTab } from "@/components/admin/models-tab";
 import { SettingsTab } from "@/components/admin/settings-tab";
 import { Button } from "@/components/ui/button";
@@ -87,6 +89,10 @@ export function AdminPanel({
               <Sparkles className="size-4" />
               Models
             </TabsTrigger>
+            <TabsTrigger value="agent-models">
+              <Bot className="size-4" />
+              Agent
+            </TabsTrigger>
             <TabsTrigger value="knowledge">
               <Database className="size-4" />
               Knowledge
@@ -110,6 +116,9 @@ export function AdminPanel({
           </TabsContent>
           <TabsContent value="models" className="mt-6">
             <ModelsTab />
+          </TabsContent>
+          <TabsContent value="agent-models" className="mt-6">
+            <AgentModelsTab />
           </TabsContent>
           <TabsContent value="knowledge" className="mt-6">
             <KnowledgeTab />

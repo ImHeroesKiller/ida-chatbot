@@ -12,9 +12,11 @@ import {
 import { createPortal } from "react-dom";
 
 import {
-  getAllTools,
+  isToolRailPlaceholder,
+  TOOL_RAIL_GROUPS,
+} from "@/components/chat/tool-rail-config";
+import {
   isToolEnabled,
-  TOOL_DISPLAY_ORDER,
   TOOL_UI_CONFIG,
 } from "@/components/chat/tools";
 import type { ToolId } from "@/components/chat/tools/types";
@@ -48,20 +50,28 @@ export function ToolsMenu({
   const anchorRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const tools = useMemo(
+  const menuGroups = useMemo(
     () =>
-      getAllTools()
-        .filter((tool) => isToolEnabled(tool.id))
-        .sort(
-          (a, b) =>
-            TOOL_DISPLAY_ORDER.indexOf(a.id) - TOOL_DISPLAY_ORDER.indexOf(b.id),
-        ),
+      TOOL_RAIL_GROUPS.map((group) => ({
+        ...group,
+        entries: group.entries.filter((entry) => {
+          if (entry.comingSoon || isToolRailPlaceholder(entry.id)) return true;
+          return isToolEnabled(entry.id as ToolId);
+        }),
+      })).filter((group) => group.entries.length > 0),
     [],
   );
 
-  const activeToolLabels = tools
-    .filter((tool) => isToolActive(tool.id))
-    .map((tool) => copy[TOOL_UI_CONFIG[tool.id].labelKey]);
+  const activeToolLabels = useMemo(
+    () =>
+      menuGroups.flatMap((group) =>
+        group.entries
+          .filter((entry) => !entry.comingSoon && !isToolRailPlaceholder(entry.id))
+          .filter((entry) => isToolActive(entry.id as ToolId))
+          .map((entry) => copy[entry.labelKey]),
+      ),
+    [copy, isToolActive, menuGroups],
+  );
 
   const buttonTitle =
     activeToolLabels.length > 0
@@ -135,66 +145,103 @@ export function ToolsMenu({
         transform: "translateY(-100%)",
       }}
       className={cn(
-        "z-[80] w-52",
+        "z-[80] w-56",
         "rounded-xl border bg-popover p-1.5 shadow-lg",
       )}
     >
-      {tools.map((tool) => {
-        const config = TOOL_UI_CONFIG[tool.id];
-        const Icon = config.icon;
-        const active = isToolActive(tool.id);
-        const isToggle =
-          config.kind === "toggle-web-search" ||
-          config.kind === "toggle-research" ||
-          config.kind === "toggle-worksheet" ||
-          config.kind === "toggle-map";
-        const isWebSearch = tool.id === "web-search";
-        const isResearch = tool.id === "research";
-        const itemDisabled =
-          (isWebSearch && !webSearchAvailable) ||
-          (isResearch && !researchAvailable);
+      {menuGroups.map((group, groupIndex) => (
+        <div
+          key={group.id}
+          className={cn(
+            groupIndex > 0 && "mt-1 border-t border-border/60 pt-1.5",
+          )}
+        >
+          <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            {copy[group.labelKey]}
+          </p>
 
-        return (
-          <button
-            key={tool.id}
-            type="button"
-            role="menuitem"
-            disabled={itemDisabled}
-            onClick={() => handleToolClick(tool.id)}
-            className={cn(
-              "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs",
-              "transition-colors hover:bg-muted",
-              active && "bg-primary/10 ring-1 ring-primary/20",
-              itemDisabled && "cursor-not-allowed opacity-50",
-            )}
-          >
-            <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <span className="flex-1 font-medium">{copy[config.labelKey]}</span>
-            {isToggle ? (
-              <span
+          {group.entries.map((entry) => {
+            const Icon = entry.icon;
+            const label = copy[entry.labelKey];
+            const isComingSoon =
+              entry.comingSoon || isToolRailPlaceholder(entry.id);
+
+            if (isComingSoon) {
+              return (
+                <button
+                  key={entry.id}
+                  type="button"
+                  role="menuitem"
+                  disabled
+                  className={cn(
+                    "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs",
+                    "cursor-not-allowed opacity-60",
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span className="flex-1 font-medium">{label}</span>
+                  <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    {copy.toolsComingSoon}
+                  </span>
+                </button>
+              );
+            }
+
+            const toolId = entry.id as ToolId;
+            const config = TOOL_UI_CONFIG[toolId];
+            const active = isToolActive(toolId);
+            const isToggle =
+              config.kind === "toggle-web-search" ||
+              config.kind === "toggle-research" ||
+              config.kind === "toggle-worksheet" ||
+              config.kind === "toggle-map";
+            const isWebSearch = toolId === "web-search";
+            const isResearch = toolId === "research";
+            const itemDisabled =
+              (isWebSearch && !webSearchAvailable) ||
+              (isResearch && !researchAvailable);
+
+            return (
+              <button
+                key={entry.id}
+                type="button"
+                role="menuitem"
+                disabled={itemDisabled}
+                onClick={() => handleToolClick(toolId)}
                 className={cn(
-                  "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
-                  active
-                    ? "bg-primary/15 text-primary"
-                    : "bg-muted text-muted-foreground",
+                  "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs",
+                  "transition-colors hover:bg-muted",
+                  active && "bg-primary/10 ring-1 ring-primary/20",
+                  itemDisabled && "cursor-not-allowed opacity-50",
                 )}
               >
-                {active ? copy.toolsOn : copy.toolsOff}
-              </span>
-            ) : null}
-          </button>
-        );
-      })}
+                <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="flex-1 font-medium">{label}</span>
+                {isToggle ? (
+                  <span
+                    className={cn(
+                      "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                      active
+                        ? "bg-primary/15 text-primary"
+                        : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {active ? copy.toolsOn : copy.toolsOff}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      ))}
 
-      {!webSearchAvailable &&
-      tools.some((tool) => tool.id === "web-search") ? (
+      {!webSearchAvailable ? (
         <p className="px-2.5 pt-1 text-[10px] text-muted-foreground">
           {copy.webSearchUnavailable}
         </p>
       ) : null}
 
-      {!researchAvailable &&
-      tools.some((tool) => tool.id === "research") ? (
+      {!researchAvailable ? (
         <p className="px-2.5 pt-1 text-[10px] text-muted-foreground">
           {copy.researchUnavailable}
         </p>

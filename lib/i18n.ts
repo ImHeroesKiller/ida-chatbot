@@ -196,6 +196,15 @@ export const COPY: Record<
     toolsMap: string;
     toolsResearch: string;
     toolsWorksheet: string;
+    toolsWorkflow: string;
+    toolsCoding: string;
+    toolsIntegration: string;
+    toolsVirtualComputer: string;
+    railResearchTools: string;
+    railProductivity: string;
+    railAdvancedTools: string;
+    settingsAppearance: string;
+    settingsData: string;
     toolsOn: string;
     toolsOff: string;
     toolsComingSoon: string;
@@ -656,6 +665,15 @@ export const COPY: Record<
     toolsMap: "Peta",
     toolsResearch: "Riset",
     toolsWorksheet: "Worksheet",
+    toolsWorkflow: "Workflow",
+    toolsCoding: "Coding",
+    toolsIntegration: "Integrasi",
+    toolsVirtualComputer: "Virtual Computer",
+    railResearchTools: "Riset",
+    railProductivity: "Produktivitas",
+    railAdvancedTools: "Lanjutan",
+    settingsAppearance: "Tampilan",
+    settingsData: "Data",
     toolsOn: "Aktif",
     toolsOff: "Mati",
     toolsComingSoon: "Segera hadir",
@@ -1149,6 +1167,15 @@ export const COPY: Record<
     toolsMap: "Map",
     toolsResearch: "Research",
     toolsWorksheet: "Worksheet",
+    toolsWorkflow: "Workflow",
+    toolsCoding: "Coding",
+    toolsIntegration: "Integration",
+    toolsVirtualComputer: "Virtual Computer",
+    railResearchTools: "Research",
+    railProductivity: "Productivity",
+    railAdvancedTools: "Advanced",
+    settingsAppearance: "Appearance",
+    settingsData: "Data",
     toolsOn: "On",
     toolsOff: "Off",
     toolsComingSoon: "Coming soon",
@@ -1638,6 +1665,15 @@ export const COPY: Record<
     toolsMap: "地图",
     toolsResearch: "研究",
     toolsWorksheet: "Worksheet",
+    toolsWorkflow: "工作流",
+    toolsCoding: "编程",
+    toolsIntegration: "集成",
+    toolsVirtualComputer: "虚拟电脑",
+    railResearchTools: "研究工具",
+    railProductivity: "效率工具",
+    railAdvancedTools: "高级工具",
+    settingsAppearance: "外观",
+    settingsData: "数据",
     toolsOn: "开",
     toolsOff: "关",
     toolsComingSoon: "即将推出",

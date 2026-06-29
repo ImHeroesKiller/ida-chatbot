@@ -244,6 +244,7 @@ function ChatRoomContent() {
     onRename: renameChat,
     onDelete: deleteChat,
     onClearAll: clearAllChats,
+    onNewChat: handleNewChat,
   };
 
   return (
@@ -354,7 +355,7 @@ function ChatRoomContent() {
 
           <RightToolsRail
             locale={locale}
-            railItems={tools.railItems}
+            railGroups={tools.railGroups}
             onRailClick={tools.handleRailClick}
             className="relative z-10 hidden shrink-0 md:flex"
           />

@@ -1,3 +1,4 @@
+import { getPlatformStats } from "@/lib/admin/platform-stats";
 import { estimateRequestCost } from "@/lib/admin/pricing";
 import type {
   AdminAlert,
@@ -116,6 +117,15 @@ function emptyStats(): AdminStats {
     modelHealth: [],
     alerts: [],
     recentActivity: [],
+    platform: {
+      totalUsers: 0,
+      activeUsersToday: 0,
+      activeUsersWeek: 0,
+      totalChatSessions: 0,
+      totalWorksheets: 0,
+      totalResearchSessions: 0,
+      activeUsers: [],
+    },
   };
 }
 
@@ -460,6 +470,7 @@ export async function getAdminStats(): Promise<AdminStats> {
       modelHealth,
       alerts,
       recentActivity,
+      platform: await getPlatformStats(),
     };
   } catch (error) {
     console.error("[IDA admin-stats]", error);

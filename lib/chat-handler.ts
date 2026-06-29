@@ -16,6 +16,7 @@ import {
   mergeTokenUsage,
 } from "@/lib/admin/token-utils";
 import { loadAppConfig } from "@/lib/admin/config";
+import { resolveToolModel } from "@/lib/admin/tool-model";
 import {
   findModelDefinition,
   getProviderApiKey,
@@ -262,7 +263,31 @@ export async function prepareIdaChatContext(
   options?: { model?: ModelSelection },
 ): Promise<IdaChatPreparedContext> {
   const appConfig = await loadAppConfig();
-  const selectedModel = options?.model ?? appConfig.defaultModel;
+
+  const { messages, locale, sessionId, userId } = input;
+  const lastMessage = messages[messages.length - 1];
+
+  if (!lastMessage || lastMessage.role !== "user") {
+    throw new Error("Last message must be from the user.");
+  }
+
+  const webSearchAvailable =
+    appConfig.features.webSearch && isWebSearchConfigured();
+  const researchAvailable =
+    appConfig.features.webSearch && isResearchConfigured();
+  const userRequestedResearch = input.research === true;
+  const researchActive = researchAvailable && userRequestedResearch;
+  const userRequestedWebSearch = input.webSearch === true && !researchActive;
+  const webSearchActive = webSearchAvailable && userRequestedWebSearch;
+
+  const selectedModel =
+    options?.model ??
+    (researchActive
+      ? resolveToolModel(appConfig, "research")
+      : webSearchActive
+        ? resolveToolModel(appConfig, "webSearch")
+        : appConfig.defaultModel);
+
   const modelDefinition = findModelDefinition(
     selectedModel.id,
     selectedModel.provider,
@@ -282,22 +307,6 @@ export async function prepareIdaChatContext(
   if (useGoogle && !apiKey) {
     throw new Error("Chat service is not configured.");
   }
-
-  const { messages, locale, sessionId, userId } = input;
-  const lastMessage = messages[messages.length - 1];
-
-  if (!lastMessage || lastMessage.role !== "user") {
-    throw new Error("Last message must be from the user.");
-  }
-
-  const webSearchAvailable =
-    appConfig.features.webSearch && isWebSearchConfigured();
-  const researchAvailable =
-    appConfig.features.webSearch && isResearchConfigured();
-  const userRequestedResearch = input.research === true;
-  const researchActive = researchAvailable && userRequestedResearch;
-  const userRequestedWebSearch = input.webSearch === true && !researchActive;
-  const webSearchActive = webSearchAvailable && userRequestedWebSearch;
   const webSearchMaxResults = appConfig.webSearch.maxResults;
   const worksheetEnabled = input.worksheet === true;
 

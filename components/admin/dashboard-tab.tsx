@@ -6,7 +6,11 @@ import {
   BarChart3,
   Coins,
   Cpu,
+  FileText,
+  MessageSquare,
+  Search,
   TrendingUp,
+  Users,
   Zap,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -63,8 +67,13 @@ export function DashboardTab() {
     }
 
     void load();
+    const interval = window.setInterval(() => {
+      void load();
+    }, 60_000);
+
     return () => {
       cancelled = true;
+      window.clearInterval(interval);
     };
   }, []);
 
@@ -111,7 +120,72 @@ export function DashboardTab() {
         </Card>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Total users</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-3xl">
+              <Users className="size-5 text-muted-foreground" />
+              {stats.platform.totalUsers}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              {stats.platform.activeUsersToday} active today
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Active users (7d)</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-3xl">
+              <Users className="size-5 text-muted-foreground" />
+              {stats.platform.activeUsersWeek}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              Logged in during the last week
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Chat sessions</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-3xl">
+              <MessageSquare className="size-5 text-muted-foreground" />
+              {stats.platform.totalChatSessions}
+            </CardTitle>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Worksheets</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-3xl">
+              <FileText className="size-5 text-muted-foreground" />
+              {stats.platform.totalWorksheets}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              Sessions with worksheet enabled
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Research sessions</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-3xl">
+              <Search className="size-5 text-muted-foreground" />
+              {stats.platform.totalResearchSessions}
+            </CardTitle>
+          </CardHeader>
+        </Card>
+
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Requests today</CardDescription>
@@ -331,6 +405,46 @@ export function DashboardTab() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="size-4" />
+            Active users
+          </CardTitle>
+          <CardDescription>
+            Recently signed-in users (refreshes every 60s)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {stats.platform.activeUsers.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No active users yet.</p>
+          ) : (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {stats.platform.activeUsers.map((user) => (
+                <div
+                  key={user.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">
+                      {user.fullName ?? user.email ?? user.id.slice(0, 8)}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {user.email ?? user.id}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-[10px] text-muted-foreground">
+                    {user.lastLoginAt
+                      ? new Date(user.lastLoginAt).toLocaleString()
+                      : "—"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>

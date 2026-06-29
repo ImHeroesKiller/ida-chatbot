@@ -2,6 +2,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 import { loadAppConfig } from "@/lib/admin/config";
+import { resolveToolModel } from "@/lib/admin/tool-model";
 import { isModelConfigured } from "@/lib/admin/model-selection";
 import { findModelDefinition, getProviderApiKey } from "@/lib/admin/models";
 import type { Locale } from "@/lib/config";
@@ -230,7 +231,7 @@ async function generateWithLlm(options: {
   locale: Locale;
 }): Promise<AgentWorkflowProposal | null> {
   const appConfig = await loadAppConfig();
-  const modelSelection = appConfig.defaultModel;
+  const modelSelection = resolveToolModel(appConfig, "workflow", "agent");
   const modelDef = findModelDefinition(
     modelSelection.id,
     modelSelection.provider,
