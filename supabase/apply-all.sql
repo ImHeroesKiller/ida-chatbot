@@ -232,3 +232,18 @@ create table if not exists ida_worksheet_shares (
 
 create index if not exists ida_worksheet_shares_expires_at_idx
   on ida_worksheet_shares (expires_at);
+
+-- Migration 017: user profile preferences
+
+alter table ida_users
+  add column if not exists custom_prompt text;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'avatars',
+  'avatars',
+  true,
+  2097152,
+  array['image/jpeg', 'image/png', 'image/webp']
+)
+on conflict (id) do nothing;

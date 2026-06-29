@@ -46,6 +46,8 @@ import {
   type WebSearchSource,
 } from "@/lib/tools/web-search";
 
+import { getIdaUserCustomPrompt } from "@/lib/auth/user-service";
+
 import {
   buildConversationMemoryContext,
   persistSessionMessages,
@@ -343,6 +345,10 @@ export async function prepareIdaChatContext(
 
   const researchWithRag = prefetchedResearch;
 
+  const userCustomPrompt = userId
+    ? await getIdaUserCustomPrompt(userId).catch(() => null)
+    : null;
+
   const systemInstruction = buildIdaSystemPrompt(locale, {
     retrievedContext: ragContext,
     conversationMemory: memoryContext,
@@ -358,6 +364,7 @@ export async function prepareIdaChatContext(
       ? buildWorksheetPromptSection(locale)
       : "",
     basePromptOverride: appConfig.systemPromptOverride,
+    userCustomPrompt,
   });
 
   const handoffPrefill = buildHandoffPrefill(messages, locale);

@@ -7,10 +7,8 @@ import {
   Sun,
   Trash2,
   Type,
-  User,
   Volume2,
 } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { useChatContext } from "@/components/chat/chat-provider";
@@ -166,17 +164,6 @@ export function SidebarSettings({
               )}
               {copy.toggleTheme}
             </Button>
-
-            <Link
-              href="/account"
-              className={cn(
-                "inline-flex h-9 w-full items-center justify-start gap-2 rounded-lg px-2 text-xs sm:h-8",
-                "text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-              )}
-            >
-              <User className="h-3.5 w-3.5" />
-              {copy.account}
-            </Link>
 
             <Button
               type="button"

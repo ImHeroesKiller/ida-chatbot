@@ -98,6 +98,31 @@ export const COPY: Record<
     profileEmail: string;
     profileName: string;
     profileUserId: string;
+    profilePhoto: string;
+    accountSettingsTitle: string;
+    accountSettingsDescription: string;
+    uploadAvatar: string;
+    useGoogleAvatar: string;
+    avatarHint: string;
+    avatarUploadSuccess: string;
+    avatarUploadError: string;
+    useGoogleAvatarSuccess: string;
+    saveProfile: string;
+    savingProfile: string;
+    profileSaveSuccess: string;
+    profileSaveError: string;
+    profileNameRequired: string;
+    customPromptTitle: string;
+    customPromptDescription: string;
+    customPromptLabel: string;
+    customPromptPlaceholder1: string;
+    customPromptPlaceholder2: string;
+    customPromptPlaceholder3: string;
+    saveCustomPrompt: string;
+    savingCustomPrompt: string;
+    customPromptSaveSuccess: string;
+    customPromptSaveError: string;
+    clearCustomPrompt: string;
     backToChat: string;
     authError: string;
     voiceSettings: string;
@@ -526,6 +551,36 @@ export const COPY: Record<
     profileEmail: "Email",
     profileName: "Nama",
     profileUserId: "User ID",
+    profilePhoto: "Foto Profil",
+    accountSettingsTitle: "Pengaturan Akun",
+    accountSettingsDescription:
+      "Kelola profil Google Anda dan preferensi respons IDA.",
+    uploadAvatar: "Unggah Foto",
+    useGoogleAvatar: "Gunakan Foto Google",
+    avatarHint: "JPG, PNG, atau WebP. Maksimal 2 MB.",
+    avatarUploadSuccess: "Foto profil berhasil diperbarui.",
+    avatarUploadError: "Gagal memperbarui foto profil.",
+    useGoogleAvatarSuccess: "Foto Google berhasil diterapkan.",
+    saveProfile: "Simpan Profil",
+    savingProfile: "Menyimpan...",
+    profileSaveSuccess: "Profil berhasil disimpan.",
+    profileSaveError: "Gagal menyimpan profil.",
+    profileNameRequired: "Nama tampilan wajib diisi.",
+    customPromptTitle: "Gaya Respons & Kepribadian",
+    customPromptDescription:
+      "Tulis instruksi khusus agar IDA menyesuaikan gaya jawabannya dengan preferensi Anda.",
+    customPromptLabel: "Custom Prompt",
+    customPromptPlaceholder1:
+      "Jawab dengan gaya santai dan ramah seperti teman dekat",
+    customPromptPlaceholder2:
+      "Selalu gunakan bahasa Indonesia yang sopan dan profesional",
+    customPromptPlaceholder3:
+      "Fokus pada solusi praktis dan langsung ke intinya",
+    saveCustomPrompt: "Simpan Custom Prompt",
+    savingCustomPrompt: "Menyimpan...",
+    customPromptSaveSuccess: "Custom prompt berhasil disimpan.",
+    customPromptSaveError: "Gagal menyimpan custom prompt.",
+    clearCustomPrompt: "Hapus",
     backToChat: "Kembali ke chat",
     authError: "Gagal masuk. Silakan coba lagi.",
     voiceSettings: "Pengaturan suara",
@@ -989,6 +1044,36 @@ export const COPY: Record<
     profileEmail: "Email",
     profileName: "Name",
     profileUserId: "User ID",
+    profilePhoto: "Profile Photo",
+    accountSettingsTitle: "Account Settings",
+    accountSettingsDescription:
+      "Manage your Google profile and how IDA responds in chat.",
+    uploadAvatar: "Upload Photo",
+    useGoogleAvatar: "Use Google Photo",
+    avatarHint: "JPG, PNG, or WebP. Max 2 MB.",
+    avatarUploadSuccess: "Profile photo updated.",
+    avatarUploadError: "Failed to update profile photo.",
+    useGoogleAvatarSuccess: "Google photo applied.",
+    saveProfile: "Save Profile",
+    savingProfile: "Saving...",
+    profileSaveSuccess: "Profile saved.",
+    profileSaveError: "Failed to save profile.",
+    profileNameRequired: "Display name is required.",
+    customPromptTitle: "Personality & Response Style",
+    customPromptDescription:
+      "Write custom instructions so IDA adapts its tone and style to your preferences.",
+    customPromptLabel: "Custom Prompt",
+    customPromptPlaceholder1:
+      "Reply in a relaxed, friendly tone like a close friend",
+    customPromptPlaceholder2:
+      "Always use polite and professional Indonesian",
+    customPromptPlaceholder3:
+      "Focus on practical solutions and get straight to the point",
+    saveCustomPrompt: "Save Custom Prompt",
+    savingCustomPrompt: "Saving...",
+    customPromptSaveSuccess: "Custom prompt saved.",
+    customPromptSaveError: "Failed to save custom prompt.",
+    clearCustomPrompt: "Clear",
     backToChat: "Back to chat",
     authError: "Sign-in failed. Please try again.",
     voiceSettings: "Voice settings",
@@ -1453,6 +1538,31 @@ export const COPY: Record<
     profileEmail: "邮箱",
     profileName: "姓名",
     profileUserId: "用户 ID",
+    profilePhoto: "头像",
+    accountSettingsTitle: "账户设置",
+    accountSettingsDescription: "管理 Google 资料及 IDA 的回复风格。",
+    uploadAvatar: "上传照片",
+    useGoogleAvatar: "使用 Google 头像",
+    avatarHint: "支持 JPG、PNG 或 WebP，最大 2 MB。",
+    avatarUploadSuccess: "头像已更新。",
+    avatarUploadError: "头像更新失败。",
+    useGoogleAvatarSuccess: "已应用 Google 头像。",
+    saveProfile: "保存资料",
+    savingProfile: "保存中...",
+    profileSaveSuccess: "资料已保存。",
+    profileSaveError: "保存资料失败。",
+    profileNameRequired: "显示名称不能为空。",
+    customPromptTitle: "个性与回复风格",
+    customPromptDescription: "编写自定义指令，让 IDA 按您的偏好调整回复风格。",
+    customPromptLabel: "自定义提示词",
+    customPromptPlaceholder1: "用轻松友好的语气回复，像亲密朋友一样",
+    customPromptPlaceholder2: "始终使用礼貌、专业的中文",
+    customPromptPlaceholder3: "聚焦实用方案，直接切入重点",
+    saveCustomPrompt: "保存自定义提示词",
+    savingCustomPrompt: "保存中...",
+    customPromptSaveSuccess: "自定义提示词已保存。",
+    customPromptSaveError: "保存自定义提示词失败。",
+    clearCustomPrompt: "清除",
     backToChat: "返回聊天",
     authError: "登录失败，请重试。",
     voiceSettings: "语音设置",
@@ -1795,3 +1905,5 @@ export const COPY: Record<
     },
   },
 };
+
+export type CopyStrings = (typeof COPY)[Locale];

@@ -16,6 +16,7 @@ interface PromptContext {
   worksheetEnabled?: boolean;
   worksheetPromptSection?: string;
   basePromptOverride?: string | null;
+  userCustomPrompt?: string | null;
 }
 
 export function buildIdaSystemPrompt(
@@ -36,6 +37,7 @@ export function buildIdaSystemPrompt(
     researchEnabled = false,
     worksheetEnabled = false,
     worksheetPromptSection = "",
+    userCustomPrompt,
   } = context;
 
   const ragSection = retrievedContext?.trim()
@@ -100,6 +102,13 @@ Setelah menggunakan web search:
 - Jika hasil search kosong/gagal, jawab dengan kemampuan yang ada dan jelaskan keterbatasannya`
     : "";
 
+  const userPreferenceSection = userCustomPrompt?.trim()
+    ? `## Preferensi Pengguna (Custom Prompt)
+Ikuti preferensi gaya respons berikut dari pengguna. Prioritaskan instruksi ini selama tidak bertentangan dengan batasan keamanan dan kebijakan IDA.
+
+${userCustomPrompt.trim()}`
+    : "";
+
   return `Kamu adalah IDA — Intelligent Digital Assistant, asisten AI mandiri yang ramah dan profesional.
 
 ## Identitas & Peran
@@ -146,6 +155,8 @@ ${researchSection}
 ${webSearchSection}
 
 ${memorySection}
+
+${userPreferenceSection}
 
 ## Batasan
 - Jangan mengklaim sebagai manusia; kamu adalah asisten AI.
