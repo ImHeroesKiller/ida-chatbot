@@ -1,19 +1,19 @@
 "use client";
 
 import { Loader2, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { IdaUserProfile } from "@/lib/auth/user-service";
+import { useUserProfileMutations } from "@/lib/auth/use-user-profile";
 import type { CopyStrings } from "@/lib/i18n";
 
 interface CustomPromptEditorProps {
   copy: CopyStrings;
   profile: IdaUserProfile | null;
-  onProfileUpdated: (profile: IdaUserProfile) => void;
 }
 
 const PLACEHOLDER_KEYS = [
@@ -25,43 +25,29 @@ const PLACEHOLDER_KEYS = [
 export function CustomPromptEditor({
   copy,
   profile,
-  onProfileUpdated,
 }: CustomPromptEditorProps) {
+  const { updateProfile } = useUserProfileMutations();
   const [customPrompt, setCustomPrompt] = useState(profile?.customPrompt ?? "");
-  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setCustomPrompt(profile?.customPrompt ?? "");
+  }, [profile?.customPrompt]);
 
   const placeholder = PLACEHOLDER_KEYS.map((key) => `• ${copy[key]}`).join(
     "\n",
   );
 
   const handleSave = async () => {
-    setSaving(true);
     try {
-      const response = await fetch("/api/auth/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customPrompt: customPrompt.trim() || null,
-        }),
+      const data = await updateProfile.mutateAsync({
+        customPrompt: customPrompt.trim() || null,
       });
-      const data = (await response.json()) as {
-        profile?: IdaUserProfile;
-        error?: string;
-      };
-
-      if (!response.ok || !data.profile) {
-        throw new Error(data.error ?? copy.customPromptSaveError);
-      }
-
-      setCustomPrompt(data.profile.customPrompt ?? "");
-      onProfileUpdated(data.profile);
+      setCustomPrompt(data.profile?.customPrompt ?? "");
       toast.success(copy.customPromptSaveSuccess);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : copy.customPromptSaveError,
       );
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -100,10 +86,10 @@ export function CustomPromptEditor({
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"
-          disabled={saving}
+          disabled={updateProfile.isPending}
           onClick={() => void handleSave()}
         >
-          {saving ? (
+          {updateProfile.isPending ? (
             <>
               <Loader2 className="size-4 animate-spin" />
               {copy.savingCustomPrompt}
@@ -115,7 +101,7 @@ export function CustomPromptEditor({
         <Button
           type="button"
           variant="outline"
-          disabled={saving || customPrompt.length === 0}
+          disabled={updateProfile.isPending || customPrompt.length === 0}
           onClick={handleClear}
         >
           {copy.clearCustomPrompt}

@@ -1,7 +1,7 @@
 "use client";
 
 import { ImagePlus, Loader2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { buildProfileInitials } from "@/lib/auth/profile-utils";
 import type { IdaUserProfile } from "@/lib/auth/user-service";
+import { useUserProfileMutations } from "@/lib/auth/use-user-profile";
 import type { CopyStrings } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +21,6 @@ interface AccountProfileFormProps {
   email: string;
   avatarUrl?: string;
   googleAvatarUrl?: string | null;
-  onProfileUpdated: (profile: IdaUserProfile) => void;
 }
 
 export function AccountProfileForm({
@@ -30,13 +30,19 @@ export function AccountProfileForm({
   email,
   avatarUrl,
   googleAvatarUrl,
-  onProfileUpdated,
 }: AccountProfileFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { updateProfile, uploadAvatar } = useUserProfileMutations();
   const [fullName, setFullName] = useState(displayName);
   const [previewAvatarUrl, setPreviewAvatarUrl] = useState(avatarUrl);
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  useEffect(() => {
+    setFullName(displayName);
+  }, [displayName]);
+
+  useEffect(() => {
+    setPreviewAvatarUrl(avatarUrl);
+  }, [avatarUrl]);
 
   const initials = buildProfileInitials(fullName || displayName);
 
@@ -47,94 +53,44 @@ export function AccountProfileForm({
       return;
     }
 
-    setSavingProfile(true);
     try {
-      const response = await fetch("/api/auth/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName: trimmed }),
-      });
-      const data = (await response.json()) as {
-        profile?: IdaUserProfile;
-        error?: string;
-      };
-
-      if (!response.ok || !data.profile) {
-        throw new Error(data.error ?? copy.profileSaveError);
-      }
-
-      onProfileUpdated(data.profile);
+      await updateProfile.mutateAsync({ fullName: trimmed });
       toast.success(copy.profileSaveSuccess);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : copy.profileSaveError,
       );
-    } finally {
-      setSavingProfile(false);
     }
   };
 
   const handleAvatarUpload = async (file: File) => {
-    setUploadingAvatar(true);
     try {
-      const formData = new FormData();
-      formData.append("avatar", file);
-
-      const response = await fetch("/api/auth/profile/avatar", {
-        method: "POST",
-        body: formData,
-      });
-      const data = (await response.json()) as {
-        profile?: IdaUserProfile;
-        error?: string;
-      };
-
-      if (!response.ok || !data.profile) {
-        throw new Error(data.error ?? copy.avatarUploadError);
-      }
-
-      setPreviewAvatarUrl(data.profile.avatarUrl ?? undefined);
-      onProfileUpdated(data.profile);
+      const data = await uploadAvatar.mutateAsync(file);
+      setPreviewAvatarUrl(data.profile?.avatarUrl ?? undefined);
       toast.success(copy.avatarUploadSuccess);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : copy.avatarUploadError,
       );
-    } finally {
-      setUploadingAvatar(false);
     }
   };
 
   const handleUseGoogleAvatar = async () => {
     if (!googleAvatarUrl) return;
 
-    setUploadingAvatar(true);
     try {
-      const response = await fetch("/api/auth/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ useGoogleAvatar: true }),
-      });
-      const data = (await response.json()) as {
-        profile?: IdaUserProfile;
-        error?: string;
-      };
-
-      if (!response.ok || !data.profile) {
-        throw new Error(data.error ?? copy.avatarUploadError);
-      }
-
-      setPreviewAvatarUrl(data.profile.avatarUrl ?? undefined);
-      onProfileUpdated(data.profile);
+      const data = await updateProfile.mutateAsync({ useGoogleAvatar: true });
+      setPreviewAvatarUrl(data.profile?.avatarUrl ?? undefined);
       toast.success(copy.useGoogleAvatarSuccess);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : copy.avatarUploadError,
       );
-    } finally {
-      setUploadingAvatar(false);
     }
   };
+
+  const uploadingAvatar =
+    uploadAvatar.isPending || updateProfile.isPending;
 
   return (
     <div className="space-y-5">
@@ -222,10 +178,10 @@ export function AccountProfileForm({
         <Button
           type="button"
           className={cn("w-full sm:w-auto")}
-          disabled={savingProfile}
+          disabled={updateProfile.isPending}
           onClick={() => void handleSaveProfile()}
         >
-          {savingProfile ? (
+          {updateProfile.isPending ? (
             <>
               <Loader2 className="size-4 animate-spin" />
               {copy.savingProfile}

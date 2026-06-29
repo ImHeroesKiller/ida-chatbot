@@ -2,7 +2,6 @@
 
 import { ArrowLeft, Loader2, LogOut } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AccountProfileForm } from "@/components/account/account-profile-form";
@@ -18,73 +17,34 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  resolveProfileAvatarUrl,
-  resolveProfileDisplayName,
-} from "@/lib/auth/profile-utils";
-import type { IdaUserProfile } from "@/lib/auth/user-service";
+import { useUserProfile } from "@/lib/auth/use-user-profile";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import { readStoredLocale } from "@/lib/locale-prefs";
-import {
-  getSupabaseBrowser,
-  isSupabaseBrowserConfigured,
-} from "@/lib/supabase/client";
 
 export function AccountPage() {
-  const router = useRouter();
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { signOut } = useAuth();
+  const {
+    user,
+    profile,
+    googleAvatarUrl,
+    displayName,
+    avatarUrl,
+    isLoading,
+    isFetching,
+  } = useUserProfile();
   const [locale, setLocale] = useState<Locale>("id");
-  const [profile, setProfile] = useState<IdaUserProfile | null>(null);
-  const [googleAvatarUrl, setGoogleAvatarUrl] = useState<string | null>(null);
-  const [profileLoading, setProfileLoading] = useState(true);
 
   const copy = COPY[locale];
+  const email = profile?.email ?? user?.email ?? "—";
+  const showProfileSpinner = isLoading || (isFetching && !profile);
 
   useEffect(() => {
     const stored = readStoredLocale();
     if (stored) setLocale(stored);
   }, []);
 
-  useEffect(() => {
-    if (authLoading) return;
-
-    if (!user) {
-      router.replace("/?next=/account");
-      return;
-    }
-
-    setProfileLoading(true);
-    void fetch("/api/auth/profile")
-      .then((response) => response.json())
-      .then(
-        (data: {
-          profile?: IdaUserProfile | null;
-          googleAvatarUrl?: string | null;
-        }) => {
-          setProfile(data.profile ?? null);
-          setGoogleAvatarUrl(data.googleAvatarUrl ?? null);
-        },
-      )
-      .catch(() => {
-        setProfile(null);
-        setGoogleAvatarUrl(null);
-      })
-      .finally(() => setProfileLoading(false));
-  }, [authLoading, router, user]);
-
-  const displayName = resolveProfileDisplayName(profile, user);
-  const avatarUrl = resolveProfileAvatarUrl(profile, user);
-  const email = profile?.email ?? user?.email ?? "—";
-
-  const handleProfileUpdated = (next: IdaUserProfile) => {
-    setProfile(next);
-    if (isSupabaseBrowserConfigured()) {
-      void getSupabaseBrowser().auth.refreshSession();
-    }
-  };
-
-  if (authLoading || !user) {
+  if (isLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background">
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
@@ -117,7 +77,7 @@ export function AccountPage() {
             <CardDescription>{copy.accountSettingsDescription}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {profileLoading ? (
+            {showProfileSpinner ? (
               <div className="flex items-center justify-center py-10">
                 <Loader2 className="size-6 animate-spin text-muted-foreground" />
               </div>
@@ -129,7 +89,6 @@ export function AccountPage() {
                 email={email}
                 avatarUrl={avatarUrl}
                 googleAvatarUrl={googleAvatarUrl}
-                onProfileUpdated={handleProfileUpdated}
               />
             )}
           </CardContent>
@@ -137,16 +96,12 @@ export function AccountPage() {
 
         <Card>
           <CardContent className="pt-6">
-            {profileLoading ? (
+            {showProfileSpinner ? (
               <div className="flex items-center justify-center py-10">
                 <Loader2 className="size-6 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              <CustomPromptEditor
-                copy={copy}
-                profile={profile}
-                onProfileUpdated={handleProfileUpdated}
-              />
+              <CustomPromptEditor copy={copy} profile={profile} />
             )}
           </CardContent>
         </Card>

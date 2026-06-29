@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { HeaderAccountButton } from "@/components/chat/header-account-button";
 import { ChatHeader } from "@/components/chat/header";
-import { useAuth } from "@/components/auth/auth-provider";
+import { useUserProfile } from "@/lib/auth/use-user-profile";
 import { MessageBubble } from "@/components/chat/message-bubble";
 import { MessageSkeleton } from "@/components/chat/message-skeleton";
 import { ScrollToBottomButton } from "@/components/chat/scroll-to-bottom";
@@ -81,7 +81,7 @@ import { useChatFontSize } from "@/lib/chat-font-prefs";
 
 function ChatRoomContent() {
   const { locale, openHandoff, closeHandoff } = useChatContext();
-  const { user, loading: authLoading } = useAuth();
+  const { displayName, avatarUrl, isLoading: profileLoading } = useUserProfile();
   const copy = COPY[locale];
   const { expanded: sidebarExpanded, setExpanded: setSidebarExpanded } =
     useSidebarExpanded();
@@ -234,13 +234,6 @@ function ChatRoomContent() {
     },
   });
 
-  const accountDisplayName =
-    (user?.user_metadata?.full_name as string | undefined) ??
-    (user?.user_metadata?.name as string | undefined);
-  const accountAvatarUrl = user?.user_metadata?.avatar_url as
-    | string
-    | undefined;
-
   const sidebarProps = {
     sessions,
     currentChatId: currentChat?.id ?? "",
@@ -281,9 +274,9 @@ function ChatRoomContent() {
             accountButton={
               <HeaderAccountButton
                 label={copy.account}
-                displayName={accountDisplayName}
-                avatarUrl={accountAvatarUrl}
-                loading={authLoading}
+                displayName={profileLoading ? undefined : displayName}
+                avatarUrl={avatarUrl}
+                loading={profileLoading}
               />
             }
           />

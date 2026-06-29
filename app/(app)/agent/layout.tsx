@@ -1,6 +1,5 @@
 import { Geist_Mono } from "next/font/google";
 
-import { AuthProvider } from "@/components/auth/auth-provider";
 import { AppChrome } from "@/components/app/app-chrome";
 
 const geistMono = Geist_Mono({
@@ -10,18 +9,14 @@ const geistMono = Geist_Mono({
   preload: false,
 });
 
-export default function ChatLayout({
+export default function AgentLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <div
-      className={`${geistMono.variable} h-dvh max-w-full overflow-hidden overflow-x-hidden`}
-    >
-      <AuthProvider>
-        <AppChrome>{children}</AppChrome>
-      </AuthProvider>
+    <div className={`${geistMono.variable} h-dvh overflow-hidden`}>
+      <AppChrome>{children}</AppChrome>
     </div>
   );
 }

@@ -39,30 +39,34 @@ export function HeaderAccountButton({
   return (
     <Link
       href={href}
+      prefetch
       aria-label={label}
       title={name}
       className={cn(
         buttonVariants({ variant: "outline", size: "icon" }),
-        "h-10 w-10 shrink-0 sm:h-9 sm:w-auto sm:gap-2 sm:px-2.5",
+        "relative z-20 h-10 w-10 shrink-0 sm:h-9 sm:w-auto sm:gap-2 sm:px-2.5",
         className,
       )}
     >
       {loading ? (
-        <span className="size-6 animate-pulse rounded-full bg-muted sm:size-7" />
+        <span
+          className="pointer-events-none size-6 animate-pulse rounded-full bg-muted sm:size-7"
+          aria-hidden
+        />
       ) : displayName ? (
         <>
-          <Avatar className="size-6 sm:size-7">
+          <Avatar className="pointer-events-none size-6 sm:size-7">
             {avatarUrl ? (
               <AvatarImage src={avatarUrl} alt={name} />
             ) : null}
             <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
           </Avatar>
-          <span className="hidden max-w-[7rem] truncate text-xs font-medium sm:inline">
+          <span className="pointer-events-none hidden max-w-[7rem] truncate text-xs font-medium sm:inline">
             {displayName}
           </span>
         </>
       ) : (
-        <User className="size-4" />
+        <User className="pointer-events-none size-4" />
       )}
     </Link>
   );
