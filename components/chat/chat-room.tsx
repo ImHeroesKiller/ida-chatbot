@@ -2,9 +2,12 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { Search, Globe, Map as MapIcon, BookOpen } from "lucide-react";
 
 import { HeaderAccountButton } from "@/components/chat/header-account-button";
 import { ChatHeader } from "@/components/chat/header";
+import { ChatHeaderMobileRedesign } from "@/components/chat/header-mobile-redesign";
+import { QuickActionsBar } from "@/components/chat/quick-actions-bar";
 import { useUserProfile } from "@/lib/auth/use-user-profile";
 import { MessageBubble } from "@/components/chat/message-bubble";
 import { MessageSkeleton } from "@/components/chat/message-skeleton";
@@ -23,6 +26,20 @@ const ChatComposer = dynamic(
   () =>
     import("@/components/chat/chat-composer").then((mod) => ({
       default: mod.ChatComposer,
+    })),
+  {
+    loading: () => (
+      <div className="shrink-0 border-t px-3 py-3 sm:px-5">
+        <div className="ida-message-width mx-auto h-12 rounded-2xl bg-muted/40" />
+      </div>
+    ),
+  },
+);
+
+const ChatComposerRedesign = dynamic(
+  () =>
+    import("@/components/chat/chat-composer-redesign").then((mod) => ({
+      default: mod.ChatComposerRedesign,
     })),
   {
     loading: () => (
@@ -247,6 +264,35 @@ function ChatRoomContent() {
     onNewChat: handleNewChat,
   };
 
+  const quickActions = [
+    {
+      id: "web-search",
+      label: copy.toolsWebSearch,
+      icon: <Globe className="h-4 w-4" />,
+      onClick: () => tools.handleMenuToolClick("web-search"),
+      disabled: !webSearchAvailable,
+    },
+    {
+      id: "research",
+      label: copy.toolsResearch,
+      icon: <BookOpen className="h-4 w-4" />,
+      onClick: () => tools.handleMenuToolClick("research"),
+      disabled: !webSearchAvailable,
+    },
+    {
+      id: "map",
+      label: copy.toolsMap,
+      icon: <MapIcon className="h-4 w-4" />,
+      onClick: () => tools.handleMenuToolClick("map"),
+    },
+    {
+      id: "new-chat",
+      label: copy.newChat,
+      icon: <Search className="h-4 w-4" />,
+      onClick: handleNewChat,
+    },
+  ];
+
   return (
     <MessageReactionsProvider>
       <div
@@ -265,22 +311,38 @@ function ChatRoomContent() {
 
         <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
-          <ChatHeader
-            title={currentChat?.title ?? IDA_CONFIG.name}
-            subtitle={copy.subtitle}
-            openSessionsLabel={copy.openSessions}
-            newChatLabel={copy.newChat}
-            onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
-            onNewChat={handleNewChat}
-            accountButton={
-              <HeaderAccountButton
-                label={copy.account}
-                displayName={profileLoading ? undefined : displayName}
-                avatarUrl={avatarUrl}
-                loading={profileLoading}
-              />
-            }
-          />
+          {isMobileViewport ? (
+            <ChatHeaderMobileRedesign
+              title={currentChat?.title ?? IDA_CONFIG.name}
+              openSessionsLabel={copy.openSessions}
+              onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
+              accountButton={
+                <HeaderAccountButton
+                  label={copy.account}
+                  displayName={profileLoading ? undefined : displayName}
+                  avatarUrl={avatarUrl}
+                  loading={profileLoading}
+                />
+              }
+            />
+          ) : (
+            <ChatHeader
+              title={currentChat?.title ?? IDA_CONFIG.name}
+              subtitle={copy.subtitle}
+              openSessionsLabel={copy.openSessions}
+              newChatLabel={copy.newChat}
+              onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
+              onNewChat={handleNewChat}
+              accountButton={
+                <HeaderAccountButton
+                  label={copy.account}
+                  displayName={profileLoading ? undefined : displayName}
+                  avatarUrl={avatarUrl}
+                  loading={profileLoading}
+                />
+              }
+            />
+          )}
 
           <div className="relative min-h-0 flex-1">
             <div
@@ -334,22 +396,48 @@ function ChatRoomContent() {
           )}
 
           <div className="relative z-30 shrink-0">
-            <ChatComposer
-              key={currentChat?.id}
-              locale={locale}
-              sessionId={currentChat?.apiSessionId}
-              input={chatSend.input}
-              isLoading={chatSend.isLoading}
-              webSearchAvailable={tools.webSearchAvailable}
-              researchAvailable={tools.researchAvailable}
-              isToolActive={tools.isToolActive}
-              isAnyToolActive={tools.isAnyToolActive}
-              onToolMenuClick={tools.handleMenuToolClick}
-              onInputChange={chatSend.setInput}
-              onSend={(content, options) =>
-                void chatSend.sendMessage(content, options)
-              }
-            />
+            {isMobileViewport && !hasUserMessages && (
+              <QuickActionsBar
+                actions={quickActions}
+                className="mb-2"
+              />
+            )}
+            
+            {isMobileViewport ? (
+              <ChatComposerRedesign
+                key={currentChat?.id}
+                locale={locale}
+                sessionId={currentChat?.apiSessionId}
+                input={chatSend.input}
+                isLoading={chatSend.isLoading}
+                webSearchAvailable={tools.webSearchAvailable}
+                researchAvailable={tools.researchAvailable}
+                isToolActive={tools.isToolActive}
+                isAnyToolActive={tools.isAnyToolActive}
+                onToolMenuClick={tools.handleMenuToolClick}
+                onInputChange={chatSend.setInput}
+                onSend={(content, options) =>
+                  void chatSend.sendMessage(content, options)
+                }
+              />
+            ) : (
+              <ChatComposer
+                key={currentChat?.id}
+                locale={locale}
+                sessionId={currentChat?.apiSessionId}
+                input={chatSend.input}
+                isLoading={chatSend.isLoading}
+                webSearchAvailable={tools.webSearchAvailable}
+                researchAvailable={tools.researchAvailable}
+                isToolActive={tools.isToolActive}
+                isAnyToolActive={tools.isAnyToolActive}
+                onToolMenuClick={tools.handleMenuToolClick}
+                onInputChange={chatSend.setInput}
+                onSend={(content, options) =>
+                  void chatSend.sendMessage(content, options)
+                }
+              />
+            )}
           </div>
           </div>
 
