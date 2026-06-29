@@ -3,7 +3,10 @@
 import { useCallback, useState } from "react";
 
 import {
+  applyBaseHydration,
   createBaseToolActions,
+  resetBaseToolState,
+  type BaseToolLifecycle,
   type BaseToolState,
   type ToolHydrationInput,
 } from "@/components/chat/tools/base-tool-state";
@@ -14,22 +17,42 @@ export type WebSearchResult = IdaWebSearchSource;
 
 const PANEL_ID = TOOL_PANEL_IDS["web-search"];
 
-export function useWebSearch(): BaseToolState & {
-  searchResults: WebSearchResult[];
-  isSearching: boolean;
-  lastQuery: string | null;
-  error: string | null;
-  setSearchResults: (results: WebSearchResult[]) => void;
-  setLastQuery: (query: string | null) => void;
-  clearResults: () => void;
-  beginSearch: (query: string) => void;
-  finishSearchError: (message: string) => void;
-  endSearch: () => void;
-  hydrate: (state: ToolHydrationInput & { results?: WebSearchResult[] }) => void;
-  resetForNewChat: () => void;
-} {
+export interface WebSearchHydrationInput extends ToolHydrationInput {
+  /** Last web-search results from chat messages, if any. */
+  results?: WebSearchResult[];
+}
+
+export type WebSearchTool = BaseToolState &
+  BaseToolLifecycle<WebSearchHydrationInput> & {
+    // --- Tool-specific state ---
+    searchResults: WebSearchResult[];
+    isSearching: boolean;
+    lastQuery: string | null;
+    error: string | null;
+
+    // --- Tool-specific actions ---
+    setSearchResults: (results: WebSearchResult[]) => void;
+    setLastQuery: (query: string | null) => void;
+    clearResults: () => void;
+    beginSearch: (query: string) => void;
+    finishSearchError: (message: string) => void;
+    endSearch: () => void;
+  };
+
+/**
+ * Manages web-search armed/panel state plus ephemeral search results.
+ *
+ * Results are cleared when the tool is disabled (`onDisable`) or on new chat.
+ * Chat-stream handlers call `beginSearch` / `setSearchResults` / `endSearch`.
+ */
+export function useWebSearch(): WebSearchTool {
+  // --- Base state (shared across all tools) ---
   const [isEnabled, setIsEnabled] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+
+  const baseSetters = { setIsEnabled, setIsPanelOpen };
+
+  // --- Tool-specific state ---
   const [searchResults, setSearchResultsState] = useState<WebSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [lastQuery, setLastQuery] = useState<string | null>(null);
@@ -44,12 +67,12 @@ export function useWebSearch(): BaseToolState & {
 
   const { setEnabled, openPanel, closePanel, toggleTool } = createBaseToolActions(
     {
-      setIsEnabled,
-      setIsPanelOpen,
+      ...baseSetters,
       onDisable: clearSearchData,
     },
   );
 
+  // --- Tool-specific actions ---
   const setSearchResults = useCallback((results: WebSearchResult[]) => {
     setSearchResultsState(results);
     setIsSearching(false);
@@ -75,25 +98,17 @@ export function useWebSearch(): BaseToolState & {
     setIsSearching(false);
   }, []);
 
-  const hydrate = useCallback(
-    (state: ToolHydrationInput & { results?: WebSearchResult[] }) => {
-      setIsEnabled(state.enabled);
-      setIsPanelOpen(Boolean(state.panelOpen));
-      if (state.results?.length) {
-        setSearchResultsState(state.results);
-      } else {
-        setSearchResultsState([]);
-      }
-      setLastQuery(null);
-      setError(null);
-      setIsSearching(false);
-    },
-    [],
-  );
+  // --- Lifecycle (hydrate / reset) ---
+  const hydrate = useCallback((state: WebSearchHydrationInput) => {
+    applyBaseHydration(state, baseSetters);
+    setSearchResultsState(state.results?.length ? state.results : []);
+    setLastQuery(null);
+    setError(null);
+    setIsSearching(false);
+  }, []);
 
   const resetForNewChat = useCallback(() => {
-    setIsEnabled(false);
-    setIsPanelOpen(false);
+    resetBaseToolState(baseSetters);
     clearSearchData();
   }, [clearSearchData]);
 
