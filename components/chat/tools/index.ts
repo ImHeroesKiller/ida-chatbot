@@ -21,3 +21,6 @@ export * from "./web-search";
 
 // Export research module
 export * from "./research";
+
+// Export map module
+export * from "./map";

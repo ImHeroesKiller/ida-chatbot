@@ -1,7 +1,8 @@
 "use client";
 
-import { Map, PanelRightClose, FileText } from "lucide-react";
+import { PanelRightClose, FileText } from "lucide-react";
 
+import { MapPanel } from "@/components/chat/tools/map";
 import { ResearchPanel } from "@/components/chat/tools/research";
 import type { useResearch } from "@/components/chat/tools/research/use-research";
 import { WebSearchPanel } from "@/components/chat/tools/web-search";
@@ -48,15 +49,6 @@ export interface ToolPanelHostProps {
   onResearchCreateDocument?: (session: ResearchSession) => void;
   onResearchCreateDocumentFromCurrent?: () => void;
 }
-
-const PLACEHOLDER_PANELS = {
-  map: {
-    icon: Map,
-    titleKey: "toolsMap" as const,
-    descKey: "mapPlaceholderDesc" as const,
-    contentKey: "mapPlaceholderContent" as const,
-  },
-} as const;
 
 export function ToolPanelHost({
   locale,
@@ -124,6 +116,17 @@ export function ToolPanelHost({
     );
   }
 
+  if (panel === "map") {
+    return (
+      <MapPanel
+        locale={locale}
+        onClose={onClose}
+        className={className}
+        embedded={embedded}
+      />
+    );
+  }
+
   if (panel === "worksheet") {
     return (
       <WorksheetPanel
@@ -144,11 +147,9 @@ export function ToolPanelHost({
     );
   }
 
-  const placeholder = PLACEHOLDER_PANELS[panel as keyof typeof PLACEHOLDER_PANELS];
-  const Icon = placeholder?.icon ?? FileText;
-  const title = placeholder ? copy[placeholder.titleKey] : panel;
-  const description = placeholder ? copy[placeholder.descKey] : "";
-  const previewContent = placeholder ? copy[placeholder.contentKey] : "";
+  const title = panel;
+  const description = copy.toolsComingSoon;
+  const previewContent = "";
 
   return (
     <aside
@@ -162,7 +163,7 @@ export function ToolPanelHost({
       aria-label={title}
     >
       <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2.5">
-        <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
         <h2 className="min-w-0 flex-1 truncate text-sm font-semibold">{title}</h2>
         <Button
           type="button"
