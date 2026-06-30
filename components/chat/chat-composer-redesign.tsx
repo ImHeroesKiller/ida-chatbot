@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Mic, Paperclip, Send, Plus, X } from "lucide-react";
+import { Loader2, Mic, Paperclip, Send, Plus, X, Settings2, ChevronDown } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -96,7 +96,7 @@ export function ChatComposerRedesign({
   const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [hasVoiceInput, setHasVoiceInput] = useState(false);
-  const [showMoreActions, setShowMoreActions] = useState(false);
+  const [showTools, setShowTools] = useState(false);
   const sendingRef = useRef(false);
   const skipVoiceAutoSendRef = useRef(false);
   const holdingMicRef = useRef(false);
@@ -183,7 +183,7 @@ export function ChatComposerRedesign({
       onInputChange("");
       setPendingUpload(null);
       setHasVoiceInput(false);
-      setShowMoreActions(false);
+      setShowTools(false);
       sendingRef.current = false;
 
       window.setTimeout(() => textareaRef.current?.focus(), 50);
@@ -376,66 +376,21 @@ export function ChatComposerRedesign({
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "relative z-30 shrink-0 overflow-visible bg-background",
-        "px-3 pt-2 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:px-5 sm:pt-3 sm:pb-4",
+        "relative z-30 shrink-0 overflow-visible bg-background/60 backdrop-blur-lg",
+        "px-4 pt-2 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-3 sm:pb-5",
       )}
     >
-      <div className="ida-message-width mx-auto w-full max-w-full space-y-4">
+      <div className="ida-message-width mx-auto w-full max-w-full space-y-3">
         <AnimatePresence>
-          {showMoreActions && (
-            <motion.div
-              initial={{ opacity: 0, y: 12, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.95 }}
-              transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-              className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide"
-            >
-              <div className="flex items-center gap-3 bg-muted/50 p-1.5 rounded-full border border-border/60 shadow-md">
-                <ToolsMenu
-                  locale={locale}
-                  disabled={isLoading || isExtracting || isTranscribing}
-                  webSearchAvailable={webSearchAvailable}
-                  researchAvailable={researchAvailable}
-                  isToolActive={isToolActive}
-                  isAnyToolActive={isAnyToolActive}
-                  onToolClick={onToolMenuClick}
-                />
-
-                {ocrEnabled && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    disabled={isLoading || isExtracting || isTranscribing}
-                    className="h-11 w-11 rounded-full hover:bg-muted/80 active:scale-90 transition-transform"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Paperclip className="h-6 w-6" />
-                  </Button>
-                )}
-                
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-11 w-11 rounded-full hover:bg-muted/80 active:scale-90 transition-transform"
-                  onClick={() => setShowMoreActions(false)}
-                >
-                  <X className="h-6 w-6" />
-                </Button>
-              </div>
-            </motion.div>
-          )}
-
           {(isListening || isTranscribing) && (
             <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               className={cn(
-                "flex items-center justify-between rounded-3xl border px-5 py-4",
+                "flex items-center justify-between rounded-[24px] border px-5 py-4 mb-2 shadow-lg",
                 isListening
-                  ? "border-destructive/40 bg-destructive/10"
+                  ? "border-destructive/30 bg-destructive/10"
                   : "border-primary/30 bg-primary/10",
               )}
             >
@@ -477,32 +432,12 @@ export function ChatComposerRedesign({
           )}
         </AnimatePresence>
 
-        <div className="flex items-center gap-3">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
-            className="hidden"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) void handleFileSelect(file);
-            }}
-          />
-
-          <div className={cn(
-            "flex-1 flex items-center gap-2 bg-muted/40 rounded-[32px] border border-border/50 px-2.5 py-2 transition-all duration-300",
-            "focus-within:bg-muted/60 focus-within:border-primary/40 focus-within:ring-8 focus-within:ring-primary/5"
-          )}>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-12 w-12 shrink-0 rounded-full text-muted-foreground hover:bg-muted/80 active:scale-90 transition-transform"
-              onClick={() => setShowMoreActions(!showMoreActions)}
-            >
-              {showMoreActions ? <X className="h-7 w-7" /> : <Plus className="h-7 w-7" />}
-            </Button>
-
+        <div className={cn(
+          "flex flex-col bg-[#F5F5F7] dark:bg-[#1C1C1E] rounded-[32px] border border-border/40 shadow-xl overflow-hidden transition-all duration-300",
+          "focus-within:ring-8 focus-within:ring-primary/5 focus-within:border-primary/30"
+        )}>
+          {/* Input Area (Top) */}
+          <div className="px-5 pt-4 pb-2">
             <Textarea
               id={inputId}
               ref={textareaRef}
@@ -513,46 +448,121 @@ export function ChatComposerRedesign({
               rows={1}
               disabled={isLoading || isExtracting || isTranscribing || isListening}
               className={cn(
-                "flex-1 bg-transparent border-0 resize-none text-lg font-medium py-3 px-1.5",
-                "focus-visible:ring-0 focus-visible:outline-none min-h-[48px] max-h-40",
-                "placeholder:text-muted-foreground/40",
+                "bg-transparent border-0 resize-none text-xl font-medium p-0",
+                "focus-visible:ring-0 focus-visible:outline-none min-h-[52px] max-h-48",
+                "placeholder:text-muted-foreground/30",
               )}
             />
+          </div>
 
-            {voiceEnabled && !input.trim() && (
+          {/* Controls Area (Bottom) */}
+          <div className="flex items-center justify-between px-4 pb-4 pt-1">
+            <div className="flex items-center gap-1.5">
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                disabled={isLoading || isExtracting || isTranscribing || !speechSupported}
-                className={cn(
-                  "h-12 w-12 shrink-0 rounded-full transition-all duration-300 active:scale-90",
-                  isListening ? "bg-destructive text-destructive-foreground shadow-lg" : "text-muted-foreground hover:bg-muted/80"
-                )}
-                onPointerDown={handleMicPointerDown}
-                onPointerUp={handleMicPointerUp}
-                onPointerCancel={handleMicPointerUp}
+                className="h-11 w-11 rounded-full text-foreground/60 hover:bg-muted/60 active:scale-90 transition-all"
+                onClick={() => fileInputRef.current?.click()}
               >
-                {isTranscribing ? <Loader2 className="h-6 w-6 animate-spin" /> : <Mic className="h-7 w-7" />}
+                <Plus className="h-7 w-7" />
               </Button>
-            )}
 
-            {(input.trim() || pendingUpload) && (
               <Button
-                type="submit"
-                size="icon"
-                disabled={!canSend}
-                className="h-12 w-12 shrink-0 rounded-full bg-primary text-primary-foreground shadow-md transition-all active:scale-90 hover:scale-105"
+                type="button"
+                variant="ghost"
+                className="h-11 px-4 gap-2.5 rounded-full text-foreground/70 hover:bg-muted/60 active:scale-95 transition-all"
+                onClick={() => setShowTools(!showTools)}
               >
-                {isExtracting || isTranscribing ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                ) : (
-                  <Send className="h-6 w-6" />
-                )}
+                <Settings2 className="h-5 w-5 text-primary/80" />
+                <span className="text-base font-bold">Tools</span>
               </Button>
-            )}
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-11 px-4 gap-2 rounded-full text-foreground/70 hover:bg-muted/60 active:scale-95 transition-all"
+              >
+                <span className="text-base font-bold">IDA Max</span>
+                <ChevronDown className="h-4 w-4 opacity-50" />
+              </Button>
+
+              <div className="flex items-center gap-1.5">
+                {voiceEnabled && !input.trim() && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    disabled={isLoading || isExtracting || isTranscribing || !speechSupported}
+                    className={cn(
+                      "h-11 w-11 rounded-full transition-all duration-300 active:scale-90",
+                      isListening ? "bg-destructive text-destructive-foreground shadow-lg" : "text-foreground/60 hover:bg-muted/60"
+                    )}
+                    onPointerDown={handleMicPointerDown}
+                    onPointerUp={handleMicPointerUp}
+                    onPointerCancel={handleMicPointerUp}
+                  >
+                    {isTranscribing ? <Loader2 className="h-6 w-6 animate-spin" /> : <Mic className="h-7 w-7" />}
+                  </Button>
+                )}
+
+                {(input.trim() || pendingUpload) && (
+                  <Button
+                    type="submit"
+                    size="icon"
+                    disabled={!canSend}
+                    className="h-11 w-11 rounded-full bg-primary text-primary-foreground shadow-md transition-all active:scale-90 hover:scale-105"
+                  >
+                    {isExtracting || isTranscribing ? (
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    ) : (
+                      <Send className="h-5 w-5" />
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
+
+        <AnimatePresence>
+          {showTools && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute bottom-full left-0 right-0 mb-4 px-4 sm:px-6"
+            >
+              <div className="bg-background/90 backdrop-blur-xl border border-border/40 rounded-[24px] p-2 shadow-2xl">
+                <ToolsMenu
+                  locale={locale}
+                  disabled={isLoading || isExtracting || isTranscribing}
+                  webSearchAvailable={webSearchAvailable}
+                  researchAvailable={researchAvailable}
+                  isToolActive={isToolActive}
+                  isAnyToolActive={isAnyToolActive}
+                  onToolClick={(toolId) => {
+                    onToolMenuClick(toolId);
+                    setShowTools(false);
+                  }}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) void handleFileSelect(file);
+          }}
+        />
       </div>
     </form>
   );
