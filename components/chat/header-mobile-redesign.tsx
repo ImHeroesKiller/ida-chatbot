@@ -1,7 +1,6 @@
 "use client";
 
 import { Menu } from "lucide-react";
-import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -21,34 +20,27 @@ export function ChatHeaderMobileRedesign({
   accountButton,
 }: ChatHeaderMobileRedesignProps) {
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-      className="chat-header flex h-14 items-center justify-between gap-3 bg-background/95 px-4 backdrop-blur-xl"
-    >
-      <div className="flex items-center gap-3 min-w-0 flex-1">
+    <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between gap-3 border-b bg-background px-4">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="h-11 w-11 shrink-0 md:hidden rounded-full hover:bg-muted/50 active:scale-90 transition-transform"
+          className="h-11 w-11 shrink-0 rounded-full transition-transform hover:bg-muted/50 active:scale-90 md:hidden"
           aria-label={openSessionsLabel}
           onClick={onOpenMobileSidebar}
         >
           <Menu className="h-7 w-7 text-foreground" />
         </Button>
 
-        <p className="truncate text-xl font-extrabold tracking-tight text-foreground leading-none">
+        <p className="truncate text-xl font-extrabold leading-none tracking-tight text-foreground">
           {title || IDA_CONFIG.name}
         </p>
       </div>
 
-      {accountButton && (
-        <div className="shrink-0 scale-125 origin-right pr-1">
-          {accountButton}
-        </div>
-      )}
-    </motion.header>
+      {accountButton ? (
+        <div className="origin-right shrink-0 scale-125 pr-1">{accountButton}</div>
+      ) : null}
+    </header>
   );
 }

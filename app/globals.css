@@ -2,6 +2,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -49,6 +55,7 @@
 }
 
 :root {
+  --app-height: 100dvh;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -333,14 +340,8 @@ html[data-ida-animation="none"] *::after {
 }
 
 /* Fix mobile keyboard shifting header */
-html,
-body {
-  height: 100%;
-  overflow: hidden;
-}
-
 .chat-container {
-  height: 100dvh;
+  height: var(--app-height);
   display: flex;
   flex-direction: column;
   overflow: hidden;

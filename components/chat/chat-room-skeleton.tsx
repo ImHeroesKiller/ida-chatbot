@@ -11,8 +11,8 @@ export function ChatRoomSkeleton() {
         <SidebarSkeleton expanded={false} />
       </aside>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="chat-header flex h-14 items-center justify-between gap-2.5 px-3 sm:gap-3 sm:px-5">
+      <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between gap-2.5 border-b bg-background px-3 sm:gap-3 sm:px-5">
           <div className="size-9 shrink-0 rounded-2xl bg-muted sm:size-10" />
           <div className="min-w-0 flex-1 space-y-1.5">
             <div className="h-4 w-32 rounded bg-muted" />
@@ -21,7 +21,7 @@ export function ChatRoomSkeleton() {
           <div className="size-7 shrink-0 rounded-lg bg-muted/80" />
         </header>
 
-        <div className="min-h-0 flex-1 px-3 py-4 sm:px-5">
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-5">
           <div className="ida-message-width mx-auto space-y-4">
             <div className="h-40 rounded-2xl border border-dashed bg-muted/20" />
             <div className="h-16 rounded-2xl bg-muted/30" />

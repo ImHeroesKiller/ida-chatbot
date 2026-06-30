@@ -311,7 +311,7 @@ function ChatRoomContent() {
         />
 
         <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           {isMobileViewport ? (
             <ChatHeaderMobileRedesign
               title={currentChat?.title ?? IDA_CONFIG.name}
@@ -345,11 +345,10 @@ function ChatRoomContent() {
             />
           )}
 
-          <div className="relative min-h-0 flex-1">
-            <div
-              ref={scrollContainerRef}
-              className="chat-main h-full overscroll-y-contain px-2.5 py-3 sm:px-5 sm:py-4"
-            >
+          <div
+            ref={scrollContainerRef}
+            className="relative min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2.5 py-3 sm:px-5 sm:py-4"
+          >
               <div className="ida-message-width mx-auto flex w-full flex-col gap-[calc(1.5rem*var(--ida-gap-scale))]">
                 {!hasUserMessages && <ChatEmptyState locale={locale} />}
 
@@ -381,7 +380,6 @@ function ChatRoomContent() {
 
                 <div ref={messagesEndRef} className="h-px" aria-hidden />
               </div>
-            </div>
 
             <ScrollToBottomButton
               visible={showScrollButton}

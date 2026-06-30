@@ -109,7 +109,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5,
+  maximumScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: BRAND.backgroundColor },
     { media: "(prefers-color-scheme: dark)", color: BRAND.themeColor },
@@ -131,7 +133,7 @@ export default function RootLayout({
     <html
       lang="id"
       suppressHydrationWarning
-      className={`${inter.variable} min-h-full antialiased`}
+      className={`${inter.variable} h-full antialiased`}
       data-ida-font-size={uiConfig.fontSize}
       data-ida-density={uiConfig.density}
       data-ida-animation={uiConfig.animationLevel}
@@ -148,7 +150,7 @@ export default function RootLayout({
         <StructuredData />
         <script dangerouslySetInnerHTML={{ __html: uiInitScript }} />
       </head>
-      <body className="min-h-dvh bg-background font-sans text-foreground">
+      <body className="h-full overflow-hidden bg-background font-sans text-foreground">
         <GlobalUiProvider initialConfig={uiConfig}>
           <ThemeProvider>
             {children}
