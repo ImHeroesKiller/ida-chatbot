@@ -26,7 +26,7 @@ export function ChatHeader({
   accountButton,
 }: ChatHeaderProps) {
   return (
-    <header className="flex shrink-0 items-center gap-2 border-b px-2.5 py-2.5 sm:gap-3 sm:px-5 sm:py-3">
+    <header className="chat-header flex h-14 items-center justify-between gap-2 px-2.5 sm:gap-3 sm:px-5">
       <Button
         type="button"
         variant="ghost"

@@ -297,7 +297,7 @@ function ChatRoomContent() {
   return (
     <MessageReactionsProvider>
       <div
-        className="ida-chat-shell flex h-dvh w-full max-w-full overflow-hidden bg-background font-sans"
+        className="ida-chat-shell flex h-full min-h-0 w-full max-w-full overflow-hidden bg-background font-sans"
         data-chat-font-size={chatFontSize}
         role="application"
         aria-label={copy.windowLabel}
@@ -311,7 +311,7 @@ function ChatRoomContent() {
         />
 
         <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           {isMobileViewport ? (
             <ChatHeaderMobileRedesign
               title={currentChat?.title ?? IDA_CONFIG.name}
@@ -345,13 +345,10 @@ function ChatRoomContent() {
             />
           )}
 
-          <div className={cn(
-            "relative min-h-0 flex-1",
-            isMobileViewport && "pt-[64px]"
-          )}>
+          <div className="relative min-h-0 flex-1">
             <div
               ref={scrollContainerRef}
-              className="h-full overflow-y-auto overscroll-y-contain px-2.5 py-3 sm:px-5 sm:py-4"
+              className="chat-main h-full overscroll-y-contain px-2.5 py-3 sm:px-5 sm:py-4"
             >
               <div className="ida-message-width mx-auto flex w-full flex-col gap-[calc(1.5rem*var(--ida-gap-scale))]">
                 {!hasUserMessages && <ChatEmptyState locale={locale} />}

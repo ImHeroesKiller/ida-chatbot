@@ -331,3 +331,32 @@ html[data-ida-animation="none"] *::after {
   td {
   background: #fafafa;
 }
+
+/* Fix mobile keyboard shifting header */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+.chat-container {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-main {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chat-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  flex-shrink: 0;
+  background-color: var(--background);
+  border-bottom: 1px solid var(--border);
+}

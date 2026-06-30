@@ -3,7 +3,7 @@ import { SidebarSkeleton } from "@/components/chat/sidebar-skeleton";
 export function ChatRoomSkeleton() {
   return (
     <div
-      className="ida-chat-shell flex h-dvh w-full overflow-hidden bg-background font-sans"
+      className="ida-chat-shell flex h-full min-h-0 w-full overflow-hidden bg-background font-sans"
       aria-busy="true"
       aria-label="Loading chat"
     >
@@ -11,8 +11,8 @@ export function ChatRoomSkeleton() {
         <SidebarSkeleton expanded={false} />
       </aside>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="flex h-[57px] shrink-0 items-center gap-2.5 border-b px-3 py-3 sm:gap-3 sm:px-5">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="chat-header flex h-14 items-center justify-between gap-2.5 px-3 sm:gap-3 sm:px-5">
           <div className="size-9 shrink-0 rounded-2xl bg-muted sm:size-10" />
           <div className="min-w-0 flex-1 space-y-1.5">
             <div className="h-4 w-32 rounded bg-muted" />

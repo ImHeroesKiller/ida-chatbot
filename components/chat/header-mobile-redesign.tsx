@@ -25,7 +25,7 @@ export function ChatHeaderMobileRedesign({
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-      className="flex shrink-0 items-center justify-between gap-3 bg-background/95 backdrop-blur-xl px-4 py-4 border-b border-border/40 fixed top-0 left-0 right-0 z-[50] h-[64px]"
+      className="chat-header flex h-14 items-center justify-between gap-3 bg-background/95 px-4 backdrop-blur-xl"
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <Button

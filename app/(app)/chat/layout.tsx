@@ -16,9 +16,13 @@ export default function ChatLayout({
 }>) {
   return (
     <div
-      className={`${geistMono.variable} h-dvh max-w-full overflow-hidden overflow-x-hidden`}
+      className={`${geistMono.variable} chat-container max-w-full overflow-x-hidden`}
     >
-      <AppChrome>{children}</AppChrome>
+      <AppChrome>
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          {children}
+        </div>
+      </AppChrome>
     </div>
   );
 }
