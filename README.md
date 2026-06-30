@@ -1,5 +1,7 @@
 ![Logo](public/ida-logo.png)
 
+
+
 # IDA Chatbot
 
 IDA Chatbot adalah aplikasi chatbot AI canggih dan modular yang dibangun menggunakan Next.js. Proyek ini berfungsi sebagai platform asisten digital yang mengintegrasikan fitur riset, produktivitas, dan otomasi alur kerja.
