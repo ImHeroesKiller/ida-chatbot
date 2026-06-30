@@ -95,7 +95,7 @@ import { useVoicePrefs } from "@/lib/voice/voice-prefs";
 import { RightSidebar } from "@/components/chat/right-sidebar";
 import { RightToolsRail } from "@/components/chat/right-tools-rail";
 import { useChatFontSize } from "@/lib/chat-font-prefs";
-import { cn } from "@/lib/utils";
+
 
 function ChatRoomContent() {
   const { locale, openHandoff, closeHandoff } = useChatContext();
