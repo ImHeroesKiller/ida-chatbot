@@ -70,6 +70,7 @@ export function useChatToolPanelProps({
     lastWorksheetPrompt: worksheet.lastWorksheetPrompt,
     worksheetWorkspaceRef: worksheet.worksheetWorkspaceRef,
     setWorksheetWorkspace: worksheet.setWorksheetWorkspace,
+    setWorksheetErrorDetail: worksheet.setWorksheetErrorDetail,
     setInput,
     persistCurrentChat,
     sendMessage,

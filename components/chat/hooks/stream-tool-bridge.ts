@@ -149,7 +149,7 @@ export function createStreamToolBridge(
 
     // Primary path: runtime workspace lives on the tool hook.
     let next =
-      deps.tools.worksheet.createDocumentFromStream({
+      deps.tools.worksheet.regenerateDocumentFromStream({
         title: worksheet.title,
         content: worksheet.content,
         promptSummary,

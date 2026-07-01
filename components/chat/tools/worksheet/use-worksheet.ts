@@ -90,6 +90,12 @@ export type WorksheetTool = BaseToolState &
     createDocumentFromStream: (
       input: WorksheetStreamDocumentInput,
     ) => WorksheetWorkspaceState | null;
+    /** Alias for stream/regenerate completion — appends or activates per `activate`. */
+    regenerateDocumentFromStream: (
+      input: WorksheetStreamDocumentInput,
+    ) => WorksheetWorkspaceState | null;
+    /** Prepare UI/runtime state before a chat regenerate send. */
+    beginRegenerate: () => void;
     selectDocument: (documentId: string) => void;
     deleteDocument: (documentId: string) => void;
     resetWorkspace: () => void;
@@ -258,6 +264,11 @@ export function useWorksheet(): WorksheetTool {
     [],
   );
 
+  const beginRegenerate = useCallback(() => {
+    setIsGeneratingState(true);
+    updateWorkspace({ error: undefined });
+  }, [updateWorkspace]);
+
   const createDocumentFromStream = useCallback(
     (input: WorksheetStreamDocumentInput): WorksheetWorkspaceState | null => {
       const trimmedContent = input.content.trim();
@@ -288,6 +299,8 @@ export function useWorksheet(): WorksheetTool {
     },
     [],
   );
+
+  const regenerateDocumentFromStream = createDocumentFromStream;
 
   const selectDocument = useCallback((documentId: string) => {
     setWorkspaceInternal((prev) => {
@@ -342,6 +355,8 @@ export function useWorksheet(): WorksheetTool {
     setGenerating,
     createDocument,
     createDocumentFromStream,
+    regenerateDocumentFromStream,
+    beginRegenerate,
     selectDocument,
     deleteDocument,
     resetWorkspace,

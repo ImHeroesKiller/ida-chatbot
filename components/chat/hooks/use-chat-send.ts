@@ -118,6 +118,7 @@ export function useChatSend({
       const webSearchAtSend = tools.webSearchAtSend;
 
       if (worksheetAtSend) {
+        tools.worksheet.beginRegenerate();
         tools.openPanel(tools.worksheet.panelId);
         setWorksheetWorkspace((prev) =>
           prev.error ? { ...prev, error: undefined } : prev,

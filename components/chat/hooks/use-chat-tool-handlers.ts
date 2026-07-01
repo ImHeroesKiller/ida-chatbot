@@ -24,6 +24,7 @@ interface UseChatToolHandlersOptions {
   lastWorksheetPrompt: string;
   worksheetWorkspaceRef: RefObject<WorksheetDocument>;
   setWorksheetWorkspace: Dispatch<SetStateAction<WorksheetDocument>>;
+  setWorksheetErrorDetail: Dispatch<SetStateAction<string | null>>;
   setInput: Dispatch<SetStateAction<string>>;
   persistCurrentChat: (
     patch: Partial<
@@ -43,6 +44,24 @@ interface UseChatToolHandlersOptions {
   };
 }
 
+function buildLegacyGeneratedWorkspace(
+  current: WorksheetDocument,
+  params: {
+    title: string;
+    content: string;
+    promptSummary?: string;
+  },
+  options?: { activate?: boolean },
+): WorksheetDocument {
+  return syncWorkspaceLegacyFields({
+    ...addGeneratedWorksheetDocument(current, params, {
+      activate: options?.activate ?? false,
+    }),
+    updatedAt: Date.now(),
+    error: undefined,
+  });
+}
+
 export function useChatToolHandlers({
   locale,
   tools,
@@ -50,6 +69,7 @@ export function useChatToolHandlers({
   lastWorksheetPrompt,
   worksheetWorkspaceRef,
   setWorksheetWorkspace,
+  setWorksheetErrorDetail,
   setInput,
   persistCurrentChat,
   sendMessage,
@@ -90,24 +110,29 @@ export function useChatToolHandlers({
   const createWorksheetFromResearch = useCallback(
     (session: ResearchSession) => {
       const content = formatResearchWorksheetContent(session, locale);
-      const next = addGeneratedWorksheetDocument(
-        worksheetWorkspaceRef.current,
-        {
-          title: session.topic,
-          content,
-          promptSummary: summarizeWorksheetPrompt(session.topic),
-        },
-        { activate: true },
-      );
-      const persisted = syncWorkspaceLegacyFields({
-        ...next,
-        updatedAt: Date.now(),
-      });
+      const streamInput = {
+        title: session.topic,
+        content,
+        promptSummary: summarizeWorksheetPrompt(session.topic),
+        activate: true as const,
+      };
+
+      let next =
+        tools.worksheet.createDocumentFromStream(streamInput) ?? null;
+
+      if (!next) {
+        next = buildLegacyGeneratedWorkspace(
+          worksheetWorkspaceRef.current,
+          streamInput,
+          { activate: true },
+        );
+        tools.worksheet.syncWorkspaceFromExternal(next);
+      }
 
       setWorksheetWorkspace(next);
       tools.activateWorksheet();
       persistCurrentChat({
-        worksheet: persisted,
+        worksheet: next,
         worksheetToolEnabled: true,
         activeRightPanel: tools.worksheet.panelId,
       });
@@ -151,8 +176,23 @@ export function useChatToolHandlers({
   const handleWorksheetRetry = useCallback(() => {
     const prompt = lastWorksheetPrompt.trim();
     if (!prompt || isLoading) return;
+
+    tools.worksheet.beginRegenerate();
+    setWorksheetWorkspace((prev) =>
+      prev.error ? { ...prev, error: undefined } : prev,
+    );
+    setWorksheetErrorDetail(null);
+    tools.openPanel(tools.worksheet.panelId);
+
     void sendMessage(prompt);
-  }, [isLoading, lastWorksheetPrompt, sendMessage]);
+  }, [
+    isLoading,
+    lastWorksheetPrompt,
+    sendMessage,
+    setWorksheetErrorDetail,
+    setWorksheetWorkspace,
+    tools,
+  ]);
 
   const sharedToolPanelProps = useMemo(
     () => ({
