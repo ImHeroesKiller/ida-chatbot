@@ -33,6 +33,12 @@ import {
   type WorksheetSavedDocument,
 } from "@/lib/worksheet-workspace";
 
+import {
+  resolveWorksheetTemplate,
+  type WorksheetTemplate,
+} from "@/lib/worksheet-templates";
+import { createEmptyWorksheet } from "@/lib/chat-store";
+
 import { createWorksheetQuotaState } from "./worksheet-quota";
 
 const PANEL_ID = TOOL_PANEL_IDS.worksheet;
@@ -98,6 +104,13 @@ export interface WorksheetRecordDocumentVersionInput {
 export interface WorksheetSaveDocumentChangesInput {
   title?: string;
   content?: string;
+}
+
+export interface WorksheetApplyTemplateOptions {
+  /** Apply to a specific document; ignored when `createNew` is true. */
+  documentId?: string | null;
+  /** Always create a new document from the template. */
+  createNew?: boolean;
 }
 
 type PersistLayerSync = (workspace: WorksheetWorkspaceState) => void;
@@ -178,6 +191,13 @@ export type WorksheetTool = BaseToolState &
       selection: WorksheetLetterheadSelection,
       documentId?: string | null,
     ) => WorksheetWorkspaceState;
+    /** Apply a built-in template to the active document or create a new one. */
+    applyTemplate: (
+      template: WorksheetTemplate,
+      options?: WorksheetApplyTemplateOptions,
+    ) => WorksheetWorkspaceState | null;
+    /** Remove all documents and reset worksheet workspace state. */
+    clearAllDocuments: () => WorksheetWorkspaceState;
     selectDocument: (documentId: string) => void;
     deleteDocument: (documentId: string) => void;
     resetWorkspace: () => void;
@@ -565,6 +585,58 @@ export function useWorksheet(): WorksheetTool {
     [syncToPersistLayer],
   );
 
+  const applyTemplate = useCallback(
+    (
+      template: WorksheetTemplate,
+      options?: WorksheetApplyTemplateOptions,
+    ): WorksheetWorkspaceState | null => {
+      const { title, content } = resolveWorksheetTemplate(
+        template,
+        localeRef.current,
+      );
+      if (!content.trim()) return null;
+
+      let nextWorkspace!: WorksheetWorkspaceState;
+
+      setWorkspaceInternal((prev) => {
+        const targetId = options?.createNew
+          ? null
+          : (options?.documentId ?? prev.activeDocumentId);
+
+        const next = targetId
+          ? recordWorksheetDocumentVersion(prev, targetId, {
+              title,
+              content,
+              source: "template",
+            })
+          : addGeneratedWorksheetDocument(
+              prev,
+              { title, content },
+              { activate: true },
+            );
+
+        nextWorkspace = syncWorkspaceLegacyFields(next);
+        workspaceRef.current = nextWorkspace;
+        return nextWorkspace;
+      });
+
+      return syncToPersistLayer(nextWorkspace);
+    },
+    [syncToPersistLayer],
+  );
+
+  const clearAllDocuments = useCallback((): WorksheetWorkspaceState => {
+    const empty = normalizeWorksheetDocument(
+      createEmptyWorksheet(),
+      localeRef.current,
+    );
+    workspaceRef.current = empty;
+    setWorkspaceInternal(empty);
+    setIsGeneratingState(false);
+    clearErrorDetail();
+    return syncToPersistLayer(empty);
+  }, [clearErrorDetail, syncToPersistLayer]);
+
   const selectDocument = useCallback((documentId: string) => {
     setWorkspaceInternal((prev) => {
       const synced = syncWorkspaceLegacyFields(
@@ -633,6 +705,8 @@ export function useWorksheet(): WorksheetTool {
     saveDocumentChanges,
     markDocumentAsExported,
     updateDocumentLetterhead,
+    applyTemplate,
+    clearAllDocuments,
     selectDocument,
     deleteDocument,
     resetWorkspace,

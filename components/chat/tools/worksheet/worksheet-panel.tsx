@@ -115,6 +115,8 @@ interface WorksheetPanelProps {
     | "saveDocumentChanges"
     | "markDocumentAsExported"
     | "updateDocumentLetterhead"
+    | "applyTemplate"
+    | "clearAllDocuments"
   >;
   errorDetail?: string | null;
   isGenerating?: boolean;
@@ -662,10 +664,23 @@ export function WorksheetPanel({
       }
 
       pendingTemplateEditRef.current = true;
-      onApplyTemplate?.(template);
+
+      if (worksheetTool?.applyTemplate) {
+        worksheetTool.applyTemplate(template);
+        toast.success(copy.worksheetTemplateApplied);
+      } else {
+        onApplyTemplate?.(template);
+      }
+
       setTemplateDialogOpen(false);
     },
-    [copy.worksheetTemplateOverwriteConfirm, hasContent, onApplyTemplate],
+    [
+      copy.worksheetTemplateApplied,
+      copy.worksheetTemplateOverwriteConfirm,
+      hasContent,
+      onApplyTemplate,
+      worksheetTool,
+    ],
   );
 
   const requestDeleteDocument = useCallback(

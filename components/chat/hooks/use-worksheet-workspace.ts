@@ -30,9 +30,11 @@ import {
 } from "@/lib/worksheet-templates";
 
 /**
- * Persists worksheet workspace to `ChatSession` and mirrors mutations into
- * `useWorksheet` via `syncWorkspaceToTool`. Runtime mutations from chat stream
- * should prefer `tools.worksheet.createDocumentFromStream` first.
+ * Persist layer for `ChatSession.worksheet`.
+ *
+ * Runtime document mutations should go through `useWorksheet` (tool hook) first;
+ * this hook mirrors snapshots via `syncWorkspaceToTool` and auto-persists when
+ * workspace state changes. Legacy handlers here remain as fallbacks during Phase 4.
  */
 interface UseWorksheetWorkspaceOptions {
   locale: Locale;

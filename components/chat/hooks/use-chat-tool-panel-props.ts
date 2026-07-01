@@ -78,6 +78,26 @@ export function useChatToolPanelProps({
     [tools, worksheet],
   );
 
+  const handleWorksheetApplyTemplate = useCallback(
+    (template: Parameters<typeof worksheet.handleWorksheetApplyTemplate>[0]) => {
+      if (tools.worksheet.applyTemplate) {
+        tools.worksheet.applyTemplate(template);
+        return;
+      }
+      worksheet.handleWorksheetApplyTemplate(template);
+    },
+    [tools.worksheet, worksheet],
+  );
+
+  const handleWorksheetClear = useCallback(() => {
+    if (tools.worksheet.clearAllDocuments) {
+      tools.worksheet.clearAllDocuments();
+      worksheet.setLastWorksheetPrompt("");
+      return;
+    }
+    worksheet.handleWorksheetClear();
+  }, [tools.worksheet, worksheet]);
+
   const {
     handleWorksheetRetry,
     sharedToolPanelProps: toolPanelCoreProps,
@@ -104,10 +124,10 @@ export function useChatToolPanelProps({
       worksheetGenerating,
       worksheetCanRegenerate: Boolean(worksheet.lastWorksheetPrompt.trim()),
       onWorksheetChange: handleWorksheetChange,
-      onWorksheetApplyTemplate: worksheet.handleWorksheetApplyTemplate,
+      onWorksheetApplyTemplate: handleWorksheetApplyTemplate,
       onWorksheetRetry: handleWorksheetRetry,
       onWorksheetRegenerate: handleWorksheetRetry,
-      onWorksheetClear: worksheet.handleWorksheetClear,
+      onWorksheetClear: handleWorksheetClear,
     }),
     [
       handleWorksheetChange,
@@ -115,8 +135,8 @@ export function useChatToolPanelProps({
       locale,
       toolPanelCoreProps,
       tools.worksheet,
-      worksheet.handleWorksheetApplyTemplate,
-      worksheet.handleWorksheetClear,
+      handleWorksheetApplyTemplate,
+      handleWorksheetClear,
       worksheet.lastWorksheetPrompt,
       worksheetGenerating,
     ],

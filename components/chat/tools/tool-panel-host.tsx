@@ -59,6 +59,8 @@ export interface ToolPanelHostProps {
     | "saveDocumentChanges"
     | "markDocumentAsExported"
     | "updateDocumentLetterhead"
+    | "applyTemplate"
+    | "clearAllDocuments"
   >;
   worksheetErrorDetail?: string | null;
   worksheetGenerating?: boolean;
