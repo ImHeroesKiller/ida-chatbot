@@ -2,6 +2,7 @@
 
 import {
   Bot,
+  CalendarClock,
   Database,
   LayoutDashboard,
   LineChart,
@@ -26,6 +27,7 @@ import { ModelsTab } from "@/components/admin/models-tab";
 import { SettingsTab } from "@/components/admin/settings-tab";
 import { WorkflowAnalyticsDashboard } from "@/components/admin/workflow-analytics-dashboard";
 import { WorkflowAuditTab } from "@/components/admin/workflow-audit-tab";
+import { WorkflowTriggersTab } from "@/components/admin/workflow-triggers-tab";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -122,6 +124,10 @@ export function AdminPanel({
               <ShieldCheck className="size-4" />
               Workflow Audit
             </TabsTrigger>
+            <TabsTrigger value="workflow-triggers">
+              <CalendarClock className="size-4" />
+              Triggers
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="mt-6">
@@ -158,6 +164,9 @@ export function AdminPanel({
           </TabsContent>
           <TabsContent value="workflow-audit" className="mt-6">
             <WorkflowAuditTab />
+          </TabsContent>
+          <TabsContent value="workflow-triggers" className="mt-6">
+            <WorkflowTriggersTab />
           </TabsContent>
         </Tabs>
       </main>

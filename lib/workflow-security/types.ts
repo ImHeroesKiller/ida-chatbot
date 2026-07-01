@@ -60,7 +60,10 @@ export type WorkflowAuditAction =
   | "workflow.approval_rejected"
   | "workflow.approval_escalated"
   | "workflow.security_updated"
-  | "workflow.permission_granted";
+  | "workflow.permission_granted"
+  | "workflow.scheduled"
+  | "workflow.trigger_fired"
+  | "workflow.trigger_disabled";
 
 export type WorkflowAuditActorType = "user" | "system" | "admin";
 

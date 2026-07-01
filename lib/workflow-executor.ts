@@ -9,8 +9,13 @@ import {
   type WorkflowResumeAction,
 } from "@/lib/workflow-execution-state";
 import {
+  computeNextRunAt,
   formatScheduleLabel,
   getServerDelayMs,
+  isCronScheduleType,
+  isEventScheduleType,
+  isPersistedScheduleType,
+  MAX_INLINE_DELAY_MS,
   parseTriggerSchedule,
 } from "@/lib/workflow-scheduler";
 import {
@@ -464,9 +469,44 @@ export async function* executeChatWorkflowStream(
 
       if (node.data.kind === "trigger") {
         const schedule = parseTriggerSchedule(node);
-        const delayMs = getServerDelayMs(schedule);
+        const inlineDelayMs = getServerDelayMs(schedule);
+        const isLongDelay =
+          schedule.type === "delay" &&
+          (schedule.delayMs ?? 0) > MAX_INLINE_DELAY_MS;
+        const needsServerSchedule =
+          isCronScheduleType(schedule.type) ||
+          isEventScheduleType(schedule.type) ||
+          isLongDelay;
 
-        if (schedule.type !== "immediate" && delayMs > 0) {
+        if (needsServerSchedule) {
+          const label = formatScheduleLabel(schedule, input.locale);
+          const nextRunAt =
+            schedule.type === "delay"
+              ? Date.now() + (schedule.delayMs ?? 0)
+              : (computeNextRunAt(schedule) ?? Date.now());
+          const detail = isEventScheduleType(schedule.type)
+            ? `Event trigger registered: ${label}`
+            : `Schedule registered: ${label}`;
+          const scheduledLog: WorkflowExecutionLogEntry = {
+            ...logBase,
+            status: "completed",
+            output: detail,
+            message: label,
+            completedAt: Date.now(),
+          };
+          logs = pushOrUpdateLog(logs, scheduledLog);
+          yield {
+            type: "scheduled",
+            nextRunAt,
+            label,
+            logs: [...logs],
+          };
+          context += `\n\n[trigger] ${node.data.label}: ${detail}`;
+          yield { type: "progress", log: scheduledLog, logs: [...logs] };
+          if (isPersistedScheduleType(schedule.type)) {
+            continue;
+          }
+        } else if (schedule.type === "delay" && inlineDelayMs > 0) {
           const waitingLog: WorkflowExecutionLogEntry = {
             ...logBase,
             status: "running",
@@ -474,26 +514,7 @@ export async function* executeChatWorkflowStream(
           };
           logs = pushOrUpdateLog(logs, waitingLog);
           yield { type: "progress", log: waitingLog, logs: [...logs] };
-          await delay(delayMs);
-        } else if (schedule.type === "daily" || schedule.type === "weekly") {
-          const label = formatScheduleLabel(schedule, input.locale);
-          const scheduledLog: WorkflowExecutionLogEntry = {
-            ...logBase,
-            status: "completed",
-            output: `Schedule registered: ${label}`,
-            message: label,
-            completedAt: Date.now(),
-          };
-          logs = pushOrUpdateLog(logs, scheduledLog);
-          yield {
-            type: "scheduled",
-            nextRunAt: Date.now(),
-            label,
-            logs: [...logs],
-          };
-          context += `\n\n[trigger] ${node.data.label}: ${label}`;
-          yield { type: "progress", log: scheduledLog, logs: [...logs] };
-          continue;
+          await delay(inlineDelayMs);
         }
 
         const output = `Triggered: ${node.data.label}`;

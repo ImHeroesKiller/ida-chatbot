@@ -317,9 +317,20 @@ export const COPY: Record<
     workflowScheduleDelay: string;
     workflowScheduleDaily: string;
     workflowScheduleWeekly: string;
+    workflowScheduleMonthly: string;
+    workflowScheduleEventEmail: string;
+    workflowScheduleEventWebhook: string;
+    workflowScheduleEventCalendar: string;
     workflowScheduleDelayMs: string;
     workflowScheduleHour: string;
     workflowScheduleDayOfWeek: string;
+    workflowScheduleDayOfMonth: string;
+    workflowScheduleEventFilter: string;
+    workflowScheduleEventFilterPlaceholder: string;
+    workflowScheduleSave: string;
+    workflowScheduleSaved: string;
+    workflowScheduleSaveFailed: string;
+    workflowScheduleWebhookUrl: string;
     workflowScheduledNotification: string;
     workflowStatusPaused: string;
     workflowStatusAwaitingApproval: string;
@@ -928,9 +939,20 @@ export const COPY: Record<
     workflowScheduleDelay: "Tunda",
     workflowScheduleDaily: "Harian",
     workflowScheduleWeekly: "Mingguan",
-    workflowScheduleDelayMs: "Tunda (detik, maks 30)",
+    workflowScheduleMonthly: "Bulanan",
+    workflowScheduleEventEmail: "Email baru",
+    workflowScheduleEventWebhook: "Webhook",
+    workflowScheduleEventCalendar: "Event kalender",
+    workflowScheduleDelayMs: "Tunda (detik, maks 86400)",
     workflowScheduleHour: "Jam (0–23)",
     workflowScheduleDayOfWeek: "Hari dalam minggu",
+    workflowScheduleDayOfMonth: "Tanggal (1–31)",
+    workflowScheduleEventFilter: "Filter event",
+    workflowScheduleEventFilterPlaceholder: "mis. from:hr@company.com",
+    workflowScheduleSave: "Simpan jadwal",
+    workflowScheduleSaved: "Jadwal disimpan: {label}",
+    workflowScheduleSaveFailed: "Gagal menyimpan jadwal.",
+    workflowScheduleWebhookUrl: "URL webhook",
     workflowScheduledNotification: "Workflow dijadwalkan: {label}",
     workflowStatusPaused: "dijeda",
     workflowStatusAwaitingApproval: "menunggu persetujuan",
@@ -1572,9 +1594,20 @@ export const COPY: Record<
     workflowScheduleDelay: "Delay",
     workflowScheduleDaily: "Daily",
     workflowScheduleWeekly: "Weekly",
-    workflowScheduleDelayMs: "Delay (seconds, max 30)",
+    workflowScheduleMonthly: "Monthly",
+    workflowScheduleEventEmail: "New email",
+    workflowScheduleEventWebhook: "Webhook",
+    workflowScheduleEventCalendar: "Calendar event",
+    workflowScheduleDelayMs: "Delay (seconds, max 86400)",
     workflowScheduleHour: "Hour (0–23)",
     workflowScheduleDayOfWeek: "Day of week",
+    workflowScheduleDayOfMonth: "Day of month (1–31)",
+    workflowScheduleEventFilter: "Event filter",
+    workflowScheduleEventFilterPlaceholder: "e.g. from:hr@company.com",
+    workflowScheduleSave: "Save schedule",
+    workflowScheduleSaved: "Schedule saved: {label}",
+    workflowScheduleSaveFailed: "Failed to save schedule.",
+    workflowScheduleWebhookUrl: "Webhook URL",
     workflowScheduledNotification: "Workflow scheduled: {label}",
     workflowStatusPaused: "paused",
     workflowStatusAwaitingApproval: "awaiting approval",
@@ -2205,9 +2238,20 @@ export const COPY: Record<
     workflowScheduleDelay: "延迟",
     workflowScheduleDaily: "每天",
     workflowScheduleWeekly: "每周",
-    workflowScheduleDelayMs: "延迟（秒，最多 30）",
+    workflowScheduleMonthly: "每月",
+    workflowScheduleEventEmail: "新邮件",
+    workflowScheduleEventWebhook: "Webhook",
+    workflowScheduleEventCalendar: "日历事件",
+    workflowScheduleDelayMs: "延迟（秒，最多 86400）",
     workflowScheduleHour: "小时（0–23）",
     workflowScheduleDayOfWeek: "星期",
+    workflowScheduleDayOfMonth: "日期（1–31）",
+    workflowScheduleEventFilter: "事件筛选",
+    workflowScheduleEventFilterPlaceholder: "例如 from:hr@company.com",
+    workflowScheduleSave: "保存计划",
+    workflowScheduleSaved: "计划已保存：{label}",
+    workflowScheduleSaveFailed: "保存计划失败。",
+    workflowScheduleWebhookUrl: "Webhook URL",
     workflowScheduledNotification: "工作流已计划：{label}",
     workflowStatusPaused: "已暂停",
     workflowStatusAwaitingApproval: "等待审批",

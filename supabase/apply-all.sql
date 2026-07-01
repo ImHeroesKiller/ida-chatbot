@@ -363,3 +363,65 @@ create index if not exists ida_workflow_audit_logs_action_idx
 
 create index if not exists ida_workflow_audit_logs_created_at_idx
   on ida_workflow_audit_logs (created_at desc);
+
+-- Migration 021: workflow schedules and trigger events (Phase 3.4)
+
+create table if not exists ida_workflow_schedules (
+  id uuid primary key default gen_random_uuid(),
+  workflow_id text not null,
+  workflow_name text,
+  trigger_node_id text not null,
+  session_id text,
+  user_id text,
+  schedule_type text not null
+    check (schedule_type in (
+      'immediate', 'delay', 'daily', 'weekly', 'monthly',
+      'event_email', 'event_webhook', 'event_calendar'
+    )),
+  schedule_config jsonb not null default '{}'::jsonb,
+  cron_expression text,
+  next_run_at timestamptz,
+  last_run_at timestamptz,
+  enabled boolean not null default true,
+  webhook_token text unique,
+  run_count integer not null default 0,
+  workflow_snapshot jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (workflow_id, trigger_node_id)
+);
+
+create index if not exists ida_workflow_schedules_workflow_idx
+  on ida_workflow_schedules (workflow_id);
+
+create index if not exists ida_workflow_schedules_next_run_idx
+  on ida_workflow_schedules (next_run_at)
+  where enabled = true and next_run_at is not null;
+
+create index if not exists ida_workflow_schedules_type_idx
+  on ida_workflow_schedules (schedule_type);
+
+create index if not exists ida_workflow_schedules_webhook_token_idx
+  on ida_workflow_schedules (webhook_token)
+  where webhook_token is not null;
+
+create table if not exists ida_workflow_trigger_events (
+  id uuid primary key default gen_random_uuid(),
+  schedule_id uuid references ida_workflow_schedules (id) on delete set null,
+  workflow_id text,
+  event_type text not null
+    check (event_type in ('cron_tick', 'webhook', 'email', 'calendar', 'manual', 'delay')),
+  payload jsonb not null default '{}'::jsonb,
+  status text not null default 'pending'
+    check (status in ('pending', 'dispatched', 'failed', 'skipped')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists ida_workflow_trigger_events_schedule_idx
+  on ida_workflow_trigger_events (schedule_id);
+
+create index if not exists ida_workflow_trigger_events_workflow_idx
+  on ida_workflow_trigger_events (workflow_id);
+
+create index if not exists ida_workflow_trigger_events_created_at_idx
+  on ida_workflow_trigger_events (created_at desc);
