@@ -100,6 +100,16 @@ export function resolveWorksheetLetterheadBranding(params: {
   };
 }
 
+export function areLetterheadSelectionsEqual(
+  a: WorksheetLetterheadSelection,
+  b: WorksheetLetterheadSelection,
+): boolean {
+  return (
+    a.brandingSource === b.brandingSource &&
+    a.letterheadTemplateId === b.letterheadTemplateId
+  );
+}
+
 export function parseWorksheetLetterheadSelection(
   raw: unknown,
 ): WorksheetLetterheadSelection {

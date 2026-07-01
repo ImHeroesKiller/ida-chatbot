@@ -83,6 +83,7 @@ export function useResolvedWorksheetBranding(
     templates,
     templatesHydrated,
     personalPrefs: personal.prefs,
+    personalAdminDefaults: personal.adminDefaults,
     personalHydrated: personal.hydrated,
     hydrated: personal.hydrated && templatesHydrated,
     updatePersonalPrefs: personal.updatePrefs,

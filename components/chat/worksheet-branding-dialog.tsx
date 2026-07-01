@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Eye, ImageIcon, Palette, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 
@@ -24,10 +24,7 @@ import {
   type WorksheetBrandingFontFamily,
 } from "@/lib/worksheet-branding-config";
 import { WorksheetLetterheadTemplatePicker } from "@/components/chat/worksheet-template-picker";
-import {
-  readLogoFileAsDataUrl,
-  useWorksheetBrandingPrefs,
-} from "@/lib/worksheet-branding-prefs";
+import { readLogoFileAsDataUrl } from "@/lib/worksheet-branding-prefs";
 import {
   findDefaultLetterheadTemplate,
   findLetterheadTemplateById,
@@ -47,6 +44,11 @@ interface WorksheetBrandingDialogProps {
   templatesHydrated: boolean;
   activeTemplateName?: string | null;
   previewBranding: WorksheetBrandingConfig;
+  prefs: WorksheetBrandingConfig;
+  adminDefaults: WorksheetBrandingConfig;
+  prefsHydrated: boolean;
+  onUpdatePrefs: (prefs: WorksheetBrandingConfig) => void;
+  onResetPrefs: () => void;
   onSelectionChange: (selection: WorksheetLetterheadSelection) => void;
   onClose: () => void;
 }
@@ -102,12 +104,16 @@ export function WorksheetBrandingDialog({
   templatesHydrated,
   activeTemplateName,
   previewBranding,
+  prefs,
+  adminDefaults,
+  prefsHydrated,
+  onUpdatePrefs,
+  onResetPrefs,
   onSelectionChange,
   onClose,
 }: WorksheetBrandingDialogProps) {
   const copy = COPY[locale];
-  const { prefs, adminDefaults, hydrated, updatePrefs, resetPrefs } =
-    useWorksheetBrandingPrefs();
+  const didInitializeRef = useRef(false);
   const [draft, setDraft] = useState<WorksheetBrandingConfig>(prefs);
   const [draftSelection, setDraftSelection] =
     useState<WorksheetLetterheadSelection>(selection);
@@ -125,12 +131,18 @@ export function WorksheetBrandingDialog({
     : draft;
 
   useEffect(() => {
-    if (open && hydrated) {
-      setDraft(prefs);
-      setDraftSelection(selection);
-      setTab(selection.brandingSource === "template" ? "preview" : "header");
+    if (!open) {
+      didInitializeRef.current = false;
+      return;
     }
-  }, [hydrated, open, prefs, selection]);
+
+    if (!prefsHydrated || didInitializeRef.current) return;
+
+    setDraft(prefs);
+    setDraftSelection(selection);
+    setTab(selection.brandingSource === "template" ? "preview" : "header");
+    didInitializeRef.current = true;
+  }, [open, prefs, prefsHydrated, selection]);
 
   useEffect(() => {
     if (isTemplateMode && tab !== "preview") {
@@ -140,13 +152,23 @@ export function WorksheetBrandingDialog({
 
   const handleSave = () => {
     if (!isTemplateMode) {
-      updatePrefs(parseWorksheetBrandingConfig(draft));
+      onUpdatePrefs(parseWorksheetBrandingConfig(draft));
       toast.success(copy.worksheetBrandingSaved);
     } else {
       toast.success(copy.worksheetBrandingSelectionSaved);
     }
     onSelectionChange(draftSelection);
     onClose();
+  };
+
+  const handleCancel = () => {
+    onClose();
+  };
+
+  const handleReset = () => {
+    onResetPrefs();
+    setDraft(adminDefaults);
+    toast.success(copy.worksheetBrandingReset);
   };
 
   const handleLogoChange = async (file: File | undefined) => {
@@ -640,11 +662,7 @@ export function WorksheetBrandingDialog({
                       type="button"
                       variant="outline"
                       className="flex-1"
-                      onClick={() => {
-                        resetPrefs();
-                        setDraft(adminDefaults);
-                        toast.success(copy.worksheetBrandingReset);
-                      }}
+                      onClick={handleReset}
                     >
                       {copy.worksheetBrandingReset}
                     </Button>
@@ -653,7 +671,7 @@ export function WorksheetBrandingDialog({
                     type="button"
                     variant="outline"
                     className="flex-1"
-                    onClick={onClose}
+                    onClick={handleCancel}
                   >
                     {copy.worksheetCancel}
                   </Button>

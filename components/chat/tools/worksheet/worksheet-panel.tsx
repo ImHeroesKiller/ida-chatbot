@@ -159,7 +159,16 @@ export function WorksheetPanel({
     () => activeDocument?.versions ?? workspace.versions ?? [],
     [activeDocument?.versions, workspace.versions],
   );
-  const letterheadSelection = getWorksheetLetterheadSelection(workspace);
+  const letterheadSelection = useMemo(
+    () => getWorksheetLetterheadSelection(workspace),
+    [
+      activeDocument?.brandingSource,
+      activeDocument?.letterheadTemplateId,
+      workspace.activeDocumentId,
+      workspace.brandingSource,
+      workspace.letterheadTemplateId,
+    ],
+  );
   const showEditor = Boolean(workspace.activeDocumentId);
   const documentCount = workspace.documents?.length ?? 0;
 
@@ -201,6 +210,11 @@ export function WorksheetPanel({
     templates,
     templatesHydrated,
     hydrated: brandingHydrated,
+    personalPrefs,
+    personalAdminDefaults,
+    personalHydrated,
+    updatePersonalPrefs,
+    resetPersonalPrefs,
     refreshTemplates,
   } = useResolvedWorksheetBranding(letterheadSelection);
   const [copied, setCopied] = useState(false);
@@ -1388,6 +1402,11 @@ export function WorksheetPanel({
         templatesHydrated={templatesHydrated && brandingHydrated}
         activeTemplateName={activeTemplate?.name ?? null}
         previewBranding={resolvedBranding}
+        prefs={personalPrefs}
+        adminDefaults={personalAdminDefaults}
+        prefsHydrated={personalHydrated}
+        onUpdatePrefs={(config) => updatePersonalPrefs(config)}
+        onResetPrefs={resetPersonalPrefs}
         onSelectionChange={(selection) => {
           mutateViaToolOrCommit(
             (tool) => tool.updateDocumentLetterhead(selection),
