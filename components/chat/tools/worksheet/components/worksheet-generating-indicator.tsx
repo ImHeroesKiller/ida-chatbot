@@ -6,7 +6,7 @@ import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-interface WorksheetGeneratingIndicatorProps {
+export interface WorksheetGeneratingIndicatorProps {
   locale: Locale;
   variant?: "panel" | "compact" | "card";
   className?: string;

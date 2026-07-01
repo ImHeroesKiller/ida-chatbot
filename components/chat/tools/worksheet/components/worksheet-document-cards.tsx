@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { memo, useCallback, useRef } from "react";
 
-import { WorksheetGeneratingIndicator } from "@/components/chat/tools/worksheet/worksheet-generating-indicator";
+import { WorksheetGeneratingIndicator } from "@/components/chat/tools/worksheet/components/worksheet-generating-indicator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/config";

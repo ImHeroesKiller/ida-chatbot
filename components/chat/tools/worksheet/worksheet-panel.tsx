@@ -36,7 +36,7 @@ import { WorksheetDocumentCards } from "@/components/chat/tools/worksheet/compon
 import { WorksheetEmptyState } from "@/components/chat/tools/worksheet/components/worksheet-empty-state";
 import { WorksheetDocumentsToolbar } from "@/components/chat/tools/worksheet/components/worksheet-documents-toolbar";
 import { WorksheetFullView } from "@/components/chat/tools/worksheet/worksheet-full-view";
-import { WorksheetGeneratingIndicator } from "@/components/chat/tools/worksheet/worksheet-generating-indicator";
+import { WorksheetGeneratingIndicator } from "@/components/chat/tools/worksheet/components/worksheet-generating-indicator";
 import { WorksheetSaveTemplateDialog } from "@/components/chat/tools/worksheet/worksheet-save-template-dialog";
 import {
   WorksheetSplitEditor,
