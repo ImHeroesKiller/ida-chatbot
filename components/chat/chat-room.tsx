@@ -152,6 +152,8 @@ function ChatRoomContent() {
     canPersistCurrentChatState: sessionRefs.canPersistCurrentChatState,
     persistCurrentChat,
     worksheetTemplateAppliedLabel: copy.worksheetTemplateApplied,
+    syncWorkspaceToTool: tools.worksheet.syncWorkspaceFromExternal,
+    getWorkspaceFromTool: tools.worksheet.getWorkspace,
   });
 
   const chatSend = useChatSend({
@@ -204,6 +206,7 @@ function ChatRoomContent() {
         panelOpen: tools.worksheet.isPanelOpen,
         workspace: worksheet.worksheetWorkspaceRef.current,
         locale,
+        isGenerating: false,
       });
     },
     resetWorksheetForNewChat: worksheet.resetForNewChat,

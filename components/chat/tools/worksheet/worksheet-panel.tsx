@@ -102,7 +102,11 @@ interface WorksheetPanelProps {
   /** Optional tool hook sync during Phase 3 workspace migration. */
   worksheetTool?: Pick<
     WorksheetTool,
-    "setLocale" | "selectDocument" | "deleteDocument"
+    | "setLocale"
+    | "setWorkspace"
+    | "setActiveDocumentId"
+    | "selectDocument"
+    | "deleteDocument"
   >;
   errorDetail?: string | null;
   isGenerating?: boolean;
@@ -528,12 +532,13 @@ export function WorksheetPanel({
 
   const handleBackToDocuments = useCallback(() => {
     commitWorkspace(setActiveWorksheetDocument(workspace, null));
+    worksheetTool?.setActiveDocumentId(null);
     if (isEditing) {
       setDraftContent(content);
       setIsEditing(false);
     }
     setIsFullViewOpen(false);
-  }, [commitWorkspace, content, isEditing, workspace]);
+  }, [commitWorkspace, content, isEditing, worksheetTool, workspace]);
 
   const handleSaveEdit = useCallback(() => {
     const trimmed = draftContent.trim();

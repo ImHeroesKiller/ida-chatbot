@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useLayoutEffect, useMemo } from "react";
 
 import { useChatToolHandlers } from "@/components/chat/hooks/use-chat-tool-handlers";
 import type { useWorksheetWorkspace } from "@/components/chat/hooks/use-worksheet-workspace";
@@ -50,6 +50,16 @@ export function useChatToolPanelProps({
   sendMessage,
   copy,
 }: UseChatToolPanelPropsOptions) {
+  const worksheetGeneratingFromStream =
+    isLoading && tools.worksheet.isEnabled;
+
+  useLayoutEffect(() => {
+    tools.worksheet.setGenerating(worksheetGeneratingFromStream);
+  }, [tools.worksheet, worksheetGeneratingFromStream]);
+
+  const worksheetGenerating =
+    tools.worksheet.isGenerating || worksheetGeneratingFromStream;
+
   const {
     handleWorksheetRetry,
     sharedToolPanelProps: toolPanelCoreProps,
@@ -73,7 +83,7 @@ export function useChatToolPanelProps({
       worksheet: worksheet.worksheetWorkspace,
       worksheetTool: tools.worksheet,
       worksheetErrorDetail: worksheet.worksheetErrorDetail,
-      worksheetGenerating: isLoading && tools.worksheet.isEnabled,
+      worksheetGenerating,
       worksheetCanRegenerate: Boolean(worksheet.lastWorksheetPrompt.trim()),
       onWorksheetChange: worksheet.handleWorksheetChange,
       onWorksheetApplyTemplate: worksheet.handleWorksheetApplyTemplate,
@@ -83,7 +93,6 @@ export function useChatToolPanelProps({
     }),
     [
       handleWorksheetRetry,
-      isLoading,
       locale,
       toolPanelCoreProps,
       tools.worksheet,
@@ -93,6 +102,7 @@ export function useChatToolPanelProps({
       worksheet.lastWorksheetPrompt,
       worksheet.worksheetErrorDetail,
       worksheet.worksheetWorkspace,
+      worksheetGenerating,
     ],
   );
 

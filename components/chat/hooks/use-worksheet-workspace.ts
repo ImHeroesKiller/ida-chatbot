@@ -1,16 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import toast from "react-hot-toast";
 
+import type { WorksheetWorkspaceState } from "@/components/chat/tools/worksheet/use-worksheet";
 import {
   createEmptyWorksheet,
   type ChatSession,
 } from "@/lib/chat-store";
 import type { Locale } from "@/lib/config";
-import {
-  type WorksheetDocument,
-} from "@/lib/worksheet";
 import {
   addGeneratedWorksheetDocument,
   createEmptyWorksheetWorkspace,
@@ -31,6 +36,10 @@ interface UseWorksheetWorkspaceOptions {
   canPersistCurrentChatState: () => boolean;
   persistCurrentChat: (patch: Partial<Pick<ChatSession, "worksheet">>) => void;
   worksheetTemplateAppliedLabel: string;
+  /** Mirror workspace mutations into `useWorksheet` during Phase 3 migration. */
+  syncWorkspaceToTool?: (workspace: WorksheetWorkspaceState) => void;
+  /** Optional initial workspace snapshot from the tool hook. */
+  getWorkspaceFromTool?: () => WorksheetWorkspaceState;
 }
 
 export function useWorksheetWorkspace({
@@ -40,10 +49,18 @@ export function useWorksheetWorkspace({
   canPersistCurrentChatState,
   persistCurrentChat,
   worksheetTemplateAppliedLabel,
+  syncWorkspaceToTool,
+  getWorkspaceFromTool,
 }: UseWorksheetWorkspaceOptions) {
-  const [worksheetWorkspace, setWorksheetWorkspace] =
-    useState<WorksheetDocument>(() => createEmptyWorksheetWorkspace(locale));
-  const worksheetWorkspaceRef = useRef<WorksheetDocument>(
+  const [worksheetWorkspace, setWorksheetWorkspaceState] =
+    useState<WorksheetWorkspaceState>(() => {
+      const fromTool = getWorkspaceFromTool?.();
+      if (fromTool && (fromTool.documents?.length ?? 0) > 0) {
+        return normalizeWorksheetDocument(fromTool, locale);
+      }
+      return createEmptyWorksheetWorkspace(locale);
+    });
+  const worksheetWorkspaceRef = useRef<WorksheetWorkspaceState>(
     createEmptyWorksheetWorkspace(locale),
   );
   const [lastWorksheetPrompt, setLastWorksheetPrompt] = useState("");
@@ -51,6 +68,19 @@ export function useWorksheetWorkspace({
   const [worksheetErrorDetail, setWorksheetErrorDetail] = useState<
     string | null
   >(null);
+
+  const applyWorkspace = useCallback(
+    (next: SetStateAction<WorksheetWorkspaceState>) => {
+      setWorksheetWorkspaceState((prev) => {
+        const resolved = typeof next === "function" ? next(prev) : next;
+        const synced = syncWorkspaceLegacyFields(resolved);
+        worksheetWorkspaceRef.current = synced;
+        syncWorkspaceToTool?.(synced);
+        return synced;
+      });
+    },
+    [syncWorkspaceToTool],
+  ) as Dispatch<SetStateAction<WorksheetWorkspaceState>>;
 
   useEffect(() => {
     worksheetWorkspaceRef.current = worksheetWorkspace;
@@ -83,8 +113,9 @@ export function useWorksheetWorkspace({
   const hydrateFromChat = useCallback(
     (chat: ChatSession) => {
       const worksheet = normalizeWorksheetDocument(chat.worksheet, locale);
-      setWorksheetWorkspace(worksheet);
       worksheetWorkspaceRef.current = worksheet;
+      setWorksheetWorkspaceState(worksheet);
+      syncWorkspaceToTool?.(worksheet);
       setWorksheetErrorDetail(null);
 
       const lastUserMessage = [...chat.messages]
@@ -92,7 +123,7 @@ export function useWorksheetWorkspace({
         .find((message) => message.role === "user");
       setLastWorksheetPrompt(lastUserMessage?.content?.trim() ?? "");
     },
-    [locale],
+    [locale, syncWorkspaceToTool],
   );
 
   const resetForNewChat = useCallback(() => {
@@ -100,21 +131,25 @@ export function useWorksheetWorkspace({
       createEmptyWorksheet(),
       locale,
     );
-    setWorksheetWorkspace(emptyWorksheet);
     worksheetWorkspaceRef.current = emptyWorksheet;
+    setWorksheetWorkspaceState(emptyWorksheet);
+    syncWorkspaceToTool?.(emptyWorksheet);
     setWorksheetErrorDetail(null);
     setLastWorksheetPrompt("");
-  }, [locale]);
+  }, [locale, syncWorkspaceToTool]);
 
-  const handleWorksheetChange = useCallback((workspace: WorksheetDocument) => {
-    setWorksheetWorkspace(workspace);
-  }, []);
+  const handleWorksheetChange = useCallback(
+    (workspace: WorksheetWorkspaceState) => {
+      applyWorkspace(workspace);
+    },
+    [applyWorkspace],
+  );
 
   const handleWorksheetApplyTemplate = useCallback(
     (template: WorksheetTemplate) => {
       const { title, content } = resolveWorksheetTemplate(template, locale);
 
-      setWorksheetWorkspace((prev) => {
+      applyWorkspace((prev) => {
         const documentId = prev.activeDocumentId;
         const next = documentId
           ? recordWorksheetDocumentVersion(prev, documentId, {
@@ -131,7 +166,7 @@ export function useWorksheetWorkspace({
       });
       toast.success(worksheetTemplateAppliedLabel);
     },
-    [locale, worksheetTemplateAppliedLabel],
+    [applyWorkspace, locale, worksheetTemplateAppliedLabel],
   );
 
   const handleWorksheetClear = useCallback(() => {
@@ -139,16 +174,17 @@ export function useWorksheetWorkspace({
       createEmptyWorksheet(),
       locale,
     );
-    setWorksheetWorkspace(emptyWorksheet);
     worksheetWorkspaceRef.current = emptyWorksheet;
+    setWorksheetWorkspaceState(emptyWorksheet);
+    syncWorkspaceToTool?.(emptyWorksheet);
     setWorksheetErrorDetail(null);
     setLastWorksheetPrompt("");
     persistCurrentChat({ worksheet: createEmptyWorksheet() });
-  }, [locale, persistCurrentChat]);
+  }, [locale, persistCurrentChat, syncWorkspaceToTool]);
 
   return {
     worksheetWorkspace,
-    setWorksheetWorkspace,
+    setWorksheetWorkspace: applyWorkspace,
     worksheetWorkspaceRef,
     lastWorksheetPrompt,
     setLastWorksheetPrompt,

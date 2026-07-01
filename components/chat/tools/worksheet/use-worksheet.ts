@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   useBaseToolState,
@@ -68,19 +68,35 @@ export type WorksheetTool = BaseToolState &
     activeDocumentId: string | null;
     isGenerating: boolean;
     setLocale: (locale: Locale) => void;
+    getWorkspace: () => WorksheetWorkspaceState;
     setWorkspace: (workspace: WorksheetWorkspaceState) => void;
+    updateWorkspace: (patch: Partial<WorksheetWorkspaceState>) => void;
+    syncWorkspaceFromExternal: (workspace: WorksheetWorkspaceState) => void;
+    setDocuments: (documents: WorksheetSavedDocument[]) => void;
+    setActiveDocumentId: (documentId: string | null) => void;
     setIsGenerating: (generating: boolean) => void;
+    setGenerating: (generating: boolean) => void;
     createDocument: (input: WorksheetCreateDocumentInput) => WorksheetSavedDocument | null;
     selectDocument: (documentId: string) => void;
     deleteDocument: (documentId: string) => void;
     resetWorkspace: () => void;
   };
 
+function applyWorkspaceState(
+  prev: WorksheetWorkspaceState,
+  next: WorksheetWorkspaceState | Partial<WorksheetWorkspaceState>,
+): WorksheetWorkspaceState {
+  return syncWorkspaceLegacyFields({
+    ...prev,
+    ...next,
+  });
+}
+
 /**
  * Worksheet tool hook — `BaseToolState` + workspace primitives.
  *
- * Document editing, export, and persistence still flow through
- * `useWorksheetWorkspace` / `worksheet-panel.tsx` during Phase 3 migration.
+ * `useWorksheetWorkspace` still owns persistence side-effects during Phase 3;
+ * workspace mutations are mirrored here via `syncWorkspaceFromExternal`.
  */
 export function useWorksheet(): WorksheetTool {
   const [quota, setQuota] = useState<ToolQuotaState>(createWorksheetQuotaState);
@@ -89,7 +105,12 @@ export function useWorksheet(): WorksheetTool {
   const [workspace, setWorkspaceInternal] = useState<WorksheetWorkspaceState>(
     () => createEmptyWorksheetWorkspace(DEFAULT_LOCALE),
   );
-  const [isGenerating, setIsGenerating] = useState(false);
+  const workspaceRef = useRef(workspace);
+  const [isGenerating, setIsGeneratingState] = useState(false);
+
+  useEffect(() => {
+    workspaceRef.current = workspace;
+  }, [workspace]);
 
   const setLocale = useCallback((next: Locale) => {
     localeRef.current = next;
@@ -97,8 +118,38 @@ export function useWorksheet(): WorksheetTool {
   }, []);
 
   const setWorkspace = useCallback((next: WorksheetWorkspaceState) => {
-    setWorkspaceInternal(syncWorkspaceLegacyFields(next));
+    const synced = syncWorkspaceLegacyFields(next);
+    workspaceRef.current = synced;
+    setWorkspaceInternal(synced);
   }, []);
+
+  const getWorkspace = useCallback(() => workspaceRef.current, []);
+
+  const updateWorkspace = useCallback((patch: Partial<WorksheetWorkspaceState>) => {
+    setWorkspaceInternal((prev) => {
+      const synced = applyWorkspaceState(prev, patch);
+      workspaceRef.current = synced;
+      return synced;
+    });
+  }, []);
+
+  const syncWorkspaceFromExternal = useCallback((next: WorksheetWorkspaceState) => {
+    setWorkspace(next);
+  }, [setWorkspace]);
+
+  const setDocuments = useCallback((documents: WorksheetSavedDocument[]) => {
+    updateWorkspace({ documents });
+  }, [updateWorkspace]);
+
+  const setActiveDocumentId = useCallback((documentId: string | null) => {
+    updateWorkspace({ activeDocumentId: documentId });
+  }, [updateWorkspace]);
+
+  const setIsGenerating = useCallback((generating: boolean) => {
+    setIsGeneratingState(generating);
+  }, []);
+
+  const setGenerating = setIsGenerating;
 
   const resetQuota = useCallback(() => {
     setQuota(createWorksheetQuotaState());
@@ -109,8 +160,9 @@ export function useWorksheet(): WorksheetTool {
       createEmptyWorksheetWorkspace(localeRef.current),
       localeRef.current,
     );
+    workspaceRef.current = empty;
     setWorkspaceInternal(empty);
-    setIsGenerating(false);
+    setIsGeneratingState(false);
   }, []);
 
   const hydrateWorkspaceState = useCallback((state: WorksheetHydrationInput) => {
@@ -119,13 +171,16 @@ export function useWorksheet(): WorksheetTool {
     }
 
     if (state.workspace !== undefined) {
-      setWorkspaceInternal(
-        normalizeWorksheetDocument(state.workspace, localeRef.current),
+      const normalized = normalizeWorksheetDocument(
+        state.workspace,
+        localeRef.current,
       );
+      workspaceRef.current = normalized;
+      setWorkspaceInternal(normalized);
     }
 
     if (state.isGenerating !== undefined) {
-      setIsGenerating(state.isGenerating);
+      setIsGeneratingState(state.isGenerating);
     }
   }, [setLocale]);
 
@@ -176,6 +231,7 @@ export function useWorksheet(): WorksheetTool {
           { activate: input.activate !== false },
         );
         const synced = syncWorkspaceLegacyFields(next);
+        workspaceRef.current = synced;
         const activeId = synced.activeDocumentId;
         created =
           synced.documents?.find((doc) => doc.id === activeId) ??
@@ -190,17 +246,23 @@ export function useWorksheet(): WorksheetTool {
   );
 
   const selectDocument = useCallback((documentId: string) => {
-    setWorkspaceInternal((prev) =>
-      syncWorkspaceLegacyFields(setActiveWorksheetDocument(prev, documentId)),
-    );
+    setWorkspaceInternal((prev) => {
+      const synced = syncWorkspaceLegacyFields(
+        setActiveWorksheetDocument(prev, documentId),
+      );
+      workspaceRef.current = synced;
+      return synced;
+    });
   }, []);
 
   const deleteDocument = useCallback((documentId: string) => {
-    setWorkspaceInternal((prev) =>
-      syncWorkspaceLegacyFields(
+    setWorkspaceInternal((prev) => {
+      const synced = syncWorkspaceLegacyFields(
         removeWorksheetDocument(prev, documentId, localeRef.current),
-      ),
-    );
+      );
+      workspaceRef.current = synced;
+      return synced;
+    });
   }, []);
 
   const documents = useMemo(
@@ -226,8 +288,14 @@ export function useWorksheet(): WorksheetTool {
     activeDocumentId,
     isGenerating,
     setLocale,
+    getWorkspace,
     setWorkspace,
+    updateWorkspace,
+    syncWorkspaceFromExternal,
+    setDocuments,
+    setActiveDocumentId,
     setIsGenerating,
+    setGenerating,
     createDocument,
     selectDocument,
     deleteDocument,

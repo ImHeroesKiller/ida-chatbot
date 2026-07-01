@@ -46,7 +46,11 @@ export interface ToolPanelHostProps {
   worksheet: WorksheetDocument;
   worksheetTool?: Pick<
     WorksheetTool,
-    "setLocale" | "selectDocument" | "deleteDocument"
+    | "setLocale"
+    | "setWorkspace"
+    | "setActiveDocumentId"
+    | "selectDocument"
+    | "deleteDocument"
   >;
   worksheetErrorDetail?: string | null;
   worksheetGenerating?: boolean;
