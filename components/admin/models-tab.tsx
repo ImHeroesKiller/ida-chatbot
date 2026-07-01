@@ -145,11 +145,12 @@ export function ModelsTab() {
                 <button
                   key={`${model.provider}:${model.id}`}
                   type="button"
+                  aria-pressed={isSelected}
                   className={cn(
-                    "rounded-xl border p-4 text-left transition-colors",
+                    "cursor-pointer rounded-xl border p-4 text-left transition-colors",
                     isSelected
                       ? "border-primary bg-primary/5"
-                      : "hover:bg-muted/50",
+                      : "hover:bg-muted/50 active:bg-muted/70",
                     availability === "unconfigured" && "opacity-60",
                     availability === "deprecated" && "opacity-50",
                   )}

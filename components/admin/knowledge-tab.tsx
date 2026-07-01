@@ -236,6 +236,8 @@ export function KnowledgeTab() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [reindexingAll, setReindexingAll] = useState(false);
+  const [reindexingDocId, setReindexingDocId] = useState<string | null>(null);
+  const [deletingChunkId, setDeletingChunkId] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
   const [localeFilter, setLocaleFilter] = useState("");
@@ -357,6 +359,10 @@ export function KnowledgeTab() {
   };
 
   const handleReindexDocument = async (id: string) => {
+    if (reindexingDocId) return;
+
+    setReindexingDocId(id);
+
     try {
       const response = await fetch(`/api/admin/kb/documents/${id}/reindex`, {
         method: "POST",
@@ -372,6 +378,8 @@ export function KnowledgeTab() {
       await refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Re-index failed.");
+    } finally {
+      setReindexingDocId(null);
     }
   };
 
@@ -395,6 +403,9 @@ export function KnowledgeTab() {
 
   const handleDeleteChunk = async (chunk: KbChunkListItem) => {
     if (!window.confirm("Delete this chunk permanently?")) return;
+    if (deletingChunkId) return;
+
+    setDeletingChunkId(chunk.id);
 
     try {
       const response = await fetch(`/api/admin/kb/chunks/${chunk.id}`, {
@@ -408,6 +419,8 @@ export function KnowledgeTab() {
       await refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Delete failed.");
+    } finally {
+      setDeletingChunkId(null);
     }
   };
 
@@ -560,17 +573,26 @@ export function KnowledgeTab() {
                     <Button
                       variant="outline"
                       size="sm"
+                      disabled={reindexingDocId === doc.id}
+                      aria-label={`Re-chunk ${doc.title}`}
                       onClick={() => void handleReindexDocument(doc.id)}
                     >
-                      <RefreshCw className="size-3.5" />
+                      <RefreshCw
+                        className={cn(
+                          "size-3.5",
+                          reindexingDocId === doc.id && "animate-spin",
+                        )}
+                        aria-hidden
+                      />
                       Re-chunk
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
+                      aria-label={`Delete document ${doc.title}`}
                       onClick={() => void handleDeleteDocument(doc.id, doc.title)}
                     >
-                      <Trash2 className="size-3.5" />
+                      <Trash2 className="size-3.5" aria-hidden />
                     </Button>
                   </div>
                 </div>
@@ -686,9 +708,17 @@ export function KnowledgeTab() {
                         <Button
                           variant="outline"
                           size="sm"
+                          disabled={deletingChunkId === chunk.id}
+                          aria-label={`Delete chunk ${chunk.id}`}
                           onClick={() => void handleDeleteChunk(chunk)}
                         >
-                          <Trash2 className="size-3.5" />
+                          <Trash2
+                            className={cn(
+                              "size-3.5",
+                              deletingChunkId === chunk.id && "animate-pulse",
+                            )}
+                            aria-hidden
+                          />
                         </Button>
                       </div>
                     </div>

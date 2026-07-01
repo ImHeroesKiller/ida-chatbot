@@ -683,7 +683,8 @@ function WorkflowPanelInner({
             open
             onClose={closeFloatingPanel}
             title={copy.workflowProperties}
-            icon={<GitBranch className="h-4 w-4" />}
+            closeLabel={copy.rightSidebarClose}
+            icon={<GitBranch className="h-4 w-4" aria-hidden />}
           >
             <WorkflowNodePropertiesPanel
               locale={locale}
@@ -704,7 +705,8 @@ function WorkflowPanelInner({
             open
             onClose={() => setFloatingPanel(null)}
             title={copy.workflowSecurityTitle}
-            icon={<Shield className="h-4 w-4" />}
+            closeLabel={copy.rightSidebarClose}
+            icon={<Shield className="h-4 w-4" aria-hidden />}
           >
             <WorkflowSecurityPanel
               locale={locale}
@@ -727,7 +729,8 @@ function WorkflowPanelInner({
               setFloatingPanel(selectedNodeId ? "properties" : null)
             }
             title={copy.workflowScheduleTitle}
-            icon={<CalendarClock className="h-4 w-4" />}
+            closeLabel={copy.rightSidebarClose}
+            icon={<CalendarClock className="h-4 w-4" aria-hidden />}
           >
             <WorkflowSchedulePanel
               locale={locale}
@@ -760,7 +763,8 @@ function WorkflowPanelInner({
             <div className="rounded-md border border-dashed border-destructive/30 bg-destructive/5 p-2">
               <button
                 type="button"
-                className="flex w-full items-center gap-1.5 text-left text-[10px] font-medium text-muted-foreground"
+                aria-expanded={showRawResponse}
+                className="flex w-full cursor-pointer items-center gap-1.5 rounded-md px-1 py-1 text-left text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted/40"
                 onClick={() => setShowRawResponse((prev) => !prev)}
               >
                 {showRawResponse ? (

@@ -37,7 +37,7 @@ export function WorksheetLetterheadHeader({
 
   return (
     <header
-      className={cn("text-[11px] leading-snug text-[#666]", className)}
+      className={cn("text-[11px] leading-snug text-muted-foreground", className)}
       style={{ fontFamily: headerFont }}
     >
       <div
@@ -69,17 +69,17 @@ export function WorksheetLetterheadHeader({
               {branding.brandName}
             </p>
             {branding.tagline.trim() ? (
-              <p className="mt-0.5 text-[10px] italic text-[#555]">
+              <p className="mt-0.5 text-[10px] italic text-muted-foreground/90">
                 {branding.tagline}
               </p>
             ) : null}
             {addressLines.length > 0 ? (
-              <p className="mt-1 whitespace-pre-line text-[10px] leading-relaxed text-[#666]">
+              <p className="mt-1 whitespace-pre-line text-[10px] leading-relaxed text-muted-foreground">
                 {addressLines.join("\n")}
               </p>
             ) : null}
             {contactLines.length > 0 ? (
-              <p className="mt-1 text-[10px] text-[#666]">
+              <p className="mt-1 text-[10px] text-muted-foreground">
                 {contactLines.join(" · ")}
               </p>
             ) : null}
@@ -91,11 +91,11 @@ export function WorksheetLetterheadHeader({
             <Input
               value={documentTitle}
               onChange={(event) => onTitleChange(event.target.value)}
-              className="h-7 max-w-[14rem] shrink-0 border-[#ddd] bg-white text-right text-[11px] text-[#666] shadow-none"
+              className="h-7 max-w-[14rem] shrink-0 border-border bg-background text-right text-[11px] text-muted-foreground shadow-none"
               aria-label={titleAriaLabel}
             />
           ) : (
-            <p className="max-w-[14rem] shrink-0 truncate text-right text-[11px] text-[#666]">
+            <p className="max-w-[14rem] shrink-0 truncate text-right text-[11px] text-muted-foreground">
               {documentTitle}
             </p>
           )
@@ -135,7 +135,7 @@ export function WorksheetLetterheadFooter({
   return (
     <footer
       className={cn(
-        "flex items-start justify-between gap-4 border-t border-[#ddd] pt-3 text-[10px] leading-snug text-[#666]",
+        "flex items-start justify-between gap-4 border-t border-border pt-3 text-[10px] leading-snug text-muted-foreground",
         className,
       )}
       style={{ fontFamily: footerFont }}

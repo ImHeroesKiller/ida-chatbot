@@ -20,6 +20,7 @@ interface WorkflowFloatingPanelProps {
   open: boolean;
   onClose: () => void;
   title: string;
+  closeLabel?: string;
   icon?: ReactNode;
   children: ReactNode;
   className?: string;
@@ -29,6 +30,7 @@ function WorkflowFloatingPanelInner({
   open,
   onClose,
   title,
+  closeLabel = "Close",
   icon,
   children,
   className,
@@ -201,9 +203,9 @@ function WorkflowFloatingPanelInner({
                 size="icon-sm"
                 className="h-7 w-7 shrink-0 rounded-lg transition-transform hover:scale-105"
                 onClick={onClose}
-                aria-label="Close"
+                aria-label={closeLabel}
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden />
               </Button>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-3.5">{children}</div>

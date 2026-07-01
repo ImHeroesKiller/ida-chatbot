@@ -436,11 +436,29 @@ export function ChatComposerRedesign({
           )}
         </AnimatePresence>
 
+        {voiceErrorMessage ? (
+          <p className="text-center text-xs text-destructive">{voiceErrorMessage}</p>
+        ) : null}
+
+        {isExtracting ? (
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm text-foreground"
+          >
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+            <span>{copy.extractingFile}</span>
+          </div>
+        ) : null}
+
         <div className={cn(
-          "flex flex-col bg-[#F5F5F7] dark:bg-[#1C1C1E] rounded-[32px] border border-border/40 shadow-xl overflow-hidden transition-all duration-300",
+          "flex flex-col rounded-[32px] border border-border/40 bg-card/90 shadow-xl backdrop-blur-sm overflow-hidden transition-all duration-300",
           "focus-within:ring-8 focus-within:ring-primary/5 focus-within:border-primary/30"
         )}>
           <div className="px-5 pt-5 pb-2">
+            <label htmlFor={inputId} className="sr-only">
+              {copy.inputLabel}
+            </label>
             <Textarea
               id={inputId}
               ref={textareaRef}
@@ -464,10 +482,12 @@ export function ChatComposerRedesign({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-12 w-12 rounded-full text-foreground/60 hover:bg-muted/60 active:scale-90 transition-all"
+                className="h-12 w-12 cursor-pointer rounded-full text-foreground/60 transition-all hover:bg-muted/60 active:scale-90"
+                aria-label={copy.attachFile}
+                title={copy.attachFile}
                 onClick={() => fileInputRef.current?.click()}
               >
-                <Plus className="h-7 w-7" />
+                <Plus className="h-7 w-7" aria-hidden />
               </Button>
 
               <Button
@@ -475,9 +495,12 @@ export function ChatComposerRedesign({
                 type="button"
                 variant="ghost"
                 disabled={isLoading || isExtracting || isTranscribing}
+                aria-label={copy.toolsMenu}
+                aria-expanded={toolsMenuOpen}
+                aria-haspopup="menu"
                 className={cn(
-                  "h-12 px-5 gap-3 rounded-full transition-all active:scale-95",
-                  toolsMenuOpen ? "bg-primary/10 text-primary border border-primary/20 shadow-sm" : "text-foreground/70 hover:bg-muted/60"
+                  "h-12 cursor-pointer gap-3 rounded-full px-5 transition-all active:scale-95",
+                  toolsMenuOpen ? "border border-primary/20 bg-primary/10 text-primary shadow-sm" : "text-foreground/70 hover:bg-muted/60"
                 )}
                 onClick={() => setToolsMenuOpen((open) => !open)}
               >
@@ -491,15 +514,28 @@ export function ChatComposerRedesign({
                 type="button"
                 variant="ghost"
                 disabled={!webSearchAvailable}
+                aria-label={copy.webSearchToggle}
+                title={
+                  webSearchAvailable
+                    ? copy.webSearchToggle
+                    : copy.webSearchUnavailable
+                }
                 className={cn(
-                  "h-12 px-5 gap-2.5 rounded-full transition-all active:scale-95",
+                  "h-12 cursor-pointer gap-2.5 rounded-full px-5 transition-all active:scale-95",
                   isInternetOn
-                    ? "bg-blue-500/10 text-blue-500 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
-                    : "text-foreground/50 hover:bg-muted/60"
+                    ? "border border-primary/25 bg-primary/10 text-primary shadow-[0_0_15px_color-mix(in_oklch,var(--primary)_20%,transparent)]"
+                    : "text-foreground/50 hover:bg-muted/60",
+                  !webSearchAvailable && "cursor-not-allowed",
                 )}
                 onClick={onInternetToggle}
               >
-                <Globe className={cn("h-5 w-5 transition-all", isInternetOn ? "text-blue-500 animate-pulse" : "text-foreground/40")} />
+                <Globe
+                  className={cn(
+                    "h-5 w-5 transition-all",
+                    isInternetOn ? "animate-pulse text-primary" : "text-foreground/40",
+                  )}
+                  aria-hidden
+                />
                 <span className="text-base font-bold">Internet {isInternetOn ? "ON" : "OFF"}</span>
               </Button>
 
@@ -510,15 +546,25 @@ export function ChatComposerRedesign({
                     variant="ghost"
                     size="icon"
                     disabled={isLoading || isExtracting || isTranscribing || !speechSupported}
+                    aria-label={copy.holdToRecord}
+                    title={
+                      speechSupported
+                        ? copy.holdToRecord
+                        : copy.voiceErrorUnsupported
+                    }
                     className={cn(
-                      "h-12 w-12 rounded-full transition-all duration-300 active:scale-90",
+                      "h-12 w-12 cursor-pointer rounded-full transition-all duration-300 active:scale-90",
                       isListening ? "bg-destructive text-destructive-foreground shadow-lg" : "text-foreground/60 hover:bg-muted/60"
                     )}
                     onPointerDown={handleMicPointerDown}
                     onPointerUp={handleMicPointerUp}
                     onPointerCancel={handleMicPointerUp}
                   >
-                    {isTranscribing ? <Loader2 className="h-6 w-6 animate-spin" /> : <Mic className="h-7 w-7" />}
+                    {isTranscribing ? (
+                      <Loader2 className="h-6 w-6 animate-spin" aria-hidden />
+                    ) : (
+                      <Mic className="h-7 w-7" aria-hidden />
+                    )}
                   </Button>
                 )}
 
@@ -527,12 +573,13 @@ export function ChatComposerRedesign({
                     type="submit"
                     size="icon"
                     disabled={!canSend}
-                    className="h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-md transition-all active:scale-90 hover:scale-105"
+                    aria-label={copy.send}
+                    className="h-12 w-12 cursor-pointer rounded-full bg-primary text-primary-foreground shadow-md transition-all hover:scale-105 active:scale-90"
                   >
-                    {isExtracting || isTranscribing ? (
-                      <Loader2 className="h-6 w-6 animate-spin" />
+                    {isExtracting || isTranscribing || isLoading ? (
+                      <Loader2 className="h-6 w-6 animate-spin" aria-hidden />
                     ) : (
-                      <Send className="h-6 w-6" />
+                      <Send className="h-6 w-6" aria-hidden />
                     )}
                   </Button>
                 )}

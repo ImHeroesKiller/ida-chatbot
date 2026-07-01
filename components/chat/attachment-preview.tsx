@@ -75,7 +75,7 @@ export function AttachmentPreview({
           <button
             type="button"
             onClick={onRemove}
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
             aria-label={removeLabel}
           >
             <X className="h-4 w-4" />

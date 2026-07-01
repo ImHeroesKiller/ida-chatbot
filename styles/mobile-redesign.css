@@ -25,13 +25,13 @@
 /* Chat input container - pill shaped */
 .chat-input-pill {
   border-radius: 9999px;
-  background-color: rgba(var(--muted-rgb), 0.4);
+  background-color: color-mix(in oklch, var(--muted) 40%, transparent);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .chat-input-pill:focus-within {
-  background-color: rgba(var(--muted-rgb), 0.6);
-  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1);
+  background-color: color-mix(in oklch, var(--muted) 60%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 10%, transparent);
 }
 
 /* Smooth button hover effects */
@@ -157,7 +157,7 @@
 
 .focus-ring-smooth:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 20%, transparent);
 }
 
 /* Responsive adjustments untuk mobile */
@@ -181,14 +181,12 @@
 }
 
 /* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  .chat-input-pill {
-    background-color: rgba(var(--muted-rgb), 0.2);
-  }
+.dark .chat-input-pill {
+  background-color: color-mix(in oklch, var(--muted) 25%, transparent);
+}
 
-  .chat-input-pill:focus-within {
-    background-color: rgba(var(--muted-rgb), 0.3);
-  }
+.dark .chat-input-pill:focus-within {
+  background-color: color-mix(in oklch, var(--muted) 35%, transparent);
 }
 
 /* Accessibility - respect prefers-reduced-motion */

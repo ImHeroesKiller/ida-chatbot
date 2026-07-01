@@ -562,10 +562,10 @@ export function ChatComposer({
             aria-label={copy.send}
             className="h-12 w-12 shrink-0 rounded-full transition-transform hover:scale-105 active:scale-95 sm:h-11 sm:w-11 lg:shadow-md"
           >
-            {isExtracting || isTranscribing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+            {isExtracting || isTranscribing || isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
             ) : (
-              <Send className="h-4 w-4" />
+              <Send className="h-4 w-4" aria-hidden />
             )}
           </Button>
         </motion.div>

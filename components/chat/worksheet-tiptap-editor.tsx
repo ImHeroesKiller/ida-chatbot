@@ -142,7 +142,7 @@ export function WorksheetTiptapEditor({
         <div
           className={cn(
             toolbarSticky &&
-              "sticky top-0 z-10 -mx-1 rounded-md border border-[#e5e5e5] bg-white/98 p-1 shadow-sm backdrop-blur",
+              "sticky top-0 z-10 -mx-1 rounded-md border border-border/60 bg-background/95 p-1 shadow-sm backdrop-blur",
           )}
         >
           <WorksheetTiptapToolbar

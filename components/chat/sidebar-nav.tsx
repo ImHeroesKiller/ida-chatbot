@@ -46,6 +46,8 @@ export function SidebarNav({
             key={item.href}
             href={item.href}
             title={label}
+            aria-label={label}
+            aria-current={isActive ? "page" : undefined}
             onClick={() => {
               if (!expanded) onExpand?.();
             }}

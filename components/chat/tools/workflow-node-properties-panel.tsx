@@ -56,7 +56,8 @@ function WorkflowNodePropertiesPanelInner({
           id="workflow-node-kind"
           value={node.data.kind}
           readOnly
-          className="h-8 text-xs capitalize"
+          aria-readonly="true"
+          className="h-8 cursor-default bg-muted/30 text-xs capitalize"
         />
       </div>
 

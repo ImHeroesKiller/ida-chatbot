@@ -141,7 +141,9 @@ export function ChatSidebar({
                 type="button"
                 onClick={() => onSelect(session.id)}
                 title={session.title}
+                aria-current={isActive ? "true" : undefined}
                 className={cn(
+                  "cursor-pointer",
                   "flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left transition-all duration-300",
                   isActive
                     ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 font-semibold ring-1 ring-primary/20"
@@ -163,7 +165,7 @@ export function ChatSidebar({
                   size="icon-sm"
                   className={cn(
                     "h-7 w-7 rounded-full transition-all duration-200",
-                    isActive ? "text-primary-foreground/80 hover:bg-white/10 hover:text-primary-foreground" : "opacity-0 group-hover/session:opacity-100 text-muted-foreground hover:bg-muted",
+                    isActive ? "text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground" : "opacity-0 group-hover/session:opacity-100 text-muted-foreground hover:bg-muted",
                     isMenuOpen && "opacity-100",
                   )}
                   aria-label={copy.sessionMenu}
@@ -178,11 +180,11 @@ export function ChatSidebar({
                 {isMenuOpen && (
                   <div
                     ref={menuRef}
-                    className="absolute top-8 right-0 z-20 min-w-[160px] rounded-xl border bg-popover p-1.5 shadow-2xl ring-1 ring-black/5"
+                    className="absolute top-8 right-0 z-20 min-w-[160px] rounded-xl border bg-popover p-1.5 shadow-2xl ring-1 ring-foreground/5"
                   >
                     <button
                       type="button"
-                      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium hover:bg-muted transition-colors"
+                      className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium transition-colors hover:bg-muted active:bg-muted/80"
                       onClick={() => {
                         onPin(session.id, !isPinned);
                         setOpenMenuId(null);
@@ -197,7 +199,7 @@ export function ChatSidebar({
                     </button>
                     <button
                       type="button"
-                      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium hover:bg-muted transition-colors"
+                      className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium transition-colors hover:bg-muted active:bg-muted/80"
                       onClick={() => {
                         setRenameTarget(session);
                         setOpenMenuId(null);
@@ -209,7 +211,7 @@ export function ChatSidebar({
                     <div className="my-1 h-px bg-border/40" />
                     <button
                       type="button"
-                      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-bold text-destructive hover:bg-destructive/10 transition-colors"
+                      className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-bold text-destructive transition-colors hover:bg-destructive/10 active:bg-destructive/15"
                       onClick={() => {
                         setDeleteTargetId(session.id);
                         setOpenMenuId(null);
@@ -232,7 +234,7 @@ export function ChatSidebar({
     <>
       <aside
         className={cn(
-          "flex h-full flex-col bg-[#F5F5F7] dark:bg-[#1C1C1E] transition-[width] duration-300 ease-in-out border-r border-border/40",
+          "flex h-full flex-col border-r border-border/40 bg-muted/30 transition-[width] duration-300 ease-in-out lg:ida-glass-subtle",
           expanded ? "w-[280px] overflow-hidden" : "w-16 overflow-x-visible overflow-y-hidden",
           className,
         )}

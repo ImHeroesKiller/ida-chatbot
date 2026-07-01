@@ -301,7 +301,7 @@ html[data-ida-animation="none"] *::after {
   }
 
   .workflow-canvas-flow .react-flow__edge:hover .react-flow__edge-path {
-    stroke: color-mix(in oklch, var(--primary) 75%, white);
+    stroke: color-mix(in oklch, var(--primary) 75%, var(--foreground));
     stroke-width: 2.5;
   }
 
@@ -354,7 +354,7 @@ html[data-ida-animation="none"] *::after {
 
 .worksheet-print-prose.worksheet-tiptap-editor.ProseMirror
   > p.is-editor-empty:first-child::before {
-  color: #999;
+  color: var(--muted-foreground);
 }
 
 .worksheet-tiptap-editor .tableWrapper {

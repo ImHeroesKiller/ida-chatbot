@@ -23,7 +23,7 @@ export function ChatHeaderMobileRedesign({
   return (
     <header className={cn(
       "fixed top-0 left-0 right-0 z-50 flex h-16 items-center justify-between px-4",
-      "bg-[#F5F5F7]/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-b border-border/40 shadow-sm"
+      "border-b border-border/40 bg-background/80 shadow-sm backdrop-blur-xl"
     )}>
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <Button

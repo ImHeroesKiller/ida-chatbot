@@ -234,9 +234,17 @@ const FIT_VIEW_OPTIONS = { padding: 0.2, duration: 200 } as const;
 
 const PRO_OPTIONS = { hideAttribution: true } as const;
 
+const MINIMAP_NODE_COLORS: Record<WorkflowNodeKind, string> = {
+  trigger: "#10b981",
+  action: "#3b82f6",
+  condition: "#f59e0b",
+  output: "#8b5cf6",
+  approval: "#f43f5e",
+};
+
 function getMiniMapNodeColor(node: Node): string {
   const kind = (node.data as WorkflowNodeData | undefined)?.kind;
-  return kind ? KIND_STYLES[kind].dot : "#64748b";
+  return kind ? MINIMAP_NODE_COLORS[kind] : "#94a3b8";
 }
 
 /** React Flow emits select/dimensions on mount — ignore to avoid parent update loops. */

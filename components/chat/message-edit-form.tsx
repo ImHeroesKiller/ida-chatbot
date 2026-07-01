@@ -28,8 +28,10 @@ export function MessageEditForm({
 }: MessageEditFormProps) {
   const copy = COPY[locale];
   const [value, setValue] = useState(initialValue);
+  const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = value.trim().length > 0 && !isSubmitting;
+  const busy = isSubmitting || submitting;
+  const canSubmit = value.trim().length > 0 && !busy;
 
   return (
     <div className={cn("w-full space-y-2", className)}>
@@ -37,7 +39,7 @@ export function MessageEditForm({
         value={value}
         onChange={(event) => setValue(event.target.value)}
         rows={3}
-        disabled={isSubmitting}
+        disabled={busy}
         className="chat-input min-h-20 resize-y rounded-xl"
         aria-label={copy.editMessage}
       />
@@ -46,8 +48,8 @@ export function MessageEditForm({
           type="button"
           variant="ghost"
           size="sm"
-          className="h-8 text-xs"
-          disabled={isSubmitting}
+          className="h-8 cursor-pointer text-xs"
+          disabled={busy}
           onClick={onCancel}
         >
           {copy.editCancel}
@@ -55,12 +57,16 @@ export function MessageEditForm({
         <Button
           type="button"
           size="sm"
-          className="h-8 gap-1.5 text-xs"
+          className="h-8 cursor-pointer gap-1.5 text-xs"
           disabled={!canSubmit}
-          onClick={() => onSubmit(value.trim())}
+          onClick={() => {
+            if (!canSubmit) return;
+            setSubmitting(true);
+            onSubmit(value.trim());
+          }}
         >
-          {isSubmitting ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          {busy ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
           ) : null}
           {copy.editSave}
         </Button>
