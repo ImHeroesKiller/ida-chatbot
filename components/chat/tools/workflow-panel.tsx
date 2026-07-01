@@ -28,6 +28,7 @@ import type { WorkflowTool } from "@/components/chat/tools/use-workflow";
 import { WorkflowApprovalDialog } from "@/components/chat/tools/workflow-approval-dialog";
 import { WorkflowErrorRecoveryDialog } from "@/components/chat/tools/workflow-error-recovery-dialog";
 import { WorkflowTemplateGallery } from "@/components/chat/tools/workflow-template-gallery";
+import { WorkflowSecurityPanel } from "@/components/chat/tools/workflow-security-panel";
 import { WorksheetConfirmDialog } from "@/components/chat/tools/worksheet/worksheet-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1041,6 +1042,21 @@ function WorkflowPanelInner({
           </div>
         ) : null}
       </div>
+
+      {activeWorkflow ? (
+        <div className="shrink-0 border-t px-3 py-2">
+          <WorkflowSecurityPanel
+            locale={locale}
+            workflow={activeWorkflow}
+            sessionId={sessionId}
+            onSecurityUpdated={(updated) => {
+              workflowTool.updateWorkflow(activeWorkflow.id, {
+                security: updated.security,
+              });
+            }}
+          />
+        </div>
+      ) : null}
 
       {(workflowErrorMessage ||
         isExecuting ||

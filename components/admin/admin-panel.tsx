@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   LineChart,
   LogOut,
+  ShieldCheck,
   Palette,
   ScrollText,
   Settings,
@@ -24,6 +25,7 @@ import { AgentModelsTab } from "@/components/admin/agent-models-tab";
 import { ModelsTab } from "@/components/admin/models-tab";
 import { SettingsTab } from "@/components/admin/settings-tab";
 import { WorkflowAnalyticsDashboard } from "@/components/admin/workflow-analytics-dashboard";
+import { WorkflowAuditTab } from "@/components/admin/workflow-audit-tab";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -116,6 +118,10 @@ export function AdminPanel({
               <LineChart className="size-4" />
               Analytics
             </TabsTrigger>
+            <TabsTrigger value="workflow-audit">
+              <ShieldCheck className="size-4" />
+              Workflow Audit
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="mt-6">
@@ -149,6 +155,9 @@ export function AdminPanel({
               </Link>
             </div>
             <WorkflowAnalyticsDashboard showBackLink={false} />
+          </TabsContent>
+          <TabsContent value="workflow-audit" className="mt-6">
+            <WorkflowAuditTab />
           </TabsContent>
         </Tabs>
       </main>

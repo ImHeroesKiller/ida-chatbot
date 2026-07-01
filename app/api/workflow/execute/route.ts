@@ -9,6 +9,7 @@ import {
   IdaRateLimitError,
 } from "@/lib/rate-limit";
 import { logWorkflowExecutionRequest } from "@/lib/admin/workflow-analytics";
+import { getSessionUser } from "@/lib/auth/session";
 import { executeChatWorkflowStream } from "@/lib/workflow-executor";
 import { workflowDefinitionSchema } from "@/lib/workflow-api-schema";
 import {
@@ -62,6 +63,8 @@ export async function POST(request: Request) {
   }
 
   const workflow = parsed.data.workflow as WorkflowDefinition;
+  const user = await getSessionUser();
+  const actorUserId = user?.id ?? parsed.data.sessionId ?? null;
 
   console.info("[workflow:execute] request", {
     workflowId: workflow.id,
@@ -80,6 +83,7 @@ export async function POST(request: Request) {
       workflow,
       locale: parsed.data.locale,
       sessionId: parsed.data.sessionId,
+      actorUserId,
       activeWorkflowId:
         parsed.data.activeWorkflowId ?? workflow.id,
     })) {

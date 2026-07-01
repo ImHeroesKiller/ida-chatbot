@@ -92,6 +92,15 @@ export function WorkflowApprovalDialog({
                   <p className="mt-1 whitespace-pre-wrap text-sm">{prompt}</p>
                   <p className="mt-2 text-[10px] text-muted-foreground">
                     {checkpoint.pendingNodeLabel} ({checkpoint.pendingNodeKind})
+                    {checkpoint.approvalState &&
+                    checkpoint.approvalState.totalLevels > 1 ? (
+                      <>
+                        {" "}
+                        · {checkpoint.approvalLevelLabel ?? copy.workflowApprovalLevel}{" "}
+                        ({checkpoint.approvalState.currentLevel}/
+                        {checkpoint.approvalState.totalLevels})
+                      </>
+                    ) : null}
                   </p>
                 </div>
                 <div className="space-y-1">

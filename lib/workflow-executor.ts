@@ -23,6 +23,15 @@ import {
   runMultiAgentWorkflowStep,
   type MultiAgentActivity,
 } from "@/lib/agent/multi-agent";
+import {
+  canAccessWorkflow,
+  canApproveAtLevel,
+  createApprovalState,
+  getCurrentApprovalLevelLabel,
+  getWorkflowSecurity,
+  readNodeApprovalLevels,
+  recordWorkflowAudit,
+} from "@/lib/workflow-security";
 import type {
   WorkflowDefinition,
   WorkflowExecutionLogEntry,
@@ -35,6 +44,7 @@ export interface ExecuteChatWorkflowInput {
   locale: Locale;
   sessionId?: string;
   activeWorkflowId?: string;
+  actorUserId?: string | null;
   /** Resume from a persisted checkpoint (approval / recovery). */
   checkpoint?: WorkflowExecutionCheckpoint;
   resumeAction?: WorkflowResumeAction;
@@ -207,6 +217,8 @@ function buildCheckpoint(options: {
   retryCount?: number;
   maxRetries?: number;
   scheduledRunAt?: number;
+  approvalState?: WorkflowExecutionCheckpoint["approvalState"];
+  approvalLevelLabel?: string;
 }): WorkflowExecutionCheckpoint {
   return {
     workflowId: options.workflow.id,
@@ -226,6 +238,8 @@ function buildCheckpoint(options: {
     maxRetries: options.maxRetries,
     approvalPrompt: getNodePrompt(options.node),
     scheduledRunAt: options.scheduledRunAt,
+    approvalState: options.approvalState,
+    approvalLevelLabel: options.approvalLevelLabel,
   };
 }
 
@@ -252,6 +266,36 @@ export async function* executeChatWorkflowStream(
       error: "execute_failed",
     };
     yield { type: "error", message: result.message ?? "execute_failed", result };
+    yield { type: "done", result, checkpoint: null };
+    return;
+  }
+
+  const actorId = input.actorUserId ?? input.sessionId ?? null;
+  const security = getWorkflowSecurity(input.workflow, actorId ?? "anonymous");
+
+  if (!canAccessWorkflow(security, actorId, "execute")) {
+    const result: WorkflowExecutionResult = {
+      workflowId: input.workflow.id,
+      status: "failed",
+      startedAt,
+      completedAt: Date.now(),
+      message: "You do not have permission to execute this workflow.",
+      logs: [],
+      error: "execute_failed",
+    };
+    void recordWorkflowAudit({
+      workflowId: input.workflow.id,
+      workflowName: input.workflow.name,
+      userId: actorId,
+      sessionId: input.sessionId,
+      action: "workflow.execution_failed",
+      details: { reason: "permission_denied" },
+    });
+    yield {
+      type: "error",
+      message: result.message ?? "execute_failed",
+      result,
+    };
     yield { type: "done", result, checkpoint: null };
     return;
   }
@@ -283,13 +327,48 @@ export async function* executeChatWorkflowStream(
   let nextIndex = input.checkpoint?.nextNodeIndex ?? 0;
 
   if (input.checkpoint && input.resumeAction) {
+    if (
+      input.resumeAction === "approve" &&
+      input.checkpoint.approvalState &&
+      !canApproveAtLevel(
+        security,
+        actorId,
+        input.checkpoint.approvalState.currentLevel,
+      )
+    ) {
+      const result: WorkflowExecutionResult = {
+        workflowId: input.workflow.id,
+        status: "failed",
+        startedAt,
+        completedAt: Date.now(),
+        message: "You are not authorized to approve at this level.",
+        logs: input.checkpoint.logs,
+        error: "execute_failed",
+      };
+      yield { type: "error", message: result.message ?? "execute_failed", result };
+      yield { type: "done", result, checkpoint: input.checkpoint };
+      return;
+    }
+
     if (input.resumeAction === "reject") {
       const rejected = applyResumeActionToCheckpoint(
         input.checkpoint,
         "reject",
         input.resumeNote,
+        actorId ?? undefined,
       );
       logs = rejected.logs;
+      void recordWorkflowAudit({
+        workflowId: input.workflow.id,
+        workflowName: input.workflow.name,
+        userId: actorId,
+        sessionId: input.sessionId,
+        action: "workflow.approval_rejected",
+        details: {
+          nodeId: input.checkpoint.pendingNodeId,
+          level: input.checkpoint.approvalState?.currentLevel,
+        },
+      });
       const result = checkpointToExecutionResult(
         rejected,
         "failed",
@@ -303,10 +382,66 @@ export async function* executeChatWorkflowStream(
       input.checkpoint,
       input.resumeAction,
       input.resumeNote,
+      actorId ?? undefined,
     );
     logs = resumed.logs;
     context = resumed.context;
     nextIndex = resumed.nextNodeIndex;
+
+    if (input.resumeAction === "approve") {
+      void recordWorkflowAudit({
+        workflowId: input.workflow.id,
+        workflowName: input.workflow.name,
+        userId: actorId,
+        sessionId: input.sessionId,
+        action: resumed.approvalState
+          ? "workflow.approval_escalated"
+          : "workflow.approval_granted",
+        details: {
+          nodeId: input.checkpoint.pendingNodeId,
+          level: input.checkpoint.approvalState?.currentLevel,
+          nextLevel: resumed.approvalState?.currentLevel,
+        },
+      });
+
+      if (resumed.approvalState) {
+        const pendingNode = orderedNodes[resumed.nextNodeIndex];
+        if (pendingNode) {
+          const checkpoint = buildCheckpoint({
+            workflow: input.workflow,
+            locale: input.locale,
+            startedAt,
+            context: resumed.context,
+            logs: resumed.logs,
+            nextNodeIndex: resumed.nextNodeIndex,
+            orderedNodeIds,
+            node: pendingNode,
+            pauseReason: "approval",
+            approvalState: resumed.approvalState,
+            approvalLevelLabel: resumed.approvalLevelLabel,
+          });
+          yield { type: "approval_required", checkpoint, logs: [...resumed.logs] };
+          const result = checkpointToExecutionResult(
+            checkpoint,
+            "awaiting_approval",
+            `Approval level ${resumed.approvalState.currentLevel}/${resumed.approvalState.totalLevels} required.`,
+          );
+          yield { type: "done", result, checkpoint };
+          return;
+        }
+      }
+    }
+  }
+
+  if (!input.checkpoint) {
+    void recordWorkflowAudit({
+      workflowId: input.workflow.id,
+      workflowName: input.workflow.name,
+      userId: actorId,
+      sessionId: input.sessionId,
+      action: "workflow.executed",
+      details: { nodeCount: orderedNodes.length },
+    });
   }
 
   yield {
@@ -395,15 +530,39 @@ export async function* executeChatWorkflowStream(
           }
         }
 
+        const approvalLevels = readNodeApprovalLevels(node, security);
+        const approvalState = createApprovalState(node.id, approvalLevels);
+        const levelLabel = getCurrentApprovalLevelLabel(
+          approvalState,
+          approvalLevels,
+        );
+
         const approvalLog: WorkflowExecutionLogEntry = {
           ...logBase,
           status: "awaiting_approval",
           agentId: "approver",
-          message: "Waiting for human approval",
+          message:
+            approvalState.totalLevels > 1
+              ? `Waiting for ${levelLabel} (${approvalState.currentLevel}/${approvalState.totalLevels})`
+              : "Waiting for human approval",
           output: approvalOutput,
         };
         logs = pushOrUpdateLog(logs, approvalLog);
         yield { type: "progress", log: approvalLog, logs: [...logs] };
+
+        void recordWorkflowAudit({
+          workflowId: input.workflow.id,
+          workflowName: input.workflow.name,
+          userId: actorId,
+          sessionId: input.sessionId,
+          action: "workflow.approval_requested",
+          details: {
+            nodeId: node.id,
+            level: approvalState.currentLevel,
+            totalLevels: approvalState.totalLevels,
+            levelLabel,
+          },
+        });
 
         const checkpoint = buildCheckpoint({
           workflow: input.workflow,
@@ -415,13 +574,15 @@ export async function* executeChatWorkflowStream(
           orderedNodeIds,
           node,
           pauseReason: "approval",
+          approvalState,
+          approvalLevelLabel: levelLabel,
         });
 
         yield { type: "approval_required", checkpoint, logs: [...logs] };
         const result = checkpointToExecutionResult(
           checkpoint,
           "awaiting_approval",
-          `Approval required at "${node.data.label}".`,
+          `Approval required at "${node.data.label}" (${levelLabel}).`,
         );
         yield { type: "done", result, checkpoint };
         return;
@@ -609,6 +770,14 @@ export async function* executeChatWorkflowStream(
       logs: [...logs],
       output: context,
     };
+    void recordWorkflowAudit({
+      workflowId: input.workflow.id,
+      workflowName: input.workflow.name,
+      userId: actorId,
+      sessionId: input.sessionId,
+      action: "workflow.execution_completed",
+      details: { logCount: logs.length },
+    });
     yield { type: "done", result, checkpoint: null };
   } catch (error) {
     const message =
@@ -637,6 +806,14 @@ export async function* executeChatWorkflowStream(
       logs: [...logs],
       error: "execute_failed",
     };
+    void recordWorkflowAudit({
+      workflowId: input.workflow.id,
+      workflowName: input.workflow.name,
+      userId: actorId,
+      sessionId: input.sessionId,
+      action: "workflow.execution_failed",
+      details: { message },
+    });
     yield { type: "error", message, result };
     yield { type: "done", result, checkpoint: null };
   }

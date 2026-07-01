@@ -1,5 +1,10 @@
 import type { Edge, Node } from "reactflow";
 
+import {
+  attachSecurityToWorkflow,
+  createDefaultWorkflowSecurity,
+  type WorkflowSecuritySettings,
+} from "@/lib/workflow-security";
 import type { WorkflowExecutionCheckpoint } from "@/lib/workflow-execution-state";
 import { mergeWorkflowChatEditGraph } from "@/lib/workflow-chat-edit";
 
@@ -61,6 +66,8 @@ export interface WorkflowDefinition {
   edges: WorkflowEdge[];
   createdAt: number;
   updatedAt: number;
+  /** RBAC visibility, permissions, and approval hierarchy (Phase 3.3). */
+  security?: WorkflowSecuritySettings;
 }
 
 export type WorkflowExecutionStatus =
@@ -105,10 +112,16 @@ export interface CreateWorkflowInput {
   description?: string;
   /** When true (default), the new workflow becomes active. */
   activate?: boolean;
+  /** Owner user/session id for RBAC (defaults to anonymous session). */
+  ownerId?: string;
+  security?: Partial<WorkflowSecuritySettings>;
 }
 
 export type UpdateWorkflowPatch = Partial<
-  Pick<WorkflowDefinition, "name" | "description" | "nodes" | "edges">
+  Pick<
+    WorkflowDefinition,
+    "name" | "description" | "nodes" | "edges" | "security"
+  >
 >;
 
 export interface AddWorkflowNodeInput {
@@ -136,8 +149,12 @@ export function createEmptyWorkflowWorkspace(): WorkflowWorkspace {
 }
 
 function cloneWorkflowDefinition(workflow: WorkflowDefinition): WorkflowDefinition {
+  const ownerId = workflow.security?.ownerId ?? "anonymous";
   return {
     ...workflow,
+    security: workflow.security
+      ? { ...workflow.security, permissions: [...workflow.security.permissions] }
+      : createDefaultWorkflowSecurity(ownerId),
     nodes: workflow.nodes.map((node) => ({
       ...node,
       data: { ...node.data },
@@ -210,15 +227,24 @@ export function createWorkflowDefinition(
   input: CreateWorkflowInput,
 ): WorkflowWorkspace {
   const now = Date.now();
-  const workflow: WorkflowDefinition = {
-    id: createId("workflow"),
-    name: input.name.trim() || "Untitled Workflow",
-    description: input.description?.trim() || undefined,
-    nodes: [],
-    edges: [],
-    createdAt: now,
-    updatedAt: now,
-  };
+  const ownerId = input.ownerId?.trim() || "anonymous";
+  const workflow: WorkflowDefinition = attachSecurityToWorkflow(
+    {
+      id: createId("workflow"),
+      name: input.name.trim() || "Untitled Workflow",
+      description: input.description?.trim() || undefined,
+      nodes: [],
+      edges: [],
+      createdAt: now,
+      updatedAt: now,
+      security: {
+        ...createDefaultWorkflowSecurity(ownerId),
+        ...input.security,
+        ownerId,
+      },
+    },
+    ownerId,
+  );
 
   const activate = input.activate !== false;
 
@@ -251,6 +277,7 @@ export function updateWorkflowDefinition(
         : current.description,
     nodes: patch.nodes ?? current.nodes,
     edges: patch.edges ?? current.edges,
+    security: patch.security ?? current.security,
     updatedAt: now,
   };
 
@@ -313,6 +340,7 @@ export function buildWorkflowWorkspacePersistFingerprint(
       name: wf.name,
       description: wf.description,
       updatedAt: wf.updatedAt,
+      security: wf.security,
       nodes: wf.nodes.map((node) => ({
         id: node.id,
         position: node.position,

@@ -29,7 +29,8 @@
     "test:workflow-actions": "node scripts/test-workflow-actions.mjs",
     "test:workflow-templates": "node scripts/test-workflow-templates.mjs",
     "test:multi-agent": "node scripts/test-multi-agent.mjs",
-    "test:workflow-analytics": "node scripts/test-workflow-analytics.mjs"
+    "test:workflow-analytics": "node scripts/test-workflow-analytics.mjs",
+    "test:workflow-security": "node scripts/test-workflow-security.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

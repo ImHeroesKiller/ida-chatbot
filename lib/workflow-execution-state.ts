@@ -1,4 +1,9 @@
 import type { Locale } from "@/lib/config";
+import {
+  applyApprovalDecision,
+  isApprovalChainComplete,
+  type WorkflowApprovalState,
+} from "@/lib/workflow-security";
 import type {
   WorkflowDefinition,
   WorkflowExecutionLogEntry,
@@ -39,6 +44,9 @@ export interface WorkflowExecutionCheckpoint {
   errorSuggestion?: string;
   approvalPrompt?: string;
   scheduledRunAt?: number;
+  /** Multi-level approval progress (Phase 3.3). */
+  approvalState?: WorkflowApprovalState;
+  approvalLevelLabel?: string;
 }
 
 export function buildOrderedNodeIds(workflow: WorkflowDefinition): string[] {
@@ -146,38 +154,101 @@ export function applyResumeActionToCheckpoint(
   checkpoint: WorkflowExecutionCheckpoint,
   action: WorkflowResumeAction,
   note?: string,
+  actorId?: string,
 ): WorkflowExecutionCheckpoint {
   const next = { ...checkpoint, logs: [...checkpoint.logs] };
 
   if (action === "approve") {
+    const approvalState = checkpoint.approvalState;
+    const level = approvalState?.currentLevel ?? 1;
+    const levelLabel = checkpoint.approvalLevelLabel ?? `Level ${level}`;
+
+    if (approvalState && approvalState.totalLevels > 1) {
+      const updatedState = applyApprovalDecision({
+        state: approvalState,
+        action: "approve",
+        actorId,
+        note,
+      });
+      next.approvalState = updatedState;
+
+      const levelLog: WorkflowExecutionLogEntry = {
+        nodeId: checkpoint.pendingNodeId,
+        label: checkpoint.pendingNodeLabel,
+        kind: checkpoint.pendingNodeKind,
+        status: "completed",
+        agentId: "approver",
+        output: note?.trim() || `Approved (${levelLabel})`,
+        message: `Approval level ${level} completed`,
+        startedAt: Date.now(),
+        completedAt: Date.now(),
+      };
+      next.logs.push(levelLog);
+      next.context += `\n\n[approval] ${checkpoint.pendingNodeLabel} (${levelLabel}): Approved${note ? ` — ${note}` : ""}`;
+
+      if (!isApprovalChainComplete(updatedState)) {
+        next.approvalLevelLabel = `Level ${updatedState.currentLevel}`;
+        const waitingLog: WorkflowExecutionLogEntry = {
+          nodeId: checkpoint.pendingNodeId,
+          label: checkpoint.pendingNodeLabel,
+          kind: checkpoint.pendingNodeKind,
+          status: "awaiting_approval",
+          agentId: "approver",
+          message: `Awaiting approval level ${updatedState.currentLevel}/${updatedState.totalLevels}`,
+          output: checkpoint.approvalPrompt,
+          startedAt: Date.now(),
+        };
+        next.logs.push(waitingLog);
+        return next;
+      }
+    }
+
     const log: WorkflowExecutionLogEntry = {
       nodeId: checkpoint.pendingNodeId,
       label: checkpoint.pendingNodeLabel,
       kind: checkpoint.pendingNodeKind,
       status: "completed",
+      agentId: "approver",
       output: note?.trim() || "Approved",
-      message: "Approved by user",
+      message:
+        approvalState && approvalState.totalLevels > 1
+          ? "All approval levels completed"
+          : "Approved by user",
       startedAt: Date.now(),
       completedAt: Date.now(),
     };
     next.logs.push(log);
     next.context += `\n\n[approval] ${checkpoint.pendingNodeLabel}: Approved${note ? ` — ${note}` : ""}`;
     next.nextNodeIndex += 1;
+    next.approvalState = undefined;
+    next.approvalLevelLabel = undefined;
     return next;
   }
 
   if (action === "reject") {
+    if (checkpoint.approvalState) {
+      next.approvalState = applyApprovalDecision({
+        state: checkpoint.approvalState,
+        action: "reject",
+        actorId,
+        note,
+      });
+    }
+
     const log: WorkflowExecutionLogEntry = {
       nodeId: checkpoint.pendingNodeId,
       label: checkpoint.pendingNodeLabel,
       kind: checkpoint.pendingNodeKind,
       status: "failed",
+      agentId: "approver",
       message: note?.trim() || "Rejected by user",
       startedAt: Date.now(),
       completedAt: Date.now(),
     };
     next.logs.push(log);
     next.context += `\n\n[approval] ${checkpoint.pendingNodeLabel}: Rejected`;
+    next.approvalState = undefined;
+    next.approvalLevelLabel = undefined;
     return next;
   }
 

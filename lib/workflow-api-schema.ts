@@ -18,10 +18,38 @@ export const workflowNodeSchema = z.object({
   }),
 });
 
+const workflowSecuritySchema = z
+  .object({
+    visibility: z.enum(["private", "shared", "company"]).optional(),
+    ownerId: z.string().optional(),
+    permissions: z
+      .array(
+        z.object({
+          userId: z.string().min(1),
+          role: z.enum(["owner", "editor", "viewer"]),
+          grantedAt: z.number().optional(),
+        }),
+      )
+      .optional(),
+    approvalHierarchy: z
+      .array(
+        z.object({
+          level: z.number().int().min(1),
+          label: z.string().min(1),
+          requiredRole: z
+            .enum(["owner", "editor", "viewer", "manager", "director", "admin"])
+            .optional(),
+        }),
+      )
+      .optional(),
+  })
+  .optional();
+
 export const workflowDefinitionSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1).max(200),
   description: z.string().max(1000).optional(),
+  security: workflowSecuritySchema,
   nodes: z.array(workflowNodeSchema).min(1).max(50),
   edges: z
     .array(
@@ -73,4 +101,22 @@ export const workflowCheckpointSchema = z.object({
   errorSuggestion: z.string().optional(),
   approvalPrompt: z.string().optional(),
   scheduledRunAt: z.number().optional(),
+  approvalState: z
+    .object({
+      nodeId: z.string(),
+      totalLevels: z.number().int().min(1),
+      currentLevel: z.number().int().min(1),
+      completedLevels: z.array(z.number().int()),
+      history: z.array(
+        z.object({
+          level: z.number().int(),
+          action: z.enum(["approve", "reject"]),
+          actorId: z.string().optional(),
+          note: z.string().optional(),
+          at: z.number(),
+        }),
+      ),
+    })
+    .optional(),
+  approvalLevelLabel: z.string().optional(),
 });

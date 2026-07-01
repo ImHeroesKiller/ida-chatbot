@@ -293,6 +293,16 @@ export const COPY: Record<
     workflowApprovalApprove: string;
     workflowApprovalReject: string;
     workflowApprovalRequired: string;
+    workflowApprovalLevel: string;
+    workflowSecurityTitle: string;
+    workflowSecurityVisibility: string;
+    workflowSecurityRole: string;
+    workflowSecurityGrants: string;
+    workflowSecurityApprovalLevels: string;
+    workflowSecuritySave: string;
+    workflowSecuritySaving: string;
+    workflowSecuritySaved: string;
+    workflowSecuritySaveFailed: string;
     workflowRecoveryTitle: string;
     workflowRecoveryDescription: string;
     workflowRecoveryError: string;
@@ -893,6 +903,16 @@ export const COPY: Record<
     workflowApprovalApprove: "Setujui",
     workflowApprovalReject: "Tolak",
     workflowApprovalRequired: "Workflow menunggu persetujuan Anda.",
+    workflowApprovalLevel: "Tingkat persetujuan",
+    workflowSecurityTitle: "Keamanan & Izin",
+    workflowSecurityVisibility: "Visibilitas",
+    workflowSecurityRole: "Peran Anda",
+    workflowSecurityGrants: "izin tambahan",
+    workflowSecurityApprovalLevels: "Hierarki persetujuan",
+    workflowSecuritySave: "Simpan keamanan",
+    workflowSecuritySaving: "Menyimpan…",
+    workflowSecuritySaved: "Pengaturan keamanan disimpan.",
+    workflowSecuritySaveFailed: "Gagal menyimpan keamanan.",
     workflowRecoveryTitle: "Pemulihan Error",
     workflowRecoveryDescription:
       "Langkah workflow gagal. Pilih cara melanjutkan eksekusi.",
@@ -1527,6 +1547,16 @@ export const COPY: Record<
     workflowApprovalApprove: "Approve",
     workflowApprovalReject: "Reject",
     workflowApprovalRequired: "Workflow is waiting for your approval.",
+    workflowApprovalLevel: "Approval level",
+    workflowSecurityTitle: "Security & Permissions",
+    workflowSecurityVisibility: "Visibility",
+    workflowSecurityRole: "Your role",
+    workflowSecurityGrants: "extra grants",
+    workflowSecurityApprovalLevels: "Approval hierarchy",
+    workflowSecuritySave: "Save security",
+    workflowSecuritySaving: "Saving…",
+    workflowSecuritySaved: "Security settings saved.",
+    workflowSecuritySaveFailed: "Failed to save security settings.",
     workflowRecoveryTitle: "Error Recovery",
     workflowRecoveryDescription:
       "A workflow step failed. Choose how to continue execution.",
@@ -2151,6 +2181,16 @@ export const COPY: Record<
     workflowApprovalApprove: "批准",
     workflowApprovalReject: "拒绝",
     workflowApprovalRequired: "工作流正在等待您的审批。",
+    workflowApprovalLevel: "审批级别",
+    workflowSecurityTitle: "安全与权限",
+    workflowSecurityVisibility: "可见性",
+    workflowSecurityRole: "您的角色",
+    workflowSecurityGrants: "额外授权",
+    workflowSecurityApprovalLevels: "审批层级",
+    workflowSecuritySave: "保存安全设置",
+    workflowSecuritySaving: "保存中…",
+    workflowSecuritySaved: "安全设置已保存。",
+    workflowSecuritySaveFailed: "保存安全设置失败。",
     workflowRecoveryTitle: "错误恢复",
     workflowRecoveryDescription: "工作流步骤失败，请选择如何继续执行。",
     workflowRecoveryError: "错误详情",
