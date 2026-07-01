@@ -10,6 +10,7 @@ import {
   getWorkflowStreamErrorMessage,
   type WorkflowStreamPayload,
 } from "@/lib/workflow-chat";
+import { COPY } from "@/lib/i18n";
 import type { IdaMessage } from "@/lib/types";
 import {
   type WorksheetDocument,
@@ -53,6 +54,7 @@ export interface StreamToolBridgeDeps {
   lastWorksheetPromptRef: RefObject<string>;
   worksheetCreatedLabel: string;
   workflowCreatedLabel: string;
+  workflowEditedLabel: string;
 }
 
 function patchStreamMessage(
@@ -221,10 +223,19 @@ export function createStreamToolBridge(
       updatedAt: Date.now(),
     });
 
+    patchStreamMessage(messageState, streamId, {
+      worksheetResult: {
+        title: worksheet.title,
+        summary: promptSummary || worksheet.content.slice(0, 160),
+        documentId: persisted.activeDocumentId ?? undefined,
+      },
+    });
+
     if (ctx.isActiveChat()) {
       mirrorWorksheetToPersistLayer(deps, next);
       syncWorksheetErrorDetail(deps, null);
       deps.tools.activateWorksheet();
+      deps.setMessages(messageState.messages);
       toast.success(deps.worksheetCreatedLabel);
     }
 
@@ -286,13 +297,18 @@ export function createStreamToolBridge(
     });
   };
 
-  const onWorkflowDone = (workflow: WorkflowStreamPayload) => {
+  const onWorkflowDone = (
+    workflow: WorkflowStreamPayload,
+    options?: { mode?: "created" | "edited" },
+  ) => {
     console.info("[workflow:bridge] onWorkflowDone", {
       name: workflow.name,
       nodeCount: workflow.nodes?.length ?? 0,
       edgeCount: workflow.edges?.length ?? 0,
     });
 
+    const hadWorkflowBefore =
+      deps.tools.workflow.getWorkspace().workflows.length > 0;
     const imported = deps.tools.workflow.importWorkflowFromStream(workflow);
     const nextWorkspace = deps.tools.workflow.getWorkspace();
 
@@ -331,11 +347,33 @@ export function createStreamToolBridge(
       });
     }
 
+    const mode =
+      options?.mode ?? (hadWorkflowBefore ? "edited" : "created");
+
+    patchStreamMessage(messageState, streamId, {
+      workflowResult: {
+        workflowId: imported.id,
+        name: workflow.name,
+        description: workflow.description,
+        nodeCount: workflow.nodes.length,
+        edgeCount: workflow.edges.length,
+        mode,
+        status: "ready",
+      },
+    });
+
     if (ctx.isActiveChat()) {
       deps.tools.workflow.clearErrorDetail();
       deps.tools.workflow.setEnabled(true);
       deps.tools.openPanel(deps.tools.workflow.panelId);
-      toast.success(deps.workflowCreatedLabel);
+      deps.setMessages(messageState.messages);
+      toast.success(
+        mode === "edited"
+          ? deps.workflowEditedLabel
+          : deps.workflowCreatedLabel,
+      );
+    } else {
+      deps.persistCurrentChat({ messages: messageState.messages });
     }
 
     deps.persistCurrentChat({
@@ -343,6 +381,27 @@ export function createStreamToolBridge(
       activeRightPanel: deps.tools.workflow.panelId,
       workflowToolEnabled: true,
     });
+  };
+
+  const onWorkflowDiscovery = (workflowName?: string) => {
+    deps.tools.workflow.setChatDiscoveryPending?.(true);
+
+    patchStreamMessage(messageState, streamId, {
+      workflowResult: {
+        workflowId: "discovery",
+        name: workflowName?.trim() || COPY[deps.locale].workflowResultDiscovery,
+        nodeCount: 0,
+        edgeCount: 0,
+        mode: "created",
+        status: "discovery",
+      },
+    });
+
+    if (ctx.isActiveChat()) {
+      deps.setMessages(messageState.messages);
+    } else {
+      deps.persistCurrentChat({ messages: messageState.messages });
+    }
   };
 
   const onWorkflowError = (errorCode: string) => {
@@ -439,6 +498,7 @@ export function createStreamToolBridge(
     onResearchMeta,
     onWorksheetDone,
     onWorkflowDone,
+    onWorkflowDiscovery,
     onWorksheetError,
     onWorkflowError,
     onStreamError,

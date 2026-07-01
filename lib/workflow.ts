@@ -92,6 +92,8 @@ export interface WorkflowWorkspace {
   lastExecution?: WorkflowExecutionResult | null;
   /** Persisted pause state for approval gates and error recovery. */
   executionCheckpoint?: WorkflowExecutionCheckpoint | null;
+  /** True after discovery questions — next armed send should generate JSON. */
+  chatDiscoveryPending?: boolean;
   error?: WorkflowErrorCode;
 }
 
@@ -162,6 +164,7 @@ export function normalizeWorkflowWorkspace(
     updatedAt: workspace.updatedAt ?? Date.now(),
     lastExecution: workspace.lastExecution ?? null,
     executionCheckpoint: workspace.executionCheckpoint ?? null,
+    chatDiscoveryPending: workspace.chatDiscoveryPending ?? false,
     error: workspace.error,
   };
 }
@@ -300,6 +303,7 @@ export function buildWorkflowWorkspacePersistFingerprint(
     updatedAt: workspace.updatedAt,
     lastExecution: workspace.lastExecution,
     executionCheckpoint: workspace.executionCheckpoint ?? null,
+    chatDiscoveryPending: workspace.chatDiscoveryPending ?? false,
     error: workspace.error,
     workflows: workspace.workflows.map((wf) => ({
       id: wf.id,
@@ -363,6 +367,31 @@ export interface ImportWorkflowFromStreamInput {
   edges: WorkflowEdge[];
   /** When true (default), imported workflow becomes active. */
   activate?: boolean;
+}
+
+/** Update the active workflow graph from a chat edit payload (in-place). */
+export function applyWorkflowChatEdit(
+  workspace: WorkflowWorkspace,
+  input: ImportWorkflowFromStreamInput,
+): WorkflowWorkspace {
+  const snapshot = normalizeWorkflowWorkspace(workspace);
+  const activeId = snapshot.activeWorkflowId;
+  const active = activeId ? getWorkflowById(snapshot, activeId) : null;
+
+  if (!active) {
+    return importWorkflowFromStream(snapshot, input);
+  }
+
+  return updateWorkflowDefinition(snapshot, active.id, {
+    name: input.name.trim() || active.name,
+    description: input.description?.trim() || active.description,
+    nodes: input.nodes.map((node) => ({
+      ...node,
+      data: normalizeWorkflowNodeData(node.data),
+      position: { ...node.position },
+    })),
+    edges: input.edges.map((edge) => ({ ...edge })),
+  });
 }
 
 /** Replace or append a workflow from chat stream payload. */

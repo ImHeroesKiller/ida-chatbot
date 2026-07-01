@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 
 import { AttachmentPreview } from "@/components/chat/attachment-preview";
+import { ChatToolResultCard } from "@/components/chat/chat-tool-result-card";
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { MessageEditForm } from "@/components/chat/message-edit-form";
 import { WebSearchSources } from "@/components/chat/web-search-sources";
@@ -25,6 +26,8 @@ interface MessageBubbleProps {
   onEdit?: (messageId: string) => void;
   onCancelEdit?: () => void;
   onSubmitEdit?: (messageId: string, content: string) => void;
+  onOpenWorkflowPanel?: () => void;
+  onOpenWorksheetPanel?: () => void;
 }
 
 function formatMessageTime(timestamp: number, locale: Locale): string {
@@ -50,6 +53,8 @@ export function MessageBubble({
   onEdit,
   onCancelEdit,
   onSubmitEdit,
+  onOpenWorkflowPanel,
+  onOpenWorksheetPanel,
 }: MessageBubbleProps) {
   const copy = COPY[locale];
   const isUser = message.role === "user";
@@ -157,6 +162,20 @@ export function MessageBubble({
             <WebSearchSources
               sources={message.webSearchSources}
               locale={locale}
+            />
+          </div>
+        ) : null}
+
+        {!isUser &&
+        !isEditing &&
+        (message.workflowResult || message.worksheetResult) ? (
+          <div className="mt-1.5 w-full">
+            <ChatToolResultCard
+              locale={locale}
+              workflowResult={message.workflowResult}
+              worksheetResult={message.worksheetResult}
+              onOpenWorkflow={onOpenWorkflowPanel}
+              onOpenWorksheet={onOpenWorksheetPanel}
             />
           </div>
         ) : null}

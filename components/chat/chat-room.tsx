@@ -244,6 +244,7 @@ function ChatRoomContent() {
       errors: copy.errors,
       worksheetCreated: copy.worksheetCreated,
       workflowCreated: copy.workflowCreated,
+      workflowEdited: copy.workflowEdited,
     },
   });
 
@@ -438,6 +439,13 @@ function ChatRoomContent() {
                       onEdit={chatSend.handleEditMessage}
                       onCancelEdit={chatSend.handleCancelEdit}
                       onSubmitEdit={chatSend.handleSubmitEdit}
+                      onOpenWorkflowPanel={() => {
+                        tools.workflow.setEnabled(true);
+                        tools.openPanel(tools.workflow.panelId);
+                      }}
+                      onOpenWorksheetPanel={() => {
+                        tools.activateWorksheet();
+                      }}
                     />
                   );
                 })}

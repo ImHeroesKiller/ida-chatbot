@@ -17,6 +17,7 @@ interface PromptContext {
   worksheetPromptSection?: string;
   workflowEnabled?: boolean;
   workflowPromptSection?: string;
+  workflowChatPhase?: "discovery" | "generate" | "edit";
   basePromptOverride?: string | null;
   userCustomPrompt?: string | null;
 }
@@ -41,6 +42,7 @@ export function buildIdaSystemPrompt(
     worksheetPromptSection = "",
     workflowEnabled = false,
     workflowPromptSection = "",
+    workflowChatPhase,
     userCustomPrompt,
   } = context;
 
@@ -147,13 +149,15 @@ ${worksheetEnabled && worksheetPromptSection ? worksheetPromptSection : ""}
 ${workflowEnabled && workflowPromptSection ? workflowPromptSection : ""}
 
 ${
-  workflowEnabled
+  workflowEnabled && workflowChatPhase !== "discovery"
     ? `## Mode Workflow — Prioritas Output
-Saat mode Workflow aktif, prioritas utama kamu adalah menghasilkan JSON workflow yang valid di antara penanda <<<IDA_WORKFLOW_START>>> dan <<<IDA_WORKFLOW_END>>>.
-- Jangan menulis penjelasan, analisis, atau teks panjang di luar penanda workflow.
+Saat mode Workflow aktif (fase generate/edit), prioritas utama kamu adalah menghasilkan JSON workflow yang valid di antara penanda <<<IDA_WORKFLOW_START>>> dan <<<IDA_WORKFLOW_END>>>.
 - Bagian chat di luar penanda maksimal 2 kalimat singkat.
 - Jika ada konflik antara gaya jawaban umum dan aturan Workflow, ikuti aturan Workflow.`
-    : ""
+    : workflowEnabled && workflowChatPhase === "discovery"
+      ? `## Mode Workflow — Fase Discovery
+Saat fase discovery, JANGAN keluarkan JSON workflow. Ajukan pertanyaan konfirmasi yang jelas lalu tunggu balasan pengguna.`
+      : ""
 }
 
 ## Cara Menggunakan Konteks
@@ -185,6 +189,6 @@ ${languageRule}
 - Jangan mulai jawaban dengan salam pembuka (Halo, Hai, Hello, Hi, 你好, dll.) kecuali pengguna menyapa terlebih dahulu.
 - Langsung jawab inti pertanyaan dengan natural, ramah, dan to the point.
 - Gunakan paragraf pendek dan bullet points jika perlu.
-${worksheetEnabled ? "- Dalam mode Worksheet, bagian chat tetap singkat; dokumen lengkap hanya di dalam penanda Worksheet." : workflowEnabled ? "- Dalam mode Workflow: maksimal 2 kalimat di luar penanda <<<IDA_WORKFLOW_START>>>…<<<IDA_WORKFLOW_END>>>; JSON workflow hanya di dalam penanda tersebut." : "- Maksimal 3–4 paragraf per jawaban kecuali diminta detail lebih lanjut."}
+${worksheetEnabled ? "- Dalam mode Worksheet, bagian chat tetap singkat; dokumen lengkap hanya di dalam penanda Worksheet." : workflowEnabled && workflowChatPhase !== "discovery" ? "- Dalam mode Workflow (generate/edit): maksimal 2 kalimat di luar penanda <<<IDA_WORKFLOW_START>>>…<<<IDA_WORKFLOW_END>>>; JSON workflow hanya di dalam penanda tersebut." : workflowEnabled ? "- Dalam mode Workflow discovery: ajukan pertanyaan konfirmasi; tanpa JSON workflow." : "- Maksimal 3–4 paragraf per jawaban kecuali diminta detail lebih lanjut."}
 - Akhiri dengan pertanyaan lanjutan atau saran langkah berikutnya jika relevan${worksheetEnabled || workflowEnabled ? " (kecuali mode Worksheet/Workflow — cukup konfirmasi singkat)." : "."}`;
 }

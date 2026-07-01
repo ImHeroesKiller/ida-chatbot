@@ -20,6 +20,22 @@ export interface IdaResearchSource extends IdaWebSearchSource {
   query?: string;
 }
 
+export interface IdaWorkflowResultCard {
+  workflowId: string;
+  name: string;
+  description?: string;
+  nodeCount: number;
+  edgeCount: number;
+  mode: "created" | "edited";
+  status?: "ready" | "discovery";
+}
+
+export interface IdaWorksheetResultCard {
+  title: string;
+  summary?: string;
+  documentId?: string;
+}
+
 export interface IdaMessage {
   id: string;
   role: "user" | "assistant";
@@ -32,6 +48,8 @@ export interface IdaMessage {
   researchSources?: IdaResearchSource[];
   researchQueries?: string[];
   researchSummary?: string;
+  workflowResult?: IdaWorkflowResultCard;
+  worksheetResult?: IdaWorksheetResultCard;
 }
 
 export interface IdaChatErrorResponse {

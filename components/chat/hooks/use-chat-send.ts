@@ -38,6 +38,7 @@ interface UseChatSendOptions {
     };
     worksheetCreated: string;
     workflowCreated: string;
+    workflowEdited: string;
   };
 }
 
@@ -77,6 +78,7 @@ export function useChatSend({
       errors: copy.errors,
       worksheetCreated: copy.worksheetCreated,
       workflowCreated: copy.workflowCreated,
+      workflowEdited: copy.workflowEdited,
     },
     tools,
     sessionRefs,

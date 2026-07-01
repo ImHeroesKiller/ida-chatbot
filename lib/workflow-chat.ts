@@ -1,4 +1,9 @@
 import type { Locale } from "@/lib/config";
+import {
+  buildWorkflowPhaseInstructions,
+  type WorkflowChatContext,
+  type WorkflowChatPhase,
+} from "@/lib/workflow-chat-context";
 import type {
   WorkflowDefinition,
   WorkflowEdge,
@@ -6,6 +11,17 @@ import type {
   WorkflowNode,
   WorkflowNodeKind,
 } from "@/lib/workflow";
+
+export type {
+  WorkflowChatContext,
+  WorkflowChatPhase,
+  WorkflowChatContextSnapshot,
+} from "@/lib/workflow-chat-context";
+export {
+  buildWorkflowChatContext,
+  resolveWorkflowChatPhase,
+  serializeWorkflowForChatContext,
+} from "@/lib/workflow-chat-context";
 
 /** Primary markers — LLM must use these exactly. */
 export const WORKFLOW_START_MARKER = "<<<IDA_WORKFLOW_START>>>";
@@ -761,7 +777,10 @@ export function getWorkflowStreamErrorMessage(
 export function parseWorkflowFromResponse(
   fullText: string,
   locale: Locale,
-  options?: { logScope?: "chat" | "client" },
+  options?: {
+    logScope?: "chat" | "client";
+    phase?: WorkflowChatPhase;
+  },
 ): WorkflowParseResult {
   const candidates = extractWorkflowJsonCandidates(fullText);
 
@@ -784,13 +803,17 @@ export function parseWorkflowFromResponse(
     }
   }
 
+  const isDiscoveryOnly = options?.phase === "discovery";
+
   const result: WorkflowParseResult = {
-    chatMessage: fullText.trim() || WORKFLOW_PARSE_ERROR_CHAT[locale],
+    chatMessage: fullText.trim() || (isDiscoveryOnly ? fullText.trim() : WORKFLOW_PARSE_ERROR_CHAT[locale]),
     workflow: null,
-    error: fullText.trim() ? "parse_failed" : "empty_workflow",
+    ...(isDiscoveryOnly
+      ? {}
+      : { error: fullText.trim() ? "parse_failed" : "empty_workflow" }),
   };
 
-  if (options?.logScope) {
+  if (options?.logScope && !isDiscoveryOnly) {
     logWorkflowParseAttempt(options.logScope, fullText, result);
   }
 
@@ -809,8 +832,8 @@ function buildStrictWorkflowRules(locale: Locale): string {
 4. Di dalam penanda: HANYA satu objek JSON valid. Tanpa markdown, tanpa komentar, tanpa trailing comma.
 5. Gunakan field persis: "name" (bukan title), "description", "nodes", "edges".
 6. Setiap node WAJIB punya: "id", "label", "kind", "position" — dan "prompt" untuk action/condition/output.
-7. "kind" HARUS salah satu: trigger | action | condition | output (boleh pakai "type" dengan nilai sama, tapi "kind" lebih disukai).
-8. Minimal 2 node, maksimal 6 node. "edges" harus menghubungkan source → target dengan id node yang valid.`,
+7. "kind" HARUS salah satu: trigger | action | condition | approval | output (boleh pakai "type" dengan nilai sama, tapi "kind" lebih disukai).
+8. Minimal 2 node, maksimal 8 node. "edges" harus menghubungkan source → target dengan id node yang valid.`,
     en: `STRICT RULES (MANDATORY — do not violate):
 1. Outside workflow markers, write AT MOST 2 short confirmation sentences. No JSON, bullets, or long explanations outside markers.
 2. Workflow JSON MUST appear EXACTLY between:
@@ -821,8 +844,8 @@ function buildStrictWorkflowRules(locale: Locale): string {
 4. Inside markers: ONLY one valid JSON object. No markdown, comments, or trailing commas.
 5. Use exact fields: "name" (not title), "description", "nodes", "edges".
 6. Every node MUST include: "id", "label", "kind", "position" — plus "prompt" for action/condition/output nodes.
-7. "kind" MUST be one of: trigger | action | condition | output ("type" is tolerated but "kind" is preferred).
-8. Minimum 2 nodes, maximum 6 nodes. "edges" must connect valid node ids source → target.`,
+7. "kind" MUST be one of: trigger | action | condition | approval | output ("type" is tolerated but "kind" is preferred).
+8. Minimum 2 nodes, maximum 8 nodes. "edges" must connect valid node ids source → target.`,
     zh: `严格规则（必须遵守）：
 1. 标记之外最多写 2 句简短确认。标记外不得出现 JSON、列表或长解释。
 2. 工作流 JSON 必须严格位于：
@@ -833,64 +856,83 @@ function buildStrictWorkflowRules(locale: Locale): string {
 4. 标记内只能是单个合法 JSON 对象。不要 markdown、注释或尾随逗号。
 5. 字段必须为："name"（不要用 title）、"description"、"nodes"、"edges"。
 6. 每个节点必须包含："id"、"label"、"kind"、"position"；action/condition/output 节点需要 "prompt"。
-7. "kind" 只能是：trigger | action | condition | output。
-8. 至少 2 个节点，最多 6 个。edges 必须用有效节点 id 连接 source → target。`,
+7. "kind" 只能是：trigger | action | condition | approval | output。
+8. 至少 2 个节点，最多 8 个。edges 必须用有效节点 id 连接 source → target。`,
   };
 
   return rules[locale];
 }
 
-export function buildWorkflowPromptSection(locale: Locale): string {
-  const instructions: Record<Locale, string> = {
-    id: `## Mode Workflow (Otomatisasi Visual) — OUTPUT WAJIB TERSTRUKTUR
-Pengguna sedang membuat workflow otomatisasi melalui panel **Workflow**.
+export function buildWorkflowPromptSection(
+  locale: Locale,
+  context?: WorkflowChatContext | null,
+): string {
+  const phase = context?.phase ?? "discovery";
+  const phaseInstructions = buildWorkflowPhaseInstructions(
+    locale,
+    context ?? {
+      phase,
+      awaitingConfirmation: false,
+      hasActiveWorkflow: false,
+    },
+  );
 
-${buildStrictWorkflowRules(locale)}
+  if (phase === "discovery") {
+    return phaseInstructions;
+  }
 
-Skema JSON eksak (salin struktur ini, sesuaikan isinya):
-${WORKFLOW_START_MARKER}
+  const outputRules =
+    phase === "edit"
+      ? buildStrictWorkflowRules(locale)
+      : `${buildStrictWorkflowRules(locale)}
+
+Saat generate pertama kali, pastikan trigger + minimal satu action + output node ada.`;
+
+  const schemaBlock = `${WORKFLOW_START_MARKER}
 ${WORKFLOW_JSON_SCHEMA_EXAMPLE}
-${WORKFLOW_END_MARKER}
+${WORKFLOW_END_MARKER}`;
 
-Contoh respons lengkap:
-Workflow follow-up pinjaman sudah siap. Silakan edit node di panel Workflow.
+  const examples: Record<Locale, string> = {
+    id: `Contoh respons (${phase === "edit" ? "edit" : "generate"}):
+Perubahan workflow sudah diterapkan. Cek canvas di panel Workflow.
 
-${WORKFLOW_START_MARKER}
-${WORKFLOW_JSON_SCHEMA_EXAMPLE}
-${WORKFLOW_END_MARKER}`,
-    en: `## Workflow Mode (Visual Automation) — STRUCTURED OUTPUT REQUIRED
-The user is building an automation workflow via the **Workflow** panel.
+${schemaBlock}`,
+    en: `Example response (${phase === "edit" ? "edit" : "generate"}):
+Workflow changes applied. Review the canvas in the Workflow panel.
 
-${buildStrictWorkflowRules(locale)}
+${schemaBlock}`,
+    zh: `回复示例（${phase === "edit" ? "编辑" : "生成"}）：
+工作流已更新。请在 Workflow 面板查看画布。
 
-Exact JSON schema (copy this structure, adapt the content):
-${WORKFLOW_START_MARKER}
-${WORKFLOW_JSON_SCHEMA_EXAMPLE}
-${WORKFLOW_END_MARKER}
-
-Full response example:
-Your loan follow-up workflow is ready. Edit nodes in the Workflow panel.
-
-${WORKFLOW_START_MARKER}
-${WORKFLOW_JSON_SCHEMA_EXAMPLE}
-${WORKFLOW_END_MARKER}`,
-    zh: `## 工作流模式（可视化自动化）— 必须结构化输出
-用户正在通过 **Workflow** 面板构建自动化工作流。
-
-${buildStrictWorkflowRules(locale)}
-
-精确 JSON 结构（复制此结构并修改内容）：
-${WORKFLOW_START_MARKER}
-${WORKFLOW_JSON_SCHEMA_EXAMPLE}
-${WORKFLOW_END_MARKER}
-
-完整回复示例：
-贷款跟进工作流已就绪。请在 Workflow 面板中编辑节点。
-
-${WORKFLOW_START_MARKER}
-${WORKFLOW_JSON_SCHEMA_EXAMPLE}
-${WORKFLOW_END_MARKER}`,
+${schemaBlock}`,
   };
 
-  return instructions[locale];
+  return `${phaseInstructions}
+
+${outputRules}
+
+Skema JSON:
+${schemaBlock}
+
+${examples[locale]}`;
+}
+
+export function parseWorkflowChatContextInput(
+  raw: unknown,
+): WorkflowChatContext | null {
+  if (!raw || typeof raw !== "object") return null;
+  const data = raw as Partial<WorkflowChatContext>;
+  const phase = data.phase;
+  if (phase !== "discovery" && phase !== "generate" && phase !== "edit") {
+    return null;
+  }
+  return {
+    phase,
+    awaitingConfirmation: data.awaitingConfirmation === true,
+    hasActiveWorkflow: data.hasActiveWorkflow === true,
+    activeWorkflow:
+      data.activeWorkflow && typeof data.activeWorkflow === "object"
+        ? (data.activeWorkflow as WorkflowChatContext["activeWorkflow"])
+        : undefined,
+  };
 }

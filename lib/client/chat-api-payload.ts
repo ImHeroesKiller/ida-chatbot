@@ -1,6 +1,7 @@
 import { buildAttachmentMessageContent } from "@/lib/client/build-attachment-message";
 import type { Locale } from "@/lib/config";
 import type { IdaMessage } from "@/lib/types";
+import type { WorkflowChatContext } from "@/lib/workflow-chat";
 import { isValidAnonymousUserId } from "@/lib/user-id";
 
 const SESSION_ID_MIN = 8;
@@ -62,6 +63,7 @@ export interface ChatApiRequestBody {
   research?: boolean;
   worksheet?: boolean;
   workflow?: boolean;
+  workflowContext?: WorkflowChatContext;
   messages: Array<{ role: "user" | "assistant"; content: string }>;
 }
 
@@ -74,6 +76,7 @@ export function buildChatApiRequestBody(options: {
   research?: boolean;
   worksheet?: boolean;
   workflow?: boolean;
+  workflowContext?: WorkflowChatContext;
 }): ChatApiRequestBody {
   const apiMessages = toChatApiMessages(options.messages, options.locale);
 
@@ -111,6 +114,10 @@ export function buildChatApiRequestBody(options: {
 
   if (options.workflow) {
     body.workflow = true;
+  }
+
+  if (options.workflowContext) {
+    body.workflowContext = options.workflowContext;
   }
 
   return body;

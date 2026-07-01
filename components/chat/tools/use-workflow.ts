@@ -22,6 +22,7 @@ import {
 } from "@/lib/workflow-chat";
 import type { Locale } from "@/lib/config";
 import {
+  applyWorkflowChatEdit,
   applyWorkflowTemplateToWorkspace,
   addWorkflowNode,
   areWorkflowWorkspaceSnapshotsEqual,
@@ -47,6 +48,10 @@ import {
   type WorkflowTemplateApplyMode,
   type WorkflowWorkspace,
 } from "@/lib/workflow";
+import {
+  buildWorkflowChatContext,
+  type WorkflowChatContext,
+} from "@/lib/workflow-chat";
 import {
   parseWorkflowImportJson,
   resolveWorkflowTemplate,
@@ -183,6 +188,10 @@ export type WorkflowTool = BaseToolState &
     ) => Promise<WorkflowExecutionResult | null>;
     executionCheckpoint: WorkflowExecutionCheckpoint | null;
     clearExecutionCheckpoint: () => WorkflowWorkspaceState;
+    buildWorkflowChatContext: (
+      messages?: import("@/lib/types").IdaMessage[],
+    ) => WorkflowChatContext;
+    setChatDiscoveryPending: (pending: boolean) => WorkflowWorkspaceState;
     deleteWorkflow: (workflowId?: string | null) => WorkflowWorkspaceState;
     deleteNode: (
       nodeId: string,
@@ -586,15 +595,29 @@ export function useWorkflow(): WorkflowTool {
       }
 
       const definition = workflowPayloadToDefinition(payload);
-      const importedWorkspace = importWorkflowFromStream(workspaceRef.current, {
-        name: definition.name,
-        description: definition.description,
-        nodes: definition.nodes,
-        edges: definition.edges,
-        activate: true,
-      });
+      const prev = normalizeWorkflowWorkspace(workspaceRef.current);
+      const hasActiveWorkflow = Boolean(prev.activeWorkflowId && prev.workflows.length > 0);
+      const importedWorkspace = hasActiveWorkflow
+        ? applyWorkflowChatEdit(prev, {
+            name: definition.name,
+            description: definition.description,
+            nodes: definition.nodes,
+            edges: definition.edges,
+            activate: true,
+          })
+        : importWorkflowFromStream(prev, {
+            name: definition.name,
+            description: definition.description,
+            nodes: definition.nodes,
+            edges: definition.edges,
+            activate: true,
+          });
 
-      const normalized = normalizeWorkflowWorkspace(importedWorkspace);
+      const normalized = normalizeWorkflowWorkspace({
+        ...importedWorkspace,
+        chatDiscoveryPending: false,
+        error: undefined,
+      });
       const activeId = normalized.activeWorkflowId;
       const created = activeId ? getWorkflowById(normalized, activeId) : null;
 
@@ -1301,6 +1324,35 @@ export function useWorkflow(): WorkflowTool {
     [clearErrorDetail, setErrorDetail, syncToPersistLayer],
   );
 
+  const setChatDiscoveryPending = useCallback(
+    (pending: boolean): WorkflowWorkspaceState => {
+      const next = applyWorkspacePatch(workspaceRef.current, {
+        chatDiscoveryPending: pending,
+        updatedAt: Date.now(),
+      });
+      workspaceRef.current = next;
+      setWorkspaceInternal(next);
+      syncToPersistLayer(next);
+      return next;
+    },
+    [syncToPersistLayer],
+  );
+
+  const buildWorkflowChatContextForSend = useCallback(
+    (messages?: import("@/lib/types").IdaMessage[]): WorkflowChatContext => {
+      const ws = workspaceRef.current;
+      const activeWorkflow = ws.activeWorkflowId
+        ? getWorkflowById(ws, ws.activeWorkflowId)
+        : null;
+      return buildWorkflowChatContext({
+        workspace: ws,
+        activeWorkflow,
+        messages,
+      });
+    },
+    [],
+  );
+
   const clearExecutionCheckpoint = useCallback((): WorkflowWorkspaceState => {
     const next = applyWorkspacePatch(workspaceRef.current, {
       executionCheckpoint: null,
@@ -1366,6 +1418,8 @@ export function useWorkflow(): WorkflowTool {
     resumeWorkflow,
     executionCheckpoint,
     clearExecutionCheckpoint,
+    buildWorkflowChatContext: buildWorkflowChatContextForSend,
+    setChatDiscoveryPending,
     deleteWorkflow,
     deleteNode,
     applyTemplate,

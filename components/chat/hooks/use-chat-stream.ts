@@ -29,6 +29,7 @@ interface UseChatStreamOptions {
     };
     worksheetCreated: string;
     workflowCreated: string;
+    workflowEdited: string;
   };
   tools: StreamToolCoordinator;
   sessionRefs: ChatSessionRefs;
@@ -109,6 +110,7 @@ export function useChatStream({
         lastWorksheetPromptRef,
         worksheetCreatedLabel: copy.worksheetCreated,
         workflowCreatedLabel: copy.workflowCreated,
+        workflowEditedLabel: copy.workflowEdited,
       };
 
       const bridge = createStreamToolBridge(
@@ -132,6 +134,10 @@ export function useChatStream({
       };
 
       try {
+        const workflowContext = useWorkflow
+          ? tools.workflow.buildWorkflowChatContext?.(contextMessages)
+          : undefined;
+
         const requestBody = buildChatApiRequestBody({
           locale,
           sessionId: apiSessionId,
@@ -141,6 +147,7 @@ export function useChatStream({
           research: useResearch,
           worksheet: useWorksheet,
           workflow: useWorkflow,
+          workflowContext,
         });
 
         const response = await fetch("/api/chat", {
@@ -225,17 +232,28 @@ export function useChatStream({
             }
 
             if (useWorkflow) {
+              const chatPhase =
+                workflowContext?.phase ??
+                tools.workflow.buildWorkflowChatContext?.(contextMessages)
+                  ?.phase;
+
               if (done.workflow) {
-                bridge.onWorkflowDone(done.workflow);
+                bridge.onWorkflowDone(done.workflow, {
+                  mode: chatPhase === "edit" ? "edited" : "created",
+                });
               } else {
                 const clientParsed = parseWorkflowFromResponse(
                   fullStreamedText,
                   locale,
-                  { logScope: "client" },
+                  { logScope: "client", phase: chatPhase },
                 );
 
                 if (clientParsed.workflow) {
-                  bridge.onWorkflowDone(clientParsed.workflow);
+                  bridge.onWorkflowDone(clientParsed.workflow, {
+                    mode: chatPhase === "edit" ? "edited" : "created",
+                  });
+                } else if (chatPhase === "discovery") {
+                  bridge.onWorkflowDiscovery();
                 } else if (done.workflowError) {
                   bridge.onWorkflowError(done.workflowError);
                 } else if (clientParsed.error) {
@@ -271,6 +289,7 @@ export function useChatStream({
       copy.errors,
       copy.worksheetCreated,
       copy.workflowCreated,
+      copy.workflowEdited,
       lastWorksheetPromptRef,
       locale,
       openHandoff,

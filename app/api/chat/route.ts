@@ -22,6 +22,7 @@ import {
 import { isValidAnonymousUserId } from "@/lib/user-id";
 import { createSseStream, sseResponse } from "@/lib/sse";
 import type { IdaChatErrorResponse } from "@/lib/types";
+import { parseWorkflowChatContextInput } from "@/lib/workflow-chat";
 
 const chatRequestSchema = z.object({
   messages: z
@@ -43,6 +44,28 @@ const chatRequestSchema = z.object({
   research: z.boolean().optional(),
   worksheet: z.boolean().optional(),
   workflow: z.boolean().optional(),
+  workflowContext: z
+    .object({
+      phase: z.enum(["discovery", "generate", "edit"]),
+      awaitingConfirmation: z.boolean().optional(),
+      hasActiveWorkflow: z.boolean().optional(),
+      activeWorkflow: z
+        .object({
+          id: z.string(),
+          name: z.string(),
+          description: z.string().optional(),
+          nodes: z.array(z.record(z.string(), z.unknown())),
+          edges: z.array(
+            z.object({
+              id: z.string(),
+              source: z.string(),
+              target: z.string(),
+            }),
+          ),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 export async function POST(request: Request) {
@@ -76,6 +99,7 @@ export async function POST(request: Request) {
     research,
     worksheet,
     workflow,
+    workflowContext,
   } = parsed.data;
 
   if (userId && !isValidAnonymousUserId(userId)) {
@@ -131,6 +155,7 @@ export async function POST(request: Request) {
       research,
       worksheet,
       workflow,
+      workflowContext: parseWorkflowChatContextInput(workflowContext) ?? undefined,
     });
 
     preparedModel = {

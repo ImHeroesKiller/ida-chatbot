@@ -218,6 +218,17 @@ export const COPY: Record<
     workflowExecuted: string;
     workflowSelectWorkflow: string;
     workflowCreated: string;
+    workflowEdited: string;
+    workflowResultTitle: string;
+    workflowResultCreated: string;
+    workflowResultEdited: string;
+    workflowResultDiscovery: string;
+    workflowResultDiscoveryHint: string;
+    workflowResultNodes: string;
+    workflowResultEdges: string;
+    workflowResultOpenCanvas: string;
+    worksheetResultTitle: string;
+    worksheetResultOpenPanel: string;
     workflowImportLatest: string;
     workflowErrorParseFailed: string;
     workflowErrorEmptyWorkflow: string;
@@ -798,6 +809,18 @@ export const COPY: Record<
     workflowExecuted: "Workflow dijalankan (stub)",
     workflowSelectWorkflow: "Pilih workflow",
     workflowCreated: "Workflow berhasil dibuat",
+    workflowEdited: "Workflow berhasil diperbarui",
+    workflowResultTitle: "Workflow",
+    workflowResultCreated: "Dibuat",
+    workflowResultEdited: "Diperbarui",
+    workflowResultDiscovery: "Konfirmasi workflow",
+    workflowResultDiscoveryHint:
+      "Balas pertanyaan di atas, lalu workflow akan dibuat di canvas.",
+    workflowResultNodes: "node",
+    workflowResultEdges: "edge",
+    workflowResultOpenCanvas: "Buka canvas",
+    worksheetResultTitle: "Dokumen",
+    worksheetResultOpenPanel: "Buka dokumen",
     workflowImportLatest: "Impor Workflow Terakhir",
     workflowErrorParseFailed:
       "Format respons workflow tidak dikenali. Coba impor manual atau kirim ulang permintaan.",
@@ -1419,6 +1442,18 @@ export const COPY: Record<
     workflowExecuted: "Workflow executed (stub)",
     workflowSelectWorkflow: "Select workflow",
     workflowCreated: "Workflow created successfully",
+    workflowEdited: "Workflow updated successfully",
+    workflowResultTitle: "Workflow",
+    workflowResultCreated: "Created",
+    workflowResultEdited: "Updated",
+    workflowResultDiscovery: "Workflow confirmation",
+    workflowResultDiscoveryHint:
+      "Reply to the questions above and the workflow will be built on the canvas.",
+    workflowResultNodes: "nodes",
+    workflowResultEdges: "edges",
+    workflowResultOpenCanvas: "Open canvas",
+    worksheetResultTitle: "Document",
+    worksheetResultOpenPanel: "Open document",
     workflowImportLatest: "Import Latest Generated Workflow",
     workflowErrorParseFailed:
       "The workflow response format was not recognized. Try manual import or resend your request.",
@@ -2035,6 +2070,17 @@ export const COPY: Record<
     workflowExecuted: "工作流已执行（占位）",
     workflowSelectWorkflow: "选择工作流",
     workflowCreated: "工作流创建成功",
+    workflowEdited: "工作流更新成功",
+    workflowResultTitle: "工作流",
+    workflowResultCreated: "已创建",
+    workflowResultEdited: "已更新",
+    workflowResultDiscovery: "工作流确认",
+    workflowResultDiscoveryHint: "请回复上方问题，工作流将生成到画布。",
+    workflowResultNodes: "个节点",
+    workflowResultEdges: "条连线",
+    workflowResultOpenCanvas: "打开画布",
+    worksheetResultTitle: "文档",
+    worksheetResultOpenPanel: "打开文档",
     workflowImportLatest: "导入最近生成的工作流",
     workflowErrorParseFailed:
       "无法识别工作流响应格式。请尝试手动导入或重新发送请求。",

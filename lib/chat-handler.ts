@@ -68,7 +68,9 @@ import type {
 } from "./types";
 import {
   buildWorkflowPromptSection,
+  parseWorkflowChatContextInput,
   parseWorkflowFromResponse,
+  type WorkflowChatContext,
 } from "./workflow-chat";
 import {
   buildWorksheetPromptSection,
@@ -88,6 +90,8 @@ export interface IdaChatHandlerInput {
   worksheet?: boolean;
   /** Workflow panel is armed — generate workflow for right sidebar */
   workflow?: boolean;
+  /** Optional workflow chat phase + active graph snapshot for discovery/edit. */
+  workflowContext?: WorkflowChatContext;
 }
 
 export interface IdaChatPreparedContext {
@@ -112,6 +116,7 @@ export interface IdaChatPreparedContext {
   userRequestedResearch: boolean;
   worksheetEnabled: boolean;
   workflowEnabled: boolean;
+  workflowChatContext?: WorkflowChatContext | null;
 }
 
 export interface IdaChatStreamResult extends StreamChatResult {
@@ -294,6 +299,13 @@ export async function prepareIdaChatContext(
   const webSearchActive = webSearchAvailable && userRequestedWebSearch;
 
   const workflowActive = input.workflow === true;
+  const workflowChatContext = workflowActive
+    ? (parseWorkflowChatContextInput(input.workflowContext) ?? {
+        phase: "discovery" as const,
+        awaitingConfirmation: false,
+        hasActiveWorkflow: false,
+      })
+    : null;
 
   const selectedModel =
     options?.model ??
@@ -391,8 +403,9 @@ export async function prepareIdaChatContext(
       ? buildWorksheetPromptSection(locale)
       : "",
     workflowEnabled,
+    workflowChatPhase: workflowChatContext?.phase,
     workflowPromptSection: workflowEnabled
-      ? buildWorkflowPromptSection(locale)
+      ? buildWorkflowPromptSection(locale, workflowChatContext)
       : "",
     basePromptOverride: appConfig.systemPromptOverride,
     userCustomPrompt,
@@ -478,6 +491,7 @@ export async function prepareIdaChatContext(
     userRequestedResearch: researchActive,
     worksheetEnabled,
     workflowEnabled,
+    workflowChatContext,
   };
 }
 
@@ -534,6 +548,7 @@ function finalizeStreamResult(
   if (context.workflowEnabled) {
     const parsed = parseWorkflowFromResponse(fullText, context.locale, {
       logScope: "chat",
+      phase: context.workflowChatContext?.phase,
     });
     chatMessage = parsed.chatMessage;
     result = {
