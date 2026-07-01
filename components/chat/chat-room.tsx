@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HeaderAccountButton } from "@/components/chat/header-account-button";
 import { ChatHeader } from "@/components/chat/header";
 import { ChatHeaderMobileRedesign } from "@/components/chat/header-mobile-redesign";
@@ -162,14 +162,20 @@ function ChatRoomContent() {
     },
   });
 
+  const setWorksheetWorkspaceInboundRef = useRef(
+    worksheet.setWorksheetWorkspaceInbound,
+  );
+  setWorksheetWorkspaceInboundRef.current =
+    worksheet.setWorksheetWorkspaceInbound;
+
   useEffect(() => {
     tools.worksheet.registerSyncToPersistLayer((workspace) => {
-      worksheet.setWorksheetWorkspace(workspace);
+      setWorksheetWorkspaceInboundRef.current(workspace);
     });
     return () => {
       tools.worksheet.registerSyncToPersistLayer(null);
     };
-  }, [tools.worksheet, worksheet]);
+  }, [tools.worksheet.registerSyncToPersistLayer]);
 
   const chatSend = useChatSend({
     locale,

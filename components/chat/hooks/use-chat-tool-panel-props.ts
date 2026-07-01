@@ -57,7 +57,7 @@ export function useChatToolPanelProps({
 
   useLayoutEffect(() => {
     tools.worksheet.setGenerating(worksheetGeneratingFromStream);
-  }, [tools.worksheet, worksheetGeneratingFromStream]);
+  }, [tools.worksheet.setGenerating, worksheetGeneratingFromStream]);
 
   const worksheetGenerating =
     tools.worksheet.isGenerating || worksheetGeneratingFromStream;
@@ -69,13 +69,13 @@ export function useChatToolPanelProps({
       } else {
         tools.worksheet.syncWorkspaceFromExternal(workspace);
       }
-      if (tools.worksheet.syncToPersistLayer) {
-        tools.worksheet.syncToPersistLayer(workspace);
-      } else {
-        worksheet.handleWorksheetChange(workspace);
-      }
+      worksheet.setWorksheetWorkspaceInbound(workspace);
     },
-    [tools, worksheet],
+    [
+      tools.worksheet.hydrateFromExternal,
+      tools.worksheet.syncWorkspaceFromExternal,
+      worksheet.setWorksheetWorkspaceInbound,
+    ],
   );
 
   const handleWorksheetApplyTemplate = useCallback(

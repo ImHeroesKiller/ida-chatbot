@@ -26,6 +26,8 @@ import {
   removeWorksheetDocument,
   setActiveWorksheetDocument,
   setWorksheetLetterheadSelection,
+  areWorksheetWorkspaceSnapshotsEqual,
+  buildWorksheetWorkspacePersistFingerprint,
   setWorksheetWorkspaceError,
   syncWorkspaceLegacyFields,
   updateWorksheetDocument,
@@ -231,6 +233,11 @@ export function useWorksheet(): WorksheetTool {
   const [errorDetail, setErrorDetailState] = useState<string | null>(null);
   const errorDetailRef = useRef<string | null>(null);
   const persistSyncRef = useRef<PersistLayerSync | null>(null);
+  const lastPersistedFingerprintRef = useRef<string | null>(null);
+
+  const resetPersistFingerprint = useCallback(() => {
+    lastPersistedFingerprintRef.current = null;
+  }, []);
 
   useEffect(() => {
     workspaceRef.current = workspace;
@@ -279,7 +286,14 @@ export function useWorksheet(): WorksheetTool {
         external,
         localeRef.current,
       );
+
+      if (areWorksheetWorkspaceSnapshotsEqual(workspaceRef.current, normalized)) {
+        return workspaceRef.current;
+      }
+
       setWorkspace(normalized);
+      lastPersistedFingerprintRef.current =
+        buildWorksheetWorkspacePersistFingerprint(normalized);
       return normalized;
     },
     [setWorkspace],
@@ -296,10 +310,22 @@ export function useWorksheet(): WorksheetTool {
 
   const syncToPersistLayer = useCallback(
     (nextWorkspace?: WorksheetWorkspaceState): WorksheetWorkspaceState => {
+      const base = nextWorkspace ?? workspaceRef.current;
+      if (!base) {
+        return workspaceRef.current;
+      }
+
       const snapshot = syncWorkspaceLegacyFields({
-        ...(nextWorkspace ?? workspaceRef.current),
+        ...base,
         updatedAt: Date.now(),
       });
+      const fingerprint = buildWorksheetWorkspacePersistFingerprint(snapshot);
+
+      if (fingerprint === lastPersistedFingerprintRef.current) {
+        return snapshot;
+      }
+
+      lastPersistedFingerprintRef.current = fingerprint;
       persistSyncRef.current?.(snapshot);
       return snapshot;
     },
@@ -346,7 +372,8 @@ export function useWorksheet(): WorksheetTool {
     setWorkspaceInternal(empty);
     setIsGeneratingState(false);
     clearErrorDetail();
-  }, [clearErrorDetail]);
+    resetPersistFingerprint();
+  }, [clearErrorDetail, resetPersistFingerprint]);
 
   const hydrateWorkspaceState = useCallback((state: WorksheetHydrationInput) => {
     if (state.locale) {
@@ -360,6 +387,8 @@ export function useWorksheet(): WorksheetTool {
       );
       workspaceRef.current = normalized;
       setWorkspaceInternal(normalized);
+      lastPersistedFingerprintRef.current =
+        buildWorksheetWorkspacePersistFingerprint(normalized);
     }
 
     if (state.isGenerating !== undefined) {

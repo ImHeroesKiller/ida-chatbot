@@ -575,3 +575,36 @@ export function setWorksheetWorkspaceError(
     updatedAt: Date.now(),
   };
 }
+
+/** Stable content fingerprint for loop-safe tool ↔ persist sync (excludes `updatedAt`). */
+export function buildWorksheetWorkspacePersistFingerprint(
+  workspace: WorksheetDocument,
+): string {
+  return JSON.stringify({
+    activeDocumentId: workspace.activeDocumentId ?? null,
+    error: workspace.error ?? null,
+    brandingSource: workspace.brandingSource ?? null,
+    letterheadTemplateId: workspace.letterheadTemplateId ?? null,
+    documents: (workspace.documents ?? []).map((document) => ({
+      id: document.id,
+      title: document.title,
+      content: document.content,
+      status: document.status,
+      promptSummary: document.promptSummary,
+      exportedFormats: document.exportedFormats ?? [],
+      brandingSource: document.brandingSource ?? null,
+      letterheadTemplateId: document.letterheadTemplateId ?? null,
+      versionsLength: document.versions?.length ?? 0,
+    })),
+  });
+}
+
+export function areWorksheetWorkspaceSnapshotsEqual(
+  left: WorksheetDocument,
+  right: WorksheetDocument,
+): boolean {
+  return (
+    buildWorksheetWorkspacePersistFingerprint(left) ===
+    buildWorksheetWorkspacePersistFingerprint(right)
+  );
+}

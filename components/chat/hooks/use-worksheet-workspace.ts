@@ -18,6 +18,7 @@ import {
 import type { Locale } from "@/lib/config";
 import {
   addGeneratedWorksheetDocument,
+  areWorksheetWorkspaceSnapshotsEqual,
   createEmptyWorksheetWorkspace,
   hasWorksheetWorkspaceContent,
   normalizeWorksheetDocument,
@@ -98,6 +99,21 @@ export function useWorksheetWorkspace({
     },
     [syncWorkspaceToTool],
   ) as Dispatch<SetStateAction<WorksheetWorkspaceState>>;
+
+  /** Inbound mirror from tool hook — does not echo back to `syncWorkspaceToTool`. */
+  const setWorksheetWorkspaceInbound = useCallback(
+    (workspace: WorksheetWorkspaceState) => {
+      const synced = syncWorkspaceLegacyFields(workspace);
+      worksheetWorkspaceRef.current = synced;
+      setWorksheetWorkspaceState((prev) => {
+        if (areWorksheetWorkspaceSnapshotsEqual(prev, synced)) {
+          return prev;
+        }
+        return synced;
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
     worksheetWorkspaceRef.current = worksheetWorkspace;
@@ -220,6 +236,7 @@ export function useWorksheetWorkspace({
   return {
     worksheetWorkspace,
     setWorksheetWorkspace: applyWorkspace,
+    setWorksheetWorkspaceInbound,
     worksheetWorkspaceRef,
     lastWorksheetPrompt,
     setLastWorksheetPrompt,
