@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   creator: BRAND.name,
   publisher: BRAND.name,
   category: "technology",
-  manifest: "/manifest.json",
+
   robots: {
     index: true,
     follow: true,

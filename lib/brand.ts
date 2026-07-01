@@ -5,7 +5,7 @@ export const BRAND = {
   fullName: "IDA — Intelligent Digital Assistant",
   shortName: "IDA",
   description:
-    "IDA — Intelligent Digital Assistant. Standalone AI chatbot with RAG, memory, and multilingual support.",
+    "IDA — Asisten AI Indonesia untuk chat, Worksheet, Web Search, Research, dan Map. Gratis dicoba.",
   logoSrc: "/ida-logo.png",
   themeColor: "#171717",
   backgroundColor: "#ffffff",

@@ -6,7 +6,7 @@ export function LandingLcpLogo() {
   return (
     <Image
       src={LCP_LOGO}
-      alt="IDA"
+      alt="Logo IDA — Intelligent Digital Assistant"
       width={64}
       height={64}
       sizes="64px"

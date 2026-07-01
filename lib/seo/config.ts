@@ -3,13 +3,14 @@ import { BRAND, getMetadataBase } from "@/lib/brand";
 export const SEO_KEYWORDS = [
   "IDA",
   "Intelligent Digital Assistant",
-  "AI chatbot",
-  "asisten AI",
+  "AI Assistant Indonesia",
+  "Asisten AI",
+  "Asisten AI Indonesia",
+  "AI Agent Indonesia",
   "chatbot Indonesia",
-  "RAG",
+  "Worksheet AI",
   "AI assistant",
   "multilingual chatbot",
-  "customer support AI",
 ] as const;
 
 export const SEO_LOCALES = {
@@ -18,7 +19,7 @@ export const SEO_LOCALES = {
     hreflang: "id",
     title: "IDA — Intelligent Digital Assistant",
     description:
-      "IDA — Asisten AI cerdas dengan RAG, memori percakapan, dan dukungan multibahasa (Indonesia, English, 中文).",
+      "IDA — Asisten AI Indonesia dengan chat, Worksheet, Web Search, Research, dan Map. Gratis dicoba.",
   },
   en: {
     tag: "en-US",

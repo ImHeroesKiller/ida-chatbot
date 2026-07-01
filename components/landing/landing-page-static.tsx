@@ -113,10 +113,10 @@ export function LandingPageStatic() {
         >
           <div className="mx-auto max-w-6xl">
             <div className="mx-auto max-w-2xl text-center">
-              <p className="text-xs font-bold uppercase tracking-widest text-primary">
-                Fitur utama
-              </p>
-              <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
+                <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-primary">
+                  Fitur utama
+                </span>
                 {LANDING_COPY.toolsTitle}
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
@@ -271,9 +271,9 @@ export function LandingPageStatic() {
                     <p className="text-xs text-muted-foreground">AgentFlow</p>
                   </div>
                 </div>
-                <p className="mt-4 text-sm font-medium leading-relaxed">
+                <h3 className="mt-4 text-sm font-semibold leading-relaxed">
                   {LANDING_AGENTFLOW.title}
-                </p>
+                </h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {LANDING_AGENTFLOW.description}
                 </p>

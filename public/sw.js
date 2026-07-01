@@ -5,6 +5,7 @@ const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const PRECACHE_URLS = [
   "/",
   "/offline",
+  "/manifest.webmanifest",
   "/manifest.json",
   "/ida-logo.png",
   "/ida-icon-192.png",
@@ -68,7 +69,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (isStaticAsset(url.pathname) || url.pathname === "/manifest.json") {
+  if (
+    isStaticAsset(url.pathname) ||
+    url.pathname === "/manifest.json" ||
+    url.pathname === "/manifest.webmanifest"
+  ) {
     event.respondWith(
       caches.match(request).then(
         (cached) =>
