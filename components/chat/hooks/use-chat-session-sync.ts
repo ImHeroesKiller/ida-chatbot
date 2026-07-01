@@ -5,10 +5,12 @@ import {
   useEffect,
   useLayoutEffect,
   type Dispatch,
+  type MutableRefObject,
   type SetStateAction,
 } from "react";
 import { flushSync } from "react-dom";
 
+import type { WorkflowWorkspaceState } from "@/components/chat/tools/use-workflow";
 import type { ChatSessionRefs } from "@/components/chat/hooks/use-chat-session-refs";
 import type {
   ToolPersistPatch,
@@ -16,6 +18,11 @@ import type {
 } from "@/components/chat/tools/coordinator-types";
 import type { ChatSession } from "@/lib/chat-store";
 import type { IdaMessage } from "@/lib/types";
+import {
+  createEmptyWorkflowWorkspace,
+  hasWorkflowWorkspaceContent,
+  normalizeWorkflowWorkspace,
+} from "@/lib/workflow";
 
 interface UseChatSessionSyncOptions {
   hydrated: boolean;
@@ -38,6 +45,8 @@ interface UseChatSessionSyncOptions {
   setEditingMessageId: Dispatch<SetStateAction<string | null>>;
   hydrateWorksheetFromChat: (chat: ChatSession) => void;
   hydrateWorkflowFromChat?: (chat: ChatSession) => void;
+  /** Live workflow mirror — bundled into session persist for remote round-trip. */
+  workflowWorkspaceRef?: MutableRefObject<WorkflowWorkspaceState>;
   resetWorksheetForNewChat: () => void;
   resetWorkflowForNewChat?: () => void;
   onAfterSelectChat?: () => void;
@@ -63,6 +72,7 @@ export function useChatSessionSync({
   setEditingMessageId,
   hydrateWorksheetFromChat,
   hydrateWorkflowFromChat,
+  workflowWorkspaceRef,
   resetWorksheetForNewChat,
   resetWorkflowForNewChat,
   onAfterSelectChat,
@@ -113,9 +123,21 @@ export function useChatSessionSync({
     if (!hydrated || isLoading || !currentChat) return;
     if (!canPersistCurrentChatState()) return;
 
+    const workflowSnapshot = workflowWorkspaceRef?.current;
+    const workflow =
+      workflowSnapshot && hasWorkflowWorkspaceContent(workflowSnapshot)
+        ? normalizeWorkflowWorkspace({
+            ...workflowSnapshot,
+            updatedAt: Date.now(),
+          })
+        : workflowSnapshot
+          ? createEmptyWorkflowWorkspace()
+          : undefined;
+
     persistCurrentChat({
       messages,
       ...tools.getPersistPatch(),
+      ...(workflow !== undefined ? { workflow } : {}),
     });
   }, [
     currentChat,
@@ -124,6 +146,7 @@ export function useChatSessionSync({
     messages,
     canPersistCurrentChatState,
     persistCurrentChat,
+    workflowWorkspaceRef,
     tools.activePanel,
     tools.getPersistPatch,
     tools.research.researchSessions,

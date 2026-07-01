@@ -6,6 +6,10 @@ import type { Locale } from "@/lib/config";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 import type { IdaMessage } from "@/lib/types";
 import type { WorksheetDocument } from "@/lib/worksheet";
+import {
+  normalizeWorkflowWorkspace,
+  type WorkflowWorkspace,
+} from "@/lib/workflow";
 
 import type { UserChatSessionRow, UserChatStateRow } from "./types";
 
@@ -19,8 +23,10 @@ interface SessionDbRow {
   quick_replies: string[];
   pinned: boolean;
   worksheet: WorksheetDocument | null;
+  workflow: WorkflowWorkspace | null;
   active_right_panel: string | null;
   worksheet_tool_enabled: boolean | null;
+  workflow_tool_enabled: boolean | null;
   web_search_enabled: boolean | null;
   research_enabled: boolean | null;
   map_enabled: boolean | null;
@@ -43,6 +49,9 @@ function rowToChatSession(row: SessionDbRow): ChatSession {
     activeRightPanel: panel,
     worksheetToolEnabled:
       row.worksheet_tool_enabled ?? panel === "worksheet",
+    workflowToolEnabled:
+      row.workflow_tool_enabled ?? panel === "workflow",
+    workflow: normalizeWorkflowWorkspace(row.workflow),
     webSearchEnabled:
       row.web_search_enabled ?? panel === "web-search",
     researchEnabled:
@@ -80,7 +89,7 @@ export async function loadUserChatStore(
       supabase
         .from("ida_chat_sessions")
         .select(
-          "user_id, chat_id, session_id, locale, title, messages, quick_replies, pinned, worksheet, active_right_panel, worksheet_tool_enabled, web_search_enabled, research_enabled, map_enabled, research_sessions, map_view_state, chat_created_at, chat_updated_at",
+          "user_id, chat_id, session_id, locale, title, messages, quick_replies, pinned, worksheet, workflow, active_right_panel, worksheet_tool_enabled, workflow_tool_enabled, web_search_enabled, research_enabled, map_enabled, research_sessions, map_view_state, chat_created_at, chat_updated_at",
         )
         .eq("user_id", userId)
         .not("chat_id", "is", null),
@@ -144,8 +153,10 @@ export async function saveUserChatStore(
       quick_replies: [],
       pinned: Boolean(chat.pinned),
       worksheet: chat.worksheet ?? null,
+      workflow: chat.workflow ?? null,
       active_right_panel: chat.activeRightPanel ?? null,
       worksheet_tool_enabled: Boolean(chat.worksheetToolEnabled),
+      workflow_tool_enabled: Boolean(chat.workflowToolEnabled),
       web_search_enabled: Boolean(chat.webSearchEnabled),
       research_enabled: Boolean(chat.researchEnabled),
       map_enabled: Boolean(chat.mapEnabled),

@@ -23,7 +23,8 @@
     "test:worksheet-branding": "node scripts/test-worksheet-branding.mjs",
     "test:worksheet-markdown-convert": "node scripts/test-worksheet-markdown-convert.mjs",
     "test:worksheet-docx": "node scripts/test-worksheet-docx.mjs",
-    "test:worksheet-print-typography": "node scripts/test-worksheet-print-typography.mjs"
+    "test:worksheet-print-typography": "node scripts/test-worksheet-print-typography.mjs",
+    "test:workflow-persistence": "node scripts/test-workflow-persistence.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

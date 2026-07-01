@@ -267,6 +267,7 @@ function ChatRoomContent() {
         isExecuting: false,
       });
     },
+    workflowWorkspaceRef: workflowWorkspace.workflowWorkspaceRef,
     resetWorksheetForNewChat: worksheet.resetForNewChat,
     resetWorkflowForNewChat: workflowWorkspace.resetForNewChat,
     onAfterSelectChat: () => setMobileSidebarOpen(false),

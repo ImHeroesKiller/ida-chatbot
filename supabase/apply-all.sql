@@ -233,6 +233,40 @@ create table if not exists ida_worksheet_shares (
 create index if not exists ida_worksheet_shares_expires_at_idx
   on ida_worksheet_shares (expires_at);
 
+-- Migration 013: worksheet workspace per chat session
+
+alter table ida_chat_sessions
+  add column if not exists worksheet jsonb,
+  add column if not exists active_right_panel text,
+  add column if not exists worksheet_tool_enabled boolean not null default false;
+
+-- Migration 014: web search tool toggle per chat session
+
+alter table ida_chat_sessions
+  add column if not exists web_search_enabled boolean not null default false;
+
+-- Migration 015: research tool per chat session
+
+alter table ida_chat_sessions
+  add column if not exists research_enabled boolean not null default false;
+
+alter table ida_chat_sessions
+  add column if not exists research_sessions jsonb not null default '[]'::jsonb;
+
+-- Migration 016: map tool per chat session
+
+alter table ida_chat_sessions
+  add column if not exists map_enabled boolean not null default false;
+
+alter table ida_chat_sessions
+  add column if not exists map_view_state jsonb not null default '{}'::jsonb;
+
+-- Migration 018: workflow workspace per chat session
+
+alter table ida_chat_sessions
+  add column if not exists workflow jsonb,
+  add column if not exists workflow_tool_enabled boolean not null default false;
+
 -- Migration 017: user profile preferences
 
 alter table ida_users
