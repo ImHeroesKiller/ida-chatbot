@@ -1,4 +1,5 @@
 export * from "./map-tool";
+export * from "./map-quota";
 export * from "./use-map";
 export * from "./map-panel";
 export * from "./map-view";

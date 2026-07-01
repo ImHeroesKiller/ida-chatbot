@@ -174,6 +174,26 @@ export function useToolsCoordinator(
   );
 
   /**
+   * Map toggle — arms/disarms without disabling sibling tools.
+   */
+  const toggleMapTool = useCallback(
+    (openPanelOnEnable = true) => {
+      const { map } = bundle;
+      const isActive = map.isEnabled || panels.activePanel === map.panelId;
+      const next = !isActive;
+
+      map.setEnabled(next);
+
+      if (next && openPanelOnEnable) {
+        openPanel(map.panelId);
+      } else if (!next && panels.activePanel === map.panelId) {
+        map.closePanel();
+      }
+    },
+    [bundle, openPanel, panels.activePanel],
+  );
+
+  /**
    * Full reset for New Chat: close all panels, then clear every tool hook.
    */
   const resetAllTools = useCallback(() => {
@@ -198,6 +218,7 @@ export function useToolsCoordinator(
     toggleTool,
     toggleWebSearchInternet,
     toggleResearchTool,
+    toggleMapTool,
     setWorksheetEnabled: ui.setWorksheetEnabled,
     setWebSearchEnabled: ui.setWebSearchEnabled,
     setResearchEnabled: ui.setResearchEnabled,

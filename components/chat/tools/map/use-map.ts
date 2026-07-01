@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
   useBaseToolState,
@@ -9,6 +9,7 @@ import {
   type ToolHydrationInput,
 } from "@/components/chat/tools/base-tool-state";
 import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
+import type { ToolQuotaState } from "@/components/chat/tools/types";
 import {
   createDefaultMapViewState,
   createMapMarkerId,
@@ -16,6 +17,11 @@ import {
   type MapMarker,
   type MapViewState,
 } from "@/lib/map-types";
+
+import {
+  createMapQuotaState,
+  MAP_QUOTA_DEFAULTS,
+} from "./map-quota";
 
 const PANEL_ID = TOOL_PANEL_IDS.map;
 const DEFAULT_MARKER_ZOOM = 14;
@@ -29,6 +35,8 @@ export type MapMarkerPatch = Partial<Pick<MapMarker, "label" | "lat" | "lng">>;
 export type MapTool = BaseToolState &
   BaseToolLifecycle<MapHydrationInput> & {
     viewState: MapViewState;
+    /** Placeholder quota state — not enforced until account management exists. */
+    quota: ToolQuotaState;
     setViewState: (state: MapViewState) => void;
     addMarkerAt: (lat: number, lng: number, label?: string) => MapMarker;
     addMarkerAtCenter: () => MapMarker;
@@ -48,9 +56,14 @@ function buildMarkerLabel(count: number, custom?: string): string {
 }
 
 /**
- * Map tool: hook-persisted view state (`mapViewState` on ChatSession).
+ * Map tool hook — implements `BaseToolState` and is registered via
+ * `useToolsCoordinator` → `useToolRuntime`. Multiple tools may stay armed;
+ * the coordinator only enforces exclusive sidebar panels.
+ *
+ * View state is persisted on `ChatSession.mapViewState`.
  */
 export function useMap(): MapTool {
+  const [quota, setQuota] = useState<ToolQuotaState>(createMapQuotaState);
   const [viewState, setViewStateInternal] = useState<MapViewState>(
     createDefaultMapViewState,
   );
@@ -61,6 +74,19 @@ export function useMap(): MapTool {
 
   const resetViewState = useCallback(() => {
     setViewStateInternal(createDefaultMapViewState());
+  }, []);
+
+  const resetQuota = useCallback(() => {
+    setQuota(createMapQuotaState());
+  }, []);
+
+  const incrementQuotaUsage = useCallback(() => {
+    // TODO: Integrate with admin account management for per-user quota
+    if (!MAP_QUOTA_DEFAULTS.enabled) return;
+    setQuota((current) => ({
+      ...current,
+      used: current.used + 1,
+    }));
   }, []);
 
   const hydrateViewState = useCallback((state: MapHydrationInput) => {
@@ -79,7 +105,10 @@ export function useMap(): MapTool {
     resetForNewChat,
   } = useBaseToolState<MapHydrationInput>(PANEL_ID, {
     onHydrate: hydrateViewState,
-    onReset: resetViewState,
+    onReset: () => {
+      resetViewState();
+      resetQuota();
+    },
   });
 
   const updateViewState = useCallback(
@@ -107,9 +136,10 @@ export function useMap(): MapTool {
         };
       });
 
+      incrementQuotaUsage();
       return marker;
     },
-    [updateViewState],
+    [incrementQuotaUsage, updateViewState],
   );
 
   const addMarkerAtCenter = useCallback(() => {
@@ -129,8 +159,9 @@ export function useMap(): MapTool {
       };
     });
 
+    incrementQuotaUsage();
     return marker;
-  }, [updateViewState]);
+  }, [incrementQuotaUsage, updateViewState]);
 
   const updateMarker = useCallback(
     (markerId: string, patch: MapMarkerPatch) => {
@@ -217,11 +248,14 @@ export function useMap(): MapTool {
     resetViewState();
   }, [resetViewState]);
 
+  const quotaSnapshot = useMemo(() => ({ ...quota }), [quota]);
+
   return {
     panelId,
     isEnabled,
     isPanelOpen,
     viewState,
+    quota: quotaSnapshot,
     setEnabled,
     toggleTool,
     openPanel,

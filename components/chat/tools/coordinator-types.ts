@@ -79,6 +79,8 @@ export interface ToolToggleCoordinator {
   toggleWebSearchInternet: (openPanelOnEnable?: boolean) => void;
   /** Toggle Research armed state + panel via coordinator (multi-tool safe). */
   toggleResearchTool: (openPanelOnEnable?: boolean) => void;
+  /** Toggle Map armed state + panel via coordinator (multi-tool safe). */
+  toggleMapTool: (openPanelOnEnable?: boolean) => void;
 }
 
 export interface ToolUiCoordinator {
