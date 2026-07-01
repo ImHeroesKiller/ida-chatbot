@@ -203,6 +203,23 @@ function ChatRoomContent() {
     };
   }, [tools.workflow.registerSyncToPersistLayer]);
 
+  useEffect(() => {
+    tools.workflow.registerToolCoordinatorBridge({
+      tools,
+      locale,
+      getWorksheetWorkspace: () => worksheet.worksheetWorkspaceRef.current,
+      persistCurrentChat,
+    });
+    return () => {
+      tools.workflow.registerToolCoordinatorBridge(null);
+    };
+  }, [
+    locale,
+    persistCurrentChat,
+    tools,
+    worksheet.worksheetWorkspaceRef,
+  ]);
+
   const chatSend = useChatSend({
     locale,
     apiUserId,

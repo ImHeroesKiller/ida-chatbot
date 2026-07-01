@@ -42,6 +42,11 @@ import {
   type WorkflowWorkspace,
 } from "@/lib/workflow";
 
+import {
+  executeClientWorkflowAction,
+  type WorkflowToolCoordinatorBridge,
+} from "@/components/chat/tools/workflow-node-actions-client";
+
 import { createWorkflowQuotaState } from "./workflow-quota";
 
 const PANEL_ID = TOOL_PANEL_IDS.workflow;
@@ -124,6 +129,10 @@ export type WorkflowTool = BaseToolState &
       options?: { force?: boolean },
     ) => WorkflowWorkspaceState;
     registerSyncToPersistLayer: (sync: PersistLayerSync | null) => void;
+    /** Chat-room bridge for worksheet/map/research tool dispatch during execution. */
+    registerToolCoordinatorBridge: (
+      bridge: WorkflowToolCoordinatorBridge | null,
+    ) => void;
     setActiveWorkflowId: (workflowId: string | null) => WorkflowWorkspaceState;
     selectWorkflow: (workflowId: string) => void;
     createWorkflow: (input: CreateWorkflowInput) => WorkflowDefinition | null;
@@ -196,6 +205,9 @@ export function useWorkflow(): WorkflowTool {
   const [errorDetail, setErrorDetailState] = useState<string | null>(null);
   const errorDetailRef = useRef<string | null>(null);
   const persistSyncRef = useRef<PersistLayerSync | null>(null);
+  const toolCoordinatorBridgeRef = useRef<WorkflowToolCoordinatorBridge | null>(
+    null,
+  );
   const lastPersistedFingerprintRef = useRef<string | null>(null);
   const lastGeneratedWorkflowSourceRef = useRef<string | null>(null);
   const [lastGeneratedWorkflowSource, setLastGeneratedWorkflowSourceState] =
@@ -246,6 +258,13 @@ export function useWorkflow(): WorkflowTool {
   const registerSyncToPersistLayer = useCallback(
     (sync: PersistLayerSync | null) => {
       persistSyncRef.current = sync;
+    },
+    [],
+  );
+
+  const registerToolCoordinatorBridge = useCallback(
+    (bridge: WorkflowToolCoordinatorBridge | null) => {
+      toolCoordinatorBridgeRef.current = bridge;
     },
     [],
   );
@@ -724,6 +743,52 @@ export function useWorkflow(): WorkflowTool {
           onProgress: ({ logs }) => {
             applyProgress(logs);
           },
+          onToolAction: async (payload) => {
+            applyProgress(payload.logs);
+
+            if (!isCurrentExecution()) return;
+
+            const bridge = toolCoordinatorBridgeRef.current;
+            if (!bridge) return;
+
+            try {
+              const clientResult = await executeClientWorkflowAction(
+                bridge,
+                payload.action,
+                payload.dispatch,
+              );
+
+              if (!isCurrentExecution()) return;
+
+              setWorkspaceInternal((prev) => {
+                const logs = prev.lastExecution?.logs ?? [];
+                const patchedLogs = logs.map((log) =>
+                  log.nodeId === payload.nodeId
+                    ? {
+                        ...log,
+                        message: clientResult.success
+                          ? `${log.message ?? ""} ${clientResult.message}`.trim()
+                          : clientResult.message,
+                        output: clientResult.output || log.output,
+                      }
+                    : log,
+                );
+
+                return {
+                  ...prev,
+                  lastExecution: {
+                    workflowId: targetId,
+                    status: "running",
+                    startedAt,
+                    logs: patchedLogs,
+                  },
+                  updatedAt: Date.now(),
+                };
+              });
+            } catch (error) {
+              console.error("[workflow:tool_action]", error);
+            }
+          },
         });
 
         if (!isCurrentExecution()) {
@@ -850,6 +915,7 @@ export function useWorkflow(): WorkflowTool {
     hydrateFromExternal,
     syncToPersistLayer,
     registerSyncToPersistLayer,
+    registerToolCoordinatorBridge,
     setActiveWorkflowId,
     selectWorkflow,
     createWorkflow,

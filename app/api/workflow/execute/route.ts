@@ -123,6 +123,15 @@ export async function POST(request: Request) {
           log: event.log,
           logs: event.logs,
         });
+      } else if (event.type === "tool_action") {
+        send("tool_action", {
+          nodeId: event.nodeId,
+          action: event.action,
+          dispatch: event.dispatch,
+          output: event.output,
+          message: event.message,
+          logs: event.logs,
+        });
       } else if (event.type === "done") {
         console.info("[workflow:execute] completed", {
           workflowId: event.result.workflowId,

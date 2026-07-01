@@ -33,6 +33,13 @@ import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import { inspectWorkflowResponse } from "@/lib/workflow-chat";
 import {
+  WORKFLOW_NODE_ACTIONS,
+  getWorkflowNodeActionDefinition,
+  parseWorkflowNodeActionId,
+  readWorkflowNodeActionParams,
+  type WorkflowNodeActionId,
+} from "@/lib/workflow-actions";
+import {
   getWorkflowNodePrompt,
   type WorkflowNodeData,
   type WorkflowNodeKind,
@@ -284,6 +291,53 @@ function WorkflowPanelInner({
     [activeWorkflow, selectedNode, workflowTool],
   );
 
+  const selectedNodeActionId = useMemo(() => {
+    if (!selectedNode) return "llm" as WorkflowNodeActionId;
+    return parseWorkflowNodeActionId(selectedNode.data.config?.action);
+  }, [selectedNode]);
+
+  const selectedNodeAction = useMemo(
+    () => getWorkflowNodeActionDefinition(selectedNodeActionId),
+    [selectedNodeActionId],
+  );
+
+  const selectedNodeActionParams = useMemo(() => {
+    if (!selectedNode) return {};
+    return readWorkflowNodeActionParams(selectedNode);
+  }, [selectedNode]);
+
+  const handleNodeActionChange = useCallback(
+    (actionId: WorkflowNodeActionId) => {
+      if (!selectedNode) return;
+      updateSelectedNodeData({
+        config: {
+          ...selectedNode.data.config,
+          action: actionId,
+        },
+      });
+    },
+    [selectedNode, updateSelectedNodeData],
+  );
+
+  const handleNodeActionParamChange = useCallback(
+    (key: string, value: string) => {
+      if (!selectedNode) return;
+      updateSelectedNodeData({
+        config: {
+          ...selectedNode.data.config,
+          actionParams: {
+            ...readWorkflowNodeActionParams(selectedNode),
+            [key]: value,
+          },
+        },
+      });
+    },
+    [selectedNode, updateSelectedNodeData],
+  );
+
+  const showNodeActionConfig =
+    selectedNode?.data.kind === "action" || selectedNode?.data.kind === "output";
+
   return (
     <aside
       className={cn(
@@ -501,6 +555,83 @@ function WorkflowPanelInner({
                   className="min-h-[4rem] resize-none text-xs"
                 />
               </div>
+              {showNodeActionConfig ? (
+                <>
+                  <div className="space-y-1">
+                    <Label htmlFor="workflow-node-action" className="text-xs">
+                      {copy.workflowNodeAction}
+                    </Label>
+                    <select
+                      id="workflow-node-action"
+                      value={selectedNodeActionId}
+                      onChange={(event) =>
+                        handleNodeActionChange(
+                          event.target.value as WorkflowNodeActionId,
+                        )
+                      }
+                      className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+                    >
+                      {WORKFLOW_NODE_ACTIONS.map((action) => (
+                        <option key={action.id} value={action.id}>
+                          {action.label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[10px] text-muted-foreground">
+                      {selectedNodeAction.description}
+                    </p>
+                  </div>
+                  {selectedNodeAction.paramFields.length > 0 ? (
+                    <div className="space-y-2 rounded-md border border-dashed p-2">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {copy.workflowActionParams}
+                      </p>
+                      {selectedNodeAction.paramFields.map((field) => (
+                        <div key={field.key} className="space-y-1">
+                          <Label
+                            htmlFor={`workflow-action-${field.key}`}
+                            className="text-xs"
+                          >
+                            {field.label}
+                          </Label>
+                          {field.multiline ? (
+                            <Textarea
+                              id={`workflow-action-${field.key}`}
+                              value={selectedNodeActionParams[field.key] ?? ""}
+                              onChange={(event) =>
+                                handleNodeActionParamChange(
+                                  field.key,
+                                  event.target.value,
+                                )
+                              }
+                              rows={3}
+                              placeholder={field.placeholder}
+                              className="min-h-[4rem] resize-none text-xs"
+                            />
+                          ) : (
+                            <Input
+                              id={`workflow-action-${field.key}`}
+                              value={selectedNodeActionParams[field.key] ?? ""}
+                              onChange={(event) =>
+                                handleNodeActionParamChange(
+                                  field.key,
+                                  event.target.value,
+                                )
+                              }
+                              placeholder={field.placeholder}
+                              className="h-8 text-xs"
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-muted-foreground">
+                      {copy.workflowActionLlmHint}
+                    </p>
+                  )}
+                </>
+              ) : null}
               {selectedNode.data.kind !== "trigger" ? (
                 <div className="space-y-1">
                   <Label htmlFor="workflow-node-prompt" className="text-xs">

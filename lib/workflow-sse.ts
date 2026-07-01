@@ -1,6 +1,12 @@
+import type { ResolvedWorkflowNodeAction } from "@/lib/workflow-actions";
 import type { WorkflowExecutionLogEntry, WorkflowExecutionResult } from "@/lib/workflow";
 
-export type WorkflowSseEventType = "start" | "progress" | "done" | "error";
+export type WorkflowSseEventType =
+  | "start"
+  | "progress"
+  | "tool_action"
+  | "done"
+  | "error";
 
 export interface WorkflowSseStartPayload {
   workflowId: string;
@@ -10,6 +16,15 @@ export interface WorkflowSseStartPayload {
 
 export interface WorkflowSseProgressPayload {
   log: WorkflowExecutionLogEntry;
+  logs: WorkflowExecutionLogEntry[];
+}
+
+export interface WorkflowSseToolActionPayload {
+  nodeId: string;
+  action: ResolvedWorkflowNodeAction;
+  dispatch?: Record<string, string>;
+  output: string;
+  message: string;
   logs: WorkflowExecutionLogEntry[];
 }
 

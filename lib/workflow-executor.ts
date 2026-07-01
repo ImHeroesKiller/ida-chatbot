@@ -5,6 +5,12 @@ import { loadAppConfig } from "@/lib/admin/config";
 import { getProviderApiKey } from "@/lib/admin/models";
 import { resolveToolModel } from "@/lib/admin/tool-model";
 import type { Locale } from "@/lib/config";
+import {
+  executeServerWorkflowAction,
+  resolveWorkflowNodeAction,
+  workflowActionRequiresClientDispatch,
+  type ResolvedWorkflowNodeAction,
+} from "@/lib/workflow-actions";
 import type {
   WorkflowDefinition,
   WorkflowExecutionLogEntry,
@@ -31,6 +37,15 @@ export type WorkflowExecuteProgressEvent =
   | {
       type: "progress";
       log: WorkflowExecutionLogEntry;
+      logs: WorkflowExecutionLogEntry[];
+    }
+  | {
+      type: "tool_action";
+      nodeId: string;
+      action: ResolvedWorkflowNodeAction;
+      dispatch?: Record<string, string>;
+      output: string;
+      message: string;
       logs: WorkflowExecutionLogEntry[];
     }
   | { type: "done"; result: WorkflowExecutionResult }
@@ -190,6 +205,48 @@ Return only the step result.`,
   return trimmed;
 }
 
+async function executeWorkflowNodeStep(options: {
+  locale: Locale;
+  node: WorkflowNode;
+  priorContext: string;
+}): Promise<{
+  output: string;
+  message: string;
+  action: ResolvedWorkflowNodeAction;
+  dispatch?: Record<string, string>;
+  success: boolean;
+}> {
+  const { node, priorContext, locale } = options;
+  const action = resolveWorkflowNodeAction(node, priorContext);
+
+  if (node.data.kind === "condition" || action.id === "llm") {
+    const output = await runLlmStep({
+      locale,
+      node,
+      priorContext,
+    });
+    return {
+      output,
+      message: "Step completed",
+      action,
+      success: true,
+    };
+  }
+
+  const toolResult = await executeServerWorkflowAction(action, {
+    locale,
+    workflowContext: priorContext,
+  });
+
+  return {
+    output: toolResult.output || toolResult.message,
+    message: toolResult.message,
+    action,
+    dispatch: toolResult.dispatch,
+    success: toolResult.success,
+  };
+}
+
 /**
  * Execute a chat workflow sequentially, yielding per-node progress events.
  */
@@ -276,28 +333,53 @@ export async function* executeChatWorkflowStream(
         continue;
       }
 
+      const resolvedAction = resolveWorkflowNodeAction(node, context);
+      const runningMessage =
+        resolvedAction.id === "llm"
+          ? "Running…"
+          : `Running ${resolvedAction.id.replace(/_/g, " ")}…`;
+
       const runningLog: WorkflowExecutionLogEntry = {
         ...logBase,
         status: "running",
-        message: "Running…",
+        actionId: resolvedAction.id,
+        message: runningMessage,
       };
       let nextLogs = pushOrUpdateLog(logs, runningLog);
       logs.splice(0, logs.length, ...nextLogs);
       yield { type: "progress", log: runningLog, logs: [...logs] };
 
-      const output = await runLlmStep({
+      const stepResult = await executeWorkflowNodeStep({
         locale: input.locale,
         node,
         priorContext: context,
       });
 
+      if (!stepResult.success) {
+        throw new Error(stepResult.message);
+      }
+
+      const output = stepResult.output;
       context += `\n\n[${node.data.kind}] ${node.data.label}: ${output}`;
+
+      if (workflowActionRequiresClientDispatch(stepResult.action)) {
+        yield {
+          type: "tool_action",
+          nodeId: node.id,
+          action: stepResult.action,
+          dispatch: stepResult.dispatch,
+          output,
+          message: stepResult.message,
+          logs: [...logs],
+        };
+      }
 
       const completedLog: WorkflowExecutionLogEntry = {
         ...logBase,
         status: "completed",
+        actionId: stepResult.action.id,
         output,
-        message: "Step completed",
+        message: stepResult.message,
         completedAt: Date.now(),
       };
       nextLogs = pushOrUpdateLog(logs, completedLog);

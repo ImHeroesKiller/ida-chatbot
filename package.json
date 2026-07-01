@@ -25,7 +25,8 @@
     "test:worksheet-docx": "node scripts/test-worksheet-docx.mjs",
     "test:worksheet-print-typography": "node scripts/test-worksheet-print-typography.mjs",
     "test:workflow-persistence": "node scripts/test-workflow-persistence.mjs",
-    "test:workflow-execute-stream": "node scripts/test-workflow-execute-stream.mjs"
+    "test:workflow-execute-stream": "node scripts/test-workflow-execute-stream.mjs",
+    "test:workflow-actions": "node scripts/test-workflow-actions.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

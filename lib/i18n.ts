@@ -228,6 +228,9 @@ export const COPY: Record<
     workflowDebugShowRaw: string;
     workflowDebugHideRaw: string;
     workflowNodePrompt: string;
+    workflowNodeAction: string;
+    workflowActionParams: string;
+    workflowActionLlmHint: string;
     workflowExecutionLogs: string;
     workflowDeleteConfirmDescription: string;
     toolsImage: string;
@@ -737,6 +740,9 @@ export const COPY: Record<
     workflowDebugShowRaw: "Tampilkan respons mentah",
     workflowDebugHideRaw: "Sembunyikan respons mentah",
     workflowNodePrompt: "Prompt LLM",
+    workflowNodeAction: "Aksi tool",
+    workflowActionParams: "Parameter aksi",
+    workflowActionLlmHint: "Gunakan prompt LLM di bawah saat tidak memilih tool.",
     workflowExecutionLogs: "Log Eksekusi",
     workflowDeleteConfirmDescription:
       "Workflow aktif dan semua node-nya akan dihapus dari chat ini.",
@@ -1280,6 +1286,9 @@ export const COPY: Record<
     workflowDebugShowRaw: "Show raw response",
     workflowDebugHideRaw: "Hide raw response",
     workflowNodePrompt: "LLM Prompt",
+    workflowNodeAction: "Tool action",
+    workflowActionParams: "Action parameters",
+    workflowActionLlmHint: "Uses the LLM prompt below when no tool is selected.",
     workflowExecutionLogs: "Execution Logs",
     workflowDeleteConfirmDescription:
       "The active workflow and all of its nodes will be removed from this chat.",
@@ -1817,6 +1826,9 @@ export const COPY: Record<
     workflowDebugShowRaw: "显示原始响应",
     workflowDebugHideRaw: "隐藏原始响应",
     workflowNodePrompt: "LLM 提示词",
+    workflowNodeAction: "工具动作",
+    workflowActionParams: "动作参数",
+    workflowActionLlmHint: "未选择工具时使用下方 LLM 提示词。",
     workflowExecutionLogs: "执行日志",
     workflowDeleteConfirmDescription: "当前工作流及其所有节点将从本对话中删除。",
     toolsImage: "图像",

@@ -23,6 +23,8 @@ export interface WorkflowExecutionLogEntry {
   label: string;
   kind: WorkflowNodeKind;
   status: "skipped" | "running" | "completed" | "failed";
+  /** Tool action invoked for this step (when not plain LLM). */
+  actionId?: string;
   output?: string;
   message?: string;
   startedAt: number;

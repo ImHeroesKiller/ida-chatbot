@@ -3,12 +3,14 @@ import type {
   WorkflowSseErrorPayload,
   WorkflowSseProgressPayload,
   WorkflowSseStartPayload,
+  WorkflowSseToolActionPayload,
 } from "@/lib/workflow-sse";
 import type { WorkflowExecutionResult } from "@/lib/workflow";
 
 export interface WorkflowExecuteStreamHandlers {
   onStart?: (payload: WorkflowSseStartPayload) => void;
   onProgress?: (payload: WorkflowSseProgressPayload) => void;
+  onToolAction?: (payload: WorkflowSseToolActionPayload) => void | Promise<void>;
   onDone?: (payload: WorkflowSseDonePayload) => void;
 }
 
@@ -57,6 +59,8 @@ export async function consumeWorkflowExecuteStream(
         handlers.onStart?.(payload as WorkflowSseStartPayload);
       } else if (eventType === "progress") {
         handlers.onProgress?.(payload as WorkflowSseProgressPayload);
+      } else if (eventType === "tool_action") {
+        await handlers.onToolAction?.(payload as WorkflowSseToolActionPayload);
       } else if (eventType === "done") {
         const donePayload = payload as WorkflowSseDonePayload;
         result = donePayload.result;
