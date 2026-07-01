@@ -1,5 +1,6 @@
 // Export semua yang berhubungan dengan Worksheet Tool
 export * from "./worksheet-tool";
+export * from "./worksheet-quota";
 export * from "./use-worksheet";
 export * from "./worksheet-panel";
 export * from "./worksheet-confirm-dialog";
