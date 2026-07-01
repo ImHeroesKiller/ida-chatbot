@@ -11,13 +11,14 @@ import {
 import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
 import type { ToolQuotaState } from "@/components/chat/tools/types";
 import type { Locale } from "@/lib/config";
-import type { WorksheetDocument } from "@/lib/worksheet";
+import type { WorksheetDocument, WorksheetErrorCode } from "@/lib/worksheet";
 import {
   addGeneratedWorksheetDocument,
   createEmptyWorksheetWorkspace,
   normalizeWorksheetDocument,
   removeWorksheetDocument,
   setActiveWorksheetDocument,
+  setWorksheetWorkspaceError,
   syncWorkspaceLegacyFields,
   type WorksheetSavedDocument,
 } from "@/lib/worksheet-workspace";
@@ -96,6 +97,8 @@ export type WorksheetTool = BaseToolState &
     ) => WorksheetWorkspaceState | null;
     /** Prepare UI/runtime state before a chat regenerate send. */
     beginRegenerate: () => void;
+    /** Apply worksheet error from SSE stream (`worksheetError` or `generate_failed`). */
+    applyStreamError: (errorCode: WorksheetErrorCode) => WorksheetWorkspaceState;
     selectDocument: (documentId: string) => void;
     deleteDocument: (documentId: string) => void;
     resetWorkspace: () => void;
@@ -295,12 +298,31 @@ export function useWorksheet(): WorksheetTool {
         return nextWorkspace;
       });
 
+      setIsGeneratingState(false);
       return nextWorkspace;
     },
     [],
   );
 
   const regenerateDocumentFromStream = createDocumentFromStream;
+
+  const applyStreamError = useCallback(
+    (errorCode: WorksheetErrorCode): WorksheetWorkspaceState => {
+      let nextWorkspace!: WorksheetWorkspaceState;
+
+      setWorkspaceInternal((prev) => {
+        nextWorkspace = syncWorkspaceLegacyFields(
+          setWorksheetWorkspaceError(prev, errorCode, localeRef.current),
+        );
+        workspaceRef.current = nextWorkspace;
+        return nextWorkspace;
+      });
+      setIsGeneratingState(false);
+
+      return nextWorkspace;
+    },
+    [],
+  );
 
   const selectDocument = useCallback((documentId: string) => {
     setWorkspaceInternal((prev) => {
@@ -357,6 +379,7 @@ export function useWorksheet(): WorksheetTool {
     createDocumentFromStream,
     regenerateDocumentFromStream,
     beginRegenerate,
+    applyStreamError,
     selectDocument,
     deleteDocument,
     resetWorkspace,

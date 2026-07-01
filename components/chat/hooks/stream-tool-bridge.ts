@@ -194,20 +194,34 @@ export function createStreamToolBridge(
     });
   };
 
-  const onWorksheetError = (errorCode: string) => {
-    const code = errorCode as WorksheetErrorCode;
-    const next = setWorksheetWorkspaceError(
-      deps.worksheetWorkspaceRef.current,
-      code,
-      deps.locale,
-    );
-    const persisted = syncWorkspaceLegacyFields({
+  const resolveWorksheetStreamError = (code: WorksheetErrorCode) => {
+    let next =
+      deps.tools.worksheet.applyStreamError?.(code) ?? null;
+
+    if (!next) {
+      next = syncWorkspaceLegacyFields({
+        ...setWorksheetWorkspaceError(
+          deps.worksheetWorkspaceRef.current,
+          code,
+          deps.locale,
+        ),
+        updatedAt: Date.now(),
+      });
+      deps.tools.worksheet.syncWorkspaceFromExternal(next);
+    }
+
+    return syncWorkspaceLegacyFields({
       ...next,
       updatedAt: Date.now(),
     });
+  };
+
+  const onWorksheetError = (errorCode: string) => {
+    const code = errorCode as WorksheetErrorCode;
+    const persisted = resolveWorksheetStreamError(code);
 
     if (ctx.isActiveChat()) {
-      deps.setWorksheetWorkspace(next);
+      deps.setWorksheetWorkspace(persisted);
       deps.setWorksheetErrorDetail(null);
       deps.tools.activateWorksheet();
     }
@@ -224,30 +238,19 @@ export function createStreamToolBridge(
       deps.setMessages((prev) =>
         prev.filter((message) => message.id !== streamId),
       );
-
-      if (flags.useWorksheet) {
-        const next = setWorksheetWorkspaceError(
-          deps.worksheetWorkspaceRef.current,
-          "generate_failed",
-          deps.locale,
-        );
-        deps.setWorksheetWorkspace(next);
-        deps.setWorksheetErrorDetail(errorMessage);
-        deps.tools.activateWorksheet();
-      }
     }
 
     if (flags.useWorksheet) {
-      const next = setWorksheetWorkspaceError(
-        deps.worksheetWorkspaceRef.current,
-        "generate_failed",
-        deps.locale,
-      );
+      const persisted = resolveWorksheetStreamError("generate_failed");
+
+      if (ctx.isActiveChat()) {
+        deps.setWorksheetWorkspace(persisted);
+        deps.setWorksheetErrorDetail(errorMessage);
+        deps.tools.activateWorksheet();
+      }
+
       deps.persistCurrentChat({
-        worksheet: syncWorkspaceLegacyFields({
-          ...next,
-          updatedAt: Date.now(),
-        }),
+        worksheet: persisted,
         activeRightPanel: deps.tools.worksheet.panelId,
         worksheetToolEnabled: true,
       });
