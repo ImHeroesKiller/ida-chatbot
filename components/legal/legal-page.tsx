@@ -24,7 +24,7 @@ export async function LegalPage({
   const t = await getTranslations("Common");
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="h-dvh min-h-0 overflow-x-hidden overflow-y-auto overscroll-y-contain bg-background">
       <header className="border-b px-4 py-4 sm:px-6">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
           <div className="flex items-center gap-3">

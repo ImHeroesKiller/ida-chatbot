@@ -16,6 +16,11 @@ import {
 import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 import { LandingFooter } from "@/components/landing/footer";
 import { LandingChatMockup } from "@/components/landing/landing-chat-mockup";
+import {
+  LandingBenefitVisual,
+  type BenefitVisualKey,
+} from "@/components/landing/landing-benefit-visual";
+import { LandingAgentFlowMockup } from "@/components/landing/landing-agentflow-mockup";
 import { LandingAgentFlowCtaLazy } from "@/components/landing/landing-agentflow-cta-lazy";
 import { LandingCtaLazy } from "@/components/landing/landing-cta-lazy";
 import { LandingHeaderActionsLazy } from "@/components/landing/landing-header-actions-lazy";
@@ -31,6 +36,13 @@ const FEATURE_ITEMS = [
   { id: "research", icon: Search, key: "research" },
   { id: "map", icon: Map, key: "map" },
 ] as const;
+
+const BENEFIT_VISUALS: BenefitVisualKey[] = [
+  "workflow",
+  "export",
+  "security",
+  "language",
+];
 
 export async function LandingPageStatic() {
   const t = await getTranslations("Landing");
@@ -163,16 +175,24 @@ export async function LandingPageStatic() {
               </h2>
             </div>
 
-            <ul className="mx-auto mt-12 grid max-w-3xl gap-4">
-              {benefitItems.map((item) => (
-                <li key={item} className="flex gap-3 rounded-2xl border bg-card/50 p-5 dark:bg-card/30">
-                  <CheckCircle2
-                    className="mt-0.5 size-5 shrink-0 text-primary"
-                    aria-hidden
+            <ul className="mt-12 grid gap-5 sm:grid-cols-2">
+              {benefitItems.map((item, index) => (
+                <li
+                  key={item}
+                  className="flex gap-4 rounded-2xl border bg-card/50 p-5 dark:bg-card/30"
+                >
+                  <LandingBenefitVisual
+                    variant={BENEFIT_VISUALS[index] ?? "workflow"}
                   />
-                  <p className="text-sm leading-relaxed text-foreground/90 sm:text-base">
-                    {item}
-                  </p>
+                  <div className="flex min-w-0 flex-1 flex-col justify-center gap-2">
+                    <CheckCircle2
+                      className="size-4 shrink-0 text-primary sm:hidden"
+                      aria-hidden
+                    />
+                    <p className="text-sm leading-relaxed text-foreground/90 sm:text-base">
+                      {item}
+                    </p>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -210,10 +230,14 @@ export async function LandingPageStatic() {
 
         <section
           id="agentflow"
-          className="scroll-mt-20 px-4 py-14 sm:px-6 sm:py-20"
+          className="scroll-mt-20 border-y bg-muted/20 px-4 py-14 dark:bg-muted/10 sm:px-6 sm:py-20"
         >
-          <div className="mx-auto max-w-6xl">
-            <div className="rounded-2xl border border-dashed border-primary/25 bg-primary/5 p-6 sm:p-8 lg:mx-auto lg:max-w-3xl">
+          <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-14">
+            <div className="order-2 lg:order-1">
+              <LandingAgentFlowMockup />
+            </div>
+
+            <div className="order-1 space-y-5 lg:order-2">
               <div className="flex items-center gap-3">
                 <div className="flex size-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
                   <Bot className="size-5" aria-hidden />
@@ -223,50 +247,32 @@ export async function LandingPageStatic() {
                   <p className="text-xs text-muted-foreground">AgentFlow</p>
                 </div>
               </div>
-              <h3 className="mt-4 text-lg font-semibold leading-relaxed">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
                 {t("agentFlow.title")}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              </h2>
+              <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
                 {t("agentFlow.description")}
               </p>
-              <div className="mt-5">
-                <LandingAgentFlowCtaLazy className="h-10 rounded-xl px-4 text-sm" />
-              </div>
+              <LandingAgentFlowCtaLazy className="h-10 rounded-xl px-4 text-sm" />
             </div>
           </div>
         </section>
 
         <section
-          id="mulai"
+          id="sign-in"
           className="scroll-mt-20 border-t bg-gradient-to-b from-primary/[0.05] to-background px-4 py-14 sm:px-6 sm:py-20"
         >
-          <div className="mx-auto max-w-4xl space-y-12 text-center">
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
-                {t("finalCta.title")}
-              </h2>
-              <p className="mx-auto max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-                {t("finalCta.subtitle")}
-              </p>
-              <div className="flex flex-col items-center gap-4 pt-2">
-                <LandingCtaLazy variant="section" />
-                <LandingLegalConsent className="max-w-lg text-center" />
-              </div>
+          <div className="mx-auto max-w-md text-center">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              {t("signIn.title")}
+            </h2>
+            <p className="mx-auto mt-2 text-sm text-muted-foreground">
+              {t("signIn.description")}
+            </p>
+            <div className="mt-6">
+              <LandingLoginLazy />
             </div>
-
-            <div
-              id="sign-in"
-              className="scroll-mt-20 rounded-2xl border bg-card/60 p-6 shadow-sm sm:p-8"
-            >
-              <h3 className="text-xl font-bold">{t("signIn.title")}</h3>
-              <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-                {t("signIn.description")}
-              </p>
-              <div className="mt-6">
-                <LandingLoginLazy />
-              </div>
-              <LandingLegalConsent className="mx-auto mt-4 max-w-md text-center" />
-            </div>
+            <LandingLegalConsent className="mx-auto mt-4 max-w-md text-center" />
           </div>
         </section>
       </main>

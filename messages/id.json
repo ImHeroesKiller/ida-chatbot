@@ -78,7 +78,7 @@
       "description": "Masuk dengan Google untuk membuka chat room dan mulai pakai tools favoritmu."
     },
     "legal": {
-      "consent": "Dengan menggunakan IDA, Anda menyetujui {privacy} dan {terms}.",
+      "consent": "Dengan menggunakan IDA, Anda menyetujui {privacy} dan {terms} kami.",
       "privacy": "Kebijakan Privasi",
       "terms": "Syarat & Ketentuan"
     },
