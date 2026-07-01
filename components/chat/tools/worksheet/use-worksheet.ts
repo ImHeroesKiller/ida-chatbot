@@ -146,7 +146,7 @@ export type WorksheetTool = BaseToolState &
     ) => WorksheetWorkspaceState;
     registerSyncToPersistLayer: (sync: PersistLayerSync | null) => void;
     setDocuments: (documents: WorksheetSavedDocument[]) => void;
-    setActiveDocumentId: (documentId: string | null) => void;
+    setActiveDocumentId: (documentId: string | null) => WorksheetWorkspaceState;
     setIsGenerating: (generating: boolean) => void;
     setGenerating: (generating: boolean) => void;
     createDocument: (input: WorksheetCreateDocumentInput) => WorksheetSavedDocument | null;
@@ -199,7 +199,7 @@ export type WorksheetTool = BaseToolState &
     /** Remove all documents and reset worksheet workspace state. */
     clearAllDocuments: () => WorksheetWorkspaceState;
     selectDocument: (documentId: string) => void;
-    deleteDocument: (documentId: string) => void;
+    deleteDocument: (documentId: string) => WorksheetWorkspaceState;
     resetWorkspace: () => void;
   };
 
@@ -214,10 +214,10 @@ function applyWorkspaceState(
 }
 
 /**
- * Worksheet tool hook — `BaseToolState` + workspace primitives.
+ * Worksheet tool hook — runtime SSOT for document mutations.
  *
- * `useWorksheetWorkspace` still owns persistence side-effects during Phase 3;
- * workspace mutations are mirrored here via `syncWorkspaceFromExternal`.
+ * All mutation helpers should call `syncToPersistLayer` so `useWorksheetWorkspace`
+ * (persist layer) stays aligned. `syncWorkspaceFromExternal` is for inbound snapshots only.
  */
 export function useWorksheet(): WorksheetTool {
   const [quota, setQuota] = useState<ToolQuotaState>(createWorksheetQuotaState);
@@ -310,9 +310,22 @@ export function useWorksheet(): WorksheetTool {
     updateWorkspace({ documents });
   }, [updateWorkspace]);
 
-  const setActiveDocumentId = useCallback((documentId: string | null) => {
-    updateWorkspace({ activeDocumentId: documentId });
-  }, [updateWorkspace]);
+  const setActiveDocumentId = useCallback(
+    (documentId: string | null): WorksheetWorkspaceState => {
+      let nextWorkspace!: WorksheetWorkspaceState;
+
+      setWorkspaceInternal((prev) => {
+        nextWorkspace = syncWorkspaceLegacyFields(
+          setActiveWorksheetDocument(prev, documentId),
+        );
+        workspaceRef.current = nextWorkspace;
+        return nextWorkspace;
+      });
+
+      return syncToPersistLayer(nextWorkspace);
+    },
+    [syncToPersistLayer],
+  );
 
   const setIsGenerating = useCallback((generating: boolean) => {
     setIsGeneratingState(generating);
@@ -637,25 +650,29 @@ export function useWorksheet(): WorksheetTool {
     return syncToPersistLayer(empty);
   }, [clearErrorDetail, syncToPersistLayer]);
 
-  const selectDocument = useCallback((documentId: string) => {
-    setWorkspaceInternal((prev) => {
-      const synced = syncWorkspaceLegacyFields(
-        setActiveWorksheetDocument(prev, documentId),
-      );
-      workspaceRef.current = synced;
-      return synced;
-    });
-  }, []);
+  const selectDocument = useCallback(
+    (documentId: string) => {
+      setActiveDocumentId(documentId);
+    },
+    [setActiveDocumentId],
+  );
 
-  const deleteDocument = useCallback((documentId: string) => {
-    setWorkspaceInternal((prev) => {
-      const synced = syncWorkspaceLegacyFields(
-        removeWorksheetDocument(prev, documentId, localeRef.current),
-      );
-      workspaceRef.current = synced;
-      return synced;
-    });
-  }, []);
+  const deleteDocument = useCallback(
+    (documentId: string): WorksheetWorkspaceState => {
+      let nextWorkspace!: WorksheetWorkspaceState;
+
+      setWorkspaceInternal((prev) => {
+        nextWorkspace = syncWorkspaceLegacyFields(
+          removeWorksheetDocument(prev, documentId, localeRef.current),
+        );
+        workspaceRef.current = nextWorkspace;
+        return nextWorkspace;
+      });
+
+      return syncToPersistLayer(nextWorkspace);
+    },
+    [syncToPersistLayer],
+  );
 
   const documents = useMemo(
     () => workspace.documents ?? [],

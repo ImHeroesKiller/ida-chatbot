@@ -154,6 +154,12 @@ function ChatRoomContent() {
     worksheetTemplateAppliedLabel: copy.worksheetTemplateApplied,
     syncWorkspaceToTool: tools.worksheet.hydrateFromExternal,
     getWorkspaceFromTool: tools.worksheet.getWorkspace,
+    applyTemplateViaTool: (template) =>
+      tools.worksheet.applyTemplate(template) !== null,
+    clearAllViaTool: () => {
+      tools.worksheet.clearAllDocuments();
+      return true;
+    },
   });
 
   useEffect(() => {

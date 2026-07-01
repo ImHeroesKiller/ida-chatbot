@@ -43,10 +43,14 @@ interface UseWorksheetWorkspaceOptions {
   canPersistCurrentChatState: () => boolean;
   persistCurrentChat: (patch: Partial<Pick<ChatSession, "worksheet">>) => void;
   worksheetTemplateAppliedLabel: string;
-  /** Mirror workspace mutations into `useWorksheet` during Phase 3 migration. */
+  /** Inbound mirror from persist layer into `useWorksheet` (hydrate snapshots). */
   syncWorkspaceToTool?: (workspace: WorksheetWorkspaceState) => void;
   /** Optional initial workspace snapshot from the tool hook. */
   getWorkspaceFromTool?: () => WorksheetWorkspaceState;
+  /** Primary template apply — return true when handled by tool hook. */
+  applyTemplateViaTool?: (template: WorksheetTemplate) => boolean;
+  /** Primary clear-all — return true when handled by tool hook. */
+  clearAllViaTool?: () => boolean;
 }
 
 export function useWorksheetWorkspace({
@@ -58,6 +62,8 @@ export function useWorksheetWorkspace({
   worksheetTemplateAppliedLabel,
   syncWorkspaceToTool,
   getWorkspaceFromTool,
+  applyTemplateViaTool,
+  clearAllViaTool,
 }: UseWorksheetWorkspaceOptions) {
   const [worksheetWorkspace, setWorksheetWorkspaceState] =
     useState<WorksheetWorkspaceState>(() => {
@@ -150,6 +156,7 @@ export function useWorksheetWorkspace({
     setLastWorksheetPrompt("");
   }, [locale, syncWorkspaceToTool]);
 
+  /** Legacy fallback — prefer `tools.worksheet` mutations via panel props. */
   const handleWorksheetChange = useCallback(
     (workspace: WorksheetWorkspaceState) => {
       applyWorkspace(workspace);
@@ -159,6 +166,11 @@ export function useWorksheetWorkspace({
 
   const handleWorksheetApplyTemplate = useCallback(
     (template: WorksheetTemplate) => {
+      if (applyTemplateViaTool?.(template)) {
+        toast.success(worksheetTemplateAppliedLabel);
+        return;
+      }
+
       const { title, content } = resolveWorksheetTemplate(template, locale);
 
       applyWorkspace((prev) => {
@@ -178,10 +190,21 @@ export function useWorksheetWorkspace({
       });
       toast.success(worksheetTemplateAppliedLabel);
     },
-    [applyWorkspace, locale, worksheetTemplateAppliedLabel],
+    [
+      applyTemplateViaTool,
+      applyWorkspace,
+      locale,
+      worksheetTemplateAppliedLabel,
+    ],
   );
 
   const handleWorksheetClear = useCallback(() => {
+    if (clearAllViaTool?.()) {
+      setWorksheetErrorDetail(null);
+      setLastWorksheetPrompt("");
+      return;
+    }
+
     const emptyWorksheet = normalizeWorksheetDocument(
       createEmptyWorksheet(),
       locale,
@@ -192,7 +215,7 @@ export function useWorksheetWorkspace({
     setWorksheetErrorDetail(null);
     setLastWorksheetPrompt("");
     persistCurrentChat({ worksheet: createEmptyWorksheet() });
-  }, [locale, persistCurrentChat, syncWorkspaceToTool]);
+  }, [clearAllViaTool, locale, persistCurrentChat, syncWorkspaceToTool]);
 
   return {
     worksheetWorkspace,

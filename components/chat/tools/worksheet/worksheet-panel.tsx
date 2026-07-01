@@ -163,24 +163,20 @@ export function WorksheetPanel({
   const showEditor = Boolean(workspace.activeDocumentId);
   const documentCount = workspace.documents?.length ?? 0;
 
+  /**
+   * WORKSHEET_COMMIT_WORKSPACE_FALLBACKS (Phase 4):
+   * Primary path is `worksheetTool.*` (useWorksheet). `commitWorkspace` remains when
+   * a tool method is unavailable:
+   * - markExported, handleTitleChange, handleContentSave, handleContentChange
+   * - handleRestoreVersion, performSelectDocument, handleBackToDocuments
+   * - executeDeleteDocument, WorksheetBrandingDialog.onSelectionChange
+   */
   const commitWorkspace = useCallback(
     (next: WorksheetWorkspaceState) => {
       onWorkspaceChange(syncWorkspaceLegacyFields(next));
     },
     [onWorkspaceChange],
   );
-
-  const mirrorToolWorkspace = useCallback(() => {
-    if (worksheetTool?.syncToPersistLayer) {
-      worksheetTool.syncToPersistLayer();
-      return;
-    }
-
-    const next = worksheetTool?.getWorkspace?.();
-    if (next) {
-      commitWorkspace(next);
-    }
-  }, [commitWorkspace, worksheetTool]);
 
   useEffect(() => {
     worksheetTool?.setLocale(locale);
@@ -577,12 +573,11 @@ export function WorksheetPanel({
       }
       if (worksheetTool?.selectDocument) {
         worksheetTool.selectDocument(documentId);
-        mirrorToolWorkspace();
       } else {
         commitWorkspace(setActiveWorksheetDocument(workspace, documentId));
       }
     },
-    [allDocuments, commitWorkspace, isEditing, mirrorToolWorkspace, worksheetTool, workspace],
+    [allDocuments, commitWorkspace, isEditing, worksheetTool, workspace],
   );
 
   const handleSelectDocument = useCallback(
@@ -614,7 +609,6 @@ export function WorksheetPanel({
   const handleBackToDocuments = useCallback(() => {
     if (worksheetTool?.setActiveDocumentId) {
       worksheetTool.setActiveDocumentId(null);
-      mirrorToolWorkspace();
     } else {
       commitWorkspace(setActiveWorksheetDocument(workspace, null));
     }
@@ -623,7 +617,7 @@ export function WorksheetPanel({
       setIsEditing(false);
     }
     setIsFullViewOpen(false);
-  }, [commitWorkspace, content, isEditing, mirrorToolWorkspace, worksheetTool, workspace]);
+  }, [commitWorkspace, content, isEditing, worksheetTool, workspace]);
 
   const handleSaveEdit = useCallback(() => {
     const trimmed = draftContent.trim();
@@ -715,7 +709,6 @@ export function WorksheetPanel({
 
       if (worksheetTool?.deleteDocument) {
         worksheetTool.deleteDocument(documentId);
-        mirrorToolWorkspace();
       } else {
         commitWorkspace(next);
       }
@@ -738,7 +731,6 @@ export function WorksheetPanel({
       commitWorkspace,
       copy.worksheetDeleteDocumentSuccessNamed,
       locale,
-      mirrorToolWorkspace,
       onClear,
       worksheetTool,
       workspace,
