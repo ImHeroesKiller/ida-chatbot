@@ -1,71 +1,132 @@
 import { IDA_CONFIG } from "@/lib/config";
 
-export const LANDING_FEATURES = [
+export const LANDING_TOOLS = [
   {
-    title: "Jawaban Berbasis Pengetahuan",
+    id: "worksheet",
+    title: "Worksheet",
     description:
-      "RAG dan knowledge base membuat IDA menjawab dengan konteks yang relevan, bukan tebakan kosong.",
-    highlight: "RAG",
+      "Buat dan kelola dokumen profesional langsung dari percakapan — tanpa bolak-balik antar aplikasi.",
+    benefit: "Surat, memo, dan draft siap pakai dalam hitungan menit.",
   },
   {
-    title: "Memori Percakapan",
+    id: "web-search",
+    title: "Web Search",
     description:
-      "Riwayat chat tersimpan per akun Google Anda — lanjutkan dari laptop, tablet, atau ponsel.",
-    highlight: "Sync",
+      "Cari informasi terkini langsung di dalam chat. IDA bantu rangkum hasilnya dengan cepat.",
+    benefit: "Jawaban selalu relevan dengan kondisi terbaru.",
   },
   {
-    title: "Multibahasa",
+    id: "research",
+    title: "Research",
     description:
-      "Ngobrol dalam Bahasa Indonesia, English, atau 中文 dengan pengalaman yang konsisten.",
-    highlight: "ID · EN · 中文",
+      "Lakukan riset yang lebih dalam dan terstruktur untuk topik yang butuh analisis menyeluruh.",
+    benefit: "Dapat gambaran lengkap tanpa browsing berjam-jam.",
   },
   {
-    title: "Aman & Transparan",
+    id: "map",
+    title: "Map",
     description:
-      "Login via Google OAuth. Kebijakan privasi dan syarat layanan tersedia untuk transparansi penuh.",
-    highlight: "OAuth",
+      "Visualisasikan dan analisis data lokasi untuk kebutuhan perencanaan atau eksplorasi wilayah.",
+    benefit: "Pahami konteks geografis dengan lebih mudah.",
   },
 ] as const;
 
+export const LANDING_BENEFITS = [
+  {
+    title: "Hemat waktu setiap hari",
+    description:
+      "Satu tempat untuk chat, riset, dokumen, dan peta — tugas harian jadi lebih ringan.",
+  },
+  {
+    title: "Lebih produktif",
+    description:
+      "Fokus pada hasil, bukan ribetnya alat. IDA bantu dari ide sampai output.",
+  },
+  {
+    title: "Informasi selalu update",
+    description:
+      "Dengan Web Search, kamu nggak ketinggalan info terbaru yang penting buat keputusan.",
+  },
+  {
+    title: "Nyaman dipakai di mana saja",
+    description:
+      "Di laptop atau HP, pengalaman chat tetap rapi dan mudah dipahami.",
+  },
+] as const;
+
+export const LANDING_STEPS = [
+  {
+    step: "1",
+    title: "Masuk & mulai chat",
+    description:
+      "Login dengan Google, lalu langsung ngobrol dengan IDA seperti chat biasa.",
+  },
+  {
+    step: "2",
+    title: "Aktifkan tools yang kamu butuh",
+    description:
+      "Pilih Worksheet, Web Search, Research, atau Map sesuai kebutuhan tugasmu.",
+  },
+  {
+    step: "3",
+    title: "Dapatkan hasilnya",
+    description:
+      "IDA bantu menyelesaikan — dari jawaban cepat sampai dokumen atau riset yang rapi.",
+  },
+] as const;
+
+export const LANDING_WHY_IDA = [
+  "Dibuat untuk pengguna Indonesia — bahasa natural dan konteks lokal.",
+  "Tools yang relevan dengan kebutuhan sehari-hari: dokumen, riset, dan peta.",
+  "Antarmuka chat yang bersih, nggak bikin pusing.",
+  "Gratis untuk dicoba — cukup login Google dan langsung mulai.",
+] as const;
+
 export const LANDING_COPY = {
-  badge: "Intelligent Digital Assistant",
-  headline: "Asisten AI yang Mengerti Konteks Anda",
-  headlineAccent: "Lebih Cerdas. Lebih Personal.",
+  badge: "Asisten AI buatan Indonesia",
+  headline: "Chat pintar dengan tools yang benar-benar kamu pakai",
+  headlineAccent: "Ngobrol, riset, buat dokumen — semua di satu tempat.",
   subheadline:
-    "Tanya apa saja, brainstorm ide, atau selesaikan tugas — IDA siap membantu lewat percakapan natural.",
+    "IDA (Intelligent Digital Assistant) adalah asisten AI yang siap bantu kerja, belajar, dan cari informasi lewat percakapan yang natural.",
   description:
-    "IDA (Intelligent Digital Assistant) adalah chatbot AI dengan RAG, memori sesi, dan dukungan multibahasa. Dirancang untuk produktivitas harian, belajar, dan bantuan informasi yang cepat serta terpercaya.",
-  primaryCta: "Coba IDA Sekarang",
-  primaryCtaShort: "Try IDA",
+    "Coba chat gratis, aktifkan tools sesuai kebutuhan, dan rasakan cara kerja yang lebih praktis tanpa ribet.",
+  primaryCta: "Mulai Chat Gratis",
+  primaryCtaShort: "Mulai Chat",
   heroSecondaryCta: "Lihat Fitur",
-  signInTitle: "Siap memulai?",
+  signInTitle: "Siap mencoba IDA?",
   signInDescription:
-    "Masuk dengan Google untuk membuka chat room IDA dan menyimpan riwayat percakapan Anda.",
+    "Masuk dengan Google untuk membuka chat room dan mulai pakai tools favoritmu.",
   googleSignInLabel: "Masuk dengan Google",
   privacyNote:
     "Dengan masuk, Anda menyetujui Syarat Layanan dan Kebijakan Privasi IDA.",
   continueToChat: "Lanjut ke Chat",
   privacyLink: "Kebijakan Privasi",
   termsLink: "Syarat Layanan",
-  featuresTitle: "Kenapa IDA?",
-  featuresSubtitle:
-    "Semua yang Anda butuhkan dari asisten AI modern — dalam satu pengalaman chat yang rapi.",
-  trustLine: "Gratis untuk digunakan · Login Google · Tanpa login wall di halaman ini",
+  toolsTitle: "Tools utama di dalam chat",
+  toolsSubtitle:
+    "Empat tools ini jadi inti pengalaman IDA — aktifkan kapan saja langsung dari composer chat.",
+  benefitsTitle: "Apa yang kamu dapat?",
+  benefitsSubtitle:
+    "Bukan cuma jawaban cepat — IDA bantu kamu menyelesaikan hal yang biasanya makan waktu.",
+  howItWorksTitle: "Cara kerjanya simpel",
+  howItWorksSubtitle: "Tiga langkah, langsung praktik.",
+  whyIdaTitle: "Kenapa IDA?",
+  whyIdaSubtitle:
+    "Asisten AI buatan Indonesia yang paham kebutuhanmu — dari bahasa sampai tools sehari-hari.",
+  finalCtaTitle: "Yuk, coba sekarang — gratis",
+  finalCtaSubtitle:
+    "Ribuan kemungkinan dimulai dari satu percakapan. Mulai chat dan aktifkan tools yang kamu butuh.",
+  testimonialTitle: "Apa kata pengguna",
+  testimonialPlaceholder: "Testimonial akan ditampilkan di sini.",
+  trustLine: "Gratis untuk dicoba · Login Google · Tanpa kartu kredit",
 } as const;
 
 export const LANDING_AGENTFLOW = {
-  badge: "AgentFlow AI",
-  title: "Otomatisasi Workflow dengan AI Agent",
+  badge: "Fitur lanjutan",
+  title: "Butuh otomatisasi workflow?",
   description:
-    "AgentFlow membantu Anda menganalisis dokumen, membuat workflow otomatis, dan menjalankan proses bisnis dengan bantuan AI serta persetujuan manusia.",
-  benefits: [
-    "Analisis dokumen multi-format secara otomatis",
-    "Pembuatan workflow dengan human-in-the-loop",
-    "Integrasi dengan Worksheet dan data perusahaan",
-    "Eksekusi sandbox yang aman dan terkontrol",
-  ],
-  cta: "Mulai Gunakan AgentFlow",
-  previewTitle: "Contoh Kemampuan AgentFlow",
+    "AgentFlow hadir untuk tim yang ingin mengotomasi proses dokumen dan workflow bisnis — di luar pengalaman chat utama IDA.",
+  cta: "Pelajari AgentFlow",
   headerLink: "AgentFlow",
 } as const;
 

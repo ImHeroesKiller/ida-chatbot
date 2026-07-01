@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     canonical: getCanonicalUrl("/"),
   },
   openGraph: {
-    title: `${LANDING_COPY.headline} ${LANDING_COPY.headlineAccent}`,
+    title: `${LANDING_COPY.headline} — ${LANDING_COPY.headlineAccent}`,
     description: landingDescription,
     url: getCanonicalUrl("/"),
     siteName: BRAND.name,
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${LANDING_COPY.headline} ${LANDING_COPY.headlineAccent}`,
+    title: `${LANDING_COPY.headline} — ${LANDING_COPY.headlineAccent}`,
     description: landingDescription,
     images: [getOgImageUrl()],
   },

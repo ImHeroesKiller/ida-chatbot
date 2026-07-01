@@ -52,7 +52,7 @@ export function LandingFooter() {
             reserved.
           </p>
           <p className="text-xs text-muted-foreground">
-            Dibangun untuk percakapan AI yang aman, personal, dan multibahasa.
+            Asisten AI buatan Indonesia — chat + tools untuk produktivitas harian.
           </p>
         </div>
       </div>
