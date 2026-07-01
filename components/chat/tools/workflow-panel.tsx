@@ -33,6 +33,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  getMultiAgentLabel,
+  type MultiAgentId,
+} from "@/lib/agent/multi-agent";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import { inspectWorkflowResponse } from "@/lib/workflow-chat";
@@ -161,6 +165,7 @@ function WorkflowPanelInner({
     workflows,
     isExecuting,
     executionNodeStatus,
+    multiAgentActivities,
     activeExecutionId,
     errorDetail,
     lastExecution,
@@ -192,7 +197,7 @@ function WorkflowPanelInner({
   useEffect(() => {
     if (!isExecuting || !logPanelRef.current) return;
     logPanelRef.current.scrollTop = logPanelRef.current.scrollHeight;
-  }, [isExecuting, lastExecution?.logs?.length]);
+  }, [isExecuting, lastExecution?.logs?.length, multiAgentActivities.length]);
 
   const showApprovalDialog =
     Boolean(executionCheckpoint) &&
@@ -1129,6 +1134,51 @@ function WorkflowPanelInner({
               {lastExecution.message}
             </p>
           ) : null}
+          {(isExecuting || multiAgentActivities.length > 0) ? (
+            <div className="max-h-28 overflow-y-auto rounded-md border border-violet-500/20 bg-violet-500/5 p-2">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-violet-800 dark:text-violet-200">
+                {copy.workflowMultiAgentActivity}
+              </p>
+              <ul className="space-y-1">
+                {multiAgentActivities.map((activity) => (
+                  <li
+                    key={activity.id}
+                    className={cn(
+                      "rounded px-1.5 py-1 text-[10px]",
+                      activity.status === "running" &&
+                        "bg-violet-500/15 text-violet-950 dark:text-violet-100",
+                      activity.status === "completed" &&
+                        "bg-emerald-500/10 text-foreground/90",
+                      activity.status === "failed" &&
+                        "bg-destructive/10 text-destructive",
+                      activity.status === "queued" &&
+                        "bg-muted/40 text-muted-foreground",
+                    )}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {activity.status === "running" ? (
+                        <Loader2
+                          className="h-3 w-3 shrink-0 animate-spin text-violet-600"
+                          aria-hidden
+                        />
+                      ) : null}
+                      <span className="font-medium">
+                        {getMultiAgentLabel(activity.agentId, locale)}
+                      </span>
+                      <span className="text-muted-foreground">
+                        · {activity.nodeLabel}
+                      </span>
+                    </div>
+                    {activity.message ? (
+                      <p className="mt-0.5 text-muted-foreground">
+                        {activity.message}
+                      </p>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           {(isExecuting ||
             (lastExecution?.workflowId === activeWorkflow?.id &&
               lastExecution?.logs &&
@@ -1168,6 +1218,11 @@ function WorkflowPanelInner({
                         />
                       ) : null}
                       <span className="font-medium">{log.label}</span>
+                      {log.agentId ? (
+                        <span className="rounded bg-violet-500/15 px-1 py-0.5 text-[9px] font-medium text-violet-800 dark:text-violet-200">
+                          {getMultiAgentLabel(log.agentId as MultiAgentId, locale)}
+                        </span>
+                      ) : null}
                       <span className="text-muted-foreground capitalize">
                         ({log.status})
                       </span>

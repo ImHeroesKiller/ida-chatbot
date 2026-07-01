@@ -10,6 +10,7 @@ import {
 } from "@/components/chat/tools/base-tool-state";
 import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
 import type { ToolQuotaState } from "@/components/chat/tools/types";
+import type { MultiAgentActivity } from "@/lib/agent/multi-agent";
 import { consumeWorkflowExecuteStream } from "@/lib/client/parse-workflow-sse";
 import type {
   WorkflowExecutionCheckpoint,
@@ -130,6 +131,7 @@ export type WorkflowTool = BaseToolState &
     activeWorkflow: WorkflowDefinition | null;
     isExecuting: boolean;
     executionNodeStatus: Record<string, WorkflowExecutionLogEntry["status"]>;
+    multiAgentActivities: MultiAgentActivity[];
     lastExecution: WorkflowExecutionResult | null;
     errorDetail: string | null;
     setErrorDetail: (message: string | null) => void;
@@ -241,6 +243,9 @@ export function useWorkflow(): WorkflowTool {
   const [executionNodeStatus, setExecutionNodeStatus] = useState<
     Record<string, WorkflowExecutionLogEntry["status"]>
   >({});
+  const [multiAgentActivities, setMultiAgentActivities] = useState<
+    MultiAgentActivity[]
+  >([]);
   const isExecutingRef = useRef(false);
   const executionTokenRef = useRef(0);
   const executionAbortRef = useRef<AbortController | null>(null);
@@ -812,6 +817,7 @@ export function useWorkflow(): WorkflowTool {
       setIsExecuting(true);
       clearErrorDetail();
       setExecutionNodeStatus({});
+      setMultiAgentActivities([]);
 
       const startedAt = Date.now();
       const runningExecution: WorkflowExecutionResult = {
@@ -903,6 +909,10 @@ export function useWorkflow(): WorkflowTool {
           {
             onProgress: ({ logs }) => {
               applyProgress(logs);
+            },
+            onAgentActivity: ({ activities }) => {
+              if (!isCurrentExecution()) return;
+              setMultiAgentActivities([...activities]);
             },
             onToolAction: async (payload) => {
               applyProgress(payload.logs);
@@ -1177,6 +1187,10 @@ export function useWorkflow(): WorkflowTool {
         const { result, checkpoint: nextCheckpoint } =
           await consumeWorkflowExecuteStream(response, {
             onProgress: ({ logs }) => applyProgress(logs),
+            onAgentActivity: ({ activities }) => {
+              if (!isCurrentExecution()) return;
+              setMultiAgentActivities([...activities]);
+            },
             onToolAction: async (payload) => {
               applyProgress(payload.logs);
               if (!isCurrentExecution()) return;
@@ -1391,6 +1405,7 @@ export function useWorkflow(): WorkflowTool {
     activeWorkflow,
     isExecuting,
     executionNodeStatus,
+    multiAgentActivities,
     lastExecution,
     errorDetail,
     setErrorDetail,

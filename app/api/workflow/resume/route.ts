@@ -86,6 +86,12 @@ export async function POST(request: Request) {
         });
       } else if (event.type === "progress") {
         send("progress", { log: event.log, logs: event.logs });
+      } else if (event.type === "agent_activity") {
+        send("agent_activity", {
+          nodeId: event.nodeId,
+          activity: event.activity,
+          activities: event.activities,
+        });
       } else if (event.type === "tool_action") {
         send("tool_action", {
           nodeId: event.nodeId,

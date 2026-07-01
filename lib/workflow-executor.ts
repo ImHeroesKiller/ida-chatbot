@@ -1,9 +1,3 @@
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-
-import { loadAppConfig } from "@/lib/admin/config";
-import { getProviderApiKey } from "@/lib/admin/models";
-import { resolveToolModel } from "@/lib/admin/tool-model";
 import type { Locale } from "@/lib/config";
 import {
   applyResumeActionToCheckpoint,
@@ -20,17 +14,20 @@ import {
   parseTriggerSchedule,
 } from "@/lib/workflow-scheduler";
 import {
-  executeServerWorkflowAction,
   resolveWorkflowNodeAction,
   workflowActionRequiresClientDispatch,
   type ResolvedWorkflowNodeAction,
 } from "@/lib/workflow-actions";
+import {
+  kindUsesMultiAgent,
+  runMultiAgentWorkflowStep,
+  type MultiAgentActivity,
+} from "@/lib/agent/multi-agent";
 import type {
   WorkflowDefinition,
   WorkflowExecutionLogEntry,
   WorkflowExecutionResult,
   WorkflowNode,
-  WorkflowNodeKind,
 } from "@/lib/workflow";
 
 export interface ExecuteChatWorkflowInput {
@@ -81,6 +78,12 @@ export type WorkflowExecuteProgressEvent =
       label: string;
       logs: WorkflowExecutionLogEntry[];
     }
+  | {
+      type: "agent_activity";
+      activity: MultiAgentActivity;
+      activities: MultiAgentActivity[];
+      nodeId: string;
+    }
   | { type: "done"; result: WorkflowExecutionResult; checkpoint?: WorkflowExecutionCheckpoint | null }
   | { type: "error"; message: string; result?: WorkflowExecutionResult };
 
@@ -126,118 +129,67 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function runLlmStep(options: {
+async function* executeWorkflowNodeStepStream(options: {
   locale: Locale;
   node: WorkflowNode;
   priorContext: string;
-}): Promise<string> {
-  const appConfig = await loadAppConfig();
-  const selected = resolveToolModel(appConfig, "workflow", "agent");
-  const apiKey = getProviderApiKey(selected.provider);
-
-  if (!apiKey || selected.provider !== "google") {
-    throw new Error("Workflow execution model is not configured.");
-  }
-
-  const model = new ChatGoogleGenerativeAI({
-    apiKey,
-    model: selected.id,
-    temperature: 0.4,
-  });
-
-  const languageRule =
-    options.locale === "id"
-      ? "Jawab dalam Bahasa Indonesia."
-      : options.locale === "zh"
-        ? "请用中文回答。"
-        : "Reply in English.";
-
-  const kindInstruction: Record<WorkflowNodeKind, string> = {
-    trigger: "Summarize the trigger context and what should happen next.",
-    action: "Execute the automation step and return concise actionable output.",
-    condition:
-      "Evaluate the condition. Start your response with YES or NO on the first line, then a short rationale.",
-    output: "Produce the final output artifact for this workflow step.",
-    approval:
-      "Summarize what requires human approval. Be concise and actionable.",
-  };
-
-  const response = await model.invoke([
-    new SystemMessage(
-      `You are IDA Workflow Executor — a LangGraph-style step runner.
-${languageRule}
-Node kind: ${options.node.data.kind}
-Instruction: ${kindInstruction[options.node.data.kind]}`,
-    ),
-    new HumanMessage(
-      `Workflow context so far:
-${options.priorContext || "(empty)"}
-
-Current node: ${options.node.data.label}
-Node prompt: ${getNodePrompt(options.node)}
-
-Return only the step result.`,
-    ),
-  ]);
-
-  const text =
-    typeof response.content === "string"
-      ? response.content
-      : Array.isArray(response.content)
-        ? response.content
-            .map((part) =>
-              typeof part === "string"
-                ? part
-                : "text" in part
-                  ? String(part.text)
-                  : "",
-            )
-            .join("")
-        : "";
-
-  return text.trim();
-}
-
-async function executeWorkflowNodeStep(options: {
-  locale: Locale;
-  node: WorkflowNode;
-  priorContext: string;
-}): Promise<{
-  output: string;
-  message: string;
-  action: ResolvedWorkflowNodeAction;
-  dispatch?: Record<string, string>;
-  success: boolean;
-}> {
+}): AsyncGenerator<
+  | {
+      type: "agent_activity";
+      activity: MultiAgentActivity;
+      activities: MultiAgentActivity[];
+    }
+  | {
+      type: "result";
+      output: string;
+      message: string;
+      action: ResolvedWorkflowNodeAction;
+      dispatch?: Record<string, string>;
+      success: boolean;
+      agentId?: string;
+    }
+> {
   const { node, priorContext, locale } = options;
   const action = resolveWorkflowNodeAction(node, priorContext);
+  const prompt = getNodePrompt(node);
 
-  if (
-    node.data.kind === "condition" ||
-    node.data.kind === "approval" ||
-    action.id === "llm"
-  ) {
-    const output = await runLlmStep({ locale, node, priorContext });
-    return {
+  if (!kindUsesMultiAgent(node.data.kind)) {
+    const output = `Triggered: ${node.data.label}`;
+    yield {
+      type: "result",
       output,
-      message: "Step completed",
+      message: "Trigger acknowledged",
       action,
       success: true,
     };
+    return;
   }
 
-  const toolResult = await executeServerWorkflowAction(action, {
+  for await (const event of runMultiAgentWorkflowStep({
     locale,
-    workflowContext: priorContext,
-  });
-
-  return {
-    output: toolResult.output || toolResult.message,
-    message: toolResult.message,
+    node,
     action,
-    dispatch: toolResult.dispatch,
-    success: toolResult.success,
-  };
+    workflowContext: priorContext,
+    prompt,
+  })) {
+    if (event.type === "activity") {
+      yield {
+        type: "agent_activity",
+        activity: event.activity,
+        activities: event.activities,
+      };
+    } else if (event.type === "done") {
+      yield {
+        type: "result",
+        output: event.result.output,
+        message: event.result.message,
+        action,
+        dispatch: event.result.dispatch,
+        success: event.result.success,
+        agentId: event.result.assignedAgent,
+      };
+    }
+  }
 }
 
 function buildCheckpoint(options: {
@@ -424,11 +376,31 @@ export async function* executeChatWorkflowStream(
       }
 
       if (node.data.kind === "approval") {
+        let approvalOutput = getNodePrompt(node);
+
+        for await (const agentEvent of executeWorkflowNodeStepStream({
+          locale: input.locale,
+          node,
+          priorContext: context,
+        })) {
+          if (agentEvent.type === "agent_activity") {
+            yield {
+              type: "agent_activity",
+              activity: agentEvent.activity,
+              activities: agentEvent.activities,
+              nodeId: node.id,
+            };
+          } else if (agentEvent.type === "result" && agentEvent.output) {
+            approvalOutput = agentEvent.output;
+          }
+        }
+
         const approvalLog: WorkflowExecutionLogEntry = {
           ...logBase,
           status: "awaiting_approval",
+          agentId: "approver",
           message: "Waiting for human approval",
-          output: getNodePrompt(node),
+          output: approvalOutput,
         };
         logs = pushOrUpdateLog(logs, approvalLog);
         yield { type: "progress", log: approvalLog, logs: [...logs] };
@@ -479,11 +451,35 @@ export async function* executeChatWorkflowStream(
         yield { type: "progress", log: runningLog, logs: [...logs] };
 
         try {
-          const stepResult = await executeWorkflowNodeStep({
+          let stepResult: {
+            output: string;
+            message: string;
+            action: ResolvedWorkflowNodeAction;
+            dispatch?: Record<string, string>;
+            success: boolean;
+            agentId?: string;
+          } | null = null;
+
+          for await (const agentEvent of executeWorkflowNodeStepStream({
             locale: input.locale,
             node,
             priorContext: context,
-          });
+          })) {
+            if (agentEvent.type === "agent_activity") {
+              yield {
+                type: "agent_activity",
+                activity: agentEvent.activity,
+                activities: agentEvent.activities,
+                nodeId: node.id,
+              };
+            } else if (agentEvent.type === "result") {
+              stepResult = agentEvent;
+            }
+          }
+
+          if (!stepResult) {
+            throw new Error("Workflow step returned no result.");
+          }
 
           if (!stepResult.success) {
             throw new Error(stepResult.message);
@@ -508,6 +504,7 @@ export async function* executeChatWorkflowStream(
             ...logBase,
             status: "completed",
             actionId: stepResult.action.id,
+            agentId: stepResult.agentId,
             output,
             message: stepResult.message,
             completedAt: Date.now(),

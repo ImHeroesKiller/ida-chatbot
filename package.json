@@ -27,7 +27,8 @@
     "test:workflow-persistence": "node scripts/test-workflow-persistence.mjs",
     "test:workflow-execute-stream": "node scripts/test-workflow-execute-stream.mjs",
     "test:workflow-actions": "node scripts/test-workflow-actions.mjs",
-    "test:workflow-templates": "node scripts/test-workflow-templates.mjs"
+    "test:workflow-templates": "node scripts/test-workflow-templates.mjs",
+    "test:multi-agent": "node scripts/test-multi-agent.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

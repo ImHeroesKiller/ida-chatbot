@@ -41,6 +41,8 @@ export interface WorkflowExecutionLogEntry {
   status: WorkflowExecutionLogStatus;
   /** Tool action invoked for this step (when not plain LLM). */
   actionId?: string;
+  /** Multi-agent specialist that handled this step (Phase 3.1). */
+  agentId?: string;
   output?: string;
   message?: string;
   startedAt: number;

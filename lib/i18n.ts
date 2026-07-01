@@ -243,6 +243,7 @@ export const COPY: Record<
     workflowActionParams: string;
     workflowActionLlmHint: string;
     workflowExecutionLogs: string;
+    workflowMultiAgentActivity: string;
     workflowDeleteConfirmDescription: string;
     workflowTabCanvas: string;
     workflowTabTemplates: string;
@@ -837,6 +838,7 @@ export const COPY: Record<
     workflowActionParams: "Parameter aksi",
     workflowActionLlmHint: "Gunakan prompt LLM di bawah saat tidak memilih tool.",
     workflowExecutionLogs: "Log Eksekusi",
+    workflowMultiAgentActivity: "Aktivitas Agen",
     workflowDeleteConfirmDescription:
       "Workflow aktif dan semua node-nya akan dihapus dari chat ini.",
     workflowTabCanvas: "Kanvas",
@@ -1470,6 +1472,7 @@ export const COPY: Record<
     workflowActionParams: "Action parameters",
     workflowActionLlmHint: "Uses the LLM prompt below when no tool is selected.",
     workflowExecutionLogs: "Execution Logs",
+    workflowMultiAgentActivity: "Agent Activity",
     workflowDeleteConfirmDescription:
       "The active workflow and all of its nodes will be removed from this chat.",
     workflowTabCanvas: "Canvas",
@@ -2096,6 +2099,7 @@ export const COPY: Record<
     workflowActionParams: "动作参数",
     workflowActionLlmHint: "未选择工具时使用下方 LLM 提示词。",
     workflowExecutionLogs: "执行日志",
+    workflowMultiAgentActivity: "智能体活动",
     workflowDeleteConfirmDescription: "当前工作流及其所有节点将从本对话中删除。",
     workflowTabCanvas: "画布",
     workflowTabTemplates: "模板",

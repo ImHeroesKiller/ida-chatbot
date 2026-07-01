@@ -1,3 +1,4 @@
+import type { MultiAgentActivity } from "@/lib/agent/multi-agent";
 import type { ResolvedWorkflowNodeAction } from "@/lib/workflow-actions";
 import type { WorkflowExecutionCheckpoint } from "@/lib/workflow-execution-state";
 import type { WorkflowExecutionLogEntry, WorkflowExecutionResult } from "@/lib/workflow";
@@ -5,6 +6,7 @@ import type { WorkflowExecutionLogEntry, WorkflowExecutionResult } from "@/lib/w
 export type WorkflowSseEventType =
   | "start"
   | "progress"
+  | "agent_activity"
   | "tool_action"
   | "approval_required"
   | "recovery_required"
@@ -21,6 +23,12 @@ export interface WorkflowSseStartPayload {
 export interface WorkflowSseProgressPayload {
   log: WorkflowExecutionLogEntry;
   logs: WorkflowExecutionLogEntry[];
+}
+
+export interface WorkflowSseAgentActivityPayload {
+  nodeId: string;
+  activity: MultiAgentActivity;
+  activities: MultiAgentActivity[];
 }
 
 export interface WorkflowSseToolActionPayload {

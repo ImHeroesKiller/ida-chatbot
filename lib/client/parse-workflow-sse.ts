@@ -1,4 +1,5 @@
 import type {
+  WorkflowSseAgentActivityPayload,
   WorkflowSseApprovalRequiredPayload,
   WorkflowSseDonePayload,
   WorkflowSseErrorPayload,
@@ -19,6 +20,7 @@ export interface WorkflowExecuteStreamResult {
 export interface WorkflowExecuteStreamHandlers {
   onStart?: (payload: WorkflowSseStartPayload) => void;
   onProgress?: (payload: WorkflowSseProgressPayload) => void;
+  onAgentActivity?: (payload: WorkflowSseAgentActivityPayload) => void;
   onToolAction?: (payload: WorkflowSseToolActionPayload) => void | Promise<void>;
   onApprovalRequired?: (payload: WorkflowSseApprovalRequiredPayload) => void;
   onRecoveryRequired?: (payload: WorkflowSseRecoveryRequiredPayload) => void;
@@ -72,6 +74,8 @@ export async function consumeWorkflowExecuteStream(
         handlers.onStart?.(payload as WorkflowSseStartPayload);
       } else if (eventType === "progress") {
         handlers.onProgress?.(payload as WorkflowSseProgressPayload);
+      } else if (eventType === "agent_activity") {
+        handlers.onAgentActivity?.(payload as WorkflowSseAgentActivityPayload);
       } else if (eventType === "tool_action") {
         await handlers.onToolAction?.(payload as WorkflowSseToolActionPayload);
       } else if (eventType === "approval_required") {
