@@ -136,13 +136,54 @@ export function getWorkflowNodeActionDefinition(
   return ACTION_BY_ID.llm;
 }
 
+const WORKFLOW_ACTION_ALIASES: Record<string, WorkflowNodeActionId> = {
+  websearch: "web_search",
+  "web search": "web_search",
+  web_search: "web_search",
+  worksheet: "worksheet_update",
+  "worksheet update": "worksheet_update",
+  worksheet_update: "worksheet_update",
+  mappin: "map_pin",
+  "map pin": "map_pin",
+  map_pin: "map_pin",
+  research: "research",
+  llm: "llm",
+};
+
+/** Resolve a tool/action string from chat edits, aliases, or config fields. */
+export function resolveWorkflowActionId(raw: unknown): WorkflowNodeActionId | null {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+
+  const trimmed = raw.trim().toLowerCase();
+  const underscored = trimmed.replace(/[\s-]+/g, "_");
+
+  if (underscored in ACTION_BY_ID) {
+    return underscored as WorkflowNodeActionId;
+  }
+  if (trimmed in WORKFLOW_ACTION_ALIASES) {
+    return WORKFLOW_ACTION_ALIASES[trimmed];
+  }
+  if (underscored in WORKFLOW_ACTION_ALIASES) {
+    return WORKFLOW_ACTION_ALIASES[underscored];
+  }
+
+  return null;
+}
+
+export function readNodeConfigActionId(
+  config: Record<string, unknown> | undefined,
+): WorkflowNodeActionId | null {
+  if (!config) return null;
+  return (
+    resolveWorkflowActionId(config.action) ??
+    resolveWorkflowActionId(config.tool)
+  );
+}
+
 export function parseWorkflowNodeActionId(
   raw: unknown,
 ): WorkflowNodeActionId {
-  if (typeof raw === "string" && raw in ACTION_BY_ID) {
-    return raw as WorkflowNodeActionId;
-  }
-  return "llm";
+  return resolveWorkflowActionId(raw) ?? "llm";
 }
 
 export function readWorkflowNodeActionParams(
@@ -184,9 +225,12 @@ export function resolveWorkflowNodeAction(
   workflowContext: string,
 ): ResolvedWorkflowNodeAction {
   const config = node.data.config;
-  const actionId = parseWorkflowNodeActionId(
-    typeof config?.action === "string" ? config.action : undefined,
-  );
+  const actionId =
+    readNodeConfigActionId(
+      config && typeof config === "object"
+        ? (config as Record<string, unknown>)
+        : undefined,
+    ) ?? "llm";
   const definition = getWorkflowNodeActionDefinition(actionId);
   const rawParams = readWorkflowNodeActionParams(node);
   const prompt = getWorkflowNodePrompt(node);

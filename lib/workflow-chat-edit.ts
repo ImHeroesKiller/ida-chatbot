@@ -1,5 +1,11 @@
 import type { WorkflowEdge, WorkflowNode, WorkflowNodeData } from "@/lib/workflow";
 import { normalizeWorkflowNodeData } from "@/lib/workflow";
+import {
+  resolveWorkflowActionId,
+  type WorkflowNodeActionId,
+} from "@/lib/workflow-actions";
+
+const ACTION_FIELD_KEYS = ["action", "tool"] as const;
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -14,6 +20,63 @@ function isDefaultGeneratedPosition(
   );
 }
 
+function readActionField(
+  source: Record<string, unknown> | undefined,
+): string | undefined {
+  if (!source) return undefined;
+  for (const key of ACTION_FIELD_KEYS) {
+    const value = source[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return undefined;
+}
+
+function hasIncomingActionHint(
+  source: Record<string, unknown> | undefined,
+): boolean {
+  return Boolean(readActionField(source));
+}
+
+function resolveConfigActionId(
+  ...sources: Array<Record<string, unknown> | undefined>
+): WorkflowNodeActionId | null {
+  for (const source of sources) {
+    const raw = readActionField(source);
+    const resolved = raw ? resolveWorkflowActionId(raw) : null;
+    if (resolved) return resolved;
+  }
+  return null;
+}
+
+function readActionParams(
+  source: Record<string, unknown> | undefined,
+): Record<string, string> {
+  if (!source || !isPlainObject(source.actionParams)) return {};
+  const params: Record<string, string> = {};
+  for (const [key, value] of Object.entries(source.actionParams)) {
+    if (typeof value === "string") params[key] = value;
+  }
+  return params;
+}
+
+function applyResolvedActionToConfig(
+  config: Record<string, unknown>,
+  actionId: WorkflowNodeActionId,
+  actionParams: Record<string, string>,
+  actionChanged: boolean,
+): void {
+  config.action = actionId;
+  config.tool = actionId;
+
+  if (Object.keys(actionParams).length > 0) {
+    config.actionParams = actionParams;
+  } else if (actionChanged) {
+    config.actionParams = {};
+  }
+}
+
 function mergeConfig(
   existing: Record<string, unknown> | undefined,
   incoming: Record<string, unknown> | undefined,
@@ -21,20 +84,25 @@ function mergeConfig(
   const base = { ...(existing ?? {}) };
   const next = { ...(incoming ?? {}) };
 
-  const existingParams = isPlainObject(base.actionParams)
-    ? base.actionParams
-    : {};
-  const incomingParams = isPlainObject(next.actionParams)
-    ? next.actionParams
-    : {};
+  const existingActionId = resolveConfigActionId(base);
+  const incomingHasActionHint = hasIncomingActionHint(next);
+  const incomingActionId = incomingHasActionHint
+    ? resolveConfigActionId(next)
+    : null;
+  const actionId = incomingActionId ?? existingActionId;
+  const actionChanged = Boolean(
+    incomingActionId && incomingActionId !== existingActionId,
+  );
+
+  const existingParams = readActionParams(base);
+  const incomingParams = readActionParams(next);
+  const mergedParams = actionChanged
+    ? incomingParams
+    : { ...existingParams, ...incomingParams };
 
   const merged: Record<string, unknown> = {
     ...base,
     ...next,
-    actionParams: {
-      ...existingParams,
-      ...incomingParams,
-    },
   };
 
   const prompt =
@@ -43,10 +111,10 @@ function mergeConfig(
     undefined;
   if (prompt) merged.prompt = prompt;
 
-  if (typeof next.action === "string" && next.action.trim()) {
-    merged.action = next.action.trim();
-  } else if (typeof base.action === "string" && base.action.trim()) {
-    merged.action = base.action.trim();
+  if (actionId) {
+    applyResolvedActionToConfig(merged, actionId, mergedParams, actionChanged);
+  } else if (Object.keys(mergedParams).length > 0) {
+    merged.actionParams = mergedParams;
   }
 
   if (typeof next.schedule === "object" && next.schedule) {
@@ -100,9 +168,33 @@ function indexNodesByLabel(nodes: WorkflowNode[]): Map<string, WorkflowNode> {
   return map;
 }
 
+function resolvePriorNode(
+  existingNodes: WorkflowNode[],
+  existingById: Map<string, WorkflowNode>,
+  existingByLabel: Map<string, WorkflowNode>,
+  matchedExistingIds: Set<string>,
+  incoming: WorkflowNode,
+  index: number,
+): WorkflowNode | undefined {
+  const byId = existingById.get(incoming.id);
+  if (byId && !matchedExistingIds.has(byId.id)) return byId;
+
+  const byLabel = existingByLabel.get(
+    incoming.data.label.trim().toLowerCase(),
+  );
+  if (byLabel && !matchedExistingIds.has(byLabel.id)) return byLabel;
+
+  const byIndex = existingNodes[index];
+  if (byIndex && !matchedExistingIds.has(byIndex.id)) {
+    return byIndex;
+  }
+
+  return undefined;
+}
+
 /**
  * Apply chat-edit nodes onto the active workflow, matching by id then label
- * so tool/action/prompt changes sync without losing stable node ids.
+ * then canvas index so tool/action/prompt changes sync without losing stable node ids.
  */
 export function mergeWorkflowChatEditGraph(options: {
   existingNodes: WorkflowNode[];
@@ -112,6 +204,7 @@ export function mergeWorkflowChatEditGraph(options: {
   const { existingNodes, incomingNodes, incomingEdges } = options;
   const existingById = new Map(existingNodes.map((node) => [node.id, node]));
   const existingByLabel = indexNodesByLabel(existingNodes);
+  const matchedExistingIds = new Set<string>();
 
   const mergedNodes = incomingNodes.map((incoming, index) => {
     const normalizedIncoming: WorkflowNode = {
@@ -120,14 +213,20 @@ export function mergeWorkflowChatEditGraph(options: {
       position: { ...incoming.position },
     };
 
-    const prior =
-      existingById.get(normalizedIncoming.id) ??
-      existingByLabel.get(normalizedIncoming.data.label.trim().toLowerCase());
+    const prior = resolvePriorNode(
+      existingNodes,
+      existingById,
+      existingByLabel,
+      matchedExistingIds,
+      normalizedIncoming,
+      index,
+    );
 
     if (!prior) {
       return normalizedIncoming;
     }
 
+    matchedExistingIds.add(prior.id);
     return mergeWorkflowChatEditNode(prior, normalizedIncoming, index);
   });
 

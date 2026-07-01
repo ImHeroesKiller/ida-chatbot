@@ -1,5 +1,6 @@
 import type { Locale } from "@/lib/config";
 import type { IdaMessage } from "@/lib/types";
+import { readNodeConfigActionId } from "@/lib/workflow-actions";
 import type {
   WorkflowDefinition,
   WorkflowWorkspace,
@@ -56,10 +57,7 @@ export function serializeWorkflowForChatContext(
       kind: node.data.kind,
       description: node.data.description,
       prompt: readNodePrompt(node),
-      action:
-        typeof node.data.config?.action === "string"
-          ? node.data.config.action
-          : undefined,
+      action: readNodeConfigActionId(node.data.config) ?? undefined,
       config: node.data.config,
       position: node.position,
     })),
@@ -200,8 +198,14 @@ Kemampuan edit yang harus kamu pahami:
 
 Aturan sinkronisasi:
 - Pertahankan "id" node yang sudah ada jika node masih relevan (cocokkan id atau label).
-- Untuk node action, sertakan "action" dan "actionParams" bila memakai tool.
+- Untuk node action, WAJIB set "action" ke salah satu: llm | web_search | research | worksheet_update | map_pin.
+- Saat mengubah tool/action, set "action" DAN "config.action" (serta "config.tool" bila ada) ke nilai yang sama.
+- Sertakan "actionParams" yang sesuai tool (mis. web_search → { "query": "..." }, worksheet_update → { "title": "...", "content": "..." }).
 - Sertakan "prompt" pada node action/condition/output/approval.
+
+Contoh perintah ubah tool (WAJIB terapkan pada node yang tepat):
+- "ganti tool di node kedua jadi web_search" → node index 2 (node kedua): "action": "web_search", "config": { "action": "web_search", "tool": "web_search" }
+- "ubah action node interview jadi worksheet_update" → node label "interview": "action": "worksheet_update", "config": { "action": "worksheet_update", "tool": "worksheet_update" }
 
 Output:
 - Tulis maksimal 2 kalimat konfirmasi singkat di luar penanda.
@@ -220,8 +224,14 @@ Edits you must understand:
 
 CRITICAL sync rules:
 - Preserve existing node "id" values whenever the node still exists (match by id or label).
-- For action nodes, include "action" (llm | web_search | research | worksheet_update | map_pin) and "actionParams" when tools are used.
+- For action nodes, ALWAYS set "action" to one of: llm | web_search | research | worksheet_update | map_pin.
+- When changing tool/action, set "action" AND "config.action" (and "config.tool" if present) to the same resolved id.
+- Include matching "actionParams" for the tool (e.g. web_search → { "query": "..." }, worksheet_update → { "title": "...", "content": "..." }).
 - Include "prompt" on action/condition/output/approval nodes.
+
+Tool-change examples (apply to the correct node):
+- "change tool on the second node to web_search" → node at index 2: "action": "web_search", "config": { "action": "web_search", "tool": "web_search" }
+- "change interview node action to worksheet_update" → node labeled "interview": "action": "worksheet_update", "config": { "action": "worksheet_update", "tool": "worksheet_update" }
 
 Output:
 - Write at most 2 short confirmation sentences outside markers.
@@ -240,8 +250,13 @@ ${workflowJson}
 
 同步规则：
 - 保留现有节点的 "id"（按 id 或标签匹配）。
-- 动作节点需包含 "action" 和 "actionParams"。
+- 动作节点必须将 "action" 设为：llm | web_search | research | worksheet_update | map_pin 之一。
+- 更改工具时，"action"、"config.action"（及 "config.tool"）必须设为相同值。
+- 包含与工具匹配的 "actionParams"。
 - action/condition/output/approval 节点需包含 "prompt"。
+
+工具更改示例：
+- "把第二个节点的工具改成 web_search" → 第二个节点："action": "web_search", "config": { "action": "web_search", "tool": "web_search" }
 
 输出：
 - 标记外最多 2 句简短确认。

@@ -4,6 +4,7 @@ import {
   type WorkflowChatContext,
   type WorkflowChatPhase,
 } from "@/lib/workflow-chat-context";
+import { resolveWorkflowActionId } from "@/lib/workflow-actions";
 import type {
   WorkflowDefinition,
   WorkflowEdge,
@@ -54,6 +55,8 @@ export const WORKFLOW_JSON_SCHEMA_EXAMPLE = `{
       "kind": "action",
       "description": "What this step does",
       "prompt": "Clear LLM instruction for this step",
+      "action": "web_search",
+      "actionParams": { "query": "latest regulations 2026" },
       "position": { "x": 168, "y": 152 }
     }
   ],
@@ -464,8 +467,16 @@ function readStreamNodeConfig(
   const resolvedAction =
     action ||
     (typeof entry.action === "string" ? entry.action.trim() : "") ||
-    (typeof config.action === "string" ? config.action.trim() : "");
-  if (resolvedAction) config.action = resolvedAction;
+    (typeof entry.tool === "string" ? entry.tool.trim() : "") ||
+    (typeof config.action === "string" ? config.action.trim() : "") ||
+    (typeof config.tool === "string" ? config.tool.trim() : "");
+  if (resolvedAction) {
+    const actionId = resolveWorkflowActionId(resolvedAction);
+    if (actionId) {
+      config.action = actionId;
+      config.tool = actionId;
+    }
+  }
 
   const rawParams =
     actionParams ||
@@ -660,19 +671,46 @@ function normalizeStreamPayload(
   };
 }
 
+function readStreamNodeActionField(
+  node: WorkflowStreamNodePayload,
+  config: Record<string, unknown>,
+): string | undefined {
+  return (
+    node.action?.trim() ||
+    (typeof config.action === "string" ? config.action.trim() : undefined) ||
+    (typeof config.tool === "string" ? config.tool.trim() : undefined)
+  );
+}
+
 export function workflowPayloadToDefinition(
   payload: WorkflowStreamPayload,
 ): Omit<WorkflowDefinition, "createdAt" | "updatedAt" | "id"> {
   const nodes: WorkflowNode[] = payload.nodes.map((node) => {
-    const config =
-      node.config ??
-      (node.prompt || node.action || node.actionParams
-        ? {
-            ...(node.prompt ? { prompt: node.prompt } : {}),
-            ...(node.action ? { action: node.action } : {}),
-            ...(node.actionParams ? { actionParams: node.actionParams } : {}),
-          }
-        : undefined);
+    const config: Record<string, unknown> = { ...(node.config ?? {}) };
+
+    if (node.prompt) config.prompt = node.prompt;
+
+    const rawAction = readStreamNodeActionField(node, config);
+    if (rawAction) {
+      const actionId = resolveWorkflowActionId(rawAction);
+      if (actionId) {
+        config.action = actionId;
+        config.tool = actionId;
+      }
+    }
+
+    if (node.actionParams && Object.keys(node.actionParams).length > 0) {
+      const existingParams =
+        config.actionParams &&
+        typeof config.actionParams === "object" &&
+        !Array.isArray(config.actionParams)
+          ? (config.actionParams as Record<string, string>)
+          : {};
+      config.actionParams = { ...existingParams, ...node.actionParams };
+    }
+
+    const resolvedConfig =
+      Object.keys(config).length > 0 ? config : undefined;
 
     return {
       id: node.id,
@@ -683,7 +721,7 @@ export function workflowPayloadToDefinition(
         kind: node.kind,
         description: node.description,
         prompt: node.prompt,
-        config,
+        config: resolvedConfig,
       },
     };
   });
