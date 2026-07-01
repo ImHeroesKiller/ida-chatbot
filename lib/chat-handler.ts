@@ -532,7 +532,9 @@ function finalizeStreamResult(
   }
 
   if (context.workflowEnabled) {
-    const parsed = parseWorkflowFromResponse(fullText, context.locale);
+    const parsed = parseWorkflowFromResponse(fullText, context.locale, {
+      logScope: "chat",
+    });
     chatMessage = parsed.chatMessage;
     result = {
       ...result,

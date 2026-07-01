@@ -142,7 +142,17 @@ Return only the step result.`,
             .join("")
         : "";
 
-  return text.trim();
+  const trimmed = text.trim();
+
+  console.info("[workflow:execute] llm step output", {
+    nodeId: options.node.id,
+    label: options.node.data.label,
+    kind: options.node.data.kind,
+    outputPreview: trimmed.slice(0, 500),
+    outputLength: trimmed.length,
+  });
+
+  return trimmed;
 }
 
 /**

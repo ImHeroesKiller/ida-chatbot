@@ -222,6 +222,9 @@ export const COPY: Record<
     workflowErrorParseFailed: string;
     workflowErrorEmptyWorkflow: string;
     workflowImportFailed: string;
+    workflowDebugRawResponse: string;
+    workflowDebugShowRaw: string;
+    workflowDebugHideRaw: string;
     workflowNodePrompt: string;
     workflowExecutionLogs: string;
     workflowDeleteConfirmDescription: string;
@@ -726,6 +729,9 @@ export const COPY: Record<
     workflowErrorEmptyWorkflow:
       "Workflow kosong atau tidak memiliki node. Perjelas langkah otomatisasi yang diinginkan.",
     workflowImportFailed: "Gagal mengimpor workflow dari respons chat.",
+    workflowDebugRawResponse: "Respons mentah LLM (debug)",
+    workflowDebugShowRaw: "Tampilkan respons mentah",
+    workflowDebugHideRaw: "Sembunyikan respons mentah",
     workflowNodePrompt: "Prompt LLM",
     workflowExecutionLogs: "Log Eksekusi",
     workflowDeleteConfirmDescription:
@@ -1264,6 +1270,9 @@ export const COPY: Record<
     workflowErrorEmptyWorkflow:
       "The workflow is empty or has no nodes. Clarify the automation steps you need.",
     workflowImportFailed: "Failed to import workflow from the chat response.",
+    workflowDebugRawResponse: "Raw LLM response (debug)",
+    workflowDebugShowRaw: "Show raw response",
+    workflowDebugHideRaw: "Hide raw response",
     workflowNodePrompt: "LLM Prompt",
     workflowExecutionLogs: "Execution Logs",
     workflowDeleteConfirmDescription:
@@ -1796,6 +1805,9 @@ export const COPY: Record<
       "无法识别工作流响应格式。请尝试手动导入或重新发送请求。",
     workflowErrorEmptyWorkflow: "工作流为空或没有节点。请说明您需要的自动化步骤。",
     workflowImportFailed: "无法从聊天响应导入工作流。",
+    workflowDebugRawResponse: "原始 LLM 响应（调试）",
+    workflowDebugShowRaw: "显示原始响应",
+    workflowDebugHideRaw: "隐藏原始响应",
     workflowNodePrompt: "LLM 提示词",
     workflowExecutionLogs: "执行日志",
     workflowDeleteConfirmDescription: "当前工作流及其所有节点将从本对话中删除。",

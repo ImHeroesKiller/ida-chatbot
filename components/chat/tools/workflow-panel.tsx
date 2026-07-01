@@ -2,6 +2,8 @@
 
 import dynamic from "next/dynamic";
 import {
+  ChevronDown,
+  ChevronRight,
   Download,
   GitBranch,
   Loader2,
@@ -96,10 +98,12 @@ export function WorkflowPanel({
     lastExecution,
     hasImportableGeneratedWorkflow,
     importLatestGeneratedWorkflow,
+    lastGeneratedWorkflowSource,
     workspace,
   } = workflowTool;
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [showRawResponse, setShowRawResponse] = useState(false);
 
   useEffect(() => {
     setSelectedNodeId(null);
@@ -154,6 +158,10 @@ export function WorkflowPanel({
     errorDetail,
     workspace.error,
   ]);
+
+  const showImportDebug = Boolean(
+    workflowErrorMessage && lastGeneratedWorkflowSource?.trim(),
+  );
 
   const handleImportLatest = useCallback(() => {
     const imported = importLatestGeneratedWorkflow(locale);
@@ -486,10 +494,38 @@ export function WorkflowPanel({
         ) : null}
       </div>
 
-      {(workflowErrorMessage || lastExecution) && (
+      {(workflowErrorMessage || lastExecution || showImportDebug) && (
         <div className="shrink-0 space-y-2 border-t px-3 py-2">
           {workflowErrorMessage ? (
             <p className="text-[10px] text-destructive">{workflowErrorMessage}</p>
+          ) : null}
+          {showImportDebug ? (
+            <div className="rounded-md border border-dashed border-destructive/30 bg-destructive/5 p-2">
+              <button
+                type="button"
+                className="flex w-full items-center gap-1.5 text-left text-[10px] font-medium text-muted-foreground"
+                onClick={() => setShowRawResponse((prev) => !prev)}
+              >
+                {showRawResponse ? (
+                  <ChevronDown className="h-3 w-3 shrink-0" />
+                ) : (
+                  <ChevronRight className="h-3 w-3 shrink-0" />
+                )}
+                <span>
+                  {showRawResponse
+                    ? copy.workflowDebugHideRaw
+                    : copy.workflowDebugShowRaw}
+                </span>
+                <span className="text-destructive/80">
+                  — {copy.workflowDebugRawResponse}
+                </span>
+              </button>
+              {showRawResponse ? (
+                <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-words rounded bg-background/80 p-2 font-mono text-[9px] leading-relaxed text-foreground/80">
+                  {lastGeneratedWorkflowSource}
+                </pre>
+              ) : null}
+            </div>
           ) : null}
           {!activeWorkflow && hasImportableGeneratedWorkflow ? (
             <Button

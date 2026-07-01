@@ -7,8 +7,44 @@ import type {
   WorkflowNodeKind,
 } from "@/lib/workflow";
 
-export const WORKFLOW_START_MARKER = "<<<IDA_WORKFLOW>>>";
-export const WORKFLOW_END_MARKER = "<<<END_IDA_WORKFLOW>>>";
+/** Primary markers — LLM must use these exactly. */
+export const WORKFLOW_START_MARKER = "<<<IDA_WORKFLOW_START>>>";
+export const WORKFLOW_END_MARKER = "<<<IDA_WORKFLOW_END>>>";
+
+/** Legacy markers kept for backward-compatible parsing. */
+export const WORKFLOW_LEGACY_START_MARKER = "<<<IDA_WORKFLOW>>>";
+export const WORKFLOW_LEGACY_END_MARKER = "<<<END_IDA_WORKFLOW>>>";
+
+const WORKFLOW_MARKER_PAIRS: Array<{ start: string; end: string }> = [
+  { start: WORKFLOW_START_MARKER, end: WORKFLOW_END_MARKER },
+  { start: WORKFLOW_LEGACY_START_MARKER, end: WORKFLOW_LEGACY_END_MARKER },
+];
+
+export const WORKFLOW_JSON_SCHEMA_EXAMPLE = `{
+  "name": "Workflow Title",
+  "description": "Short summary",
+  "nodes": [
+    {
+      "id": "node-1",
+      "label": "Trigger",
+      "kind": "trigger",
+      "description": "When the workflow starts",
+      "prompt": "Optional LLM instruction",
+      "position": { "x": 120, "y": 80 }
+    },
+    {
+      "id": "node-2",
+      "label": "Action Step",
+      "kind": "action",
+      "description": "What this step does",
+      "prompt": "Clear LLM instruction for this step",
+      "position": { "x": 168, "y": 152 }
+    }
+  ],
+  "edges": [
+    { "id": "edge-1", "source": "node-1", "target": "node-2" }
+  ]
+}`;
 
 export interface WorkflowStreamPayload {
   name: string;
@@ -34,6 +70,13 @@ export interface WorkflowParseResult {
   error?: WorkflowErrorCode;
 }
 
+export interface WorkflowParseDebugInfo {
+  candidateCount: number;
+  markerHits: number;
+  usedMarker?: string;
+  preview: string;
+}
+
 const WORKFLOW_CHAT_FALLBACK: Record<Locale, string> = {
   id: "Workflow sudah dibuat. Lihat dan edit di panel Workflow di sebelah kanan.",
   en: "Your workflow is ready. View and edit it in the Workflow panel on the right.",
@@ -46,6 +89,8 @@ const WORKFLOW_PARSE_ERROR_CHAT: Record<Locale, string> = {
   zh: "无法处理工作流。请重新发送请求或说明您需要的自动化步骤。",
 };
 
+const WORKFLOW_DEBUG_PREVIEW_LIMIT = 2400;
+
 function createId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
@@ -56,16 +101,77 @@ function escapeRegExp(value: string): string {
 
 function stripCodeFences(raw: string): string {
   const trimmed = raw.trim();
-  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  const fenced = trimmed.match(/^```(?:json|workflow)?\s*([\s\S]*?)\s*```$/i);
   return fenced?.[1]?.trim() ?? trimmed;
 }
 
 function repairJsonPayload(raw: string): string {
-  return raw.replace(/,\s*([}\]])/g, "$1");
+  let repaired = raw.trim();
+
+  repaired = repaired.replace(/^\uFEFF/, "");
+  repaired = repaired.replace(/,\s*([}\]])/g, "$1");
+  repaired = repaired.replace(/\/\*[\s\S]*?\*\//g, "");
+  repaired = repaired.replace(/\/\/.*$/gm, "");
+  repaired = repaired.replace(/([{,]\s*)([A-Za-z_][\w-]*)(\s*:)/g, '$1"$2"$3');
+  repaired = repaired.replace(/'/g, '"');
+
+  return repaired;
+}
+
+function extractBalancedJsonObjects(text: string): string[] {
+  const results: string[] = [];
+  let depth = 0;
+  let start = -1;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (char === "{") {
+      if (depth === 0) start = index;
+      depth += 1;
+      continue;
+    }
+
+    if (char === "}") {
+      depth -= 1;
+      if (depth === 0 && start >= 0) {
+        const candidate = text.slice(start, index + 1);
+        if (/"(nodes|steps)"\s*:/i.test(candidate)) {
+          results.push(candidate);
+        }
+        start = -1;
+      }
+    }
+  }
+
+  return results;
 }
 
 function tryParseWorkflowJson(raw: string): unknown | null {
-  const candidates = [raw, repairJsonPayload(raw)];
+  const stripped = stripCodeFences(raw);
+  const candidates = [
+    stripped,
+    repairJsonPayload(stripped),
+    repairJsonPayload(stripCodeFences(repairJsonPayload(stripped))),
+  ];
 
   for (const candidate of candidates) {
     try {
@@ -78,32 +184,58 @@ function tryParseWorkflowJson(raw: string): unknown | null {
   return null;
 }
 
-function extractWorkflowJsonCandidates(fullText: string): string[] {
-  const candidates: string[] = [];
-  const markerPattern = new RegExp(
-    `${escapeRegExp(WORKFLOW_START_MARKER)}([\\s\\S]*?)${escapeRegExp(WORKFLOW_END_MARKER)}`,
-    "gi",
-  );
+function unwrapWorkflowRoot(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return raw;
 
-  for (const match of fullText.matchAll(markerPattern)) {
-    const payload = stripCodeFences(match[1] ?? "");
-    if (payload) candidates.push(payload);
+  const data = raw as Record<string, unknown>;
+  const nested = data.workflow;
+  if (nested && typeof nested === "object") {
+    return nested;
   }
 
-  const codeFencePattern = /```(?:json)?\s*([\s\S]*?)\s*```/gi;
-  for (const match of fullText.matchAll(codeFencePattern)) {
-    const payload = match[1]?.trim();
-    if (payload?.includes('"nodes"')) {
-      candidates.push(payload);
+  return raw;
+}
+
+function extractWorkflowJsonCandidates(fullText: string): string[] {
+  const seen = new Set<string>();
+  const candidates: string[] = [];
+
+  const pushCandidate = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed || seen.has(trimmed)) return;
+    seen.add(trimmed);
+    candidates.push(trimmed);
+  };
+
+  for (const { start, end } of WORKFLOW_MARKER_PAIRS) {
+    const markerPattern = new RegExp(
+      `${escapeRegExp(start)}([\\s\\S]*?)${escapeRegExp(end)}`,
+      "gi",
+    );
+
+    for (const match of fullText.matchAll(markerPattern)) {
+      pushCandidate(stripCodeFences(match[1] ?? ""));
     }
   }
 
-  const objectPattern = /\{[\s\S]*?"nodes"\s*:\s*\[[\s\S]*?\][\s\S]*?\}/g;
-  for (const match of fullText.matchAll(objectPattern)) {
-    candidates.push(match[0]?.trim() ?? "");
+  const codeFencePattern = /```(?:json|workflow)?\s*([\s\S]*?)\s*```/gi;
+  for (const match of fullText.matchAll(codeFencePattern)) {
+    const payload = match[1]?.trim() ?? "";
+    if (/"(nodes|steps)"\s*:/i.test(payload)) {
+      pushCandidate(payload);
+    }
   }
 
-  return candidates.filter(Boolean);
+  for (const object of extractBalancedJsonObjects(fullText)) {
+    pushCandidate(object);
+  }
+
+  const objectPattern = /\{[\s\S]*?"(?:nodes|steps)"\s*:\s*\[[\s\S]*?\][\s\S]*?\}/gi;
+  for (const match of fullText.matchAll(objectPattern)) {
+    pushCandidate(match[0]?.trim() ?? "");
+  }
+
+  return candidates;
 }
 
 function inferEdgesFromNodes(
@@ -137,57 +269,88 @@ function resolveNodeKind(value: unknown): WorkflowNodeKind {
   return aliases[normalized] ?? "action";
 }
 
+function resolveNodeLabel(
+  entry: Record<string, unknown>,
+  index: number,
+): string {
+  for (const key of ["label", "name", "title", "text"]) {
+    const value = entry[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  return `Step ${index + 1}`;
+}
+
+function normalizeNodeEntries(raw: unknown): unknown[] {
+  if (Array.isArray(raw)) return raw;
+  if (!raw || typeof raw !== "object") return [];
+
+  const data = raw as Record<string, unknown>;
+  if (Array.isArray(data.nodes)) return data.nodes;
+  if (Array.isArray(data.steps)) return data.steps;
+
+  return [];
+}
+
 function normalizeStreamPayload(
   raw: unknown,
 ): WorkflowStreamPayload | null {
-  if (!raw || typeof raw !== "object") return null;
+  const unwrapped = unwrapWorkflowRoot(raw);
+  if (!unwrapped || typeof unwrapped !== "object") return null;
 
-  const data = raw as Partial<WorkflowStreamPayload> & { title?: string };
+  const data = unwrapped as Partial<WorkflowStreamPayload> & {
+    title?: string;
+    steps?: unknown[];
+  };
+
   const name =
     (typeof data.name === "string" ? data.name.trim() : "") ||
     (typeof data.title === "string" ? data.title.trim() : "");
 
-  const nodes = Array.isArray(data.nodes)
-    ? data.nodes
-        .map((node, index) => {
-          if (!node || typeof node !== "object") return null;
-          const entry = node as WorkflowStreamPayload["nodes"][number];
-          const label =
-            typeof entry.label === "string" && entry.label.trim()
-              ? entry.label.trim()
-              : `Step ${index + 1}`;
-          const kind = resolveNodeKind(
-            entry.kind ?? (entry as { type?: string }).type,
-          );
+  const nodeEntries = normalizeNodeEntries(data);
+  const nodes = nodeEntries
+    .map((node, index) => {
+      if (!node || typeof node !== "object") return null;
+      const entry = node as Record<string, unknown> & {
+        kind?: string;
+        type?: string;
+        position?: { x?: number; y?: number };
+      };
 
-          return {
-            id:
-              typeof entry.id === "string" && entry.id.trim()
-                ? entry.id.trim()
-                : createId("wf-node"),
-            label,
-            kind,
-            description:
-              typeof entry.description === "string"
-                ? entry.description.trim() || undefined
-                : undefined,
-            prompt:
-              typeof entry.prompt === "string"
-                ? entry.prompt.trim() || undefined
-                : undefined,
-            position:
-              entry.position &&
-              typeof entry.position.x === "number" &&
-              typeof entry.position.y === "number"
-                ? { x: entry.position.x, y: entry.position.y }
-                : {
-                    x: 120 + index * 48,
-                    y: 80 + index * 72,
-                  },
-          };
-        })
-        .filter((node): node is NonNullable<typeof node> => node !== null)
-    : [];
+      const label = resolveNodeLabel(entry, index);
+      const kind = resolveNodeKind(entry.kind ?? entry.type);
+
+      return {
+        id:
+          typeof entry.id === "string" && entry.id.trim()
+            ? entry.id.trim()
+            : createId("wf-node"),
+        label,
+        kind,
+        description:
+          typeof entry.description === "string"
+            ? entry.description.trim() || undefined
+            : undefined,
+        prompt:
+          typeof entry.prompt === "string"
+            ? entry.prompt.trim() || undefined
+            : typeof entry.instruction === "string"
+              ? entry.instruction.trim() || undefined
+              : undefined,
+        position:
+          entry.position &&
+          typeof entry.position.x === "number" &&
+          typeof entry.position.y === "number"
+            ? { x: entry.position.x, y: entry.position.y }
+            : {
+                x: 120 + index * 48,
+                y: 80 + index * 72,
+              },
+      };
+    })
+    .filter((node): node is NonNullable<typeof node> => node !== null);
 
   if (nodes.length === 0) return null;
 
@@ -215,9 +378,12 @@ function normalizeStreamPayload(
     ? data.edges
         .map((edge, index) => {
           if (!edge || typeof edge !== "object") return null;
-          const entry = edge as WorkflowStreamPayload["edges"][number];
-          const source = resolveEdgeEndpoint(entry.source);
-          const target = resolveEdgeEndpoint(entry.target);
+          const entry = edge as WorkflowStreamPayload["edges"][number] & {
+            from?: string;
+            to?: string;
+          };
+          const source = resolveEdgeEndpoint(entry.source ?? entry.from);
+          const target = resolveEdgeEndpoint(entry.target ?? entry.to);
           if (!source || !target || source === target) {
             return null;
           }
@@ -278,32 +444,87 @@ export function workflowPayloadToDefinition(
   };
 }
 
+function stripAllWorkflowSegments(fullText: string): string {
+  let chatMessage = fullText.trim();
+
+  for (const { start, end } of WORKFLOW_MARKER_PAIRS) {
+    chatMessage = chatMessage
+      .replace(
+        new RegExp(
+          `${escapeRegExp(start)}[\\s\\S]*?${escapeRegExp(end)}`,
+          "gi",
+        ),
+        "",
+      )
+      .trim();
+  }
+
+  return chatMessage.replace(/```(?:json|workflow)?\s*[\s\S]*?\s*```/gi, "").trim();
+}
+
 function buildWorkflowChatMessage(
   fullText: string,
   locale: Locale,
   matchedSegment?: string,
 ): string {
-  let chatMessage = fullText.trim();
+  const chatMessage = matchedSegment
+    ? fullText.replace(matchedSegment, "").trim()
+    : stripAllWorkflowSegments(fullText);
 
-  if (matchedSegment) {
-    chatMessage = fullText.replace(matchedSegment, "").trim();
-  } else {
-    chatMessage = fullText
-      .replace(
-        new RegExp(
-          `${escapeRegExp(WORKFLOW_START_MARKER)}[\\s\\S]*?${escapeRegExp(WORKFLOW_END_MARKER)}`,
-          "gi",
-        ),
-        "",
-      )
-      .replace(/```(?:json)?\s*[\s\S]*?\s*```/gi, "")
-      .trim();
+  return chatMessage.slice(0, 600) || WORKFLOW_CHAT_FALLBACK[locale];
+}
+
+function countMarkerHits(fullText: string): number {
+  let hits = 0;
+
+  for (const { start, end } of WORKFLOW_MARKER_PAIRS) {
+    const pattern = new RegExp(
+      `${escapeRegExp(start)}[\\s\\S]*?${escapeRegExp(end)}`,
+      "gi",
+    );
+    hits += [...fullText.matchAll(pattern)].length;
   }
 
-  return (
-    chatMessage.slice(0, 600) ||
-    WORKFLOW_CHAT_FALLBACK[locale]
-  );
+  return hits;
+}
+
+export function buildWorkflowParseDebugInfo(
+  fullText: string,
+): WorkflowParseDebugInfo {
+  const candidates = extractWorkflowJsonCandidates(fullText);
+
+  return {
+    candidateCount: candidates.length,
+    markerHits: countMarkerHits(fullText),
+    preview: fullText.slice(0, WORKFLOW_DEBUG_PREVIEW_LIMIT),
+  };
+}
+
+export function logWorkflowParseAttempt(
+  scope: "chat" | "client",
+  fullText: string,
+  result: WorkflowParseResult,
+): void {
+  const debug = buildWorkflowParseDebugInfo(fullText);
+
+  if (result.workflow) {
+    console.info(`[workflow:${scope}] parse ok`, {
+      name: result.workflow.name,
+      nodeCount: result.workflow.nodes.length,
+      edgeCount: result.workflow.edges.length,
+      markerHits: debug.markerHits,
+      candidateCount: debug.candidateCount,
+    });
+    return;
+  }
+
+  console.warn(`[workflow:${scope}] parse failed`, {
+    error: result.error,
+    textLength: fullText.length,
+    markerHits: debug.markerHits,
+    candidateCount: debug.candidateCount,
+    preview: debug.preview,
+  });
 }
 
 export function getWorkflowStreamErrorMessage(
@@ -334,122 +555,143 @@ export function getWorkflowStreamErrorMessage(
 export function parseWorkflowFromResponse(
   fullText: string,
   locale: Locale,
+  options?: { logScope?: "chat" | "client" },
 ): WorkflowParseResult {
   const candidates = extractWorkflowJsonCandidates(fullText);
 
   for (const rawPayload of candidates) {
-    const parsed = tryParseWorkflowJson(stripCodeFences(rawPayload));
+    const parsed = tryParseWorkflowJson(rawPayload);
     const payload = normalizeStreamPayload(parsed);
     if (payload) {
-      const markerSegment = fullText.includes(WORKFLOW_START_MARKER)
-        ? fullText.match(
+      const markerSegment =
+        WORKFLOW_MARKER_PAIRS.map(({ start, end }) =>
+          fullText.match(
             new RegExp(
-              `${escapeRegExp(WORKFLOW_START_MARKER)}[\\s\\S]*?${escapeRegExp(WORKFLOW_END_MARKER)}`,
+              `${escapeRegExp(start)}[\\s\\S]*?${escapeRegExp(end)}`,
               "i",
             ),
-          )?.[0]
-        : rawPayload;
+          ),
+        ).find((match) => match)?.[0] ?? rawPayload;
 
-      return {
-        chatMessage: buildWorkflowChatMessage(
-          fullText,
-          locale,
-          markerSegment,
-        ),
+      const result: WorkflowParseResult = {
+        chatMessage: buildWorkflowChatMessage(fullText, locale, markerSegment),
         workflow: payload,
       };
+
+      if (options?.logScope) {
+        logWorkflowParseAttempt(options.logScope, fullText, result);
+      }
+
+      return result;
     }
   }
 
-  return {
+  const result: WorkflowParseResult = {
     chatMessage: fullText.trim() || WORKFLOW_PARSE_ERROR_CHAT[locale],
     workflow: null,
     error: fullText.trim() ? "parse_failed" : "empty_workflow",
   };
+
+  if (options?.logScope) {
+    logWorkflowParseAttempt(options.logScope, fullText, result);
+  }
+
+  return result;
+}
+
+function buildStrictWorkflowRules(locale: Locale): string {
+  const rules: Record<Locale, string> = {
+    id: `ATURAN KETAT (WAJIB — tidak boleh dilanggar):
+1. Di luar penanda workflow, tulis MAKSIMAL 2 kalimat konfirmasi singkat. Jangan ada JSON, bullet, atau penjelasan panjang di luar penanda.
+2. JSON workflow HARUS berada TEPAT di antara:
+   ${WORKFLOW_START_MARKER}
+   ...JSON...
+   ${WORKFLOW_END_MARKER}
+3. Jangan gunakan penanda lama (${WORKFLOW_LEGACY_START_MARKER} / ${WORKFLOW_LEGACY_END_MARKER}).
+4. Di dalam penanda: HANYA satu objek JSON valid. Tanpa markdown, tanpa komentar, tanpa trailing comma.
+5. Gunakan field persis: "name" (bukan title), "description", "nodes", "edges".
+6. Setiap node WAJIB punya: "id", "label", "kind", "position" — dan "prompt" untuk action/condition/output.
+7. "kind" HARUS salah satu: trigger | action | condition | output (boleh pakai "type" dengan nilai sama, tapi "kind" lebih disukai).
+8. Minimal 2 node, maksimal 6 node. "edges" harus menghubungkan source → target dengan id node yang valid.`,
+    en: `STRICT RULES (MANDATORY — do not violate):
+1. Outside workflow markers, write AT MOST 2 short confirmation sentences. No JSON, bullets, or long explanations outside markers.
+2. Workflow JSON MUST appear EXACTLY between:
+   ${WORKFLOW_START_MARKER}
+   ...JSON...
+   ${WORKFLOW_END_MARKER}
+3. Do NOT use legacy markers (${WORKFLOW_LEGACY_START_MARKER} / ${WORKFLOW_LEGACY_END_MARKER}).
+4. Inside markers: ONLY one valid JSON object. No markdown, comments, or trailing commas.
+5. Use exact fields: "name" (not title), "description", "nodes", "edges".
+6. Every node MUST include: "id", "label", "kind", "position" — plus "prompt" for action/condition/output nodes.
+7. "kind" MUST be one of: trigger | action | condition | output ("type" is tolerated but "kind" is preferred).
+8. Minimum 2 nodes, maximum 6 nodes. "edges" must connect valid node ids source → target.`,
+    zh: `严格规则（必须遵守）：
+1. 标记之外最多写 2 句简短确认。标记外不得出现 JSON、列表或长解释。
+2. 工作流 JSON 必须严格位于：
+   ${WORKFLOW_START_MARKER}
+   ...JSON...
+   ${WORKFLOW_END_MARKER}
+3. 不要使用旧标记（${WORKFLOW_LEGACY_START_MARKER} / ${WORKFLOW_LEGACY_END_MARKER}）。
+4. 标记内只能是单个合法 JSON 对象。不要 markdown、注释或尾随逗号。
+5. 字段必须为："name"（不要用 title）、"description"、"nodes"、"edges"。
+6. 每个节点必须包含："id"、"label"、"kind"、"position"；action/condition/output 节点需要 "prompt"。
+7. "kind" 只能是：trigger | action | condition | output。
+8. 至少 2 个节点，最多 6 个。edges 必须用有效节点 id 连接 source → target。`,
+  };
+
+  return rules[locale];
 }
 
 export function buildWorkflowPromptSection(locale: Locale): string {
   const instructions: Record<Locale, string> = {
-    id: `## Mode Workflow (Otomatisasi Visual)
+    id: `## Mode Workflow (Otomatisasi Visual) — OUTPUT WAJIB TERSTRUKTUR
 Pengguna sedang membuat workflow otomatisasi melalui panel **Workflow**.
 
-Aturan respons WAJIB:
-1. **Bagian chat (pendek):** 1–3 kalimat yang mengonfirmasi workflow dibuat dan mengarahkan ke panel Workflow. Jangan salin JSON di chat.
-2. **Bagian Workflow:** Tulis definisi workflow sebagai JSON di antara penanda berikut:
+${buildStrictWorkflowRules(locale)}
 
+Skema JSON eksak (salin struktur ini, sesuaikan isinya):
 ${WORKFLOW_START_MARKER}
-{
-  "name": "Judul Workflow",
-  "description": "Ringkasan singkat",
-  "nodes": [
-    {
-      "id": "node-1",
-      "label": "Trigger",
-      "kind": "trigger",
-      "description": "Kapan workflow dimulai",
-      "prompt": "Instruksi LLM opsional",
-      "position": { "x": 120, "y": 80 }
-    }
-  ],
-  "edges": [
-    { "id": "edge-1", "source": "node-1", "target": "node-2" }
-  ]
-}
+${WORKFLOW_JSON_SCHEMA_EXAMPLE}
 ${WORKFLOW_END_MARKER}
 
-Panduan workflow:
-- \`kind\` harus salah satu: trigger, action, condition, output
-- Buat minimal 2–6 node yang logis (trigger → action/condition → output)
-- Hubungkan node dengan \`edges\` (source → target)
-- Untuk node action/output, isi \`prompt\` dengan instruksi LLM yang jelas
-- Contoh use case: follow-up pinjaman, onboarding nasabah, reminder dokumen`,
-    en: `## Workflow Mode (Visual Automation)
+Contoh respons lengkap:
+Workflow follow-up pinjaman sudah siap. Silakan edit node di panel Workflow.
+
+${WORKFLOW_START_MARKER}
+${WORKFLOW_JSON_SCHEMA_EXAMPLE}
+${WORKFLOW_END_MARKER}`,
+    en: `## Workflow Mode (Visual Automation) — STRUCTURED OUTPUT REQUIRED
 The user is building an automation workflow via the **Workflow** panel.
 
-Required response format:
-1. **Chat section (short):** 1–3 sentences confirming the workflow is ready and pointing to the Workflow panel. Do not paste JSON in chat.
-2. **Workflow section:** Write the workflow definition as JSON between these markers:
+${buildStrictWorkflowRules(locale)}
 
+Exact JSON schema (copy this structure, adapt the content):
 ${WORKFLOW_START_MARKER}
-{
-  "name": "Workflow Title",
-  "description": "Short summary",
-  "nodes": [
-    {
-      "id": "node-1",
-      "label": "Trigger",
-      "kind": "trigger",
-      "description": "When the workflow starts",
-      "prompt": "Optional LLM instruction",
-      "position": { "x": 120, "y": 80 }
-    }
-  ],
-  "edges": [
-    { "id": "edge-1", "source": "node-1", "target": "node-2" }
-  ]
-}
+${WORKFLOW_JSON_SCHEMA_EXAMPLE}
 ${WORKFLOW_END_MARKER}
 
-Workflow guidelines:
-- \`kind\` must be one of: trigger, action, condition, output
-- Create 2–6 logical nodes (trigger → action/condition → output)
-- Connect nodes with \`edges\` (source → target)
-- For action/output nodes, fill \`prompt\` with a clear LLM instruction`,
-    zh: `## 工作流模式（可视化自动化）
+Full response example:
+Your loan follow-up workflow is ready. Edit nodes in the Workflow panel.
+
+${WORKFLOW_START_MARKER}
+${WORKFLOW_JSON_SCHEMA_EXAMPLE}
+${WORKFLOW_END_MARKER}`,
+    zh: `## 工作流模式（可视化自动化）— 必须结构化输出
 用户正在通过 **Workflow** 面板构建自动化工作流。
 
-必须的回复格式：
-1. **聊天部分（简短）：** 1–3 句话确认工作流已生成，并引导用户查看 Workflow 面板。不要在聊天中粘贴 JSON。
-2. **工作流部分：** 在以下标记之间写入 JSON 工作流定义：
+${buildStrictWorkflowRules(locale)}
 
+精确 JSON 结构（复制此结构并修改内容）：
 ${WORKFLOW_START_MARKER}
-{ "name": "工作流标题", "description": "简短摘要", "nodes": [...], "edges": [...] }
+${WORKFLOW_JSON_SCHEMA_EXAMPLE}
 ${WORKFLOW_END_MARKER}
 
-指南：
-- \`kind\` 必须是：trigger、action、condition、output 之一
-- 创建 2–6 个逻辑节点并用 edges 连接
-- action/output 节点应包含清晰的 \`prompt\``,
+完整回复示例：
+贷款跟进工作流已就绪。请在 Workflow 面板中编辑节点。
+
+${WORKFLOW_START_MARKER}
+${WORKFLOW_JSON_SCHEMA_EXAMPLE}
+${WORKFLOW_END_MARKER}`,
   };
 
   return instructions[locale];

@@ -494,7 +494,9 @@ export function useWorkflow(): WorkflowTool {
       const source = lastGeneratedWorkflowSourceRef.current;
       if (!source?.trim()) return null;
 
-      const parsed = parseWorkflowFromResponse(source, locale);
+      const parsed = parseWorkflowFromResponse(source, locale, {
+        logScope: "client",
+      });
       if (!parsed.workflow) {
         applyStreamError(parsed.error ?? "parse_failed", null);
         return null;

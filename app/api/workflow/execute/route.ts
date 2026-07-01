@@ -88,10 +88,27 @@ export async function POST(request: Request) {
   }
 
   try {
+    const workflow = parsed.data.workflow as WorkflowDefinition;
+
+    console.info("[workflow:execute] request", {
+      workflowId: workflow.id,
+      name: workflow.name,
+      nodeCount: workflow.nodes.length,
+      edgeCount: workflow.edges.length,
+      locale: parsed.data.locale,
+      sessionId: parsed.data.sessionId ?? null,
+    });
+
     const result = await executeChatWorkflow({
-      workflow: parsed.data.workflow as WorkflowDefinition,
+      workflow,
       locale: parsed.data.locale,
       sessionId: parsed.data.sessionId,
+    });
+
+    console.info("[workflow:execute] completed", {
+      workflowId: result.workflowId,
+      status: result.status,
+      logCount: result.logs?.length ?? 0,
     });
 
     return NextResponse.json({ result });

@@ -231,6 +231,7 @@ export function useChatStream({
                 const clientParsed = parseWorkflowFromResponse(
                   fullStreamedText,
                   locale,
+                  { logScope: "client" },
                 );
 
                 if (clientParsed.workflow) {
