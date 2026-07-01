@@ -64,18 +64,9 @@ export function useChatToolPanelProps({
 
   const handleWorksheetChange = useCallback(
     (workspace: (typeof tools.worksheet)["workspace"]) => {
-      if (tools.worksheet.hydrateFromExternal) {
-        tools.worksheet.hydrateFromExternal(workspace);
-      } else {
-        tools.worksheet.syncWorkspaceFromExternal(workspace);
-      }
       worksheet.setWorksheetWorkspaceInbound(workspace);
     },
-    [
-      tools.worksheet.hydrateFromExternal,
-      tools.worksheet.syncWorkspaceFromExternal,
-      worksheet.setWorksheetWorkspaceInbound,
-    ],
+    [worksheet.setWorksheetWorkspaceInbound],
   );
 
   const handleWorksheetApplyTemplate = useCallback(

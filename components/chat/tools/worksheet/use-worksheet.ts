@@ -282,6 +282,7 @@ export function useWorksheet(): WorksheetTool {
 
   const hydrateFromExternal = useCallback(
     (external: WorksheetWorkspaceState): WorksheetWorkspaceState => {
+      console.log("[DEBUG] hydrateFromExternal called");
       const normalized = normalizeWorksheetDocument(
         external,
         localeRef.current,
@@ -310,13 +311,14 @@ export function useWorksheet(): WorksheetTool {
 
   const syncToPersistLayer = useCallback(
     (nextWorkspace?: WorksheetWorkspaceState): WorksheetWorkspaceState => {
-      const base = nextWorkspace ?? workspaceRef.current;
-      if (!base) {
+      console.log("[DEBUG] syncToPersistLayer called");
+      const current = nextWorkspace ?? getWorkspace();
+      if (!current) {
         return workspaceRef.current;
       }
 
       const snapshot = syncWorkspaceLegacyFields({
-        ...base,
+        ...current,
         updatedAt: Date.now(),
       });
       const fingerprint = buildWorksheetWorkspacePersistFingerprint(snapshot);
@@ -329,7 +331,7 @@ export function useWorksheet(): WorksheetTool {
       persistSyncRef.current?.(snapshot);
       return snapshot;
     },
-    [],
+    [getWorkspace],
   );
 
   const setDocuments = useCallback((documents: WorksheetSavedDocument[]) => {
@@ -541,9 +543,11 @@ export function useWorksheet(): WorksheetTool {
         return nextWorkspace;
       });
 
-      return syncToPersistLayer(nextWorkspace);
+      // TEMP DISABLED FOR DEBUG
+      // return syncToPersistLayer(nextWorkspace);
+      return nextWorkspace;
     },
-    [syncToPersistLayer],
+    [],
   );
 
   const recordDocumentVersion = useCallback(
@@ -622,9 +626,11 @@ export function useWorksheet(): WorksheetTool {
         return nextWorkspace;
       });
 
-      return syncToPersistLayer(nextWorkspace);
+      // TEMP DISABLED FOR DEBUG
+      // return syncToPersistLayer(nextWorkspace);
+      return nextWorkspace;
     },
-    [syncToPersistLayer],
+    [],
   );
 
   const applyTemplate = useCallback(
@@ -662,9 +668,11 @@ export function useWorksheet(): WorksheetTool {
         return nextWorkspace;
       });
 
-      return syncToPersistLayer(nextWorkspace);
+      // TEMP DISABLED FOR DEBUG
+      // return syncToPersistLayer(nextWorkspace);
+      return nextWorkspace;
     },
-    [syncToPersistLayer],
+    [],
   );
 
   const clearAllDocuments = useCallback((): WorksheetWorkspaceState => {
