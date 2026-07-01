@@ -1,6 +1,8 @@
 "use client";
 
-import { useLayoutEffect, useMemo } from "react";
+import { useCallback, useLayoutEffect, useMemo } from "react";
+
+import { syncWorkspaceLegacyFields } from "@/lib/worksheet-workspace";
 
 import { useChatToolHandlers } from "@/components/chat/hooks/use-chat-tool-handlers";
 import type { useWorksheetWorkspace } from "@/components/chat/hooks/use-worksheet-workspace";
@@ -60,6 +62,22 @@ export function useChatToolPanelProps({
   const worksheetGenerating =
     tools.worksheet.isGenerating || worksheetGeneratingFromStream;
 
+  const handleWorksheetChange = useCallback(
+    (workspace: (typeof tools.worksheet)["workspace"]) => {
+      if (tools.worksheet.hydrateFromExternal) {
+        tools.worksheet.hydrateFromExternal(workspace);
+      } else {
+        tools.worksheet.syncWorkspaceFromExternal(workspace);
+      }
+      if (tools.worksheet.syncToPersistLayer) {
+        tools.worksheet.syncToPersistLayer(workspace);
+      } else {
+        worksheet.handleWorksheetChange(workspace);
+      }
+    },
+    [tools, worksheet],
+  );
+
   const {
     handleWorksheetRetry,
     sharedToolPanelProps: toolPanelCoreProps,
@@ -80,27 +98,26 @@ export function useChatToolPanelProps({
     (): SharedToolPanelProps => ({
       locale,
       ...toolPanelCoreProps,
-      worksheet: worksheet.worksheetWorkspace,
+      worksheet: syncWorkspaceLegacyFields(tools.worksheet.workspace),
       worksheetTool: tools.worksheet,
       worksheetErrorDetail: tools.worksheet.errorDetail,
       worksheetGenerating,
       worksheetCanRegenerate: Boolean(worksheet.lastWorksheetPrompt.trim()),
-      onWorksheetChange: worksheet.handleWorksheetChange,
+      onWorksheetChange: handleWorksheetChange,
       onWorksheetApplyTemplate: worksheet.handleWorksheetApplyTemplate,
       onWorksheetRetry: handleWorksheetRetry,
       onWorksheetRegenerate: handleWorksheetRetry,
       onWorksheetClear: worksheet.handleWorksheetClear,
     }),
     [
+      handleWorksheetChange,
       handleWorksheetRetry,
       locale,
       toolPanelCoreProps,
       tools.worksheet,
       worksheet.handleWorksheetApplyTemplate,
-      worksheet.handleWorksheetChange,
       worksheet.handleWorksheetClear,
       worksheet.lastWorksheetPrompt,
-      worksheet.worksheetWorkspace,
       worksheetGenerating,
     ],
   );

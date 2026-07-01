@@ -71,6 +71,18 @@ export function syncStreamMessages(
   }
 }
 
+function mirrorWorksheetToPersistLayer(
+  deps: StreamToolBridgeDeps,
+  workspace: WorksheetDocument,
+): void {
+  if (deps.tools.worksheet.syncToPersistLayer) {
+    deps.tools.worksheet.syncToPersistLayer(workspace);
+    return;
+  }
+
+  deps.setWorksheetWorkspace(workspace);
+}
+
 function syncWorksheetErrorDetail(
   deps: StreamToolBridgeDeps,
   message: string | null,
@@ -87,7 +99,7 @@ function syncWorksheetErrorDetail(
     deps.setWorksheetErrorDetail(null);
   }
 
-  // Mirror into persistence hook until it becomes persist-only.
+  // Legacy mirror — runtime SSOT is `tools.worksheet.errorDetail`.
   deps.setWorksheetErrorDetail(message);
 }
 
@@ -191,7 +203,11 @@ export function createStreamToolBridge(
         ...legacyNext,
         updatedAt: Date.now(),
       });
-      deps.tools.worksheet.syncWorkspaceFromExternal(next);
+      if (deps.tools.worksheet.hydrateFromExternal) {
+        deps.tools.worksheet.hydrateFromExternal(next);
+      } else {
+        deps.tools.worksheet.syncWorkspaceFromExternal(next);
+      }
     }
 
     const persisted = syncWorkspaceLegacyFields({
@@ -200,8 +216,7 @@ export function createStreamToolBridge(
     });
 
     if (ctx.isActiveChat()) {
-      // Keep persistence hook aligned until it becomes persist-only.
-      deps.setWorksheetWorkspace(next);
+      mirrorWorksheetToPersistLayer(deps, next);
       syncWorksheetErrorDetail(deps, null);
       deps.tools.activateWorksheet();
       toast.success(deps.worksheetCreatedLabel);
@@ -230,7 +245,11 @@ export function createStreamToolBridge(
         ),
         updatedAt: Date.now(),
       });
-      deps.tools.worksheet.syncWorkspaceFromExternal(next);
+      if (deps.tools.worksheet.hydrateFromExternal) {
+        deps.tools.worksheet.hydrateFromExternal(next);
+      } else {
+        deps.tools.worksheet.syncWorkspaceFromExternal(next);
+      }
       syncWorksheetErrorDetail(deps, message ?? null);
     }
 
@@ -245,7 +264,7 @@ export function createStreamToolBridge(
     const persisted = resolveWorksheetStreamError(code, null);
 
     if (ctx.isActiveChat()) {
-      deps.setWorksheetWorkspace(persisted);
+      mirrorWorksheetToPersistLayer(deps, persisted);
       syncWorksheetErrorDetail(deps, null);
       deps.tools.activateWorksheet();
     }
@@ -271,7 +290,7 @@ export function createStreamToolBridge(
       );
 
       if (ctx.isActiveChat()) {
-        deps.setWorksheetWorkspace(persisted);
+        mirrorWorksheetToPersistLayer(deps, persisted);
         syncWorksheetErrorDetail(deps, errorMessage);
         deps.tools.activateWorksheet();
       }

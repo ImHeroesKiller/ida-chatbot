@@ -152,9 +152,18 @@ function ChatRoomContent() {
     canPersistCurrentChatState: sessionRefs.canPersistCurrentChatState,
     persistCurrentChat,
     worksheetTemplateAppliedLabel: copy.worksheetTemplateApplied,
-    syncWorkspaceToTool: tools.worksheet.syncWorkspaceFromExternal,
+    syncWorkspaceToTool: tools.worksheet.hydrateFromExternal,
     getWorkspaceFromTool: tools.worksheet.getWorkspace,
   });
+
+  useEffect(() => {
+    tools.worksheet.registerSyncToPersistLayer((workspace) => {
+      worksheet.setWorksheetWorkspace(workspace);
+    });
+    return () => {
+      tools.worksheet.registerSyncToPersistLayer(null);
+    };
+  }, [tools.worksheet, worksheet]);
 
   const chatSend = useChatSend({
     locale,
@@ -201,10 +210,12 @@ function ChatRoomContent() {
     setEditingMessageId,
     hydrateWorksheetFromChat: (chat) => {
       worksheet.hydrateFromChat(chat);
+      tools.worksheet.hydrateFromExternal(
+        worksheet.worksheetWorkspaceRef.current,
+      );
       tools.worksheet.hydrate({
         enabled: tools.worksheet.isEnabled,
         panelOpen: tools.worksheet.isPanelOpen,
-        workspace: worksheet.worksheetWorkspaceRef.current,
         locale,
         isGenerating: false,
         errorDetail: null,

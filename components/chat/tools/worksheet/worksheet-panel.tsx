@@ -104,9 +104,14 @@ interface WorksheetPanelProps {
     WorksheetTool,
     | "setLocale"
     | "setWorkspace"
+    | "getWorkspace"
     | "setActiveDocumentId"
     | "selectDocument"
     | "deleteDocument"
+    | "resetWorkspace"
+    | "syncToPersistLayer"
+    | "updateDocument"
+    | "recordDocumentVersion"
   >;
   errorDetail?: string | null;
   isGenerating?: boolean;
@@ -159,6 +164,18 @@ export function WorksheetPanel({
     },
     [onWorkspaceChange],
   );
+
+  const mirrorToolWorkspace = useCallback(() => {
+    if (worksheetTool?.syncToPersistLayer) {
+      worksheetTool.syncToPersistLayer();
+      return;
+    }
+
+    const next = worksheetTool?.getWorkspace?.();
+    if (next) {
+      commitWorkspace(next);
+    }
+  }, [commitWorkspace, worksheetTool]);
 
   useEffect(() => {
     worksheetTool?.setLocale(locale);
@@ -498,10 +515,14 @@ export function WorksheetPanel({
         setDraftContent(nextDocument?.content ?? "");
         setIsEditing(false);
       }
-      commitWorkspace(setActiveWorksheetDocument(workspace, documentId));
-      worksheetTool?.selectDocument(documentId);
+      if (worksheetTool?.selectDocument) {
+        worksheetTool.selectDocument(documentId);
+        mirrorToolWorkspace();
+      } else {
+        commitWorkspace(setActiveWorksheetDocument(workspace, documentId));
+      }
     },
-    [allDocuments, commitWorkspace, isEditing, worksheetTool, workspace],
+    [allDocuments, commitWorkspace, isEditing, mirrorToolWorkspace, worksheetTool, workspace],
   );
 
   const handleSelectDocument = useCallback(
@@ -531,14 +552,18 @@ export function WorksheetPanel({
   );
 
   const handleBackToDocuments = useCallback(() => {
-    commitWorkspace(setActiveWorksheetDocument(workspace, null));
-    worksheetTool?.setActiveDocumentId(null);
+    if (worksheetTool?.setActiveDocumentId) {
+      worksheetTool.setActiveDocumentId(null);
+      mirrorToolWorkspace();
+    } else {
+      commitWorkspace(setActiveWorksheetDocument(workspace, null));
+    }
     if (isEditing) {
       setDraftContent(content);
       setIsEditing(false);
     }
     setIsFullViewOpen(false);
-  }, [commitWorkspace, content, isEditing, worksheetTool, workspace]);
+  }, [commitWorkspace, content, isEditing, mirrorToolWorkspace, worksheetTool, workspace]);
 
   const handleSaveEdit = useCallback(() => {
     const trimmed = draftContent.trim();
@@ -615,8 +640,12 @@ export function WorksheetPanel({
         return;
       }
 
-      commitWorkspace(next);
-      worksheetTool?.deleteDocument(documentId);
+      if (worksheetTool?.deleteDocument) {
+        worksheetTool.deleteDocument(documentId);
+        mirrorToolWorkspace();
+      } else {
+        commitWorkspace(next);
+      }
 
       if (workspace.activeDocumentId === documentId) {
         setIsFullViewOpen(false);
@@ -636,6 +665,7 @@ export function WorksheetPanel({
       commitWorkspace,
       copy.worksheetDeleteDocumentSuccessNamed,
       locale,
+      mirrorToolWorkspace,
       onClear,
       worksheetTool,
       workspace,

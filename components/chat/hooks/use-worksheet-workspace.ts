@@ -70,7 +70,10 @@ export function useWorksheetWorkspace({
   );
   const [lastWorksheetPrompt, setLastWorksheetPrompt] = useState("");
   const lastWorksheetPromptRef = useRef("");
-  /** Legacy mirror — runtime SSOT is `tools.worksheet.errorDetail` during Phase 3. */
+  /**
+   * Legacy mirror for stream bridge fallback.
+   * Runtime SSOT: `tools.worksheet.errorDetail` — do not read for UI.
+   */
   const [worksheetErrorDetail, setWorksheetErrorDetail] = useState<
     string | null
   >(null);
@@ -122,6 +125,7 @@ export function useWorksheetWorkspace({
       worksheetWorkspaceRef.current = worksheet;
       setWorksheetWorkspaceState(worksheet);
       syncWorkspaceToTool?.(worksheet);
+      // Legacy mirror — tool hook clears via hydrateFromExternal + hydrate.
       setWorksheetErrorDetail(null);
 
       const lastUserMessage = [...chat.messages]

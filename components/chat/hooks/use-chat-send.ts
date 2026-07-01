@@ -120,9 +120,14 @@ export function useChatSend({
       if (worksheetAtSend) {
         tools.worksheet.beginRegenerate();
         tools.openPanel(tools.worksheet.panelId);
-        setWorksheetWorkspace((prev) =>
-          prev.error ? { ...prev, error: undefined } : prev,
-        );
+        if (tools.worksheet.syncToPersistLayer) {
+          tools.worksheet.syncToPersistLayer();
+        } else {
+          setWorksheetWorkspace((prev) =>
+            prev.error ? { ...prev, error: undefined } : prev,
+          );
+        }
+        tools.worksheet.clearErrorDetail?.();
         setWorksheetErrorDetail(null);
       }
 

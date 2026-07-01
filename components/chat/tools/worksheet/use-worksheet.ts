@@ -11,15 +11,21 @@ import {
 import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
 import type { ToolQuotaState } from "@/components/chat/tools/types";
 import type { Locale } from "@/lib/config";
-import type { WorksheetDocument, WorksheetErrorCode } from "@/lib/worksheet";
+import type {
+  WorksheetDocument,
+  WorksheetErrorCode,
+  WorksheetVersionSource,
+} from "@/lib/worksheet";
 import {
   addGeneratedWorksheetDocument,
   createEmptyWorksheetWorkspace,
   normalizeWorksheetDocument,
+  recordWorksheetDocumentVersion,
   removeWorksheetDocument,
   setActiveWorksheetDocument,
   setWorksheetWorkspaceError,
   syncWorkspaceLegacyFields,
+  updateWorksheetDocument,
   type WorksheetSavedDocument,
 } from "@/lib/worksheet-workspace";
 
@@ -63,6 +69,28 @@ export interface WorksheetStreamDocumentInput {
   activate?: boolean;
 }
 
+export type WorksheetUpdateDocumentPatch = Partial<
+  Pick<
+    WorksheetSavedDocument,
+    | "title"
+    | "content"
+    | "promptSummary"
+    | "status"
+    | "exportedFormats"
+    | "versions"
+    | "brandingSource"
+    | "letterheadTemplateId"
+  >
+>;
+
+export interface WorksheetRecordDocumentVersionInput {
+  title: string;
+  content: string;
+  source: WorksheetVersionSource;
+}
+
+type PersistLayerSync = (workspace: WorksheetWorkspaceState) => void;
+
 export interface WorksheetHydrationInput extends ToolHydrationInput {
   workspace?: WorksheetDocument | null;
   locale?: Locale;
@@ -84,7 +112,15 @@ export type WorksheetTool = BaseToolState &
     getWorkspace: () => WorksheetWorkspaceState;
     setWorkspace: (workspace: WorksheetWorkspaceState) => void;
     updateWorkspace: (patch: Partial<WorksheetWorkspaceState>) => void;
+    /** Hydrate runtime workspace from an external snapshot (persist layer / chat). */
+    hydrateFromExternal: (workspace: WorksheetWorkspaceState) => WorksheetWorkspaceState;
+    /** @deprecated Use `hydrateFromExternal` — kept for Phase 3 fallback callers. */
     syncWorkspaceFromExternal: (workspace: WorksheetWorkspaceState) => void;
+    /** Mirror the current (or provided) workspace snapshot into the persist layer. */
+    syncToPersistLayer: (
+      workspace?: WorksheetWorkspaceState,
+    ) => WorksheetWorkspaceState;
+    registerSyncToPersistLayer: (sync: PersistLayerSync | null) => void;
     setDocuments: (documents: WorksheetSavedDocument[]) => void;
     setActiveDocumentId: (documentId: string | null) => void;
     setIsGenerating: (generating: boolean) => void;
@@ -107,6 +143,14 @@ export type WorksheetTool = BaseToolState &
     applyStreamError: (
       errorCode: WorksheetErrorCode,
       message?: string | null,
+    ) => WorksheetWorkspaceState;
+    updateDocument: (
+      documentId: string,
+      patch: WorksheetUpdateDocumentPatch,
+    ) => WorksheetWorkspaceState;
+    recordDocumentVersion: (
+      documentId: string,
+      input: WorksheetRecordDocumentVersionInput,
     ) => WorksheetWorkspaceState;
     selectDocument: (documentId: string) => void;
     deleteDocument: (documentId: string) => void;
@@ -140,6 +184,7 @@ export function useWorksheet(): WorksheetTool {
   const [isGenerating, setIsGeneratingState] = useState(false);
   const [errorDetail, setErrorDetailState] = useState<string | null>(null);
   const errorDetailRef = useRef<string | null>(null);
+  const persistSyncRef = useRef<PersistLayerSync | null>(null);
 
   useEffect(() => {
     workspaceRef.current = workspace;
@@ -182,9 +227,38 @@ export function useWorksheet(): WorksheetTool {
     });
   }, []);
 
-  const syncWorkspaceFromExternal = useCallback((next: WorksheetWorkspaceState) => {
-    setWorkspace(next);
-  }, [setWorkspace]);
+  const hydrateFromExternal = useCallback(
+    (external: WorksheetWorkspaceState): WorksheetWorkspaceState => {
+      const normalized = normalizeWorksheetDocument(
+        external,
+        localeRef.current,
+      );
+      setWorkspace(normalized);
+      return normalized;
+    },
+    [setWorkspace],
+  );
+
+  const syncWorkspaceFromExternal = hydrateFromExternal;
+
+  const registerSyncToPersistLayer = useCallback(
+    (sync: PersistLayerSync | null) => {
+      persistSyncRef.current = sync;
+    },
+    [],
+  );
+
+  const syncToPersistLayer = useCallback(
+    (nextWorkspace?: WorksheetWorkspaceState): WorksheetWorkspaceState => {
+      const snapshot = syncWorkspaceLegacyFields({
+        ...(nextWorkspace ?? workspaceRef.current),
+        updatedAt: Date.now(),
+      });
+      persistSyncRef.current?.(snapshot);
+      return snapshot;
+    },
+    [],
+  );
 
   const setDocuments = useCallback((documents: WorksheetSavedDocument[]) => {
     updateWorkspace({ documents });
@@ -364,6 +438,46 @@ export function useWorksheet(): WorksheetTool {
     [setErrorDetail],
   );
 
+  const updateDocument = useCallback(
+    (
+      documentId: string,
+      patch: WorksheetUpdateDocumentPatch,
+    ): WorksheetWorkspaceState => {
+      let nextWorkspace!: WorksheetWorkspaceState;
+
+      setWorkspaceInternal((prev) => {
+        nextWorkspace = syncWorkspaceLegacyFields(
+          updateWorksheetDocument(prev, documentId, patch),
+        );
+        workspaceRef.current = nextWorkspace;
+        return nextWorkspace;
+      });
+
+      return nextWorkspace;
+    },
+    [],
+  );
+
+  const recordDocumentVersion = useCallback(
+    (
+      documentId: string,
+      input: WorksheetRecordDocumentVersionInput,
+    ): WorksheetWorkspaceState => {
+      let nextWorkspace!: WorksheetWorkspaceState;
+
+      setWorkspaceInternal((prev) => {
+        nextWorkspace = syncWorkspaceLegacyFields(
+          recordWorksheetDocumentVersion(prev, documentId, input),
+        );
+        workspaceRef.current = nextWorkspace;
+        return nextWorkspace;
+      });
+
+      return nextWorkspace;
+    },
+    [],
+  );
+
   const selectDocument = useCallback((documentId: string) => {
     setWorkspaceInternal((prev) => {
       const synced = syncWorkspaceLegacyFields(
@@ -411,7 +525,10 @@ export function useWorksheet(): WorksheetTool {
     getWorkspace,
     setWorkspace,
     updateWorkspace,
+    hydrateFromExternal,
     syncWorkspaceFromExternal,
+    syncToPersistLayer,
+    registerSyncToPersistLayer,
     setDocuments,
     setActiveDocumentId,
     setIsGenerating,
@@ -424,6 +541,8 @@ export function useWorksheet(): WorksheetTool {
     clearErrorDetail,
     getErrorDetail,
     applyStreamError,
+    updateDocument,
+    recordDocumentVersion,
     selectDocument,
     deleteDocument,
     resetWorkspace,

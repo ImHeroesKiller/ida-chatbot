@@ -48,9 +48,14 @@ export interface ToolPanelHostProps {
     WorksheetTool,
     | "setLocale"
     | "setWorkspace"
+    | "getWorkspace"
     | "setActiveDocumentId"
     | "selectDocument"
     | "deleteDocument"
+    | "resetWorkspace"
+    | "syncToPersistLayer"
+    | "updateDocument"
+    | "recordDocumentVersion"
   >;
   worksheetErrorDetail?: string | null;
   worksheetGenerating?: boolean;

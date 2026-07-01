@@ -124,10 +124,18 @@ export function useChatToolHandlers({
           streamInput,
           { activate: true },
         );
-        tools.worksheet.syncWorkspaceFromExternal(next);
+        if (tools.worksheet.hydrateFromExternal) {
+          tools.worksheet.hydrateFromExternal(next);
+        } else {
+          tools.worksheet.syncWorkspaceFromExternal(next);
+        }
       }
 
-      setWorksheetWorkspace(next);
+      if (tools.worksheet.syncToPersistLayer) {
+        tools.worksheet.syncToPersistLayer(next);
+      } else {
+        setWorksheetWorkspace(next);
+      }
       tools.activateWorksheet();
       persistCurrentChat({
         worksheet: next,
@@ -176,9 +184,13 @@ export function useChatToolHandlers({
     if (!prompt || isLoading) return;
 
     tools.worksheet.beginRegenerate();
-    setWorksheetWorkspace((prev) =>
-      prev.error ? { ...prev, error: undefined } : prev,
-    );
+    if (tools.worksheet.syncToPersistLayer) {
+      tools.worksheet.syncToPersistLayer();
+    } else {
+      setWorksheetWorkspace((prev) =>
+        prev.error ? { ...prev, error: undefined } : prev,
+      );
+    }
     tools.openPanel(tools.worksheet.panelId);
 
     void sendMessage(prompt);
