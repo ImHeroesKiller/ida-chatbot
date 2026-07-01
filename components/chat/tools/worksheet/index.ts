@@ -6,6 +6,6 @@ export * from "./worksheet-confirm-dialog";
 export * from "./worksheet-document-cards";
 export * from "./worksheet-generating-indicator";
 export * from "./worksheet-documents-toolbar";
-export * from "./worksheet-documents-empty-state";
+export * from "./components/worksheet-empty-state";
 export * from "./worksheet-save-template-dialog";
 export * from "./worksheet-full-view";

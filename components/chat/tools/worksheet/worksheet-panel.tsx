@@ -33,7 +33,7 @@ import { requestChatComposerFocus } from "@/lib/client/focus-chat-composer";
 import { WorksheetBrandingDialog } from "@/components/chat/worksheet-branding-dialog";
 import { WorksheetConfirmDialog } from "@/components/chat/tools/worksheet/worksheet-confirm-dialog";
 import { WorksheetDocumentCards } from "@/components/chat/tools/worksheet/worksheet-document-cards";
-import { WorksheetDocumentsEmptyState } from "@/components/chat/tools/worksheet/worksheet-documents-empty-state";
+import { WorksheetEmptyState } from "@/components/chat/tools/worksheet/components/worksheet-empty-state";
 import { WorksheetDocumentsToolbar } from "@/components/chat/tools/worksheet/worksheet-documents-toolbar";
 import { WorksheetFullView } from "@/components/chat/tools/worksheet/worksheet-full-view";
 import { WorksheetGeneratingIndicator } from "@/components/chat/tools/worksheet/worksheet-generating-indicator";
@@ -1170,7 +1170,7 @@ export function WorksheetPanel({
               />
 
               {!isGenerating && documentCount > 0 && filteredDocuments.length === 0 ? (
-                <WorksheetDocumentsEmptyState
+                <WorksheetEmptyState
                   locale={locale}
                   variant="no-results"
                   className="mt-3"
@@ -1182,14 +1182,14 @@ export function WorksheetPanel({
               ) : null}
 
               {!isGenerating && documentCount === 0 ? (
-                <WorksheetDocumentsEmptyState
+                <WorksheetEmptyState
                   locale={locale}
                   variant="no-documents"
-                  onCreateFirstDocument={() => {
+                  onCreateNew={() => {
                     requestChatComposerFocus();
                     if (embedded) onClose();
                   }}
-                  onApplyTemplate={
+                  onUseTemplate={
                     onApplyTemplate
                       ? () => setTemplateDialogOpen(true)
                       : undefined

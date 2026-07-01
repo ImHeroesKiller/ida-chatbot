@@ -13,23 +13,23 @@ import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-interface WorksheetDocumentsEmptyStateProps {
+export interface WorksheetEmptyStateProps {
   locale: Locale;
   variant: "no-documents" | "no-results";
-  onCreateFirstDocument?: () => void;
-  onApplyTemplate?: () => void;
+  onCreateNew?: () => void;
+  onUseTemplate?: () => void;
   onResetFilters?: () => void;
   className?: string;
 }
 
-export function WorksheetDocumentsEmptyState({
+export function WorksheetEmptyState({
   locale,
   variant,
-  onCreateFirstDocument,
-  onApplyTemplate,
+  onCreateNew,
+  onUseTemplate,
   onResetFilters,
   className,
-}: WorksheetDocumentsEmptyStateProps) {
+}: WorksheetEmptyStateProps) {
   const copy = COPY[locale];
   const steps = copy.worksheetEmptySteps
     .split("\n")
@@ -113,25 +113,25 @@ export function WorksheetDocumentsEmptyState({
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-          {onCreateFirstDocument ? (
+          {onCreateNew ? (
             <Button
               type="button"
               variant="default"
               size="sm"
               className="h-10 w-full gap-1.5 text-xs sm:w-auto"
-              onClick={onCreateFirstDocument}
+              onClick={onCreateNew}
             >
               <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden />
               {copy.worksheetEmptyCreateFirst}
             </Button>
           ) : null}
-          {onApplyTemplate ? (
+          {onUseTemplate ? (
             <Button
               type="button"
               variant="outline"
               size="sm"
               className="h-10 w-full gap-1.5 text-xs sm:w-auto"
-              onClick={onApplyTemplate}
+              onClick={onUseTemplate}
             >
               <LayoutTemplate className="h-3.5 w-3.5" aria-hidden />
               {copy.worksheetEmptyUseTemplate}
