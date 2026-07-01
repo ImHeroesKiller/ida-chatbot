@@ -35,10 +35,8 @@ import {
   type CreateWorkflowInput,
   type UpdateWorkflowPatch,
   type WorkflowDefinition,
-  type WorkflowEdge,
   type WorkflowErrorCode,
   type WorkflowExecutionResult,
-  type WorkflowNode,
   type WorkflowWorkspace,
 } from "@/lib/workflow";
 
@@ -80,6 +78,8 @@ export type WorkflowTool = BaseToolState &
     workflows: WorkflowDefinition[];
     activeWorkflowId: string | null;
     activeWorkflow: WorkflowDefinition | null;
+    /** Bumps when stream import completes — forces canvas remount/fitView. */
+    canvasRevision: number;
     isExecuting: boolean;
     lastExecution: WorkflowExecutionResult | null;
     errorDetail: string | null;
@@ -95,6 +95,7 @@ export type WorkflowTool = BaseToolState &
     /** Mirror the current (or provided) workspace snapshot into the persist layer. */
     syncToPersistLayer: (
       workspace?: WorkflowWorkspaceState,
+      options?: { force?: boolean },
     ) => WorkflowWorkspaceState;
     registerSyncToPersistLayer: (sync: PersistLayerSync | null) => void;
     setActiveWorkflowId: (workflowId: string | null) => WorkflowWorkspaceState;
@@ -167,6 +168,7 @@ export function useWorkflow(): WorkflowTool {
   const lastGeneratedWorkflowSourceRef = useRef<string | null>(null);
   const [lastGeneratedWorkflowSource, setLastGeneratedWorkflowSourceState] =
     useState<string | null>(null);
+  const [canvasRevision, setCanvasRevision] = useState(0);
 
   const resetPersistFingerprint = useCallback(() => {
     lastPersistedFingerprintRef.current = null;
@@ -219,7 +221,10 @@ export function useWorkflow(): WorkflowTool {
   );
 
   const syncToPersistLayer = useCallback(
-    (nextWorkspace?: WorkflowWorkspaceState): WorkflowWorkspaceState => {
+    (
+      nextWorkspace?: WorkflowWorkspaceState,
+      options?: { force?: boolean },
+    ): WorkflowWorkspaceState => {
       const current = nextWorkspace ?? getWorkspace();
       const snapshot = normalizeWorkflowWorkspace({
         ...current,
@@ -227,7 +232,10 @@ export function useWorkflow(): WorkflowTool {
       });
       const fingerprint = buildWorkflowWorkspacePersistFingerprint(snapshot);
 
-      if (fingerprint === lastPersistedFingerprintRef.current) {
+      if (
+        !options?.force &&
+        fingerprint === lastPersistedFingerprintRef.current
+      ) {
         return snapshot;
       }
 
@@ -239,6 +247,10 @@ export function useWorkflow(): WorkflowTool {
     },
     [getWorkspace],
   );
+
+  const bumpCanvasRevision = useCallback(() => {
+    setCanvasRevision((revision) => revision + 1);
+  }, []);
 
   const resetQuota = useCallback(() => {
     setQuota(createWorkflowQuotaState());
@@ -268,6 +280,7 @@ export function useWorkflow(): WorkflowTool {
     clearErrorDetail();
     resetPersistFingerprint();
     setLastGeneratedWorkflowSource(null);
+    setCanvasRevision(0);
   }, [clearErrorDetail, resetPersistFingerprint, setLastGeneratedWorkflowSource]);
 
   const hydrateWorkspaceState = useCallback((state: WorkflowHydrationInput) => {
@@ -438,35 +451,56 @@ export function useWorkflow(): WorkflowTool {
 
   const importWorkflowFromStreamPayload = useCallback(
     (payload: WorkflowStreamPayload): WorkflowDefinition | null => {
-      if (!payload.nodes?.length) return null;
-
-      const definition = workflowPayloadToDefinition(payload);
-      const nodes: WorkflowNode[] = definition.nodes;
-      const edges: WorkflowEdge[] = definition.edges;
-
-      let created: WorkflowDefinition | null = null;
-      let nextWorkspace!: WorkflowWorkspaceState;
-
-      setWorkspaceInternal((prev) => {
-        nextWorkspace = importWorkflowFromStream(prev, {
-          name: definition.name,
-          description: definition.description,
-          nodes,
-          edges,
-          activate: true,
-        });
-        workspaceRef.current = nextWorkspace;
-        const activeId = nextWorkspace.activeWorkflowId;
-        created = activeId ? getWorkflowById(nextWorkspace, activeId) : null;
-        return nextWorkspace;
+      console.info("[workflow:import] received payload", {
+        name: payload.name,
+        nodeCount: payload.nodes?.length ?? 0,
+        edgeCount: payload.edges?.length ?? 0,
       });
 
+      if (!payload.nodes?.length) {
+        console.warn("[workflow:import] rejected — empty nodes array", payload);
+        return null;
+      }
+
+      const definition = workflowPayloadToDefinition(payload);
+      const importedWorkspace = importWorkflowFromStream(workspaceRef.current, {
+        name: definition.name,
+        description: definition.description,
+        nodes: definition.nodes,
+        edges: definition.edges,
+        activate: true,
+      });
+
+      const normalized = normalizeWorkflowWorkspace(importedWorkspace);
+      const activeId = normalized.activeWorkflowId;
+      const created = activeId ? getWorkflowById(normalized, activeId) : null;
+
+      if (!created) {
+        console.warn("[workflow:import] workspace updated but no active workflow", {
+          activeWorkflowId: activeId,
+          workflowCount: normalized.workflows.length,
+        });
+        return null;
+      }
+
+      workspaceRef.current = normalized;
+      setWorkspaceInternal(normalized);
       setIsExecuting(false);
       clearErrorDetail();
-      syncToPersistLayer(nextWorkspace);
+      bumpCanvasRevision();
+      syncToPersistLayer(normalized, { force: true });
+
+      console.info("[workflow:import] success", {
+        workflowId: created.id,
+        workflowName: created.name,
+        nodeCount: created.nodes.length,
+        edgeCount: created.edges.length,
+        activeWorkflowId: normalized.activeWorkflowId,
+      });
+
       return created;
     },
-    [clearErrorDetail, syncToPersistLayer],
+    [bumpCanvasRevision, clearErrorDetail, syncToPersistLayer],
   );
 
   const applyStreamError = useCallback(
@@ -630,6 +664,7 @@ export function useWorkflow(): WorkflowTool {
     workflows,
     activeWorkflowId,
     activeWorkflow,
+    canvasRevision,
     isExecuting,
     lastExecution,
     errorDetail,

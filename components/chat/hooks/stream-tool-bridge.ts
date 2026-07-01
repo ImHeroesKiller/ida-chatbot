@@ -287,10 +287,22 @@ export function createStreamToolBridge(
   };
 
   const onWorkflowDone = (workflow: WorkflowStreamPayload) => {
+    console.info("[workflow:bridge] onWorkflowDone", {
+      name: workflow.name,
+      nodeCount: workflow.nodes?.length ?? 0,
+      edgeCount: workflow.edges?.length ?? 0,
+    });
+
     const imported = deps.tools.workflow.importWorkflowFromStream(workflow);
     const nextWorkspace = deps.tools.workflow.getWorkspace();
 
     if (!imported) {
+      console.warn("[workflow:bridge] importWorkflowFromStream returned null", {
+        payloadNodeCount: workflow.nodes?.length ?? 0,
+        workspaceWorkflowCount: nextWorkspace.workflows.length,
+        activeWorkflowId: nextWorkspace.activeWorkflowId,
+      });
+
       const errorMessage = getWorkflowStreamErrorMessage(
         "parse_failed",
         deps.locale,
@@ -307,8 +319,20 @@ export function createStreamToolBridge(
       return;
     }
 
+    const verifiedWorkspace = deps.tools.workflow.getWorkspace();
+    if (
+      !verifiedWorkspace.activeWorkflowId ||
+      verifiedWorkspace.workflows.length === 0
+    ) {
+      console.error("[workflow:bridge] import reported success but workspace empty", {
+        importedId: imported.id,
+        activeWorkflowId: verifiedWorkspace.activeWorkflowId,
+        workflowCount: verifiedWorkspace.workflows.length,
+      });
+    }
+
     if (ctx.isActiveChat()) {
-      deps.tools.workflow.syncToPersistLayer(nextWorkspace);
+      deps.tools.workflow.syncToPersistLayer(verifiedWorkspace, { force: true });
       deps.tools.workflow.clearErrorDetail();
       deps.tools.workflow.setEnabled(true);
       deps.tools.openPanel(deps.tools.workflow.panelId);
@@ -316,7 +340,7 @@ export function createStreamToolBridge(
     }
 
     deps.persistCurrentChat({
-      workflow: nextWorkspace,
+      workflow: verifiedWorkspace,
       activeRightPanel: deps.tools.workflow.panelId,
       workflowToolEnabled: true,
     });

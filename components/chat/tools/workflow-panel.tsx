@@ -97,9 +97,9 @@ export function WorkflowPanel({
     isExecuting,
     errorDetail,
     lastExecution,
-    hasImportableGeneratedWorkflow,
     importLatestGeneratedWorkflow,
     lastGeneratedWorkflowSource,
+    canvasRevision,
     workspace,
   } = workflowTool;
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
@@ -108,7 +108,13 @@ export function WorkflowPanel({
 
   useEffect(() => {
     setSelectedNodeId(null);
-  }, [activeWorkflow?.id]);
+  }, [activeWorkflow?.id, canvasRevision]);
+
+  const canvasFitKey = activeWorkflow
+    ? `${activeWorkflow.id}:${canvasRevision}:${activeWorkflow.nodes.length}`
+    : `empty:${canvasRevision}`;
+
+  const canImportLatest = Boolean(lastGeneratedWorkflowSource?.trim());
 
   const selectedNode = useMemo(() => {
     if (!activeWorkflow || !selectedNodeId) return null;
@@ -380,12 +386,14 @@ export function WorkflowPanel({
         <div className="min-h-0 flex-1 p-3">
           {activeWorkflow ? (
             <WorkflowCanvas
+              key={canvasFitKey}
               nodes={activeWorkflow.nodes}
               edges={activeWorkflow.edges}
               selectedNodeId={selectedNodeId}
               onNodesChange={handleNodesChange}
               onEdgesChange={handleEdgesChange}
               onSelectNode={setSelectedNodeId}
+              fitViewKey={canvasFitKey}
               className="h-full"
             />
           ) : (
@@ -400,7 +408,7 @@ export function WorkflowPanel({
                   <Plus className="mr-1.5 h-4 w-4" />
                   {copy.workflowNew}
                 </Button>
-                {hasImportableGeneratedWorkflow ? (
+                {canImportLatest ? (
                   <Button
                     type="button"
                     size="sm"
@@ -566,7 +574,7 @@ export function WorkflowPanel({
               ) : null}
             </div>
           ) : null}
-          {!activeWorkflow && hasImportableGeneratedWorkflow ? (
+          {!activeWorkflow && canImportLatest ? (
             <Button
               type="button"
               size="xs"
