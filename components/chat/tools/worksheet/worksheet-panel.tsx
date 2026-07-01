@@ -112,6 +112,7 @@ interface WorksheetPanelProps {
     | "syncToPersistLayer"
     | "updateDocument"
     | "recordDocumentVersion"
+    | "saveDocumentChanges"
   >;
   errorDetail?: string | null;
   isGenerating?: boolean;
@@ -452,17 +453,41 @@ export function WorksheetPanel({
     (nextTitle: string) => {
       const documentId = workspace.activeDocumentId;
       if (!documentId) return;
+
+      if (worksheetTool?.updateDocument) {
+        worksheetTool.updateDocument(documentId, { title: nextTitle });
+        return;
+      }
+
       commitWorkspace(
         updateWorksheetDocument(workspace, documentId, { title: nextTitle }),
       );
     },
-    [commitWorkspace, workspace],
+    [commitWorkspace, worksheetTool, workspace],
   );
 
   const handleContentSave = useCallback(
     (nextContent: string) => {
       const documentId = workspace.activeDocumentId;
       if (!documentId) return;
+
+      if (worksheetTool?.saveDocumentChanges) {
+        worksheetTool.saveDocumentChanges(documentId, {
+          title,
+          content: nextContent,
+        });
+        return;
+      }
+
+      if (worksheetTool?.recordDocumentVersion) {
+        worksheetTool.recordDocumentVersion(documentId, {
+          title,
+          content: nextContent,
+          source: "manual_save",
+        });
+        return;
+      }
+
       commitWorkspace(
         recordWorksheetDocumentVersion(workspace, documentId, {
           title,
@@ -471,13 +496,22 @@ export function WorksheetPanel({
         }),
       );
     },
-    [commitWorkspace, title, workspace],
+    [commitWorkspace, title, worksheetTool, workspace],
   );
 
   const handleContentChange = useCallback(
     (nextContent: string) => {
       const documentId = workspace.activeDocumentId;
       if (!documentId) return;
+
+      if (worksheetTool?.updateDocument) {
+        worksheetTool.updateDocument(documentId, {
+          content: nextContent,
+          status: "edited",
+        });
+        return;
+      }
+
       commitWorkspace(
         updateWorksheetDocument(workspace, documentId, {
           content: nextContent,
@@ -485,7 +519,7 @@ export function WorksheetPanel({
         }),
       );
     },
-    [commitWorkspace, workspace],
+    [commitWorkspace, worksheetTool, workspace],
   );
 
   const handleRestoreVersion = useCallback(
@@ -496,6 +530,16 @@ export function WorksheetPanel({
       const version = findWorksheetVersion(versions, versionId);
       if (!version) return;
 
+      if (worksheetTool?.recordDocumentVersion) {
+        worksheetTool.recordDocumentVersion(documentId, {
+          title: version.title,
+          content: version.content,
+          source: "restored",
+        });
+        toast.success(copy.worksheetHistoryRestoredToast);
+        return;
+      }
+
       commitWorkspace(
         recordWorksheetDocumentVersion(workspace, documentId, {
           title: version.title,
@@ -505,7 +549,13 @@ export function WorksheetPanel({
       );
       toast.success(copy.worksheetHistoryRestoredToast);
     },
-    [commitWorkspace, copy.worksheetHistoryRestoredToast, versions, workspace],
+    [
+      commitWorkspace,
+      copy.worksheetHistoryRestoredToast,
+      versions,
+      worksheetTool,
+      workspace,
+    ],
   );
 
   const performSelectDocument = useCallback(

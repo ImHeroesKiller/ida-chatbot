@@ -19,6 +19,7 @@ import type {
 import {
   addGeneratedWorksheetDocument,
   createEmptyWorksheetWorkspace,
+  getWorksheetDocumentById,
   normalizeWorksheetDocument,
   recordWorksheetDocumentVersion,
   removeWorksheetDocument,
@@ -89,6 +90,11 @@ export interface WorksheetRecordDocumentVersionInput {
   source: WorksheetVersionSource;
 }
 
+export interface WorksheetSaveDocumentChangesInput {
+  title?: string;
+  content?: string;
+}
+
 type PersistLayerSync = (workspace: WorksheetWorkspaceState) => void;
 
 export interface WorksheetHydrationInput extends ToolHydrationInput {
@@ -152,6 +158,11 @@ export type WorksheetTool = BaseToolState &
       documentId: string,
       input: WorksheetRecordDocumentVersionInput,
     ) => WorksheetWorkspaceState;
+    /** Save title/content and append a manual_save version entry. */
+    saveDocumentChanges: (
+      documentId: string,
+      changes: WorksheetSaveDocumentChangesInput,
+    ) => WorksheetWorkspaceState | null;
     selectDocument: (documentId: string) => void;
     deleteDocument: (documentId: string) => void;
     resetWorkspace: () => void;
@@ -453,9 +464,9 @@ export function useWorksheet(): WorksheetTool {
         return nextWorkspace;
       });
 
-      return nextWorkspace;
+      return syncToPersistLayer(nextWorkspace);
     },
-    [],
+    [syncToPersistLayer],
   );
 
   const recordDocumentVersion = useCallback(
@@ -473,9 +484,30 @@ export function useWorksheet(): WorksheetTool {
         return nextWorkspace;
       });
 
-      return nextWorkspace;
+      return syncToPersistLayer(nextWorkspace);
     },
-    [],
+    [syncToPersistLayer],
+  );
+
+  const saveDocumentChanges = useCallback(
+    (
+      documentId: string,
+      changes: WorksheetSaveDocumentChangesInput,
+    ): WorksheetWorkspaceState | null => {
+      const current = getWorksheetDocumentById(workspaceRef.current, documentId);
+      if (!current) return null;
+
+      const nextTitle = changes.title ?? current.title;
+      const nextContent = changes.content ?? current.content;
+      if (!nextContent.trim()) return null;
+
+      return recordDocumentVersion(documentId, {
+        title: nextTitle,
+        content: nextContent,
+        source: "manual_save",
+      });
+    },
+    [recordDocumentVersion],
   );
 
   const selectDocument = useCallback((documentId: string) => {
@@ -543,6 +575,7 @@ export function useWorksheet(): WorksheetTool {
     applyStreamError,
     updateDocument,
     recordDocumentVersion,
+    saveDocumentChanges,
     selectDocument,
     deleteDocument,
     resetWorkspace,

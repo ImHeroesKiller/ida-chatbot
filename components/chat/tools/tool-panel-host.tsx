@@ -56,6 +56,7 @@ export interface ToolPanelHostProps {
     | "syncToPersistLayer"
     | "updateDocument"
     | "recordDocumentVersion"
+    | "saveDocumentChanges"
   >;
   worksheetErrorDetail?: string | null;
   worksheetGenerating?: boolean;
