@@ -103,6 +103,7 @@ export type WorkflowTool = BaseToolState &
     workspace: WorkflowWorkspaceState;
     workflows: WorkflowDefinition[];
     activeWorkflowId: string | null;
+    activeExecutionId: string | null;
     activeWorkflow: WorkflowDefinition | null;
     isExecuting: boolean;
     executionNodeStatus: Record<string, WorkflowExecutionLogEntry["status"]>;
@@ -189,6 +190,9 @@ export function useWorkflow(): WorkflowTool {
   const [executionNodeStatus, setExecutionNodeStatus] = useState<
     Record<string, WorkflowExecutionLogEntry["status"]>
   >({});
+  const isExecutingRef = useRef(false);
+  const executionTokenRef = useRef(0);
+  const executionAbortRef = useRef<AbortController | null>(null);
   const [errorDetail, setErrorDetailState] = useState<string | null>(null);
   const errorDetailRef = useRef<string | null>(null);
   const persistSyncRef = useRef<PersistLayerSync | null>(null);
@@ -271,6 +275,7 @@ export function useWorkflow(): WorkflowTool {
 
       const persisted = normalizeWorkflowWorkspace({
         ...snapshot,
+        activeExecutionId: null,
         updatedAt: Date.now(),
       });
       const persistedFingerprint =
@@ -363,6 +368,21 @@ export function useWorkflow(): WorkflowTool {
     [hydrate, hydrateWorkspaceState],
   );
 
+  const abortActiveExecution = useCallback(() => {
+    executionAbortRef.current?.abort();
+    executionAbortRef.current = null;
+    executionTokenRef.current += 1;
+    isExecutingRef.current = false;
+    setIsExecuting(false);
+    setExecutionNodeStatus({});
+    setWorkspaceInternal((prev) => {
+      if (!prev.activeExecutionId) return prev;
+      const next = { ...prev, activeExecutionId: null };
+      workspaceRef.current = next;
+      return next;
+    });
+  }, []);
+
   const setActiveWorkflowId = useCallback(
     (workflowId: string | null): WorkflowWorkspaceState => {
       let nextWorkspace!: WorkflowWorkspaceState;
@@ -380,9 +400,12 @@ export function useWorkflow(): WorkflowTool {
 
   const selectWorkflow = useCallback(
     (workflowId: string) => {
+      if (workspaceRef.current.activeExecutionId) {
+        abortActiveExecution();
+      }
       setActiveWorkflowId(workflowId);
     },
-    [setActiveWorkflowId],
+    [abortActiveExecution, setActiveWorkflowId],
   );
 
   const createWorkflow = useCallback(
@@ -598,12 +621,30 @@ export function useWorkflow(): WorkflowTool {
       workflowId?: string | null,
       options?: { locale?: Locale; sessionId?: string },
     ): Promise<WorkflowExecutionResult | null> => {
-      const targetId = workflowId ?? workspaceRef.current.activeWorkflowId;
-      if (!targetId) return null;
+      if (isExecutingRef.current || workspaceRef.current.activeExecutionId) {
+        return null;
+      }
 
+      const activeId = workspaceRef.current.activeWorkflowId;
+      if (!activeId) return null;
+
+      if (workflowId && workflowId !== activeId) {
+        return null;
+      }
+
+      const targetId = activeId;
       const workflow = getWorkflowById(workspaceRef.current, targetId);
       if (!workflow) return null;
 
+      executionAbortRef.current?.abort();
+      executionAbortRef.current = null;
+
+      const executionToken = executionTokenRef.current + 1;
+      executionTokenRef.current = executionToken;
+      const abortController = new AbortController();
+      executionAbortRef.current = abortController;
+
+      isExecutingRef.current = true;
       setIsExecuting(true);
       clearErrorDetail();
       setExecutionNodeStatus({});
@@ -618,21 +659,32 @@ export function useWorkflow(): WorkflowTool {
 
       setWorkspaceInternal((prev) => ({
         ...prev,
+        activeExecutionId: targetId,
         lastExecution: runningExecution,
         error: undefined,
         updatedAt: Date.now(),
       }));
 
+      const isCurrentExecution = () =>
+        executionTokenRef.current === executionToken &&
+        workspaceRef.current.activeExecutionId === targetId;
+
       try {
         const response = await fetch("/api/workflow/execute", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: abortController.signal,
           body: JSON.stringify({
             workflow,
             locale: options?.locale ?? "id",
             sessionId: options?.sessionId,
+            activeWorkflowId: targetId,
           }),
         });
+
+        if (!isCurrentExecution()) {
+          return null;
+        }
 
         if (!response.ok) {
           const data = (await response.json().catch(() => ({}))) as {
@@ -647,6 +699,8 @@ export function useWorkflow(): WorkflowTool {
         }
 
         const applyProgress = (logs: WorkflowExecutionLogEntry[]) => {
+          if (!isCurrentExecution()) return;
+
           const statusMap: Record<string, WorkflowExecutionLogEntry["status"]> =
             {};
           for (const log of logs) {
@@ -655,6 +709,7 @@ export function useWorkflow(): WorkflowTool {
           setExecutionNodeStatus(statusMap);
           setWorkspaceInternal((prev) => ({
             ...prev,
+            activeExecutionId: targetId,
             lastExecution: {
               workflowId: targetId,
               status: "running",
@@ -671,11 +726,16 @@ export function useWorkflow(): WorkflowTool {
           },
         });
 
+        if (!isCurrentExecution()) {
+          return null;
+        }
+
         let nextWorkspace!: WorkflowWorkspaceState;
 
         setWorkspaceInternal((prev) => {
           nextWorkspace = {
             ...prev,
+            activeExecutionId: null,
             lastExecution: result,
             error: result.status === "failed" ? "execute_failed" : undefined,
             updatedAt: Date.now(),
@@ -700,16 +760,24 @@ export function useWorkflow(): WorkflowTool {
         syncToPersistLayer(nextWorkspace);
         return result;
       } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          return null;
+        }
+
+        if (!isCurrentExecution()) {
+          return null;
+        }
+
         const message =
           error instanceof Error ? error.message : "Workflow execution failed.";
 
         const failedResult: WorkflowExecutionResult = {
           workflowId: targetId,
           status: "failed",
-          startedAt: Date.now(),
+          startedAt,
           completedAt: Date.now(),
           message,
-          logs: [],
+          logs: workspaceRef.current.lastExecution?.logs ?? [],
           error: "execute_failed",
         };
 
@@ -719,6 +787,7 @@ export function useWorkflow(): WorkflowTool {
           nextWorkspace = setWorkflowWorkspaceError(prev, "execute_failed");
           nextWorkspace = {
             ...nextWorkspace,
+            activeExecutionId: null,
             lastExecution: failedResult,
           };
           workspaceRef.current = nextWorkspace;
@@ -729,7 +798,17 @@ export function useWorkflow(): WorkflowTool {
         syncToPersistLayer(nextWorkspace);
         return failedResult;
       } finally {
-        setIsExecuting(false);
+        if (executionTokenRef.current === executionToken) {
+          isExecutingRef.current = false;
+          setIsExecuting(false);
+          executionAbortRef.current = null;
+          setWorkspaceInternal((prev) => {
+            if (!prev.activeExecutionId) return prev;
+            const next = { ...prev, activeExecutionId: null };
+            workspaceRef.current = next;
+            return next;
+          });
+        }
       }
     },
     [clearErrorDetail, setErrorDetail, syncToPersistLayer],
@@ -737,6 +816,7 @@ export function useWorkflow(): WorkflowTool {
 
   const workflows = useMemo(() => workspace.workflows, [workspace.workflows]);
   const activeWorkflowId = workspace.activeWorkflowId;
+  const activeExecutionId = workspace.activeExecutionId ?? null;
   const activeWorkflow = useMemo(
     () => getActiveWorkflow(workspace),
     [workspace],
@@ -756,6 +836,7 @@ export function useWorkflow(): WorkflowTool {
     workspace: workspaceSnapshot,
     workflows,
     activeWorkflowId,
+    activeExecutionId,
     activeWorkflow,
     isExecuting,
     executionNodeStatus,

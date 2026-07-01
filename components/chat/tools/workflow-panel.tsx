@@ -103,6 +103,7 @@ function WorkflowPanelInner({
     workflows,
     isExecuting,
     executionNodeStatus,
+    activeExecutionId,
     errorDetail,
     lastExecution,
     importLatestGeneratedWorkflow,
@@ -130,6 +131,19 @@ function WorkflowPanelInner({
   }, [isExecuting, lastExecution?.logs?.length]);
 
   const canImportLatest = Boolean(lastGeneratedWorkflowSource?.trim());
+
+  const canvasExecutionStatus = useMemo(() => {
+    const statusWorkflowId = activeExecutionId ?? lastExecution?.workflowId;
+    if (!statusWorkflowId || statusWorkflowId !== activeWorkflow?.id) {
+      return undefined;
+    }
+    return executionNodeStatus;
+  }, [
+    activeExecutionId,
+    activeWorkflow?.id,
+    executionNodeStatus,
+    lastExecution?.workflowId,
+  ]);
 
   const selectedNode = useMemo(() => {
     if (!activeWorkflow || !selectedNodeId) return null;
@@ -329,7 +343,14 @@ function WorkflowPanelInner({
             size="xs"
             className="h-7 text-[10px]"
             onClick={() => void handleExecute()}
-            disabled={!activeWorkflow || isExecuting}
+            disabled={
+              !activeWorkflow ||
+              isExecuting ||
+              Boolean(
+                activeExecutionId &&
+                  activeExecutionId !== activeWorkflow?.id,
+              )
+            }
           >
             {isExecuting ? (
               <Loader2 className="mr-1 h-3 w-3 animate-spin" />
@@ -400,7 +421,7 @@ function WorkflowPanelInner({
               nodes={activeWorkflow.nodes}
               edges={activeWorkflow.edges}
               selectedNodeId={selectedNodeId}
-              nodeExecutionStatus={executionNodeStatus}
+              nodeExecutionStatus={canvasExecutionStatus}
               onNodesChange={handleNodesChange}
               onEdgesChange={handleEdgesChange}
               onSelectNode={handleSelectNode}
@@ -610,7 +631,10 @@ function WorkflowPanelInner({
               {lastExecution.message}
             </p>
           ) : null}
-          {(isExecuting || (lastExecution?.logs && lastExecution.logs.length > 0)) ? (
+          {(isExecuting ||
+            (lastExecution?.workflowId === activeWorkflow?.id &&
+              lastExecution?.logs &&
+              lastExecution.logs.length > 0)) ? (
             <div
               ref={logPanelRef}
               className="max-h-36 overflow-y-auto rounded-md border bg-muted/20 p-2"

@@ -17,6 +17,8 @@ export interface ExecuteChatWorkflowInput {
   workflow: WorkflowDefinition;
   locale: Locale;
   sessionId?: string;
+  /** Must match workflow.id — rejects cross-workflow execution attempts. */
+  activeWorkflowId?: string;
 }
 
 export type WorkflowExecuteProgressEvent =
@@ -195,6 +197,29 @@ export async function* executeChatWorkflowStream(
   input: ExecuteChatWorkflowInput,
 ): AsyncGenerator<WorkflowExecuteProgressEvent> {
   const startedAt = Date.now();
+
+  if (
+    input.activeWorkflowId &&
+    input.activeWorkflowId !== input.workflow.id
+  ) {
+    const result: WorkflowExecutionResult = {
+      workflowId: input.workflow.id,
+      status: "failed",
+      startedAt,
+      completedAt: Date.now(),
+      message: "Only the active workflow can be executed.",
+      logs: [],
+      error: "execute_failed",
+    };
+    yield {
+      type: "error",
+      message: result.message ?? "execute_failed",
+      result,
+    };
+    yield { type: "done", result };
+    return;
+  }
+
   const orderedNodes = sortNodesForExecution(input.workflow);
 
   if (orderedNodes.length === 0) {

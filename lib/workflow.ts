@@ -61,6 +61,8 @@ export interface WorkflowExecutionResult {
 export interface WorkflowWorkspace {
   workflows: WorkflowDefinition[];
   activeWorkflowId: string | null;
+  /** Runtime-only: workflow currently streaming execution (not persisted). */
+  activeExecutionId?: string | null;
   updatedAt: number;
   lastExecution?: WorkflowExecutionResult | null;
   error?: WorkflowErrorCode;
@@ -95,6 +97,7 @@ export function createEmptyWorkflowWorkspace(): WorkflowWorkspace {
   return {
     workflows: [],
     activeWorkflowId: null,
+    activeExecutionId: null,
     updatedAt: now,
     lastExecution: null,
   };
@@ -128,6 +131,7 @@ export function normalizeWorkflowWorkspace(
   return {
     workflows,
     activeWorkflowId,
+    activeExecutionId: workspace.activeExecutionId ?? null,
     updatedAt: workspace.updatedAt ?? Date.now(),
     lastExecution: workspace.lastExecution ?? null,
     error: workspace.error,

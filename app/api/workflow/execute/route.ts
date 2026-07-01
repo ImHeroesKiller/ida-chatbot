@@ -52,6 +52,7 @@ const executeRequestSchema = z.object({
   workflow: workflowDefinitionSchema,
   locale: z.enum(LOCALES),
   sessionId: z.string().min(8).max(64).optional(),
+  activeWorkflowId: z.string().min(1).optional(),
 });
 
 export async function POST(request: Request) {
@@ -108,6 +109,8 @@ export async function POST(request: Request) {
       workflow,
       locale: parsed.data.locale,
       sessionId: parsed.data.sessionId,
+      activeWorkflowId:
+        parsed.data.activeWorkflowId ?? workflow.id,
     })) {
       if (event.type === "start") {
         send("start", {

@@ -2,8 +2,10 @@
 
 import {
   Component,
+  createContext,
   memo,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -68,6 +70,19 @@ const KIND_STYLES: Record<
   },
 };
 
+const EMPTY_EXECUTION_STATUS: Record<
+  string,
+  WorkflowExecutionLogEntry["status"]
+> = {};
+
+const WorkflowExecutionStatusContext = createContext(EMPTY_EXECUTION_STATUS);
+
+function useNodeExecutionStatus(nodeId: string | undefined) {
+  const statusMap = useContext(WorkflowExecutionStatusContext);
+  if (!nodeId) return undefined;
+  return statusMap[nodeId];
+}
+
 const EXECUTION_RING: Record<
   WorkflowExecutionLogEntry["status"],
   string | null
@@ -110,11 +125,12 @@ function ExecutionStatusBadge({
 
 const WorkflowFlowNode = memo(
   function WorkflowFlowNode({
+    id,
     data,
     selected,
-  }: NodeProps<WorkflowNodeData & { executionStatus?: WorkflowExecutionLogEntry["status"] }>) {
+  }: NodeProps<WorkflowNodeData>) {
     const styles = KIND_STYLES[data.kind] ?? KIND_STYLES.action;
-    const executionStatus = data.executionStatus;
+    const executionStatus = useNodeExecutionStatus(id);
     const executionRing = executionStatus
       ? EXECUTION_RING[executionStatus]
       : null;
@@ -160,11 +176,11 @@ const WorkflowFlowNode = memo(
     );
   },
   (prev, next) =>
+    prev.id === next.id &&
     prev.selected === next.selected &&
     prev.data.label === next.data.label &&
     prev.data.kind === next.data.kind &&
-    prev.data.description === next.data.description &&
-    prev.data.executionStatus === next.data.executionStatus,
+    prev.data.description === next.data.description,
 );
 
 /** Module-level stable references — never recreate per render. */
@@ -315,26 +331,37 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
   onSelectNodeRef.current = onSelectNode;
   selectedNodeIdRef.current = selectedNodeId;
 
-  const displayNodes = useMemo(
+  const flowNodes = useMemo(
     () =>
       nodes.map((node) => ({
-        ...node,
+        id: node.id,
         type: node.type ?? "workflow",
-        data: {
-          ...node.data,
-          executionStatus: nodeExecutionStatus?.[node.id],
-        },
+        position: node.position,
+        data: node.data,
+        selected: node.selected,
+        dragging: node.dragging,
+        width: node.width,
+        height: node.height,
       })),
-    [nodeExecutionStatus, nodes],
+    [nodes],
   );
+
+  const executionStatusValue = nodeExecutionStatus ?? EMPTY_EXECUTION_STATUS;
 
   const handleNodesChange: OnNodesChange = useCallback((changes) => {
     const meaningful = changes.filter(isPropagatableNodeChange);
     if (meaningful.length === 0) return;
 
-    onNodesChangeRef.current(
-      applyNodeChanges(meaningful, nodesRef.current) as Node<WorkflowNodeData>[],
-    );
+    const nextNodes = applyNodeChanges(
+      meaningful,
+      nodesRef.current,
+    ) as Node<WorkflowNodeData>[];
+
+    if (nextNodes.length === 0 && nodesRef.current.length > 0) {
+      return;
+    }
+
+    onNodesChangeRef.current(nextNodes);
   }, []);
 
   const handleEdgesChange: OnEdgesChange = useCallback((changes) => {
@@ -368,41 +395,44 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
 
   return (
     <div className={cn("h-full min-h-[14rem] w-full", className)}>
-      <ReactFlow
-        nodes={displayNodes}
-        edges={edges}
-        nodeTypes={NODE_TYPES}
-        edgeTypes={EDGE_TYPES}
-        onNodesChange={handleNodesChange}
-        onEdgesChange={handleEdgesChange}
-        onConnect={handleConnect}
-        onSelectionChange={handleSelectionChange}
-        nodesDraggable
-        nodesConnectable
-        elementsSelectable
-        minZoom={0.35}
-        maxZoom={1.5}
-        proOptions={PRO_OPTIONS}
-        className="rounded-xl border bg-muted/20 dark:bg-muted/10"
-      >
-        <FitViewOnce workflowId={workflowId} nodeCount={displayNodes.length} />
-        <Background
-          variant={BackgroundVariant.Dots}
-          gap={18}
-          size={1}
-          className="!bg-transparent"
-        />
-        <Controls
-          showInteractive={false}
-          className="!rounded-lg !border !border-border !bg-background/90 !shadow-sm [&>button]:!border-border [&>button]:!bg-background [&>button]:hover:!bg-muted"
-        />
-        <MiniMap
-          zoomable
-          pannable
-          nodeColor={getMiniMapNodeColor}
-          className="!rounded-lg !border !border-border !bg-background/80"
-        />
-      </ReactFlow>
+      <WorkflowExecutionStatusContext.Provider value={executionStatusValue}>
+        <ReactFlow
+          key={workflowId ?? "workflow-canvas"}
+          nodes={flowNodes}
+          edges={edges}
+          nodeTypes={NODE_TYPES}
+          edgeTypes={EDGE_TYPES}
+          onNodesChange={handleNodesChange}
+          onEdgesChange={handleEdgesChange}
+          onConnect={handleConnect}
+          onSelectionChange={handleSelectionChange}
+          nodesDraggable
+          nodesConnectable
+          elementsSelectable
+          minZoom={0.35}
+          maxZoom={1.5}
+          proOptions={PRO_OPTIONS}
+          className="rounded-xl border bg-muted/20 dark:bg-muted/10"
+        >
+          <FitViewOnce workflowId={workflowId} nodeCount={flowNodes.length} />
+          <Background
+            variant={BackgroundVariant.Dots}
+            gap={18}
+            size={1}
+            className="!bg-transparent"
+          />
+          <Controls
+            showInteractive={false}
+            className="!rounded-lg !border !border-border !bg-background/90 !shadow-sm [&>button]:!border-border [&>button]:!bg-background [&>button]:hover:!bg-muted"
+          />
+          <MiniMap
+            zoomable
+            pannable
+            nodeColor={getMiniMapNodeColor}
+            className="!rounded-lg !border !border-border !bg-background/80"
+          />
+        </ReactFlow>
+      </WorkflowExecutionStatusContext.Provider>
     </div>
   );
 }, areCanvasPropsEqual);
