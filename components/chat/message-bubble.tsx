@@ -71,11 +71,22 @@ export function MessageBubble({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+      initial={{
+        opacity: 0,
+        x: isUser ? 14 : -14,
+        y: 10,
+      }}
+      animate={{
+        opacity: 1,
+        x: 0,
+        y: 0,
+      }}
+      transition={{
+        duration: 0.35,
+        ease: [0.23, 1, 0.32, 1],
+      }}
       className={cn(
-        "group/message flex w-full mb-4",
+        "group/message flex w-full",
         isUser ? "justify-end" : "justify-start",
       )}
     >
@@ -97,8 +108,8 @@ export function MessageBubble({
         {isEditing && isUser ? (
           <div
             className={cn(
-              "w-full rounded-[24px] border bg-card px-4 py-4 shadow-xl",
-              "rounded-br-lg dark:border-border/60",
+              "w-full rounded-[22px] border border-border/50 bg-card px-4 py-4 shadow-lg",
+              "rounded-br-md",
             )}
           >
             <MessageEditForm
@@ -111,20 +122,23 @@ export function MessageBubble({
         ) : (displayText.trim() || message.isVoiceNote) ? (
           <div
             className={cn(
-              "rounded-[24px] px-4 py-3 transition-all duration-300 sm:px-5 sm:py-3.5",
+              "max-w-full px-4 py-3.5 transition-all duration-300 sm:px-5 sm:py-4",
               isUser
-                ? "rounded-br-lg bg-primary text-primary-foreground shadow-lg shadow-primary/10"
-                : "rounded-bl-lg border border-border/40 bg-[#F5F5F7] dark:bg-[#1C1C1E] text-foreground shadow-md",
-              isWelcome && "ring-2 ring-primary/10 bg-primary/5 border-primary/20",
+                ? "rounded-[22px] rounded-br-md bg-primary text-primary-foreground shadow-md shadow-primary/15 ring-1 ring-primary/20"
+                : "rounded-[22px] rounded-bl-md border border-border/45 bg-[#F5F5F7] text-foreground shadow-sm dark:border-border/35 dark:bg-[#1C1C1E] dark:shadow-md",
+              isWelcome &&
+                "border-primary/25 bg-primary/5 ring-2 ring-primary/10 dark:bg-primary/10",
             )}
           >
             {message.isVoiceNote ? (
-              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider opacity-70">{copy.voiceNoteLabel}</p>
+              <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider opacity-70">
+                {copy.voiceNoteLabel}
+              </p>
             ) : null}
 
             {isUser ? (
               displayText.trim() ? (
-                <p className="text-[16px] sm:text-[17px] leading-relaxed whitespace-pre-wrap break-words font-medium">
+                <p className="chat-text whitespace-pre-wrap break-words font-medium">
                   {displayText}
                 </p>
               ) : null
@@ -133,14 +147,13 @@ export function MessageBubble({
                 content={message.content}
                 isStreaming={isStreaming}
                 locale={locale}
-                className="text-[16px] sm:text-[17px] leading-relaxed font-normal"
               />
             )}
           </div>
         ) : null}
 
         {!isUser && !isEditing && message.webSearchSources?.length ? (
-          <div className="w-full mt-1">
+          <div className="mt-0.5 w-full">
             <WebSearchSources
               sources={message.webSearchSources}
               locale={locale}
@@ -148,18 +161,18 @@ export function MessageBubble({
           </div>
         ) : null}
 
-        <div className="flex items-center gap-3 px-2">
+        <div className="flex items-center gap-3 px-1.5">
           {timestamp && !isEditing ? (
             <time
               dateTime={new Date(message.createdAt!).toISOString()}
-              className="text-[11px] font-medium text-muted-foreground/60"
+              className="text-[11px] font-medium text-muted-foreground/55"
             >
               {timestamp}
             </time>
           ) : null}
 
           {showActions ? (
-            <div className="opacity-0 group-hover/message:opacity-100 transition-opacity">
+            <div className="opacity-0 transition-opacity group-hover/message:opacity-100">
               <MessageActions
                 messageId={message.id}
                 content={actionContent}

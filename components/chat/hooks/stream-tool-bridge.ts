@@ -38,6 +38,7 @@ export interface StreamMessageState {
 
 export interface StreamToolBridgeDeps {
   locale: Locale;
+  isMobileViewport: boolean;
   tools: StreamToolCoordinator;
   persistCurrentChat: (patch: Partial<ChatSession>) => void;
   setMessages: Dispatch<SetStateAction<IdaMessage[]>>;
@@ -91,7 +92,10 @@ export function createStreamToolBridge(
       if (queries?.length) {
         deps.tools.webSearch.setLastQuery(queries[queries.length - 1] ?? null);
       }
-      deps.tools.activateWebSearch();
+      deps.tools.webSearch.setEnabled(true);
+      if (!deps.isMobileViewport) {
+        deps.tools.openPanel(deps.tools.webSearch.panelId);
+      }
     } else {
       deps.persistCurrentChat({
         messages: messageState.messages,
@@ -230,7 +234,9 @@ export function createStreamToolBridge(
 
     if (flags.useWebSearch && ctx.isActiveChat()) {
       deps.tools.webSearch.finishSearchError(errorMessage);
-      deps.tools.openPanel(deps.tools.webSearch.panelId);
+      if (!deps.isMobileViewport) {
+        deps.tools.openPanel(deps.tools.webSearch.panelId);
+      }
     }
 
     if (flags.useResearch && ctx.isActiveChat()) {

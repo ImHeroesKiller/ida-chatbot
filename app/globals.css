@@ -221,6 +221,14 @@ html[data-ida-animation="none"] *::after {
     -webkit-font-smoothing: antialiased;
   }
 
+  .ida-chat-shell .ida-markdown {
+    font-family: var(--font-sans);
+    font-size: var(--ida-font-chat);
+    line-height: var(--ida-line-height-chat);
+    letter-spacing: 0.01em;
+    -webkit-font-smoothing: antialiased;
+  }
+
   .ida-chat-shell {
     contain: layout style;
     overflow-x: hidden;

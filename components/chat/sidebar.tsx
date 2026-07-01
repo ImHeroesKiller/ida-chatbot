@@ -343,7 +343,7 @@ export function ChatSidebar({
           </div>
         )}
 
-        <div className="mt-auto border-t border-border/40 bg-muted/10 p-2">
+        <div className="mt-auto border-t border-border/40 bg-muted/10 p-3">
           <SidebarSettings
             locale={locale}
             expanded={expanded}

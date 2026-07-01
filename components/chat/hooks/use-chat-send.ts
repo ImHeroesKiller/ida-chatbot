@@ -29,6 +29,7 @@ interface UseChatSendOptions {
   openHandoff: (prefill: IdaHandoffPrefill) => void;
   autoSpeakEnabled: boolean;
   speak: (messageId: string, content: string) => void;
+  isMobileViewport: boolean;
   copy: {
     errors: {
       rateLimit: string;
@@ -57,6 +58,7 @@ export function useChatSend({
   openHandoff,
   autoSpeakEnabled,
   speak,
+  isMobileViewport,
   copy,
 }: UseChatSendOptions) {
   const { activeChatIdRef } = sessionRefs;
@@ -86,6 +88,7 @@ export function useChatSend({
     openHandoff,
     autoSpeakEnabled,
     speak,
+    isMobileViewport,
   });
 
   const executeSendMessage = useCallback(
@@ -124,7 +127,9 @@ export function useChatSend({
 
       if (webSearchAtSend && text) {
         tools.webSearch.beginSearch(text);
-        tools.openPanel(tools.webSearch.panelId);
+        if (!isMobileViewport) {
+          tools.openPanel(tools.webSearch.panelId);
+        }
       }
 
       if (researchAtSend && text) {
@@ -198,6 +203,7 @@ export function useChatSend({
       streamAssistantReply,
       tools,
       activeChatIdRef,
+      isMobileViewport,
     ],
   );
 

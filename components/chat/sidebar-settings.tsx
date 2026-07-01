@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Globe,
   Moon,
   Settings,
   Sun,
@@ -43,9 +42,9 @@ function SettingsSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-1.5 px-0.5 text-[11px] font-medium text-muted-foreground">
-        <Icon className="h-3.5 w-3.5" />
+    <div className="space-y-2.5">
+      <div className="flex items-center gap-2 px-1 text-xs font-semibold tracking-wide text-muted-foreground/80 uppercase">
+        <Icon className="h-4 w-4 shrink-0 text-muted-foreground/70" />
         {title}
       </div>
       {children}
@@ -88,32 +87,28 @@ export function SidebarSettings({
 
   if (!expanded) {
     return (
-      <div className="mt-auto shrink-0 border-t">
-        <button
-          type="button"
-          className={cn(
-            "flex h-11 w-full items-center justify-center",
-            "text-muted-foreground transition-colors",
-            "hover:bg-muted/60 hover:text-foreground active:bg-muted/80",
-          )}
-          onClick={handleToggleSettings}
-          title={copy.settings}
-          aria-label={copy.settings}
-        >
-          <Settings className="h-4 w-4" />
-        </button>
-      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="mx-auto h-12 w-12 rounded-xl text-muted-foreground hover:bg-muted/80 hover:text-foreground active:scale-90 transition-all"
+        onClick={handleToggleSettings}
+        title={copy.settings}
+        aria-label={copy.settings}
+      >
+        <Settings className="h-5 w-5" />
+      </Button>
     );
   }
 
   return (
-    <div className="shrink-0 border-t bg-muted/10 p-2 dark:bg-muted/5">
+    <div className="shrink-0">
       <Button
         type="button"
         variant="ghost"
         size="sm"
         className={cn(
-          "h-9 w-full justify-start gap-2 text-xs text-muted-foreground",
+          "h-10 w-full justify-start gap-2.5 rounded-xl px-3 text-sm font-medium text-muted-foreground",
           "hover:bg-muted/80 hover:text-foreground",
           settingsOpen && "bg-muted/80 text-foreground",
         )}
@@ -126,17 +121,17 @@ export function SidebarSettings({
       </Button>
 
       {settingsOpen && (
-        <div className="mt-2 space-y-4 rounded-xl border bg-background/70 p-2.5 shadow-sm">
+        <div className="mt-2.5 space-y-5 rounded-2xl border border-border/50 bg-background/80 p-3 shadow-sm">
           <SettingsSection title={copy.settingsAppearance} icon={Type}>
-            <div className="space-y-2.5">
-              <div className="grid grid-cols-3 gap-1">
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-1.5">
                 {fontSizeOptions.map((option) => (
                   <Button
                     key={option.value}
                     type="button"
                     variant={fontSize === option.value ? "default" : "outline"}
                     size="sm"
-                    className="h-9 text-xs sm:h-8"
+                    className="h-9 rounded-lg text-xs font-medium"
                     onClick={() => setFontSize(option.value)}
                   >
                     {option.label}
@@ -144,14 +139,14 @@ export function SidebarSettings({
                 ))}
               </div>
 
-              <div className="grid grid-cols-3 gap-1">
+              <div className="grid grid-cols-3 gap-1.5">
                 {LOCALES.map((loc) => (
                   <Button
                     key={loc}
                     type="button"
                     variant={appLocale === loc ? "default" : "outline"}
                     size="sm"
-                    className="h-9 text-xs sm:h-8"
+                    className="h-9 rounded-lg text-xs font-medium"
                     onClick={() => setLocale(loc)}
                   >
                     {LOCALE_LABELS[loc]}
@@ -163,13 +158,13 @@ export function SidebarSettings({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-9 w-full justify-start gap-2 text-xs sm:h-8"
+                className="h-9 w-full justify-start gap-2.5 rounded-lg px-2.5 text-sm"
                 onClick={toggleTheme}
               >
                 {themeHydrated && theme === "dark" ? (
-                  <Sun className="h-3.5 w-3.5" />
+                  <Sun className="h-4 w-4 shrink-0" />
                 ) : (
-                  <Moon className="h-3.5 w-3.5" />
+                  <Moon className="h-4 w-4 shrink-0" />
                 )}
                 {copy.toggleTheme}
               </Button>
@@ -177,8 +172,8 @@ export function SidebarSettings({
           </SettingsSection>
 
           <SettingsSection title={copy.voiceSettings} icon={Volume2}>
-            <div className="space-y-2.5">
-              <label className="flex cursor-pointer items-center justify-between gap-2 text-xs">
+            <div className="space-y-3">
+              <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-1 text-sm">
                 <span>{copy.autoSpeak}</span>
                 <input
                   type="checkbox"
@@ -190,7 +185,7 @@ export function SidebarSettings({
                 />
               </label>
 
-              <label className="flex cursor-pointer items-center justify-between gap-2 text-xs">
+              <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-1 text-sm">
                 <span>{copy.reviewVoiceBeforeSend}</span>
                 <input
                   type="checkbox"
@@ -202,7 +197,7 @@ export function SidebarSettings({
                 />
               </label>
 
-              <label className="flex cursor-pointer items-center justify-between gap-2 text-xs">
+              <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-1 text-sm">
                 <span>{copy.sendAsVoiceNote}</span>
                 <input
                   type="checkbox"
@@ -214,10 +209,10 @@ export function SidebarSettings({
                 />
               </label>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <label
                   htmlFor="ida-voice-language"
-                  className="text-xs text-muted-foreground"
+                  className="px-1 text-xs font-medium text-muted-foreground"
                 >
                   {copy.voiceLanguage}
                 </label>
@@ -227,7 +222,7 @@ export function SidebarSettings({
                   onChange={(event) =>
                     setPrefs({ voiceLanguage: event.target.value as Locale })
                   }
-                  className="h-9 w-full rounded-md border bg-background px-2 text-xs sm:h-8"
+                  className="h-9 w-full rounded-lg border border-border/60 bg-background px-2.5 text-sm"
                 >
                   {LOCALES.map((loc) => (
                     <option key={loc} value={loc}>
@@ -242,10 +237,10 @@ export function SidebarSettings({
                 </select>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <label
                   htmlFor="ida-speech-rate"
-                  className="flex items-center justify-between text-xs text-muted-foreground"
+                  className="flex items-center justify-between px-1 text-xs font-medium text-muted-foreground"
                 >
                   <span>{copy.speechRate}</span>
                   <span>{prefs.speechRate.toFixed(1)}×</span>
@@ -264,10 +259,10 @@ export function SidebarSettings({
                 />
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <label
                   htmlFor="ida-speech-pitch"
-                  className="flex items-center justify-between text-xs text-muted-foreground"
+                  className="flex items-center justify-between px-1 text-xs font-medium text-muted-foreground"
                 >
                   <span>{copy.speechPitch}</span>
                   <span>{prefs.speechPitch.toFixed(1)}×</span>
@@ -294,12 +289,12 @@ export function SidebarSettings({
               variant="ghost"
               size="sm"
               className={cn(
-                "h-9 w-full justify-start gap-2 text-xs text-destructive sm:h-8",
+                "h-9 w-full justify-start gap-2.5 rounded-lg px-2.5 text-sm font-medium text-destructive",
                 "hover:bg-destructive/10 hover:text-destructive",
               )}
               onClick={onClearAllChats}
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <Trash2 className="h-4 w-4 shrink-0" />
               {copy.clearAllChats}
             </Button>
           </SettingsSection>

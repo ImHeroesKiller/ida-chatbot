@@ -172,6 +172,7 @@ function ChatRoomContent() {
     autoSpeakEnabled:
       appFeatures?.features.autoSpeak !== false && prefs.autoSpeak,
     speak,
+    isMobileViewport,
     copy: {
       errors: copy.errors,
       worksheetCreated: copy.worksheetCreated,

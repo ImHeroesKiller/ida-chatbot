@@ -449,7 +449,7 @@ export function ChatComposerRedesign({
               rows={1}
               disabled={isLoading || isExtracting || isTranscribing || isListening}
               className={cn(
-                "bg-transparent border-0 resize-none text-xl font-medium p-0",
+                "chat-input bg-transparent border-0 resize-none font-medium p-0",
                 "focus-visible:ring-0 focus-visible:outline-none min-h-[56px] max-h-48",
                 "placeholder:text-muted-foreground/30",
               )}

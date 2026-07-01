@@ -40,6 +40,7 @@ interface UseChatStreamOptions {
   openHandoff: (prefill: IdaHandoffPrefill) => void;
   autoSpeakEnabled: boolean;
   speak: (messageId: string, content: string) => void;
+  isMobileViewport: boolean;
 }
 
 export function useChatStream({
@@ -57,6 +58,7 @@ export function useChatStream({
   openHandoff,
   autoSpeakEnabled,
   speak,
+  isMobileViewport,
 }: UseChatStreamOptions) {
   const { activeChatIdRef } = sessionRefs;
 
@@ -93,6 +95,7 @@ export function useChatStream({
 
       const bridgeDeps: StreamToolBridgeDeps = {
         locale,
+        isMobileViewport,
         tools,
         persistCurrentChat,
         setMessages,
@@ -243,6 +246,7 @@ export function useChatStream({
       speak,
       tools,
       worksheetWorkspaceRef,
+      isMobileViewport,
     ],
   );
 
