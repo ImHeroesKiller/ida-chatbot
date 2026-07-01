@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
   useBaseToolState,
@@ -9,6 +9,7 @@ import {
   type ToolHydrationInput,
 } from "@/components/chat/tools/base-tool-state";
 import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
+import type { ToolQuotaState } from "@/components/chat/tools/types";
 import type { Locale } from "@/lib/config";
 import {
   mapResearchApiError,
@@ -20,6 +21,11 @@ import type {
   ResearchSource,
 } from "@/lib/research-types";
 import { createResearchSessionId } from "@/lib/research-types";
+
+import {
+  createResearchQuotaState,
+  RESEARCH_QUOTA_DEFAULTS,
+} from "./research-quota";
 
 export interface ResearchResult {
   topic: string;
@@ -46,6 +52,8 @@ export type ResearchTool = BaseToolState &
     isResearching: boolean;
     researchResults: ResearchResult | null;
     error: string | null;
+    /** Placeholder quota state — not enforced until account management exists. */
+    quota: ToolQuotaState;
 
     // --- Tool-specific actions ---
     setSessions: (sessions: ResearchSession[]) => void;
@@ -68,12 +76,15 @@ export type ResearchTool = BaseToolState &
   };
 
 /**
- * Manages research armed/panel state, sessions, and ephemeral results.
+ * Research tool hook — implements `BaseToolState` and is registered via
+ * `useToolsCoordinator` → `useToolRuntime`. Multiple tools may stay armed;
+ * the coordinator only enforces exclusive sidebar panels.
  *
  * Panel-initiated research calls `startResearch` (API). Chat-stream research
  * uses `beginChatResearch` / `applyResearchFromMessage` / `endChatResearch`.
  */
 export function useResearch(): ResearchTool {
+  const [quota, setQuota] = useState<ToolQuotaState>(createResearchQuotaState);
   const [researchSessions, setResearchSessions] = useState<ResearchSession[]>([]);
   const [currentSession, setCurrentSession] = useState<ResearchSession | null>(
     null,
@@ -115,10 +126,24 @@ export function useResearch(): ResearchTool {
     setIsResearching(false);
   }, []);
 
+  const resetQuota = useCallback(() => {
+    setQuota(createResearchQuotaState());
+  }, []);
+
+  const incrementQuotaUsage = useCallback(() => {
+    // TODO: Integrate with admin account management for per-user quota
+    if (!RESEARCH_QUOTA_DEFAULTS.enabled) return;
+    setQuota((current) => ({
+      ...current,
+      used: current.used + 1,
+    }));
+  }, []);
+
   const resetResearchData = useCallback(() => {
     setResearchSessions([]);
     clearResearchData();
-  }, [clearResearchData]);
+    resetQuota();
+  }, [clearResearchData, resetQuota]);
 
   const {
     panelId,
@@ -191,6 +216,7 @@ export function useResearch(): ResearchTool {
           createdAt: Date.now(),
           savedAt: 0,
         });
+        incrementQuotaUsage();
       } catch (err) {
         const message =
           err instanceof Error
@@ -202,7 +228,7 @@ export function useResearch(): ResearchTool {
         setIsResearching(false);
       }
     },
-    [],
+    [incrementQuotaUsage],
   );
 
   const saveResearchSession = useCallback(() => {
@@ -259,9 +285,12 @@ export function useResearch(): ResearchTool {
       });
       setError(null);
       setIsResearching(false);
+      incrementQuotaUsage();
     },
-    [],
+    [incrementQuotaUsage],
   );
+
+  const quotaSnapshot = useMemo(() => ({ ...quota }), [quota]);
 
   return {
     panelId,
@@ -272,6 +301,7 @@ export function useResearch(): ResearchTool {
     isResearching,
     researchResults,
     error,
+    quota: quotaSnapshot,
     setEnabled,
     toggleTool,
     openPanel,

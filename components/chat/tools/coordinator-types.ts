@@ -77,6 +77,8 @@ export interface ToolToggleCoordinator {
    * tools off; optionally opens the panel (desktop composer behavior).
    */
   toggleWebSearchInternet: (openPanelOnEnable?: boolean) => void;
+  /** Toggle Research armed state + panel via coordinator (multi-tool safe). */
+  toggleResearchTool: (openPanelOnEnable?: boolean) => void;
 }
 
 export interface ToolUiCoordinator {

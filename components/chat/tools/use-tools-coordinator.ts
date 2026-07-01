@@ -151,6 +151,29 @@ export function useToolsCoordinator(
   );
 
   /**
+   * Research toggle — arms/disarms without disabling sibling tools.
+   */
+  const toggleResearchTool = useCallback(
+    (openPanelOnEnable = true) => {
+      if (!ctx.researchAvailable) return;
+
+      const { research } = bundle;
+      const isActive =
+        research.isEnabled || panels.activePanel === research.panelId;
+      const next = !isActive;
+
+      research.setEnabled(next);
+
+      if (next && openPanelOnEnable) {
+        openPanel(research.panelId);
+      } else if (!next && panels.activePanel === research.panelId) {
+        research.closePanel();
+      }
+    },
+    [bundle, ctx.researchAvailable, openPanel, panels.activePanel],
+  );
+
+  /**
    * Full reset for New Chat: close all panels, then clear every tool hook.
    */
   const resetAllTools = useCallback(() => {
@@ -174,6 +197,7 @@ export function useToolsCoordinator(
     closeAllPanels,
     toggleTool,
     toggleWebSearchInternet,
+    toggleResearchTool,
     setWorksheetEnabled: ui.setWorksheetEnabled,
     setWebSearchEnabled: ui.setWebSearchEnabled,
     setResearchEnabled: ui.setResearchEnabled,
