@@ -1,14 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 import type { ToolsCoordinator } from "@/components/chat/tools/coordinator-types";
 import { resolveSendFlags } from "@/components/chat/tools/tool-coordinator-config";
+import type { ToolRuntimeEntry } from "@/components/chat/tools/tool-coordinator-config";
 import { useToolPanelCoordinator } from "@/components/chat/tools/use-tool-panel-coordinator";
 import { useToolPersistence } from "@/components/chat/tools/use-tool-persistence";
 import { useToolRuntime } from "@/components/chat/tools/use-tool-runtime";
 import { useToolUiActions } from "@/components/chat/tools/use-tool-ui-actions";
+import type { ToolId } from "@/components/chat/tools/types";
 import type { IdaMessage } from "@/lib/types";
+import type { RightSidebarPanel } from "@/lib/chat-tools";
 
 export type {
   StreamToolCoordinator,
@@ -22,6 +25,7 @@ export type {
   ToolSendCoordinator,
   ToolSendFlags,
   ToolSessionCoordinator,
+  ToolToggleCoordinator,
   ToolUiCoordinator,
   ToolsCoordinator,
 } from "@/components/chat/tools/coordinator-types";
@@ -31,6 +35,19 @@ export interface ToolsCoordinatorOptions {
   researchAvailable: boolean;
 }
 
+function findEntry(
+  entries: ToolRuntimeEntry[],
+  toolId: ToolId,
+): ToolRuntimeEntry | undefined {
+  return entries.find((entry) => entry.id === toolId);
+}
+
+/**
+ * Central coordinator for all chat tools (worksheet, web-search, research, map).
+ *
+ * Composes panel exclusivity, UI actions, persistence, and send-time flags.
+ * Consumers (e.g. `chat-room.tsx`) should interact only with this hook.
+ */
 export function useToolsCoordinator(
   options: ToolsCoordinatorOptions,
 ): ToolsCoordinator {
@@ -48,13 +65,76 @@ export function useToolsCoordinator(
     entries,
     activePanel: panels.activePanel,
   });
+
+  /**
+   * Close every sidebar panel. Does not change which tools are armed.
+   */
+  const closeAllPanels = useCallback(() => {
+    panels.closeAllPanels();
+  }, [panels]);
+
+  /**
+   * Open exactly one panel; all other tool panels are closed first.
+   */
+  const openPanel = useCallback(
+    (panel: RightSidebarPanel) => {
+      panels.openPanel(panel);
+    },
+    [panels],
+  );
+
+  /**
+   * Toggle panel visibility with mutual exclusion.
+   * Active panel closes; otherwise the target opens exclusively.
+   */
+  const togglePanel = useCallback(
+    (panel: RightSidebarPanel) => {
+      panels.togglePanel(panel);
+    },
+    [panels],
+  );
+
   const ui = useToolUiActions({
     entries,
     ctx,
     activePanel: panels.activePanel,
-    openPanel: panels.openPanel,
-    togglePanel: panels.togglePanel,
+    openPanel,
+    togglePanel,
   });
+
+  /**
+   * Toggle one tool's armed state and panel together.
+   * Enabling closes sibling panels before opening the target.
+   */
+  const toggleTool = useCallback(
+    (toolId: ToolId) => {
+      const entry = findEntry(entries, toolId);
+      if (!entry?.isAvailable(ctx)) return;
+
+      const { tool } = entry;
+
+      if (tool.isEnabled) {
+        tool.setEnabled(false);
+        if (panels.activePanel === tool.panelId) {
+          closeAllPanels();
+        }
+        return;
+      }
+
+      closeAllPanels();
+      tool.setEnabled(true);
+      openPanel(tool.panelId);
+    },
+    [closeAllPanels, ctx, entries, openPanel, panels.activePanel],
+  );
+
+  /**
+   * Full reset for New Chat: close all panels, then clear every tool hook.
+   */
+  const resetAllTools = useCallback(() => {
+    closeAllPanels();
+    persistence.resetForNewChat();
+  }, [closeAllPanels, persistence]);
 
   const sendFlags = useMemo(() => resolveSendFlags(bundle, ctx), [bundle, ctx]);
 
@@ -66,9 +146,11 @@ export function useToolsCoordinator(
     activePanel: panels.activePanel,
     isAnyToolActive: ui.isAnyToolActive,
     ...sendFlags,
-    openPanel: panels.openPanel,
-    togglePanel: panels.togglePanel,
+    openPanel,
+    togglePanel,
     collapsePanel: panels.collapsePanel,
+    closeAllPanels,
+    toggleTool,
     setWorksheetEnabled: ui.setWorksheetEnabled,
     setWebSearchEnabled: ui.setWebSearchEnabled,
     setResearchEnabled: ui.setResearchEnabled,
@@ -78,7 +160,8 @@ export function useToolsCoordinator(
     activateResearch: ui.activateResearch,
     activateMap: ui.activateMap,
     hydrateFromChat: persistence.hydrateFromChat,
-    resetForNewChat: persistence.resetForNewChat,
+    resetAllTools,
+    resetForNewChat: resetAllTools,
     getPersistPatch: persistence.getPersistPatch,
     isToolActive: ui.isToolActive,
     handleMenuToolClick: ui.handleMenuToolClick,
@@ -93,6 +176,7 @@ export function useToolsCoordinator(
   };
 }
 
+/** Last user message content, used as the default research topic label. */
 export function extractResearchTopicFromMessages(
   messages: IdaMessage[],
   fallback = "Research",

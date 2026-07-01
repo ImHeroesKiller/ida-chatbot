@@ -58,12 +58,20 @@ export interface ToolPanelCoordinator {
   openPanel: (panel: RightSidebarPanel) => void;
   togglePanel: (panel: RightSidebarPanel) => void;
   collapsePanel: () => void;
+  closeAllPanels: () => void;
 }
 
 export interface ToolPersistenceCoordinator {
   hydrateFromChat: (chat: ChatSession) => void;
+  /** Close all panels, then reset every tool hook (preferred for New Chat). */
+  resetAllTools: () => void;
   resetForNewChat: () => void;
   getPersistPatch: () => ToolPersistPatch;
+}
+
+export interface ToolToggleCoordinator {
+  /** Toggle armed state + panel for one tool with exclusive panel open. */
+  toggleTool: (toolId: ToolId) => void;
 }
 
 export interface ToolUiCoordinator {
@@ -88,6 +96,7 @@ export type { ToolRuntimeBundle };
 export type ToolsCoordinator = ToolRuntimeBundle &
   ToolPanelCoordinator &
   ToolPersistenceCoordinator &
+  ToolToggleCoordinator &
   ToolUiCoordinator &
   ToolSendFlags &
   ToolAvailabilityFlags;

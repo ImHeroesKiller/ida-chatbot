@@ -152,7 +152,7 @@ export function useChatSessionSync({
       setStreamingMessageId(null);
       setIsLoading(false);
       setEditingMessageId(null);
-      tools.resetForNewChat();
+      tools.resetAllTools();
       resetWorksheetForNewChat();
       markChatActive(newChatId);
     });

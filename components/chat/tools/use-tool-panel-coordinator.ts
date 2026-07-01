@@ -24,10 +24,12 @@ export function useToolPanelCoordinator(entries: ToolRuntimeEntry[]) {
     entries.map((entry) => entry.tool.isPanelOpen),
   );
 
+  /** Close every tool sidebar panel; armed flags are unchanged. */
   const closeAllPanels = useCallback(() => {
     closeAllPanelControllers(panelControllers);
   }, [panelControllers]);
 
+  /** Open one panel and close all others (mutual exclusion). */
   const openPanel = useCallback(
     (panel: RightSidebarPanel) => {
       openExclusivePanel(panelControllers, panel);
@@ -35,6 +37,7 @@ export function useToolPanelCoordinator(entries: ToolRuntimeEntry[]) {
     [panelControllers],
   );
 
+  /** Toggle a panel: close if already active, otherwise open exclusively. */
   const togglePanel = useCallback(
     (panel: RightSidebarPanel) => {
       if (activePanel === panel) {
@@ -46,6 +49,7 @@ export function useToolPanelCoordinator(entries: ToolRuntimeEntry[]) {
     [activePanel, closeAllPanels, openPanel],
   );
 
+  /** Collapse the active sidebar panel without changing armed flags. */
   const collapsePanel = useCallback(() => {
     closeAllPanels();
   }, [closeAllPanels]);
@@ -55,5 +59,6 @@ export function useToolPanelCoordinator(entries: ToolRuntimeEntry[]) {
     openPanel,
     togglePanel,
     collapsePanel,
+    closeAllPanels,
   };
 }
