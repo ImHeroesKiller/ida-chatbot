@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 /** Threshold for a future virtualized list implementation. */
 export const WORKSHEET_CARDS_VIRTUALIZATION_THRESHOLD = 40;
 
-interface WorksheetDocumentCardsProps {
+export interface WorksheetDocumentCardsProps {
   locale: Locale;
   documents: WorksheetSavedDocument[];
   totalCount: number;

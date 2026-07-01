@@ -32,7 +32,7 @@ import { MarkdownContent } from "@/components/chat/markdown-content";
 import { requestChatComposerFocus } from "@/lib/client/focus-chat-composer";
 import { WorksheetBrandingDialog } from "@/components/chat/worksheet-branding-dialog";
 import { WorksheetConfirmDialog } from "@/components/chat/tools/worksheet/worksheet-confirm-dialog";
-import { WorksheetDocumentCards } from "@/components/chat/tools/worksheet/worksheet-document-cards";
+import { WorksheetDocumentCards } from "@/components/chat/tools/worksheet/components/worksheet-document-cards";
 import { WorksheetEmptyState } from "@/components/chat/tools/worksheet/components/worksheet-empty-state";
 import { WorksheetDocumentsToolbar } from "@/components/chat/tools/worksheet/worksheet-documents-toolbar";
 import { WorksheetFullView } from "@/components/chat/tools/worksheet/worksheet-full-view";
