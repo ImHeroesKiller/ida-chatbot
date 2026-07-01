@@ -113,6 +113,8 @@ interface WorksheetPanelProps {
     | "updateDocument"
     | "recordDocumentVersion"
     | "saveDocumentChanges"
+    | "markDocumentAsExported"
+    | "updateDocumentLetterhead"
   >;
   errorDetail?: string | null;
   isGenerating?: boolean;
@@ -322,11 +324,17 @@ export function WorksheetPanel({
     (format: "pdf" | "docx") => {
       const documentId = workspace.activeDocumentId;
       if (!documentId) return;
+
+      if (worksheetTool?.markDocumentAsExported) {
+        worksheetTool.markDocumentAsExported(documentId, format);
+        return;
+      }
+
       commitWorkspace(
         markWorksheetDocumentExported(workspace, documentId, format),
       );
     },
-    [commitWorkspace, workspace],
+    [commitWorkspace, worksheetTool, workspace],
   );
 
   const handleDownloadDocx = useCallback(async () => {
@@ -1385,9 +1393,14 @@ export function WorksheetPanel({
         templatesHydrated={templatesHydrated && brandingHydrated}
         activeTemplateName={activeTemplate?.name ?? null}
         previewBranding={resolvedBranding}
-        onSelectionChange={(selection) =>
-          commitWorkspace(setWorksheetLetterheadSelection(workspace, selection))
-        }
+        onSelectionChange={(selection) => {
+          if (worksheetTool?.updateDocumentLetterhead) {
+            worksheetTool.updateDocumentLetterhead(selection);
+            return;
+          }
+
+          commitWorkspace(setWorksheetLetterheadSelection(workspace, selection));
+        }}
         onClose={() => setBrandingDialogOpen(false)}
       />
 

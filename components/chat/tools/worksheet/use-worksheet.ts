@@ -16,6 +16,7 @@ import type {
   WorksheetErrorCode,
   WorksheetVersionSource,
 } from "@/lib/worksheet";
+import type { WorksheetLetterheadSelection } from "@/lib/worksheet-letterhead-template";
 import {
   addGeneratedWorksheetDocument,
   createEmptyWorksheetWorkspace,
@@ -24,9 +25,11 @@ import {
   recordWorksheetDocumentVersion,
   removeWorksheetDocument,
   setActiveWorksheetDocument,
+  setWorksheetLetterheadSelection,
   setWorksheetWorkspaceError,
   syncWorkspaceLegacyFields,
   updateWorksheetDocument,
+  type WorksheetExportFormat,
   type WorksheetSavedDocument,
 } from "@/lib/worksheet-workspace";
 
@@ -49,6 +52,8 @@ export type {
   WorksheetExportFormat,
   WorksheetSavedDocument,
 } from "@/lib/worksheet-workspace";
+
+export type { WorksheetLetterheadSelection } from "@/lib/worksheet-letterhead-template";
 
 /** Workspace snapshot persisted on `ChatSession.worksheet`. */
 export type WorksheetWorkspaceState = WorksheetDocument;
@@ -163,6 +168,16 @@ export type WorksheetTool = BaseToolState &
       documentId: string,
       changes: WorksheetSaveDocumentChangesInput,
     ) => WorksheetWorkspaceState | null;
+    /** Mark a document as exported (pdf/docx) and set status to exported. */
+    markDocumentAsExported: (
+      documentId: string,
+      format: WorksheetExportFormat,
+    ) => WorksheetWorkspaceState | null;
+    /** Update letterhead/branding selection on a document or workspace. */
+    updateDocumentLetterhead: (
+      selection: WorksheetLetterheadSelection,
+      documentId?: string | null,
+    ) => WorksheetWorkspaceState;
     selectDocument: (documentId: string) => void;
     deleteDocument: (documentId: string) => void;
     resetWorkspace: () => void;
@@ -510,6 +525,46 @@ export function useWorksheet(): WorksheetTool {
     [recordDocumentVersion],
   );
 
+  const markDocumentAsExported = useCallback(
+    (
+      documentId: string,
+      format: WorksheetExportFormat,
+    ): WorksheetWorkspaceState | null => {
+      const target = getWorksheetDocumentById(workspaceRef.current, documentId);
+      if (!target) return null;
+
+      const exportedFormats = Array.from(
+        new Set([...(target.exportedFormats ?? []), format]),
+      );
+
+      return updateDocument(documentId, {
+        status: "exported",
+        exportedFormats,
+      });
+    },
+    [updateDocument],
+  );
+
+  const updateDocumentLetterhead = useCallback(
+    (
+      selection: WorksheetLetterheadSelection,
+      documentId?: string | null,
+    ): WorksheetWorkspaceState => {
+      let nextWorkspace!: WorksheetWorkspaceState;
+
+      setWorkspaceInternal((prev) => {
+        nextWorkspace = syncWorkspaceLegacyFields(
+          setWorksheetLetterheadSelection(prev, selection, documentId),
+        );
+        workspaceRef.current = nextWorkspace;
+        return nextWorkspace;
+      });
+
+      return syncToPersistLayer(nextWorkspace);
+    },
+    [syncToPersistLayer],
+  );
+
   const selectDocument = useCallback((documentId: string) => {
     setWorkspaceInternal((prev) => {
       const synced = syncWorkspaceLegacyFields(
@@ -576,6 +631,8 @@ export function useWorksheet(): WorksheetTool {
     updateDocument,
     recordDocumentVersion,
     saveDocumentChanges,
+    markDocumentAsExported,
+    updateDocumentLetterhead,
     selectDocument,
     deleteDocument,
     resetWorkspace,

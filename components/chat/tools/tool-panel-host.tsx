@@ -57,6 +57,8 @@ export interface ToolPanelHostProps {
     | "updateDocument"
     | "recordDocumentVersion"
     | "saveDocumentChanges"
+    | "markDocumentAsExported"
+    | "updateDocumentLetterhead"
   >;
   worksheetErrorDetail?: string | null;
   worksheetGenerating?: boolean;
