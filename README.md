@@ -17,7 +17,7 @@ IDA Chatbot menawarkan berbagai fitur yang dikelompokkan berdasarkan kategori:
 
 ### Produktivitas
 *   **Worksheet:** Editor dokumen rich-text (TipTap) untuk membuat, mengedit, mengekspor (PDF/DOCX), dan berbagi dokumen. Mendukung template dan branding letterhead.
-*   **Workflow:** Otomasi alur kerja multi-langkah (sedang dalam pengembangan).
+*   **Workflow:** Otomasi alur kerja visual (React Flow) dengan integrasi chat, eksekusi backend, dan persistensi per sesi.
 
 ### Multimedia
 *   **Voice (STT & TTS):** Konversi suara ke teks (Speech-to-Text) menggunakan Groq Whisper atau Gemini, dan teks ke suara (Text-to-Speech) menggunakan browser, OpenAI, atau xAI.
@@ -75,6 +75,45 @@ Untuk menjalankan proyek ini secara lokal, ikuti langkah-langkah berikut:
     ```
 
     Aplikasi akan berjalan di [http://localhost:3000](http://localhost:3000).
+
+## Workflow Automation
+
+Tool **Workflow** di chat IDA memungkinkan pengguna merancang dan menjalankan otomatisasi multi-langkah langsung dari panel kanan.
+
+### Cara pakai
+
+1. Buka chat di `/chat`, lalu klik ikon **Workflow** di Right Tools Rail (grup Produktivitas).
+2. **Buat manual:** klik *New Workflow*, tambahkan node (Trigger / Action / Condition / Output), hubungkan di kanvas, isi **LLM Prompt** di panel properti.
+3. **Buat dari chat:** dengan Workflow armed, kirim pesan natural language, contoh:
+
+   ```
+   buatkan workflow follow up pinjaman yang jatuh tempo
+   ```
+
+   IDA akan mengisi kanvas dari respons LLM (penanda `<<<IDA_WORKFLOW>>>`).
+
+4. Klik **Execute** untuk menjalankan workflow via `POST /api/workflow/execute` (model: `toolModels.workflow` di Admin).
+
+### Demo template
+
+Template bawaan tersedia di `lib/workflow.ts`:
+
+```typescript
+import { createDemoDebtFollowUpWorkspace } from "@/lib/workflow";
+
+// 5-node example: Loan Due Trigger → Check Payment → Condition → Reminder → CRM Log
+const workspace = createDemoDebtFollowUpWorkspace();
+```
+
+### Arsitektur singkat
+
+```
+workflow-panel.tsx → useWorkflow (SSOT) → syncToPersistLayer() → ChatSession.workflow
+Chat stream (workflow: true) → parseWorkflowFromResponse → importWorkflowFromStream
+Execute → /api/workflow/execute → lib/workflow-executor.ts
+```
+
+Detail lengkap: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#workflow-tool-fase-13)
 
 ## Dokumentasi
 
