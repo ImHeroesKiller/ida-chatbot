@@ -208,7 +208,7 @@ export function ToolPanelHost({
         "flex h-full min-h-0 flex-col border-l bg-muted/10 dark:bg-muted/5",
         embedded
           ? "w-full"
-          : "relative z-10 w-[min(100%,22rem)] shrink-0 bg-background",
+          : "relative z-10 w-[min(100%,20rem)] shrink-0 bg-background lg:w-[min(100%,21rem)]",
         className,
       )}
       aria-label={title}

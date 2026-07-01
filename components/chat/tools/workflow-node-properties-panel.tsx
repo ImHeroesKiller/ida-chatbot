@@ -47,7 +47,7 @@ function WorkflowNodePropertiesPanelInner({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       <div className="space-y-1">
         <Label htmlFor="workflow-node-kind" className="text-xs">
           {copy.workflowNodeKind}

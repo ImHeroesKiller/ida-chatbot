@@ -16,7 +16,7 @@ export function ChatEmptyState({ locale, className }: ChatEmptyStateProps) {
   const copy = COPY[locale];
 
   return (
-    <div className={cn("flex flex-col items-center justify-center pt-20 pb-10", className)}>
+    <div className={cn("flex flex-col items-center justify-center pt-12 pb-6 sm:pt-16 sm:pb-8 lg:pt-10 lg:pb-6", className)}>
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}

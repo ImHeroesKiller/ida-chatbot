@@ -360,6 +360,8 @@ function ChatRoomContent() {
       <div
         className="ida-chat-shell flex h-full min-h-0 w-full max-w-full overflow-hidden bg-background font-sans"
         data-chat-font-size={chatFontSize}
+        data-panel-open={tools.activePanel ? "" : undefined}
+        data-sidebar-collapsed={!sidebarExpanded ? "" : undefined}
         role="application"
         aria-label={copy.windowLabel}
       >
@@ -413,9 +415,9 @@ function ChatRoomContent() {
 
           <div
             ref={scrollContainerRef}
-            className="relative min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2.5 pt-4 pb-3 sm:px-5 sm:py-4 lg:px-8 lg:py-6"
+            className="relative min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2.5 pt-3 pb-2 sm:px-4 sm:py-3 lg:px-5 lg:py-3"
           >
-              <div className="ida-message-width mx-auto flex w-full flex-col gap-[calc(1.5rem*var(--ida-gap-scale))]">
+              <div className="ida-message-width mx-auto flex w-full flex-col gap-[calc(1.125rem*var(--ida-gap-scale))]">
                 {!hasUserMessages && <ChatEmptyState locale={locale} />}
 
                 {visibleMessages.map((message) => {

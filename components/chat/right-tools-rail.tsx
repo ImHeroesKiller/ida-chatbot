@@ -29,7 +29,7 @@ export function RightToolsRail({
   return (
     <aside
       className={cn(
-        "relative z-10 flex h-full w-[3.75rem] shrink-0 flex-col items-center gap-1.5 overflow-y-auto py-4",
+        "relative z-10 flex h-full w-14 shrink-0 flex-col items-center gap-1 overflow-y-auto py-2.5",
         "ida-glass-subtle border-l border-border/30",
         className,
       )}
@@ -39,8 +39,8 @@ export function RightToolsRail({
         <div
           key={group.id}
           className={cn(
-            "flex w-full flex-col items-center gap-1.5 px-1.5",
-            groupIndex > 0 && "mt-1 border-t border-border/40 pt-3",
+            "flex w-full flex-col items-center gap-1 px-1",
+            groupIndex > 0 && "mt-0.5 border-t border-border/40 pt-2",
           )}
         >
           {group.items.map((item) => {
@@ -63,7 +63,7 @@ export function RightToolsRail({
                   size="icon"
                   disabled={item.isDisabled}
                   className={cn(
-                    "relative h-11 w-11 rounded-xl transition-shadow duration-200",
+                    "relative h-9 w-9 rounded-lg transition-shadow duration-200",
                     item.isExpanded &&
                       "shadow-md shadow-primary/20 ring-1 ring-primary/25",
                     item.isDisabled && "opacity-60",

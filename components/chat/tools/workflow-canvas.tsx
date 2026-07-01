@@ -473,7 +473,7 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
     <div
       className={cn(
         "h-full w-full",
-        isMobile ? "min-h-[38vh]" : "min-h-[14rem]",
+        isMobile ? "min-h-[38vh]" : "min-h-[12rem]",
         className,
       )}
     >
@@ -497,7 +497,7 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
           maxZoom={1.5}
           onlyRenderVisibleElements={flowNodes.length > 12}
           proOptions={PRO_OPTIONS}
-          className="workflow-canvas-flow touch-pan-y rounded-2xl border border-border/40 bg-muted/15 shadow-inner dark:bg-muted/8 lg:ida-glass-subtle"
+          className="workflow-canvas-flow touch-pan-y rounded-xl border border-border/40 bg-muted/15 shadow-inner dark:bg-muted/8 lg:ida-glass-subtle"
         >
           <FitViewOnce workflowId={workflowId} nodeCount={flowNodes.length} />
           <Background

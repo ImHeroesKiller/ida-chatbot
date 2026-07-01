@@ -377,7 +377,7 @@ export function ChatComposer({
       className={cn(
         "relative z-30 shrink-0 overflow-visible px-2.5 pt-2.5",
         "pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-5 sm:pt-3 sm:pb-4",
-        "lg:border-t-0 lg:bg-transparent lg:px-8 lg:pb-6 lg:pt-4",
+        "lg:border-t-0 lg:bg-transparent lg:px-5 lg:pb-4 lg:pt-2",
       )}
     >
       <div className="ida-message-width mx-auto w-full max-w-full space-y-2.5">
@@ -454,7 +454,7 @@ export function ChatComposer({
           transition={scaleIn.transition}
           className={cn(
             "flex min-w-0 items-end gap-2 rounded-2xl p-2 transition-shadow duration-300",
-            "lg:ida-glass lg:rounded-[28px] lg:p-3 lg:focus-within:ring-2 lg:focus-within:ring-primary/15",
+            "lg:ida-glass lg:rounded-[24px] lg:p-2.5 lg:focus-within:ring-2 lg:focus-within:ring-primary/15",
           )}
         >
           <input

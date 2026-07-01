@@ -121,7 +121,7 @@ export function MessageBubble({
         ) : (displayText.trim() || message.isVoiceNote) ? (
           <div
             className={cn(
-              "max-w-full px-4 py-3.5 transition-all duration-300 sm:px-5 sm:py-4 lg:px-6",
+              "max-w-full px-3.5 py-3 transition-all duration-300 sm:px-4 sm:py-3 lg:px-4 lg:py-3",
               isUser
                 ? "rounded-[22px] rounded-br-md bg-primary text-primary-foreground shadow-md shadow-primary/15 ring-1 ring-primary/20 lg:shadow-lg lg:shadow-primary/20"
                 : "rounded-[22px] rounded-bl-md border border-border/40 text-foreground shadow-sm lg:ida-glass-subtle lg:shadow-md",

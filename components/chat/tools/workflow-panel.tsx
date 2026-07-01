@@ -444,17 +444,39 @@ function WorkflowPanelInner({
         "flex h-full min-h-0 flex-col border-l border-border/30 lg:ida-desktop-panel",
         embedded
           ? "w-full"
-          : "relative z-10 w-full shrink-0 lg:w-[min(100%,34rem)]",
+          : "relative z-10 w-full shrink-0 md:w-[min(52vw,36rem)] lg:w-[min(48vw,40rem)] xl:w-[min(44vw,42rem)]",
         className,
       )}
       aria-label={copy.toolsWorkflow}
       role="complementary"
     >
-      <div className="flex shrink-0 items-center gap-2 border-b border-border/40 bg-muted/15 px-3 py-2.5 backdrop-blur-sm lg:px-4">
+      <div className="flex shrink-0 items-center gap-2 border-b border-border/40 bg-muted/15 px-2.5 py-2 backdrop-blur-sm lg:px-3">
         <GitBranch className="h-4 w-4 shrink-0 text-primary" />
-        <h2 className="min-w-0 flex-1 truncate text-sm font-semibold">
+        <h2 className="min-w-0 truncate text-sm font-semibold lg:max-w-[8rem] xl:max-w-none">
           {copy.toolsWorkflow}
         </h2>
+        <div className="ml-auto flex min-w-0 flex-1 justify-end gap-0.5 rounded-md bg-muted/40 p-0.5 lg:max-w-[14rem]">
+          <Button
+            type="button"
+            size="xs"
+            variant={activeTab === "canvas" ? "default" : "ghost"}
+            className="h-6 min-w-0 flex-1 px-2 text-[10px]"
+            onClick={() => setActiveTab("canvas")}
+          >
+            <GitBranch className="mr-1 h-3 w-3 shrink-0" />
+            <span className="truncate">{copy.workflowTabCanvas}</span>
+          </Button>
+          <Button
+            type="button"
+            size="xs"
+            variant={activeTab === "templates" ? "default" : "ghost"}
+            className="h-6 min-w-0 flex-1 px-2 text-[10px]"
+            onClick={() => setActiveTab("templates")}
+          >
+            <LayoutTemplate className="mr-1 h-3 w-3 shrink-0" />
+            <span className="truncate">{copy.workflowTabTemplates}</span>
+          </Button>
+        </div>
         <Button
           type="button"
           variant="ghost"
@@ -462,35 +484,10 @@ function WorkflowPanelInner({
           onClick={onClose}
           aria-label={copy.rightSidebarClose}
           title={copy.rightSidebarClose}
-          className="h-8 w-8 shrink-0"
+          className="h-7 w-7 shrink-0"
         >
           <PanelRightClose className="h-4 w-4" />
         </Button>
-      </div>
-
-      <div className="shrink-0 border-b px-3 py-2">
-        <div className="mb-2 flex gap-1 rounded-lg bg-muted/40 p-1">
-          <Button
-            type="button"
-            size="xs"
-            variant={activeTab === "canvas" ? "default" : "ghost"}
-            className="h-7 flex-1 text-[10px]"
-            onClick={() => setActiveTab("canvas")}
-          >
-            <GitBranch className="mr-1 h-3 w-3" />
-            {copy.workflowTabCanvas}
-          </Button>
-          <Button
-            type="button"
-            size="xs"
-            variant={activeTab === "templates" ? "default" : "ghost"}
-            className="h-7 flex-1 text-[10px]"
-            onClick={() => setActiveTab("templates")}
-          >
-            <LayoutTemplate className="mr-1 h-3 w-3" />
-            {copy.workflowTabTemplates}
-          </Button>
-        </div>
       </div>
 
       {activeTab === "templates" ? (
@@ -503,8 +500,8 @@ function WorkflowPanelInner({
 
       {activeTab === "canvas" ? (
         <>
-      <div className="shrink-0 space-y-2 border-b px-3 py-2">
-        <div className="flex flex-wrap gap-1.5">
+      <div className="shrink-0 space-y-1.5 border-b px-2.5 py-1.5 lg:px-3">
+        <div className="flex flex-wrap gap-1">
           <Button
             type="button"
             variant="outline"
@@ -626,7 +623,7 @@ function WorkflowPanelInner({
       </div>
 
       <div className="relative flex min-h-0 flex-1 flex-col">
-        <div className="min-h-0 flex-1 p-2 sm:p-3">
+        <div className="min-h-0 flex-1 p-1 sm:p-1.5 lg:p-2">
           {activeWorkflow ? (
             <WorkflowCanvas
               key={activeWorkflow.id}
@@ -755,7 +752,7 @@ function WorkflowPanelInner({
         isExecuting ||
         lastExecution ||
         showImportDebug) ? (
-        <div className="shrink-0 space-y-2 border-t px-3 py-2">
+        <div className="shrink-0 space-y-1.5 border-t px-2.5 py-1.5 lg:px-3">
           {workflowErrorMessage ? (
             <p className="text-[10px] text-destructive">{workflowErrorMessage}</p>
           ) : null}

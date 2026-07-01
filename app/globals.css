@@ -91,9 +91,9 @@ body {
   --ida-font-chat: 16.5px;
   --ida-font-chat-input: 17px;
   --ida-line-height-chat: 1.65;
-  --ida-message-max-width: 42rem;
+  --ida-message-max-width: 40rem;
   --ida-density-scale: 1;
-  --ida-gap-scale: 1;
+  --ida-gap-scale: 0.9;
 }
 
 html[data-ida-font-size="small"] {
@@ -195,6 +195,20 @@ html[data-ida-animation="none"] *::after {
 @layer utilities {
   .ida-message-width {
     max-width: var(--ida-message-max-width);
+  }
+
+  @media (min-width: 1024px) {
+    .ida-chat-shell:not([data-panel-open]) {
+      --ida-message-max-width: 46rem;
+    }
+
+    .ida-chat-shell[data-sidebar-collapsed]:not([data-panel-open]) {
+      --ida-message-max-width: 50rem;
+    }
+
+    .ida-chat-shell[data-panel-open] {
+      --ida-message-max-width: 36rem;
+    }
   }
 
   .ida-density-gap {

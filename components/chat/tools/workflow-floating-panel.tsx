@@ -140,7 +140,7 @@ function WorkflowFloatingPanelInner({
       {open ? (
         <motion.div
           key="workflow-floating-backdrop"
-          className="absolute inset-0 z-30 flex items-end justify-center p-3 sm:items-start sm:justify-end sm:p-5"
+          className="absolute inset-0 z-30 flex items-end justify-center p-2 sm:items-start sm:justify-end sm:p-3"
           onClick={handleBackdropClick}
           role="presentation"
           initial={backdropFade.initial}
@@ -166,7 +166,7 @@ function WorkflowFloatingPanelInner({
             exit={popoverPanel.exit}
             transition={popoverPanel.transition}
             className={cn(
-              "relative z-10 flex max-h-[min(78vh,32rem)] w-[min(100%,24rem)] flex-col overflow-hidden rounded-2xl",
+              "relative z-10 flex max-h-[min(84vh,30rem)] w-[min(100%,22rem)] flex-col overflow-hidden rounded-xl",
               "ida-glass shadow-2xl ring-1 ring-border/50",
               isMobile && "w-full max-w-md",
               className,
@@ -180,7 +180,7 @@ function WorkflowFloatingPanelInner({
           >
             <div
               className={cn(
-                "flex shrink-0 items-center gap-2 border-b border-border/40 bg-muted/20 px-3.5 py-2.5",
+                "flex shrink-0 items-center gap-1.5 border-b border-border/40 bg-muted/20 px-2.5 py-2",
                 !isMobile && "cursor-grab active:cursor-grabbing",
               )}
               onPointerDown={handleDragStart}
@@ -208,7 +208,7 @@ function WorkflowFloatingPanelInner({
                 <X className="h-4 w-4" aria-hidden />
               </Button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-3.5">{children}</div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-2.5">{children}</div>
           </motion.div>
         </motion.div>
       ) : null}
