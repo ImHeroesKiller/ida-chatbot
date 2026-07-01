@@ -61,6 +61,13 @@ function createWebhookToken(): string {
 /** In-memory fallback when Supabase is unavailable. */
 const scheduledRuns = new Map<string, WorkflowScheduledRun>();
 
+/** Exclude heavy workflow_snapshot from list queries (Phase 3.5). */
+const SCHEDULE_LIST_COLUMNS =
+  "id, workflow_id, workflow_name, trigger_node_id, session_id, user_id, schedule_type, schedule_config, cron_expression, next_run_at, last_run_at, enabled, webhook_token, run_count, created_at, updated_at";
+
+const TRIGGER_EVENT_LIST_COLUMNS =
+  "id, schedule_id, workflow_id, event_type, payload, status, created_at";
+
 export async function registerWorkflowSchedule(input: {
   workflowId: string;
   workflowName?: string | null;
@@ -144,7 +151,7 @@ export async function listWorkflowSchedules(options?: {
     const supabase = getSupabaseAdmin();
     let query = supabase
       .from("ida_workflow_schedules")
-      .select("*")
+      .select(SCHEDULE_LIST_COLUMNS)
       .order("updated_at", { ascending: false })
       .limit(limit);
 
@@ -256,7 +263,7 @@ export async function listWorkflowTriggerEvents(options?: {
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from("ida_workflow_trigger_events")
-      .select("*")
+      .select(TRIGGER_EVENT_LIST_COLUMNS)
       .order("created_at", { ascending: false })
       .limit(limit);
 
@@ -281,7 +288,7 @@ export async function listDueWorkflowSchedules(
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from("ida_workflow_schedules")
-      .select("*")
+      .select(`${SCHEDULE_LIST_COLUMNS}, workflow_snapshot`)
       .eq("enabled", true)
       .not("next_run_at", "is", null)
       .lte("next_run_at", now)

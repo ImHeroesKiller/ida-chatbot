@@ -27,9 +27,7 @@ import toast from "react-hot-toast";
 import type { WorkflowTool } from "@/components/chat/tools/use-workflow";
 import { WorkflowApprovalDialog } from "@/components/chat/tools/workflow-approval-dialog";
 import { WorkflowErrorRecoveryDialog } from "@/components/chat/tools/workflow-error-recovery-dialog";
-import { WorkflowTemplateGallery } from "@/components/chat/tools/workflow-template-gallery";
 import { WorkflowSchedulePanel } from "@/components/chat/tools/workflow-schedule-panel";
-import { WorkflowSecurityPanel } from "@/components/chat/tools/workflow-security-panel";
 import { WorksheetConfirmDialog } from "@/components/chat/tools/worksheet/worksheet-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +38,9 @@ import {
   type MultiAgentId,
 } from "@/lib/agent/multi-agent";
 import type { Locale } from "@/lib/config";
+import { useIsMobileViewport } from "@/lib/client/use-media-query";
 import { COPY } from "@/lib/i18n";
+import { resolveWorkflowErrorMessage, resolveWorkflowExecutionToast } from "@/lib/workflow-feedback";
 import { inspectWorkflowResponse } from "@/lib/workflow-chat";
 import {
   WORKFLOW_NODE_ACTIONS,
@@ -71,6 +71,29 @@ const WorkflowCanvas = dynamic(
       </div>
     ),
   },
+);
+
+const WorkflowTemplateGallery = dynamic(
+  () =>
+    import("@/components/chat/tools/workflow-template-gallery").then((mod) => ({
+      default: mod.WorkflowTemplateGallery,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex flex-1 items-center justify-center p-6">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    ),
+  },
+);
+
+const WorkflowSecurityPanel = dynamic(
+  () =>
+    import("@/components/chat/tools/workflow-security-panel").then((mod) => ({
+      default: mod.WorkflowSecurityPanel,
+    })),
+  { ssr: false },
 );
 
 const NODE_KINDS: WorkflowNodeKind[] = [
@@ -119,6 +142,7 @@ function WorkflowPanelInner({
   embedded = false,
 }: WorkflowPanelProps) {
   const copy = COPY[locale];
+  const isMobileViewport = useIsMobileViewport();
   const {
     activeWorkflow,
     workflows,
@@ -147,11 +171,21 @@ function WorkflowPanelInner({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showRawResponse, setShowRawResponse] = useState(false);
   const [activeTab, setActiveTab] = useState<"canvas" | "templates">("canvas");
+  const [mobileEditorTab, setMobileEditorTab] = useState<"canvas" | "properties">(
+    "canvas",
+  );
   const logPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setSelectedNodeId(null);
+    setMobileEditorTab("canvas");
   }, [activeWorkflow?.id]);
+
+  useEffect(() => {
+    if (selectedNodeId && isMobileViewport) {
+      setMobileEditorTab("properties");
+    }
+  }, [isMobileViewport, selectedNodeId]);
 
   useEffect(() => {
     if (!isExecuting || !logPanelRef.current) return;
@@ -233,25 +267,12 @@ function WorkflowPanelInner({
   }, []);
 
   const workflowErrorMessage = useMemo(() => {
-    if (errorDetail) return errorDetail;
-
-    switch (workspace.error) {
-      case "parse_failed":
-        return copy.workflowErrorParseFailed;
-      case "empty_workflow":
-        return copy.workflowErrorEmptyWorkflow;
-      case "execute_failed":
-        return copy.workflowExecuted;
-      default:
-        return null;
-    }
-  }, [
-    copy.workflowErrorEmptyWorkflow,
-    copy.workflowErrorParseFailed,
-    copy.workflowExecuted,
-    errorDetail,
-    workspace.error,
-  ]);
+    if (!errorDetail && !workspace.error) return null;
+    return resolveWorkflowErrorMessage(locale, {
+      code: workspace.error,
+      message: errorDetail,
+    });
+  }, [errorDetail, locale, workspace.error]);
 
   const showImportDebug = Boolean(
     workflowErrorMessage && lastGeneratedWorkflowSource?.trim(),
@@ -315,23 +336,20 @@ function WorkflowPanelInner({
       locale,
       sessionId,
     });
-    if (result?.status === "completed") {
-      toast.success(result.message ?? copy.workflowExecuted);
-    } else if (result?.status === "awaiting_approval") {
-      toast(copy.workflowApprovalRequired, { icon: "🛡️" });
-    } else if (result?.status === "paused") {
-      toast.error(copy.workflowRecoveryRequired);
-    } else if (result?.status === "failed") {
-      toast.error(result.message ?? copy.workflowExecuted);
+    if (!result) return;
+    const feedback = resolveWorkflowExecutionToast(
+      locale,
+      result.status,
+      result.message,
+    );
+    if (feedback.type === "success") {
+      toast.success(feedback.text);
+    } else if (feedback.type === "info") {
+      toast(feedback.text, { icon: "🛡️" });
+    } else {
+      toast.error(feedback.text);
     }
-  }, [
-    copy.workflowApprovalRequired,
-    copy.workflowExecuted,
-    copy.workflowRecoveryRequired,
-    locale,
-    sessionId,
-    workflowTool,
-  ]);
+  }, [locale, sessionId, workflowTool]);
 
   const handleResume = useCallback(
     async (action: "approve" | "reject" | "retry" | "skip" | "continue", note?: string) => {
@@ -343,32 +361,29 @@ function WorkflowPanelInner({
         });
         if (!result) return;
 
-        if (result.status === "completed") {
-          toast.success(result.message ?? copy.workflowResumed);
+        const feedback = resolveWorkflowExecutionToast(
+          locale,
+          result.status,
+          result.message ?? copy.workflowResumed,
+        );
+        if (feedback.type === "success") {
+          toast.success(feedback.text);
           setApprovalDialogOpen(false);
           setRecoveryDialogOpen(false);
-        } else if (result.status === "awaiting_approval") {
-          toast(copy.workflowApprovalRequired, { icon: "🛡️" });
-        } else if (result.status === "paused") {
-          toast.error(copy.workflowRecoveryRequired);
-        } else if (result.status === "failed") {
-          toast.error(result.message ?? copy.workflowExecuted);
-          setApprovalDialogOpen(false);
-          setRecoveryDialogOpen(false);
+        } else if (feedback.type === "info") {
+          toast(feedback.text, { icon: "🛡️" });
+        } else {
+          toast.error(feedback.text);
+          if (result.status === "failed") {
+            setApprovalDialogOpen(false);
+            setRecoveryDialogOpen(false);
+          }
         }
       } finally {
         setResumeSubmitting(false);
       }
     },
-    [
-      copy.workflowApprovalRequired,
-      copy.workflowExecuted,
-      copy.workflowRecoveryRequired,
-      copy.workflowResumed,
-      locale,
-      sessionId,
-      workflowTool,
-    ],
+    [copy.workflowResumed, locale, sessionId, workflowTool],
   );
 
   const handleConfirmDeleteWorkflow = useCallback(() => {
@@ -451,7 +466,7 @@ function WorkflowPanelInner({
         "flex h-full min-h-0 flex-col border-l bg-background",
         embedded
           ? "w-full"
-          : "relative z-10 w-[min(100%,32rem)] shrink-0",
+          : "relative z-10 w-full shrink-0 sm:w-[min(100%,32rem)]",
         className,
       )}
       aria-label={copy.toolsWorkflow}
@@ -608,12 +623,46 @@ function WorkflowPanelInner({
         ) : null}
       </div>
 
+      {isMobileViewport && selectedNode ? (
+        <div className="shrink-0 border-b px-3 py-2">
+          <div className="flex gap-1 rounded-lg bg-muted/40 p-1">
+            <Button
+              type="button"
+              size="xs"
+              variant={mobileEditorTab === "canvas" ? "default" : "ghost"}
+              className="h-7 flex-1 text-[10px]"
+              onClick={() => setMobileEditorTab("canvas")}
+            >
+              {copy.workflowMobileCanvas}
+            </Button>
+            <Button
+              type="button"
+              size="xs"
+              variant={mobileEditorTab === "properties" ? "default" : "ghost"}
+              className="h-7 flex-1 text-[10px]"
+              onClick={() => setMobileEditorTab("properties")}
+            >
+              {copy.workflowMobileProperties}
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <div className="min-h-0 flex-1 p-3">
+        <div
+          className={cn(
+            "min-h-0 flex-1 p-2 sm:p-3",
+            isMobileViewport &&
+              selectedNode &&
+              mobileEditorTab === "properties" &&
+              "hidden",
+          )}
+        >
           {activeWorkflow ? (
             <WorkflowCanvas
               key={activeWorkflow.id}
               workflowId={activeWorkflow.id}
+              locale={locale}
               nodes={activeWorkflow.nodes}
               edges={activeWorkflow.edges}
               selectedNodeId={selectedNodeId}
@@ -661,7 +710,13 @@ function WorkflowPanelInner({
         </div>
 
         {selectedNode ? (
-          <div className="shrink-0 border-t bg-muted/10 p-3 dark:bg-muted/5 lg:w-52 lg:border-t-0 lg:border-l">
+          <div
+            className={cn(
+              "shrink-0 overflow-y-auto border-t bg-muted/10 p-2 dark:bg-muted/5 sm:p-3 lg:w-56 lg:border-t-0 lg:border-l xl:w-60",
+              isMobileViewport && mobileEditorTab === "canvas" && "hidden",
+              isMobileViewport && "max-h-[46vh]",
+            )}
+          >
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               {copy.workflowProperties}
             </p>

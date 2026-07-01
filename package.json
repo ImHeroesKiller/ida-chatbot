@@ -31,7 +31,9 @@
     "test:multi-agent": "node scripts/test-multi-agent.mjs",
     "test:workflow-analytics": "node scripts/test-workflow-analytics.mjs",
     "test:workflow-security": "node scripts/test-workflow-security.mjs",
-    "test:workflow-scheduler": "node scripts/test-workflow-scheduler.mjs"
+    "test:workflow-scheduler": "node scripts/test-workflow-scheduler.mjs",
+    "test:workflow-feedback": "node scripts/test-workflow-feedback.mjs",
+    "test:workflow-all": "node scripts/test-workflow-all.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

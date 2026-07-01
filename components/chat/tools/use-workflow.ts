@@ -22,6 +22,7 @@ import {
   type WorkflowStreamPayload,
 } from "@/lib/workflow-chat";
 import type { Locale } from "@/lib/config";
+import { resolveWorkflowErrorMessage } from "@/lib/workflow-feedback";
 import {
   applyWorkflowChatEdit,
   applyWorkflowTemplateToWorkspace,
@@ -861,7 +862,11 @@ export function useWorkflow(): WorkflowTool {
           const data = (await response.json().catch(() => ({}))) as {
             error?: string;
           };
-          throw new Error(data.error ?? "Workflow execution failed.");
+          const httpError = new Error(
+            data.error ?? "Workflow execution failed.",
+          ) as Error & { status?: number };
+          httpError.status = response.status;
+          throw httpError;
         }
 
         const contentType = response.headers.get("content-type") ?? "";
@@ -1023,8 +1028,19 @@ export function useWorkflow(): WorkflowTool {
           return null;
         }
 
-        const message =
-          error instanceof Error ? error.message : "Workflow execution failed.";
+        const httpStatus =
+          error instanceof Error
+            ? (error as Error & { status?: number }).status
+            : undefined;
+        const message = resolveWorkflowErrorMessage(
+          options?.locale ?? "id",
+          {
+            code: "execute_failed",
+            message:
+              error instanceof Error ? error.message : "Workflow execution failed.",
+            httpStatus,
+          },
+        );
 
         const failedResult: WorkflowExecutionResult = {
           workflowId: targetId,
@@ -1141,7 +1157,11 @@ export function useWorkflow(): WorkflowTool {
           const data = (await response.json().catch(() => ({}))) as {
             error?: string;
           };
-          throw new Error(data.error ?? "Workflow resume failed.");
+          const httpError = new Error(
+            data.error ?? "Workflow resume failed.",
+          ) as Error & { status?: number };
+          httpError.status = response.status;
+          throw httpError;
         }
 
         const contentType = response.headers.get("content-type") ?? "";
@@ -1292,8 +1312,19 @@ export function useWorkflow(): WorkflowTool {
 
         if (!isCurrentExecution()) return null;
 
-        const message =
-          error instanceof Error ? error.message : "Workflow resume failed.";
+        const httpStatus =
+          error instanceof Error
+            ? (error as Error & { status?: number }).status
+            : undefined;
+        const message = resolveWorkflowErrorMessage(
+          options?.locale ?? checkpoint.locale,
+          {
+            code: "execute_failed",
+            message:
+              error instanceof Error ? error.message : "Workflow resume failed.",
+            httpStatus,
+          },
+        );
 
         const failedResult: WorkflowExecutionResult = {
           workflowId: targetId,

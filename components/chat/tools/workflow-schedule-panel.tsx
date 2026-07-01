@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarClock, Loader2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
@@ -81,7 +81,7 @@ interface WorkflowSchedulePanelProps {
   onScheduleChange: (schedule: WorkflowScheduleConfig) => void;
 }
 
-export function WorkflowSchedulePanel({
+function WorkflowSchedulePanelInner({
   locale,
   workflow,
   triggerNode,
@@ -340,3 +340,5 @@ export function WorkflowSchedulePanel({
     </div>
   );
 }
+
+export const WorkflowSchedulePanel = memo(WorkflowSchedulePanelInner);

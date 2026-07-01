@@ -1,7 +1,7 @@
 "use client";
 
 import { Shield } from "lucide-react";
-import { useCallback, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ interface WorkflowSecurityPanelProps {
   onSecurityUpdated: (workflow: WorkflowDefinition) => void;
 }
 
-export function WorkflowSecurityPanel({
+function WorkflowSecurityPanelInner({
   locale,
   workflow,
   sessionId,
@@ -141,3 +141,5 @@ export function WorkflowSecurityPanel({
     </div>
   );
 }
+
+export const WorkflowSecurityPanel = memo(WorkflowSecurityPanelInner);

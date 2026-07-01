@@ -214,6 +214,51 @@ POST /api/workflow/execute
 
 Hasil eksekusi (status, logs per node, output) disimpan di `WorkflowWorkspace.lastExecution`.
 
+### Workflow Phase 3 (Advanced)
+
+#### 3.1 Multi-agent orchestration
+
+- `lib/agent/multi-agent/` — specialist agents (research, coding, analysis, …)
+- `runMultiAgentWorkflowStep()` dipanggil dari `lib/workflow-executor.ts` untuk node action/condition/output
+- Aktivitas agent di-stream ke client via SSE `agent_activity`
+
+#### 3.2 Admin analytics
+
+- `lib/admin/workflow-analytics.ts` — agregasi eksekusi dari log permintaan
+- UI: `components/admin/workflow-analytics-dashboard.tsx`
+- Route: `GET /api/admin/workflow-analytics`
+
+#### 3.3 Security & permissions
+
+- `lib/workflow-security/` — visibility (`private` | `shared` | `company`), roles (`owner` | `editor` | `viewer`)
+- Multi-level approval: `approval-hierarchy.ts` + checkpoint `approvalState`
+- Audit: `ida_workflow_audit_logs` (migration 020)
+- API: `PATCH /api/workflow/security`, `GET /api/workflow/audit`, `GET /api/admin/workflow-audit`
+
+#### 3.4 Scheduling & triggers
+
+- `lib/workflow-scheduler/` — cron-like schedules, delay, event triggers
+- Tabel: `ida_workflow_schedules`, `ida_workflow_trigger_events` (migration 021)
+- API: `POST /api/workflow/schedule`, `POST /api/workflow/trigger/webhook`, `POST /api/workflow/scheduler/tick`
+- Admin: tab **Triggers** (`components/admin/workflow-triggers-tab.tsx`)
+- pg_cron (opsional): panggil tick endpoint setiap menit dengan `WORKFLOW_SCHEDULER_SECRET`
+
+#### 3.5 Polish & optimization
+
+| Area | Implementasi |
+|------|----------------|
+| **Performance** | Lazy-load React Flow, template gallery, security panel; `onlyRenderVisibleElements` untuk graf besar; query Supabase tanpa `workflow_snapshot` di list |
+| **Mobile** | `useIsMobileViewport()` — toggle Kanvas/Properti, MiniMap disembunyikan, touch zoom/pan |
+| **Error feedback** | `lib/workflow-feedback.ts` — pesan i18n untuk execute/resume/rate-limit/network |
+| **Tests** | `npm run test:workflow-all` — 8 skrip workflow |
+
+```
+lib/workflow-feedback.ts     → resolveWorkflowErrorMessage / resolveWorkflowExecutionToast
+components/chat/tools/
+  workflow-panel.tsx         → memo, dynamic imports, mobile editor tabs
+  workflow-canvas.tsx        → memo nodes, error boundary + retry
+```
+
 ---
 
 ## Runtime Model Selection (`toolModels`)

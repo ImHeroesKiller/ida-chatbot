@@ -216,6 +216,14 @@ export const COPY: Record<
     workflowDeleteConfirm: string;
     workflowSaved: string;
     workflowExecuted: string;
+    workflowExecuteFailed: string;
+    workflowRateLimitExceeded: string;
+    workflowNetworkError: string;
+    workflowCanvasError: string;
+    workflowCanvasErrorHint: string;
+    workflowCanvasRetry: string;
+    workflowMobileCanvas: string;
+    workflowMobileProperties: string;
     workflowSelectWorkflow: string;
     workflowCreated: string;
     workflowEdited: string;
@@ -828,7 +836,15 @@ export const COPY: Record<
     workflowDeleteNode: "Hapus Node",
     workflowDeleteConfirm: "Hapus workflow aktif?",
     workflowSaved: "Workflow disimpan",
-    workflowExecuted: "Workflow dijalankan (stub)",
+    workflowExecuted: "Workflow selesai dijalankan",
+    workflowExecuteFailed: "Eksekusi workflow gagal. Periksa node dan coba lagi.",
+    workflowRateLimitExceeded: "Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.",
+    workflowNetworkError: "Koneksi gagal. Periksa jaringan dan coba lagi.",
+    workflowCanvasError: "Kanvas workflow error",
+    workflowCanvasErrorHint: "Muat ulang halaman atau impor ulang workflow.",
+    workflowCanvasRetry: "Coba lagi",
+    workflowMobileCanvas: "Kanvas",
+    workflowMobileProperties: "Properti",
     workflowSelectWorkflow: "Pilih workflow",
     workflowCreated: "Workflow berhasil dibuat",
     workflowEdited: "Workflow berhasil diperbarui",
@@ -1483,7 +1499,15 @@ export const COPY: Record<
     workflowDeleteNode: "Delete Node",
     workflowDeleteConfirm: "Delete the active workflow?",
     workflowSaved: "Workflow saved",
-    workflowExecuted: "Workflow executed (stub)",
+    workflowExecuted: "Workflow completed successfully",
+    workflowExecuteFailed: "Workflow execution failed. Check your nodes and try again.",
+    workflowRateLimitExceeded: "Too many requests. Please wait and try again.",
+    workflowNetworkError: "Connection failed. Check your network and try again.",
+    workflowCanvasError: "Workflow canvas error",
+    workflowCanvasErrorHint: "Hard refresh the page or re-import the workflow.",
+    workflowCanvasRetry: "Try again",
+    workflowMobileCanvas: "Canvas",
+    workflowMobileProperties: "Properties",
     workflowSelectWorkflow: "Select workflow",
     workflowCreated: "Workflow created successfully",
     workflowEdited: "Workflow updated successfully",
@@ -2133,7 +2157,15 @@ export const COPY: Record<
     workflowDeleteNode: "删除节点",
     workflowDeleteConfirm: "删除当前工作流？",
     workflowSaved: "工作流已保存",
-    workflowExecuted: "工作流已执行（占位）",
+    workflowExecuted: "工作流执行完成",
+    workflowExecuteFailed: "工作流执行失败。请检查节点后重试。",
+    workflowRateLimitExceeded: "请求过多，请稍后再试。",
+    workflowNetworkError: "连接失败，请检查网络后重试。",
+    workflowCanvasError: "工作流画布错误",
+    workflowCanvasErrorHint: "请刷新页面或重新导入工作流。",
+    workflowCanvasRetry: "重试",
+    workflowMobileCanvas: "画布",
+    workflowMobileProperties: "属性",
     workflowSelectWorkflow: "选择工作流",
     workflowCreated: "工作流创建成功",
     workflowEdited: "工作流更新成功",

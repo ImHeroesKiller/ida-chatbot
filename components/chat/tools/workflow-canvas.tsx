@@ -37,6 +37,10 @@ import "reactflow/dist/style.css";
 
 import { CheckCircle2, Loader2, PauseCircle, ShieldCheck, XCircle } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import type { Locale } from "@/lib/config";
+import { useIsMobileViewport } from "@/lib/client/use-media-query";
+import { COPY } from "@/lib/i18n";
 import type {
   WorkflowExecutionLogEntry,
   WorkflowNodeData,
@@ -163,7 +167,7 @@ const WorkflowFlowNode = memo(
     return (
       <div
         className={cn(
-          "relative min-w-[9rem] max-w-[12rem] rounded-lg border px-3 py-2 shadow-sm transition-shadow",
+          "relative min-w-[7.5rem] max-w-[10rem] rounded-lg border px-2.5 py-1.5 shadow-sm transition-shadow sm:min-w-[9rem] sm:max-w-[12rem] sm:px-3 sm:py-2",
           styles.border,
           selected &&
             "ring-2 ring-primary ring-offset-2 ring-offset-background",
@@ -271,7 +275,7 @@ interface WorkflowCanvasErrorBoundaryState {
 }
 
 class WorkflowCanvasErrorBoundary extends Component<
-  { children: ReactNode },
+  { children: ReactNode; locale?: Locale },
   WorkflowCanvasErrorBoundaryState
 > {
   state: WorkflowCanvasErrorBoundaryState = { hasError: false };
@@ -284,16 +288,32 @@ class WorkflowCanvasErrorBoundary extends Component<
     console.error("[workflow:canvas] render error", error);
   }
 
+  private handleRetry = () => {
+    this.setState({ hasError: false });
+  };
+
   render() {
     if (this.state.hasError) {
+      const locale = this.props.locale ?? "en";
+      const copy = COPY[locale];
+
       return (
         <div className="flex h-full min-h-[14rem] flex-col items-center justify-center rounded-xl border border-dashed border-destructive/40 bg-destructive/5 px-4 text-center">
           <p className="text-sm font-medium text-destructive">
-            Workflow canvas error
+            {copy.workflowCanvasError}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Hard refresh the page or re-import the workflow.
+            {copy.workflowCanvasErrorHint}
           </p>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="mt-3"
+            onClick={this.handleRetry}
+          >
+            {copy.workflowCanvasRetry}
+          </Button>
         </div>
       );
     }
@@ -312,6 +332,7 @@ export interface WorkflowCanvasProps {
   onSelectNode: (nodeId: string | null) => void;
   className?: string;
   workflowId?: string;
+  locale?: Locale;
 }
 
 function areCanvasPropsEqual(
@@ -323,6 +344,7 @@ function areCanvasPropsEqual(
     prev.selectedNodeId === next.selectedNodeId &&
     prev.nodeExecutionStatus === next.nodeExecutionStatus &&
     prev.className === next.className &&
+    prev.locale === next.locale &&
     prev.nodes === next.nodes &&
     prev.edges === next.edges &&
     prev.onNodesChange === next.onNodesChange &&
@@ -342,6 +364,7 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
   className,
   workflowId,
 }: WorkflowCanvasProps) {
+  const isMobile = useIsMobileViewport();
   const nodesRef = useRef(nodes);
   const edgesRef = useRef(edges);
   const onNodesChangeRef = useRef(onNodesChange);
@@ -419,7 +442,13 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
   );
 
   return (
-    <div className={cn("h-full min-h-[14rem] w-full", className)}>
+    <div
+      className={cn(
+        "h-full w-full",
+        isMobile ? "min-h-[38vh]" : "min-h-[14rem]",
+        className,
+      )}
+    >
       <WorkflowExecutionStatusContext.Provider value={executionStatusValue}>
         <ReactFlow
           key={workflowId ?? "workflow-canvas"}
@@ -434,28 +463,36 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
           nodesDraggable
           nodesConnectable
           elementsSelectable
-          minZoom={0.35}
+          panOnScroll={!isMobile}
+          zoomOnPinch={isMobile}
+          minZoom={isMobile ? 0.25 : 0.35}
           maxZoom={1.5}
+          onlyRenderVisibleElements={flowNodes.length > 12}
           proOptions={PRO_OPTIONS}
-          className="rounded-xl border bg-muted/20 dark:bg-muted/10"
+          className="touch-pan-y rounded-xl border bg-muted/20 dark:bg-muted/10"
         >
           <FitViewOnce workflowId={workflowId} nodeCount={flowNodes.length} />
           <Background
             variant={BackgroundVariant.Dots}
-            gap={18}
+            gap={isMobile ? 14 : 18}
             size={1}
             className="!bg-transparent"
           />
           <Controls
             showInteractive={false}
-            className="!rounded-lg !border !border-border !bg-background/90 !shadow-sm [&>button]:!border-border [&>button]:!bg-background [&>button]:hover:!bg-muted"
+            className={cn(
+              "!rounded-lg !border !border-border !bg-background/90 !shadow-sm [&>button]:!border-border [&>button]:!bg-background [&>button]:hover:!bg-muted",
+              isMobile && "scale-90",
+            )}
           />
-          <MiniMap
-            zoomable
-            pannable
-            nodeColor={getMiniMapNodeColor}
-            className="!rounded-lg !border !border-border !bg-background/80"
-          />
+          {!isMobile ? (
+            <MiniMap
+              zoomable
+              pannable
+              nodeColor={getMiniMapNodeColor}
+              className="!rounded-lg !border !border-border !bg-background/80"
+            />
+          ) : null}
         </ReactFlow>
       </WorkflowExecutionStatusContext.Provider>
     </div>
@@ -466,7 +503,7 @@ const WorkflowCanvasShell = memo(function WorkflowCanvasShell(
   props: WorkflowCanvasProps,
 ) {
   return (
-    <WorkflowCanvasErrorBoundary>
+    <WorkflowCanvasErrorBoundary locale={props.locale}>
       <ReactFlowProvider>
         <WorkflowCanvasInner {...props} />
       </ReactFlowProvider>

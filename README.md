@@ -17,7 +17,7 @@ IDA Chatbot menawarkan berbagai fitur yang dikelompokkan berdasarkan kategori:
 
 ### Produktivitas
 *   **Worksheet:** Editor dokumen rich-text (TipTap) untuk membuat, mengedit, mengekspor (PDF/DOCX), dan berbagi dokumen. Mendukung template dan branding letterhead.
-*   **Workflow:** Otomasi alur kerja visual (React Flow) dengan integrasi chat, eksekusi backend, dan persistensi per sesi.
+*   **Workflow:** Otomasi alur kerja visual (React Flow) dengan integrasi chat, eksekusi backend, multi-agent, RBAC, penjadwalan, dan persistensi per sesi.
 
 ### Multimedia
 *   **Voice (STT & TTS):** Konversi suara ke teks (Speech-to-Text) menggunakan Groq Whisper atau Gemini, dan teks ke suara (Text-to-Speech) menggunakan browser, OpenAI, atau xAI.
@@ -114,6 +114,24 @@ Execute → /api/workflow/execute → lib/workflow-executor.ts
 ```
 
 Detail lengkap: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#workflow-tool-fase-13)
+
+### Phase 3 (Advanced Workflow)
+
+| Fase | Fitur |
+|------|-------|
+| **3.1** | Multi-agent orchestration (LangGraph specialists per node) |
+| **3.2** | Admin workflow analytics dashboard |
+| **3.3** | RBAC (private/shared/company), multi-level approval, audit log |
+| **3.4** | Cron scheduling (daily/weekly/monthly), delay, webhook/email/calendar triggers |
+| **3.5** | Performance polish, mobile canvas, unified error feedback |
+
+**Env opsional (Phase 3.4):** `WORKFLOW_SCHEDULER_SECRET` — auth untuk `/api/workflow/scheduler/tick`.
+
+**Test suite workflow:**
+
+```bash
+npm run test:workflow-all
+```
 
 ## Dokumentasi
 
