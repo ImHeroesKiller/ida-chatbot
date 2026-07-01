@@ -67,6 +67,7 @@ export interface WorksheetHydrationInput extends ToolHydrationInput {
   workspace?: WorksheetDocument | null;
   locale?: Locale;
   isGenerating?: boolean;
+  errorDetail?: string | null;
 }
 
 export type WorksheetTool = BaseToolState &
@@ -77,6 +78,8 @@ export type WorksheetTool = BaseToolState &
     documents: WorksheetSavedDocument[];
     activeDocumentId: string | null;
     isGenerating: boolean;
+    /** Transient stream/API error detail shown below the mapped error code. */
+    errorDetail: string | null;
     setLocale: (locale: Locale) => void;
     getWorkspace: () => WorksheetWorkspaceState;
     setWorkspace: (workspace: WorksheetWorkspaceState) => void;
@@ -97,8 +100,14 @@ export type WorksheetTool = BaseToolState &
     ) => WorksheetWorkspaceState | null;
     /** Prepare UI/runtime state before a chat regenerate send. */
     beginRegenerate: () => void;
+    setErrorDetail: (message: string | null) => void;
+    clearErrorDetail: () => void;
+    getErrorDetail: () => string | null;
     /** Apply worksheet error from SSE stream (`worksheetError` or `generate_failed`). */
-    applyStreamError: (errorCode: WorksheetErrorCode) => WorksheetWorkspaceState;
+    applyStreamError: (
+      errorCode: WorksheetErrorCode,
+      message?: string | null,
+    ) => WorksheetWorkspaceState;
     selectDocument: (documentId: string) => void;
     deleteDocument: (documentId: string) => void;
     resetWorkspace: () => void;
@@ -129,10 +138,28 @@ export function useWorksheet(): WorksheetTool {
   );
   const workspaceRef = useRef(workspace);
   const [isGenerating, setIsGeneratingState] = useState(false);
+  const [errorDetail, setErrorDetailState] = useState<string | null>(null);
+  const errorDetailRef = useRef<string | null>(null);
 
   useEffect(() => {
     workspaceRef.current = workspace;
   }, [workspace]);
+
+  useEffect(() => {
+    errorDetailRef.current = errorDetail;
+  }, [errorDetail]);
+
+  const setErrorDetail = useCallback((message: string | null) => {
+    errorDetailRef.current = message;
+    setErrorDetailState(message);
+  }, []);
+
+  const clearErrorDetail = useCallback(() => {
+    errorDetailRef.current = null;
+    setErrorDetailState(null);
+  }, []);
+
+  const getErrorDetail = useCallback(() => errorDetailRef.current, []);
 
   const setLocale = useCallback((next: Locale) => {
     localeRef.current = next;
@@ -185,7 +212,8 @@ export function useWorksheet(): WorksheetTool {
     workspaceRef.current = empty;
     setWorkspaceInternal(empty);
     setIsGeneratingState(false);
-  }, []);
+    clearErrorDetail();
+  }, [clearErrorDetail]);
 
   const hydrateWorkspaceState = useCallback((state: WorksheetHydrationInput) => {
     if (state.locale) {
@@ -204,7 +232,13 @@ export function useWorksheet(): WorksheetTool {
     if (state.isGenerating !== undefined) {
       setIsGeneratingState(state.isGenerating);
     }
-  }, [setLocale]);
+
+    if (state.errorDetail !== undefined) {
+      setErrorDetail(state.errorDetail);
+    } else if (state.workspace !== undefined) {
+      setErrorDetail(null);
+    }
+  }, [setErrorDetail, setLocale]);
 
   const {
     panelId,
@@ -269,8 +303,9 @@ export function useWorksheet(): WorksheetTool {
 
   const beginRegenerate = useCallback(() => {
     setIsGeneratingState(true);
+    clearErrorDetail();
     updateWorkspace({ error: undefined });
-  }, [updateWorkspace]);
+  }, [clearErrorDetail, updateWorkspace]);
 
   const createDocumentFromStream = useCallback(
     (input: WorksheetStreamDocumentInput): WorksheetWorkspaceState | null => {
@@ -299,15 +334,19 @@ export function useWorksheet(): WorksheetTool {
       });
 
       setIsGeneratingState(false);
+      clearErrorDetail();
       return nextWorkspace;
     },
-    [],
+    [clearErrorDetail],
   );
 
   const regenerateDocumentFromStream = createDocumentFromStream;
 
   const applyStreamError = useCallback(
-    (errorCode: WorksheetErrorCode): WorksheetWorkspaceState => {
+    (
+      errorCode: WorksheetErrorCode,
+      message?: string | null,
+    ): WorksheetWorkspaceState => {
       let nextWorkspace!: WorksheetWorkspaceState;
 
       setWorkspaceInternal((prev) => {
@@ -318,10 +357,11 @@ export function useWorksheet(): WorksheetTool {
         return nextWorkspace;
       });
       setIsGeneratingState(false);
+      setErrorDetail(message ?? null);
 
       return nextWorkspace;
     },
-    [],
+    [setErrorDetail],
   );
 
   const selectDocument = useCallback((documentId: string) => {
@@ -366,6 +406,7 @@ export function useWorksheet(): WorksheetTool {
     documents,
     activeDocumentId,
     isGenerating,
+    errorDetail,
     setLocale,
     getWorkspace,
     setWorkspace,
@@ -379,6 +420,9 @@ export function useWorksheet(): WorksheetTool {
     createDocumentFromStream,
     regenerateDocumentFromStream,
     beginRegenerate,
+    setErrorDetail,
+    clearErrorDetail,
+    getErrorDetail,
     applyStreamError,
     selectDocument,
     deleteDocument,

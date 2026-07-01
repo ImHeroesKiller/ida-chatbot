@@ -24,7 +24,6 @@ interface UseChatToolHandlersOptions {
   lastWorksheetPrompt: string;
   worksheetWorkspaceRef: RefObject<WorksheetDocument>;
   setWorksheetWorkspace: Dispatch<SetStateAction<WorksheetDocument>>;
-  setWorksheetErrorDetail: Dispatch<SetStateAction<string | null>>;
   setInput: Dispatch<SetStateAction<string>>;
   persistCurrentChat: (
     patch: Partial<
@@ -69,7 +68,6 @@ export function useChatToolHandlers({
   lastWorksheetPrompt,
   worksheetWorkspaceRef,
   setWorksheetWorkspace,
-  setWorksheetErrorDetail,
   setInput,
   persistCurrentChat,
   sendMessage,
@@ -181,7 +179,6 @@ export function useChatToolHandlers({
     setWorksheetWorkspace((prev) =>
       prev.error ? { ...prev, error: undefined } : prev,
     );
-    setWorksheetErrorDetail(null);
     tools.openPanel(tools.worksheet.panelId);
 
     void sendMessage(prompt);
@@ -189,7 +186,6 @@ export function useChatToolHandlers({
     isLoading,
     lastWorksheetPrompt,
     sendMessage,
-    setWorksheetErrorDetail,
     setWorksheetWorkspace,
     tools,
   ]);

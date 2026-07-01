@@ -71,6 +71,26 @@ export function syncStreamMessages(
   }
 }
 
+function syncWorksheetErrorDetail(
+  deps: StreamToolBridgeDeps,
+  message: string | null,
+): void {
+  if (message) {
+    if (deps.tools.worksheet.setErrorDetail) {
+      deps.tools.worksheet.setErrorDetail(message);
+    } else {
+      deps.setWorksheetErrorDetail(message);
+    }
+  } else if (deps.tools.worksheet.clearErrorDetail) {
+    deps.tools.worksheet.clearErrorDetail();
+  } else {
+    deps.setWorksheetErrorDetail(null);
+  }
+
+  // Mirror into persistence hook until it becomes persist-only.
+  deps.setWorksheetErrorDetail(message);
+}
+
 export function createStreamToolBridge(
   deps: StreamToolBridgeDeps,
   ctx: StreamToolContext,
@@ -182,7 +202,7 @@ export function createStreamToolBridge(
     if (ctx.isActiveChat()) {
       // Keep persistence hook aligned until it becomes persist-only.
       deps.setWorksheetWorkspace(next);
-      deps.setWorksheetErrorDetail(null);
+      syncWorksheetErrorDetail(deps, null);
       deps.tools.activateWorksheet();
       toast.success(deps.worksheetCreatedLabel);
     }
@@ -194,9 +214,12 @@ export function createStreamToolBridge(
     });
   };
 
-  const resolveWorksheetStreamError = (code: WorksheetErrorCode) => {
+  const resolveWorksheetStreamError = (
+    code: WorksheetErrorCode,
+    message?: string | null,
+  ) => {
     let next =
-      deps.tools.worksheet.applyStreamError?.(code) ?? null;
+      deps.tools.worksheet.applyStreamError?.(code, message) ?? null;
 
     if (!next) {
       next = syncWorkspaceLegacyFields({
@@ -208,6 +231,7 @@ export function createStreamToolBridge(
         updatedAt: Date.now(),
       });
       deps.tools.worksheet.syncWorkspaceFromExternal(next);
+      syncWorksheetErrorDetail(deps, message ?? null);
     }
 
     return syncWorkspaceLegacyFields({
@@ -218,11 +242,11 @@ export function createStreamToolBridge(
 
   const onWorksheetError = (errorCode: string) => {
     const code = errorCode as WorksheetErrorCode;
-    const persisted = resolveWorksheetStreamError(code);
+    const persisted = resolveWorksheetStreamError(code, null);
 
     if (ctx.isActiveChat()) {
       deps.setWorksheetWorkspace(persisted);
-      deps.setWorksheetErrorDetail(null);
+      syncWorksheetErrorDetail(deps, null);
       deps.tools.activateWorksheet();
     }
 
@@ -241,11 +265,14 @@ export function createStreamToolBridge(
     }
 
     if (flags.useWorksheet) {
-      const persisted = resolveWorksheetStreamError("generate_failed");
+      const persisted = resolveWorksheetStreamError(
+        "generate_failed",
+        errorMessage,
+      );
 
       if (ctx.isActiveChat()) {
         deps.setWorksheetWorkspace(persisted);
-        deps.setWorksheetErrorDetail(errorMessage);
+        syncWorksheetErrorDetail(deps, errorMessage);
         deps.tools.activateWorksheet();
       }
 

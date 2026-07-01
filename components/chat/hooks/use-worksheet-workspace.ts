@@ -70,6 +70,7 @@ export function useWorksheetWorkspace({
   );
   const [lastWorksheetPrompt, setLastWorksheetPrompt] = useState("");
   const lastWorksheetPromptRef = useRef("");
+  /** Legacy mirror — runtime SSOT is `tools.worksheet.errorDetail` during Phase 3. */
   const [worksheetErrorDetail, setWorksheetErrorDetail] = useState<
     string | null
   >(null);

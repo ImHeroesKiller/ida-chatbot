@@ -207,6 +207,7 @@ function ChatRoomContent() {
         workspace: worksheet.worksheetWorkspaceRef.current,
         locale,
         isGenerating: false,
+        errorDetail: null,
       });
     },
     resetWorksheetForNewChat: worksheet.resetForNewChat,
