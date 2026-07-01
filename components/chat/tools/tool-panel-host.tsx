@@ -44,6 +44,7 @@ export interface ToolPanelHostProps {
   research: ResearchTool;
   map: MapTool;
   workflow?: WorkflowTool;
+  workflowSessionId?: string;
   webSearchSearching?: boolean;
   researchSearching?: boolean;
   worksheet: WorksheetDocument;
@@ -91,6 +92,7 @@ export function ToolPanelHost({
   research,
   map,
   workflow,
+  workflowSessionId,
   webSearchSearching = false,
   researchSearching = false,
   worksheet,
@@ -167,6 +169,7 @@ export function ToolPanelHost({
       <WorkflowPanel
         locale={locale}
         workflowTool={workflow}
+        sessionId={workflowSessionId}
         onClose={onClose}
         className={className}
         embedded={embedded}

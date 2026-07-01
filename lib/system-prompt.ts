@@ -15,6 +15,8 @@ interface PromptContext {
   researchEnabled?: boolean;
   worksheetEnabled?: boolean;
   worksheetPromptSection?: string;
+  workflowEnabled?: boolean;
+  workflowPromptSection?: string;
   basePromptOverride?: string | null;
   userCustomPrompt?: string | null;
 }
@@ -37,6 +39,8 @@ export function buildIdaSystemPrompt(
     researchEnabled = false,
     worksheetEnabled = false,
     worksheetPromptSection = "",
+    workflowEnabled = false,
+    workflowPromptSection = "",
     userCustomPrompt,
   } = context;
 
@@ -140,6 +144,8 @@ ${webSearchToolSection}
 
 ${worksheetEnabled && worksheetPromptSection ? worksheetPromptSection : ""}
 
+${workflowEnabled && workflowPromptSection ? workflowPromptSection : ""}
+
 ## Cara Menggunakan Konteks
 - **Prioritas 1:** Konteks Retrieval (RAG) — jawab berdasarkan dokumen yang di-retrieve.
 - **Prioritas 2:** Research — untuk analisis mendalam multi-sumber.
@@ -169,6 +175,6 @@ ${languageRule}
 - Jangan mulai jawaban dengan salam pembuka (Halo, Hai, Hello, Hi, 你好, dll.) kecuali pengguna menyapa terlebih dahulu.
 - Langsung jawab inti pertanyaan dengan natural, ramah, dan to the point.
 - Gunakan paragraf pendek dan bullet points jika perlu.
-${worksheetEnabled ? "- Dalam mode Worksheet, bagian chat tetap singkat; dokumen lengkap hanya di dalam penanda Worksheet." : "- Maksimal 3–4 paragraf per jawaban kecuali diminta detail lebih lanjut."}
-- Akhiri dengan pertanyaan lanjutan atau saran langkah berikutnya jika relevan${worksheetEnabled ? " (kecuali mode Worksheet — cukup konfirmasi singkat)." : "."}`;
+${worksheetEnabled ? "- Dalam mode Worksheet, bagian chat tetap singkat; dokumen lengkap hanya di dalam penanda Worksheet." : workflowEnabled ? "- Dalam mode Workflow, bagian chat tetap singkat; definisi workflow hanya di dalam penanda Workflow." : "- Maksimal 3–4 paragraf per jawaban kecuali diminta detail lebih lanjut."}
+- Akhiri dengan pertanyaan lanjutan atau saran langkah berikutnya jika relevan${worksheetEnabled || workflowEnabled ? " (kecuali mode Worksheet/Workflow — cukup konfirmasi singkat)." : "."}`;
 }

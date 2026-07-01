@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <title>Worksheet Print Typography Fixture</title>
+  <style>
+    body {
+      margin: 0;
+      background: #e4e4e4;
+      font-family: system-ui, sans-serif;
+    }
+    .shell {
+      max-width: 210mm;
+      margin: 24px auto;
+      padding: 20mm;
+      background: #fff;
+      border: 1px solid #ddd;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      color: #181818;
+    }
+    .note {
+      max-width: 210mm;
+      margin: 0 auto 12px;
+      padding: 0 16px;
+      font-size: 12px;
+      color: #555;
+    }
+    
+  </style>
+</head>
+<body>
+  <p class="note">Visual fixture for Full View vs PDF — body 11pt, margin 20mm. Open alongside exported PDF.</p>
+  <article class="shell worksheet-print-prose">
+    <h1>Laporan Konsistensi Visual</h1>
+<p>Paragraf pembuka yang cukup panjang untuk menguji line-height, spacing antar baris, dan wrapping teks pada lebar kertas A4. Typography ini harus selaras antara Full View dan Export PDF.</p>
+<h2>Bagian Utama</h2>
+<h3>Sub-bagian</h3>
+<p>Paragraf kedua dengan **teks tebal** dan *teks miring* serta `inline code` untuk memastikan gaya inline konsisten.</p>
+<h4>Heading Level 4</h4>
+<h5>Heading Level 5</h5>
+<h6>Heading Level 6</h6>
+<p>Daftar bullet:</p>
+<ul>
+<li>Item pertama dengan penjelasan singkat</li>
+<li>Item kedua yang lebih panjang untuk menguji indent dan jarak antar item</li>
+<li>Item ketiga dengan sub-poin:</li>
+<li>Sub-item A</li>
+<li>Sub-item B</li>
+</ul>
+<p>Daftar bernomor:</p>
+<ol>
+<li>Langkah pertama</li>
+<li>Langkah kedua dengan konten yang lebih panjang agar terlihat wrapping</li>
+<li>Langkah ketiga</li>
+</ol>
+<table><thead><tr>
+<th>Kolom A</th>
+<th>Kolom B</th>
+<th>Kolom C</th>
+</tr></thead><tbody>
+<tr>
+<td>---</td>
+<td>---</td>
+<td>---</td>
+</tr>
+<tr>
+<td>Baris 1</td>
+<td>Data numerik</td>
+<td>Status aktif</td>
+</tr>
+<tr>
+<td>Baris 2</td>
+<td>Teks panjang yang membungkus di dalam sel tabel</td>
+<td>Selesai</td>
+</tr>
+</tbody></table>
+<blockquote><p>Kutipan blockquote yang menjelaskan kebijakan atau catatan penting dari dokumen ini.</p></blockquote>
+<p>const sample = "code block";</p>
+<p>console.log(sample);</p>
+<hr />
+<p>Paragraf penutup setelah horizontal rule.</p>
+  </article>
+</body>
+</html>

@@ -200,5 +200,7 @@ export function resolveSendFlags(
       isToolAvailable("research") &&
       ctx.researchAvailable &&
       bundle.research.isEnabled,
+    workflowAtSend:
+      isToolAvailable("workflow") && bundle.workflow.isEnabled,
   };
 }

@@ -37,6 +37,7 @@ interface UseChatSendOptions {
       tooLong: string;
     };
     worksheetCreated: string;
+    workflowCreated: string;
   };
 }
 
@@ -75,6 +76,7 @@ export function useChatSend({
     copy: {
       errors: copy.errors,
       worksheetCreated: copy.worksheetCreated,
+      workflowCreated: copy.workflowCreated,
     },
     tools,
     sessionRefs,
@@ -116,6 +118,7 @@ export function useChatSend({
       }
       const researchAtSend = tools.researchAtSend;
       const webSearchAtSend = tools.webSearchAtSend;
+      const workflowAtSend = tools.workflowAtSend;
 
       if (worksheetAtSend) {
         tools.worksheet.beginRegenerate();
@@ -141,6 +144,13 @@ export function useChatSend({
       if (researchAtSend && text) {
         tools.research.beginChatResearch();
         tools.openPanel(tools.research.panelId);
+      }
+
+      if (workflowAtSend) {
+        tools.workflow.beginRegenerate();
+        tools.openPanel(tools.workflow.panelId);
+        tools.workflow.syncToPersistLayer();
+        tools.workflow.clearErrorDetail();
       }
 
       const userMessage: IdaMessage = {
@@ -181,6 +191,7 @@ export function useChatSend({
           webSearchAtSend,
           researchAtSend,
           worksheetAtSend,
+          workflowAtSend,
           text,
         );
       } finally {
@@ -270,6 +281,7 @@ export function useChatSend({
           tools.webSearchAtSend,
           tools.researchAtSend,
           tools.worksheetAtSend,
+          tools.workflowAtSend,
           lastMessage.content,
         );
       } finally {
@@ -351,6 +363,7 @@ export function useChatSend({
           tools.webSearchAtSend,
           tools.researchAtSend,
           tools.worksheetAtSend,
+          tools.workflowAtSend,
           text,
         );
       } finally {

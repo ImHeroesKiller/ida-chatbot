@@ -27,6 +27,7 @@ interface UseChatStreamOptions {
       generic: string;
     };
     worksheetCreated: string;
+    workflowCreated: string;
   };
   tools: StreamToolCoordinator;
   sessionRefs: ChatSessionRefs;
@@ -72,6 +73,7 @@ export function useChatStream({
       useWebSearch: boolean,
       useResearch: boolean,
       useWorksheet: boolean,
+      useWorkflow: boolean,
       researchTopic?: string,
     ) => {
       const streamingPlaceholder: IdaMessage = {
@@ -89,6 +91,7 @@ export function useChatStream({
         useWebSearch,
         useResearch,
         useWorksheet,
+        useWorkflow,
       };
 
       const isActiveChat = () => activeChatIdRef.current === chatIdAtSend;
@@ -104,6 +107,7 @@ export function useChatStream({
         worksheetWorkspaceRef,
         lastWorksheetPromptRef,
         worksheetCreatedLabel: copy.worksheetCreated,
+        workflowCreatedLabel: copy.workflowCreated,
       };
 
       const bridge = createStreamToolBridge(
@@ -135,6 +139,7 @@ export function useChatStream({
           webSearch: useWebSearch,
           research: useResearch,
           worksheet: useWorksheet,
+          workflow: useWorkflow,
         });
 
         const response = await fetch("/api/chat", {
@@ -208,6 +213,12 @@ export function useChatStream({
             } else if (done.worksheetError && useWorksheet) {
               bridge.onWorksheetError(done.worksheetError);
             }
+
+            if (done.workflow) {
+              bridge.onWorkflowDone(done.workflow);
+            } else if (done.workflowError && useWorkflow) {
+              bridge.onWorkflowError(done.workflowError);
+            }
           },
         );
 
@@ -235,6 +246,7 @@ export function useChatStream({
       autoSpeakEnabled,
       copy.errors,
       copy.worksheetCreated,
+      copy.workflowCreated,
       lastWorksheetPromptRef,
       locale,
       openHandoff,

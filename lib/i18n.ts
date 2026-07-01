@@ -217,6 +217,10 @@ export const COPY: Record<
     workflowSaved: string;
     workflowExecuted: string;
     workflowSelectWorkflow: string;
+    workflowCreated: string;
+    workflowNodePrompt: string;
+    workflowExecutionLogs: string;
+    workflowDeleteConfirmDescription: string;
     toolsImage: string;
     toolsVideo: string;
     toolsMusic: string;
@@ -711,6 +715,11 @@ export const COPY: Record<
     workflowSaved: "Workflow disimpan",
     workflowExecuted: "Workflow dijalankan (stub)",
     workflowSelectWorkflow: "Pilih workflow",
+    workflowCreated: "Workflow berhasil dibuat",
+    workflowNodePrompt: "Prompt LLM",
+    workflowExecutionLogs: "Log Eksekusi",
+    workflowDeleteConfirmDescription:
+      "Workflow aktif dan semua node-nya akan dihapus dari chat ini.",
     toolsImage: "Gambar",
     toolsVideo: "Video",
     toolsMusic: "Musik",
@@ -1238,6 +1247,11 @@ export const COPY: Record<
     workflowSaved: "Workflow saved",
     workflowExecuted: "Workflow executed (stub)",
     workflowSelectWorkflow: "Select workflow",
+    workflowCreated: "Workflow created successfully",
+    workflowNodePrompt: "LLM Prompt",
+    workflowExecutionLogs: "Execution Logs",
+    workflowDeleteConfirmDescription:
+      "The active workflow and all of its nodes will be removed from this chat.",
     toolsImage: "Image",
     toolsVideo: "Video",
     toolsMusic: "Music",
@@ -1760,6 +1774,10 @@ export const COPY: Record<
     workflowSaved: "工作流已保存",
     workflowExecuted: "工作流已执行（占位）",
     workflowSelectWorkflow: "选择工作流",
+    workflowCreated: "工作流创建成功",
+    workflowNodePrompt: "LLM 提示词",
+    workflowExecutionLogs: "执行日志",
+    workflowDeleteConfirmDescription: "当前工作流及其所有节点将从本对话中删除。",
     toolsImage: "图像",
     toolsVideo: "视频",
     toolsMusic: "音乐",

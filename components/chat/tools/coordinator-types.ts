@@ -31,6 +31,7 @@ export interface ToolSendFlags {
   worksheetAtSend: boolean;
   webSearchAtSend: boolean;
   researchAtSend: boolean;
+  workflowAtSend: boolean;
 }
 
 export interface ToolAvailabilityFlags {

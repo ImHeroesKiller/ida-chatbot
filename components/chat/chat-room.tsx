@@ -226,6 +226,7 @@ function ChatRoomContent() {
     copy: {
       errors: copy.errors,
       worksheetCreated: copy.worksheetCreated,
+      workflowCreated: copy.workflowCreated,
     },
   });
 
@@ -310,6 +311,7 @@ function ChatRoomContent() {
     locale,
     tools,
     isLoading: chatSend.isLoading,
+    apiSessionId: currentChat?.apiSessionId,
     worksheet,
     setInput: chatSend.setInput,
     persistCurrentChat,

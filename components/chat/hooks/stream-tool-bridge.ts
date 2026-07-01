@@ -22,6 +22,7 @@ export interface StreamSendFlags {
   useWebSearch: boolean;
   useResearch: boolean;
   useWorksheet: boolean;
+  useWorkflow: boolean;
 }
 
 export interface StreamToolContext {
@@ -47,6 +48,7 @@ export interface StreamToolBridgeDeps {
   worksheetWorkspaceRef: RefObject<WorksheetDocument>;
   lastWorksheetPromptRef: RefObject<string>;
   worksheetCreatedLabel: string;
+  workflowCreatedLabel: string;
 }
 
 function patchStreamMessage(
@@ -259,6 +261,48 @@ export function createStreamToolBridge(
     });
   };
 
+  const onWorkflowDone = (
+    workflow: NonNullable<import("@/lib/sse").IdaSseWorkflowPayload>,
+  ) => {
+    const imported = deps.tools.workflow.importWorkflowFromStream(workflow);
+    if (!imported) return;
+
+    const nextWorkspace = deps.tools.workflow.getWorkspace();
+
+    if (ctx.isActiveChat()) {
+      deps.tools.workflow.syncToPersistLayer(nextWorkspace);
+      deps.tools.workflow.clearErrorDetail();
+      deps.tools.workflow.setEnabled(true);
+      deps.tools.openPanel(deps.tools.workflow.panelId);
+      toast.success(deps.workflowCreatedLabel);
+    }
+
+    deps.persistCurrentChat({
+      workflow: nextWorkspace,
+      activeRightPanel: deps.tools.workflow.panelId,
+      workflowToolEnabled: true,
+    });
+  };
+
+  const onWorkflowError = (errorCode: string) => {
+    const code = errorCode as import("@/lib/workflow").WorkflowErrorCode;
+    const nextWorkspace =
+      deps.tools.workflow.applyStreamError?.(code, null) ??
+      deps.tools.workflow.getWorkspace();
+
+    if (ctx.isActiveChat()) {
+      deps.tools.workflow.syncToPersistLayer(nextWorkspace);
+      deps.tools.workflow.setEnabled(true);
+      deps.tools.openPanel(deps.tools.workflow.panelId);
+    }
+
+    deps.persistCurrentChat({
+      workflow: nextWorkspace,
+      activeRightPanel: deps.tools.workflow.panelId,
+      workflowToolEnabled: true,
+    });
+  };
+
   const onWorksheetError = (errorCode: string) => {
     const code = errorCode as WorksheetErrorCode;
     const persisted = resolveWorksheetStreamError(code, null);
@@ -313,13 +357,34 @@ export function createStreamToolBridge(
       deps.tools.research.endChatResearch();
       deps.tools.openPanel(deps.tools.research.panelId);
     }
+
+    if (flags.useWorkflow) {
+      const persisted =
+        deps.tools.workflow.applyStreamError?.("parse_failed", errorMessage) ??
+        deps.tools.workflow.getWorkspace();
+
+      if (ctx.isActiveChat()) {
+        deps.tools.workflow.syncToPersistLayer(persisted);
+        deps.tools.workflow.setErrorDetail(errorMessage);
+        deps.tools.workflow.setEnabled(true);
+        deps.tools.openPanel(deps.tools.workflow.panelId);
+      }
+
+      deps.persistCurrentChat({
+        workflow: persisted,
+        activeRightPanel: deps.tools.workflow.panelId,
+        workflowToolEnabled: true,
+      });
+    }
   };
 
   return {
     onWebSearchMeta,
     onResearchMeta,
     onWorksheetDone,
+    onWorkflowDone,
     onWorksheetError,
+    onWorkflowError,
     onStreamError,
   };
 }

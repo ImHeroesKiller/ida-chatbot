@@ -8,7 +8,25 @@ export interface WorkflowNodeData {
   label: string;
   kind: WorkflowNodeKind;
   description?: string;
+  /** LLM instruction for action/output/condition nodes (also mirrored in config.prompt). */
+  prompt?: string;
   config?: Record<string, unknown>;
+}
+
+export type WorkflowErrorCode =
+  | "parse_failed"
+  | "empty_workflow"
+  | "execute_failed";
+
+export interface WorkflowExecutionLogEntry {
+  nodeId: string;
+  label: string;
+  kind: WorkflowNodeKind;
+  status: "skipped" | "running" | "completed" | "failed";
+  output?: string;
+  message?: string;
+  startedAt: number;
+  completedAt?: number;
 }
 
 export type WorkflowNode = Node<WorkflowNodeData>;
@@ -25,13 +43,15 @@ export interface WorkflowDefinition {
   updatedAt: number;
 }
 
-/** Stub result from `executeWorkflow` — replaced in later phases. */
 export interface WorkflowExecutionResult {
   workflowId: string;
   status: "pending" | "running" | "completed" | "failed";
   startedAt: number;
   completedAt?: number;
   message?: string;
+  logs?: WorkflowExecutionLogEntry[];
+  output?: string;
+  error?: WorkflowErrorCode | string;
 }
 
 /**
@@ -43,6 +63,7 @@ export interface WorkflowWorkspace {
   activeWorkflowId: string | null;
   updatedAt: number;
   lastExecution?: WorkflowExecutionResult | null;
+  error?: WorkflowErrorCode;
 }
 
 export interface CreateWorkflowInput {
@@ -109,6 +130,7 @@ export function normalizeWorkflowWorkspace(
     activeWorkflowId,
     updatedAt: workspace.updatedAt ?? Date.now(),
     lastExecution: workspace.lastExecution ?? null,
+    error: workspace.error,
   };
 }
 
@@ -245,6 +267,7 @@ export function buildWorkflowWorkspacePersistFingerprint(
     activeWorkflowId: workspace.activeWorkflowId,
     updatedAt: workspace.updatedAt,
     lastExecution: workspace.lastExecution,
+    error: workspace.error,
     workflows: workspace.workflows.map((wf) => ({
       id: wf.id,
       name: wf.name,
@@ -300,6 +323,85 @@ export function removeWorkflowDefinition(
 }
 
 /** Remove a node (and any connected edges) from a workflow. */
+export interface ImportWorkflowFromStreamInput {
+  name: string;
+  description?: string;
+  nodes: WorkflowNode[];
+  edges: WorkflowEdge[];
+  /** When true (default), imported workflow becomes active. */
+  activate?: boolean;
+}
+
+/** Replace or append a workflow from chat stream payload. */
+export function importWorkflowFromStream(
+  workspace: WorkflowWorkspace,
+  input: ImportWorkflowFromStreamInput,
+): WorkflowWorkspace {
+  const now = Date.now();
+  const workflow: WorkflowDefinition = {
+    id: createId("workflow"),
+    name: input.name.trim() || "Untitled Workflow",
+    description: input.description?.trim() || undefined,
+    nodes: input.nodes.map((node) => ({
+      ...node,
+      data: normalizeWorkflowNodeData(node.data),
+      position: { ...node.position },
+    })),
+    edges: input.edges.map((edge) => ({ ...edge })),
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const activate = input.activate !== false;
+
+  return {
+    ...workspace,
+    workflows: [...workspace.workflows, workflow],
+    activeWorkflowId: activate ? workflow.id : workspace.activeWorkflowId,
+    updatedAt: now,
+    error: undefined,
+  };
+}
+
+export function normalizeWorkflowNodeData(
+  data: WorkflowNodeData,
+): WorkflowNodeData {
+  const prompt =
+    data.prompt?.trim() ||
+    (typeof data.config?.prompt === "string"
+      ? data.config.prompt.trim()
+      : undefined);
+
+  return {
+    ...data,
+    label: data.label.trim() || "Step",
+    description: data.description?.trim() || undefined,
+    prompt,
+    config: prompt ? { ...data.config, prompt } : data.config,
+  };
+}
+
+export function getWorkflowNodePrompt(node: WorkflowNode): string {
+  const data = node.data;
+  return (
+    data.prompt?.trim() ||
+    (typeof data.config?.prompt === "string" ? data.config.prompt.trim() : "") ||
+    data.description?.trim() ||
+    data.label
+  );
+}
+
+export function setWorkflowWorkspaceError(
+  workspace: WorkflowWorkspace,
+  error: WorkflowErrorCode,
+): WorkflowWorkspace {
+  return {
+    ...workspace,
+    error,
+    updatedAt: Date.now(),
+  };
+}
+
 export function removeWorkflowNode(
   workspace: WorkflowWorkspace,
   workflowId: string,

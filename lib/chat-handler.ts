@@ -56,12 +56,20 @@ import {
 } from "./memory/conversation-memory";
 import { retrieveContext } from "./rag/retriever";
 import { buildIdaSystemPrompt } from "./system-prompt";
-import type { IdaSseMetaPayload, IdaSseWorksheetPayload } from "./sse";
+import type {
+  IdaSseMetaPayload,
+  IdaSseWorkflowPayload,
+  IdaSseWorksheetPayload,
+} from "./sse";
 import type {
   IdaHandoffPrefill,
   IdaResearchSource,
   IdaWebSearchSource,
 } from "./types";
+import {
+  buildWorkflowPromptSection,
+  parseWorkflowFromResponse,
+} from "./workflow-chat";
 import {
   buildWorksheetPromptSection,
   parseWorksheetFromResponse,
@@ -78,6 +86,8 @@ export interface IdaChatHandlerInput {
   research?: boolean;
   /** Worksheet panel is open — generate document for right sidebar */
   worksheet?: boolean;
+  /** Workflow panel is armed — generate workflow for right sidebar */
+  workflow?: boolean;
 }
 
 export interface IdaChatPreparedContext {
@@ -101,6 +111,7 @@ export interface IdaChatPreparedContext {
   userRequestedWebSearch: boolean;
   userRequestedResearch: boolean;
   worksheetEnabled: boolean;
+  workflowEnabled: boolean;
 }
 
 export interface IdaChatStreamResult extends StreamChatResult {
@@ -114,6 +125,8 @@ export interface IdaChatStreamResult extends StreamChatResult {
   researchSummary?: string;
   worksheet?: IdaSseWorksheetPayload | null;
   worksheetError?: string;
+  workflow?: IdaSseWorkflowPayload | null;
+  workflowError?: string;
 }
 
 export interface HandoffToolExecution {
@@ -280,13 +293,17 @@ export async function prepareIdaChatContext(
   const userRequestedWebSearch = input.webSearch === true && !researchActive;
   const webSearchActive = webSearchAvailable && userRequestedWebSearch;
 
+  const workflowActive = input.workflow === true;
+
   const selectedModel =
     options?.model ??
     (researchActive
       ? resolveToolModel(appConfig, "research")
       : webSearchActive
         ? resolveToolModel(appConfig, "webSearch")
-        : appConfig.defaultModel);
+        : workflowActive
+          ? resolveToolModel(appConfig, "workflow", "agent")
+          : appConfig.defaultModel);
 
   const modelDefinition = findModelDefinition(
     selectedModel.id,
@@ -309,6 +326,7 @@ export async function prepareIdaChatContext(
   }
   const webSearchMaxResults = appConfig.webSearch.maxResults;
   const worksheetEnabled = input.worksheet === true;
+  const workflowEnabled = input.workflow === true;
 
   const [retrieval, memoryContext] = await Promise.all([
     retrieveContext({
@@ -371,6 +389,10 @@ export async function prepareIdaChatContext(
     worksheetEnabled,
     worksheetPromptSection: worksheetEnabled
       ? buildWorksheetPromptSection(locale)
+      : "",
+    workflowEnabled,
+    workflowPromptSection: workflowEnabled
+      ? buildWorkflowPromptSection(locale)
       : "",
     basePromptOverride: appConfig.systemPromptOverride,
     userCustomPrompt,
@@ -455,13 +477,28 @@ export async function prepareIdaChatContext(
     userRequestedWebSearch: webSearchActive,
     userRequestedResearch: researchActive,
     worksheetEnabled,
+    workflowEnabled,
   };
 }
 
 function withResearchMeta(
   context: IdaChatPreparedContext,
-  base: Omit<IdaChatStreamResult, "fullText" | "worksheet" | "worksheetError">,
-): Omit<IdaChatStreamResult, "fullText" | "worksheet" | "worksheetError"> {
+  base: Omit<
+    IdaChatStreamResult,
+    | "fullText"
+    | "worksheet"
+    | "worksheetError"
+    | "workflow"
+    | "workflowError"
+  >,
+): Omit<
+  IdaChatStreamResult,
+  | "fullText"
+  | "worksheet"
+  | "worksheetError"
+  | "workflow"
+  | "workflowError"
+> {
   return {
     ...base,
     usedResearch: base.usedResearch ?? context.meta.usedResearch,
@@ -474,25 +511,38 @@ function withResearchMeta(
 function finalizeStreamResult(
   context: IdaChatPreparedContext,
   fullText: string,
-  base: Omit<IdaChatStreamResult, "fullText" | "worksheet" | "worksheetError">,
+  base: Omit<
+    IdaChatStreamResult,
+    "fullText" | "worksheet" | "worksheetError" | "workflow" | "workflowError"
+  >,
 ): IdaChatStreamResult {
   const merged = withResearchMeta(context, base);
+  let chatMessage = fullText;
+  let result: IdaChatStreamResult = { ...merged, fullText: chatMessage };
 
-  if (!context.worksheetEnabled) {
-    return { ...merged, fullText };
+  if (context.worksheetEnabled) {
+    const parsed = parseWorksheetFromResponse(fullText, context.locale);
+    chatMessage = parsed.chatMessage;
+    result = {
+      ...result,
+      fullText: chatMessage,
+      worksheet: parsed.worksheet,
+      ...(parsed.error ? { worksheetError: parsed.error } : {}),
+    };
   }
 
-  const { chatMessage, worksheet, error } = parseWorksheetFromResponse(
-    fullText,
-    context.locale,
-  );
+  if (context.workflowEnabled) {
+    const parsed = parseWorkflowFromResponse(fullText, context.locale);
+    chatMessage = parsed.chatMessage;
+    result = {
+      ...result,
+      fullText: chatMessage,
+      workflow: parsed.workflow,
+      ...(parsed.error ? { workflowError: parsed.error } : {}),
+    };
+  }
 
-  return {
-    ...merged,
-    fullText: chatMessage,
-    worksheet,
-    ...(error ? { worksheetError: error } : {}),
-  };
+  return result;
 }
 
 function extractGeminiUsage(chunk: unknown): TokenUsage | null {

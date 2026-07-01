@@ -42,6 +42,7 @@ const chatRequestSchema = z.object({
   webSearch: z.boolean().optional(),
   research: z.boolean().optional(),
   worksheet: z.boolean().optional(),
+  workflow: z.boolean().optional(),
 });
 
 export async function POST(request: Request) {
@@ -66,8 +67,16 @@ export async function POST(request: Request) {
     );
   }
 
-  const { messages, locale, sessionId, userId, webSearch, research, worksheet } =
-    parsed.data;
+  const {
+    messages,
+    locale,
+    sessionId,
+    userId,
+    webSearch,
+    research,
+    worksheet,
+    workflow,
+  } = parsed.data;
 
   if (userId && !isValidAnonymousUserId(userId)) {
     return NextResponse.json<IdaChatErrorResponse>(
@@ -121,6 +130,7 @@ export async function POST(request: Request) {
       webSearch,
       research,
       worksheet,
+      workflow,
     });
 
     preparedModel = {
@@ -228,6 +238,8 @@ export async function POST(request: Request) {
           researchSummary: result.researchSummary,
           ...(result.worksheet ? { worksheet: result.worksheet } : {}),
           ...(result.worksheetError ? { worksheetError: result.worksheetError } : {}),
+          ...(result.workflow ? { workflow: result.workflow } : {}),
+          ...(result.workflowError ? { workflowError: result.workflowError } : {}),
         });
 
         void logRequest({

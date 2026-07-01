@@ -61,6 +61,7 @@ export interface ChatApiRequestBody {
   webSearch?: boolean;
   research?: boolean;
   worksheet?: boolean;
+  workflow?: boolean;
   messages: Array<{ role: "user" | "assistant"; content: string }>;
 }
 
@@ -72,6 +73,7 @@ export function buildChatApiRequestBody(options: {
   webSearch?: boolean;
   research?: boolean;
   worksheet?: boolean;
+  workflow?: boolean;
 }): ChatApiRequestBody {
   const apiMessages = toChatApiMessages(options.messages, options.locale);
 
@@ -105,6 +107,10 @@ export function buildChatApiRequestBody(options: {
 
   if (options.worksheet) {
     body.worksheet = true;
+  }
+
+  if (options.workflow) {
+    body.workflow = true;
   }
 
   return body;

@@ -22,6 +22,7 @@ interface UseChatToolPanelPropsOptions {
   locale: Locale;
   tools: ToolPanelHandlerCoordinator;
   isLoading: boolean;
+  apiSessionId?: string;
   worksheet: WorksheetWorkspace;
   setInput: (value: string | ((prev: string) => string)) => void;
   persistCurrentChat: (
@@ -46,6 +47,7 @@ export function useChatToolPanelProps({
   locale,
   tools,
   isLoading,
+  apiSessionId,
   worksheet,
   setInput,
   persistCurrentChat,
@@ -120,6 +122,7 @@ export function useChatToolPanelProps({
       onWorksheetRetry: handleWorksheetRetry,
       onWorksheetRegenerate: handleWorksheetRetry,
       onWorksheetClear: handleWorksheetClear,
+      workflowSessionId: apiSessionId,
     }),
     [
       handleWorksheetChange,
@@ -129,6 +132,7 @@ export function useChatToolPanelProps({
       tools.worksheet,
       handleWorksheetApplyTemplate,
       handleWorksheetClear,
+      apiSessionId,
       worksheet.lastWorksheetPrompt,
       worksheetGenerating,
     ],

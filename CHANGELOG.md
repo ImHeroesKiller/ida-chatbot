@@ -7,6 +7,25 @@ Versi mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased]
+
+### Added
+
+#### Workflow Tool (Chat)
+- **Workflow** aktif di Right Tools Rail (grup Produktivitas) dengan panel React Flow
+- `useWorkflow` + `useWorkflowWorkspace` — SSOT runtime + persist layer ke `ChatSession.workflow`
+- API **`POST /api/workflow/execute`** — eksekusi sequential berbasis model `toolModels.workflow` (pola LangGraph)
+- Integrasi chat: mode Workflow di system prompt, parser `<<<IDA_WORKFLOW>>>`, SSE `done.workflow`
+- Stream tool bridge: `onWorkflowDone` mengimpor workflow dari respons LLM
+- Panel: toolbar (New/Save/Execute/Delete), node kinds, properties sidebar dengan **LLM prompt**, log eksekusi
+- Dialog konfirmasi hapus workflow (reuse `WorksheetConfirmDialog`)
+
+### Changed
+- `prepareIdaChatContext` memilih model `workflow` saat tool Workflow armed
+- `buildChatApiRequestBody` mendukung flag `workflow`
+
+---
+
 ## [1.0.0] — 2026-06-29
 
 Rilis stabil pertama IDA AI setelah refactoring arsitektur besar.

@@ -10,6 +10,11 @@ import {
 } from "@/components/chat/tools/base-tool-state";
 import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
 import type { ToolQuotaState } from "@/components/chat/tools/types";
+import type { Locale } from "@/lib/config";
+import {
+  workflowPayloadToDefinition,
+  type WorkflowStreamPayload,
+} from "@/lib/workflow-chat";
 import {
   addWorkflowNode,
   areWorkflowWorkspaceSnapshotsEqual,
@@ -18,16 +23,21 @@ import {
   createWorkflowDefinition,
   getActiveWorkflow,
   getWorkflowById,
+  importWorkflowFromStream,
   normalizeWorkflowWorkspace,
   removeWorkflowDefinition,
   removeWorkflowNode,
   setActiveWorkflow,
+  setWorkflowWorkspaceError,
   updateWorkflowDefinition,
   type AddWorkflowNodeInput,
   type CreateWorkflowInput,
   type UpdateWorkflowPatch,
   type WorkflowDefinition,
+  type WorkflowEdge,
+  type WorkflowErrorCode,
   type WorkflowExecutionResult,
+  type WorkflowNode,
   type WorkflowWorkspace,
 } from "@/lib/workflow";
 
@@ -41,6 +51,7 @@ export type {
   CreateWorkflowInput,
   UpdateWorkflowPatch,
   WorkflowDefinition,
+  WorkflowErrorCode,
   WorkflowExecutionResult,
   WorkflowNode,
   WorkflowNodeData,
@@ -48,6 +59,8 @@ export type {
   WorkflowEdge,
   WorkflowWorkspace,
 } from "@/lib/workflow";
+
+export type { WorkflowStreamPayload } from "@/lib/workflow-chat";
 
 /** Workspace snapshot persisted on `ChatSession.workflow`. */
 export type WorkflowWorkspaceState = WorkflowWorkspace;
@@ -68,6 +81,9 @@ export type WorkflowTool = BaseToolState &
     activeWorkflow: WorkflowDefinition | null;
     isExecuting: boolean;
     lastExecution: WorkflowExecutionResult | null;
+    errorDetail: string | null;
+    setErrorDetail: (message: string | null) => void;
+    clearErrorDetail: () => void;
     getWorkspace: () => WorkflowWorkspaceState;
     setWorkspace: (workspace: WorkflowWorkspaceState) => void;
     updateWorkspace: (patch: Partial<WorkflowWorkspaceState>) => void;
@@ -91,9 +107,17 @@ export type WorkflowTool = BaseToolState &
       input: AddWorkflowNodeInput,
       workflowId?: string | null,
     ) => WorkflowWorkspaceState;
-    /** Stub — records a completed execution locally; API wiring comes in a later phase. */
+    beginRegenerate: () => void;
+    importWorkflowFromStream: (
+      payload: WorkflowStreamPayload,
+    ) => WorkflowDefinition | null;
+    applyStreamError: (
+      errorCode: WorkflowErrorCode,
+      message?: string | null,
+    ) => WorkflowWorkspaceState;
     executeWorkflow: (
       workflowId?: string | null,
+      options?: { locale?: Locale; sessionId?: string },
     ) => Promise<WorkflowExecutionResult | null>;
     deleteWorkflow: (workflowId?: string | null) => WorkflowWorkspaceState;
     deleteNode: (
@@ -128,6 +152,8 @@ export function useWorkflow(): WorkflowTool {
   );
   const workspaceRef = useRef(workspace);
   const [isExecuting, setIsExecuting] = useState(false);
+  const [errorDetail, setErrorDetailState] = useState<string | null>(null);
+  const errorDetailRef = useRef<string | null>(null);
   const persistSyncRef = useRef<PersistLayerSync | null>(null);
   const lastPersistedFingerprintRef = useRef<string | null>(null);
 
@@ -207,13 +233,24 @@ export function useWorkflow(): WorkflowTool {
     setQuota(createWorkflowQuotaState());
   }, []);
 
+  const setErrorDetail = useCallback((message: string | null) => {
+    errorDetailRef.current = message;
+    setErrorDetailState(message);
+  }, []);
+
+  const clearErrorDetail = useCallback(() => {
+    errorDetailRef.current = null;
+    setErrorDetailState(null);
+  }, []);
+
   const resetWorkspace = useCallback(() => {
     const empty = createEmptyWorkflowWorkspace();
     workspaceRef.current = empty;
     setWorkspaceInternal(empty);
     setIsExecuting(false);
+    clearErrorDetail();
     resetPersistFingerprint();
-  }, [resetPersistFingerprint]);
+  }, [clearErrorDetail, resetPersistFingerprint]);
 
   const hydrateWorkspaceState = useCallback((state: WorkflowHydrationInput) => {
     if (state.workspace !== undefined) {
@@ -375,8 +412,68 @@ export function useWorkflow(): WorkflowTool {
     [syncToPersistLayer],
   );
 
+  const beginRegenerate = useCallback(() => {
+    setIsExecuting(false);
+    clearErrorDetail();
+    updateWorkspace({ error: undefined });
+  }, [clearErrorDetail, updateWorkspace]);
+
+  const importWorkflowFromStreamPayload = useCallback(
+    (payload: WorkflowStreamPayload): WorkflowDefinition | null => {
+      const definition = workflowPayloadToDefinition(payload);
+      const nodes: WorkflowNode[] = definition.nodes;
+      const edges: WorkflowEdge[] = definition.edges;
+
+      let created: WorkflowDefinition | null = null;
+      let nextWorkspace!: WorkflowWorkspaceState;
+
+      setWorkspaceInternal((prev) => {
+        nextWorkspace = importWorkflowFromStream(prev, {
+          name: definition.name,
+          description: definition.description,
+          nodes,
+          edges,
+          activate: true,
+        });
+        workspaceRef.current = nextWorkspace;
+        const activeId = nextWorkspace.activeWorkflowId;
+        created = activeId ? getWorkflowById(nextWorkspace, activeId) : null;
+        return nextWorkspace;
+      });
+
+      setIsExecuting(false);
+      clearErrorDetail();
+      syncToPersistLayer(nextWorkspace);
+      return created;
+    },
+    [clearErrorDetail, syncToPersistLayer],
+  );
+
+  const applyStreamError = useCallback(
+    (
+      errorCode: WorkflowErrorCode,
+      message?: string | null,
+    ): WorkflowWorkspaceState => {
+      let nextWorkspace!: WorkflowWorkspaceState;
+
+      setWorkspaceInternal((prev) => {
+        nextWorkspace = setWorkflowWorkspaceError(prev, errorCode);
+        workspaceRef.current = nextWorkspace;
+        return nextWorkspace;
+      });
+
+      setIsExecuting(false);
+      setErrorDetail(message ?? null);
+      return syncToPersistLayer(nextWorkspace);
+    },
+    [setErrorDetail, syncToPersistLayer],
+  );
+
   const executeWorkflow = useCallback(
-    async (workflowId?: string | null): Promise<WorkflowExecutionResult | null> => {
+    async (
+      workflowId?: string | null,
+      options?: { locale?: Locale; sessionId?: string },
+    ): Promise<WorkflowExecutionResult | null> => {
       const targetId = workflowId ?? workspaceRef.current.activeWorkflowId;
       if (!targetId) return null;
 
@@ -384,35 +481,86 @@ export function useWorkflow(): WorkflowTool {
       if (!workflow) return null;
 
       setIsExecuting(true);
+      clearErrorDetail();
 
-      // Stub: local-only execution record until backend orchestration ships.
-      await new Promise((resolve) => setTimeout(resolve, 400));
+      try {
+        const response = await fetch("/api/workflow/execute", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            workflow,
+            locale: options?.locale ?? "id",
+            sessionId: options?.sessionId,
+          }),
+        });
 
-      const result: WorkflowExecutionResult = {
-        workflowId: targetId,
-        status: "completed",
-        startedAt: Date.now(),
-        completedAt: Date.now(),
-        message: `Workflow "${workflow.name}" executed (stub).`,
-      };
-
-      let nextWorkspace!: WorkflowWorkspaceState;
-
-      setWorkspaceInternal((prev) => {
-        nextWorkspace = {
-          ...prev,
-          lastExecution: result,
-          updatedAt: Date.now(),
+        const data = (await response.json().catch(() => ({}))) as {
+          result?: WorkflowExecutionResult;
+          error?: string;
         };
-        workspaceRef.current = nextWorkspace;
-        return nextWorkspace;
-      });
 
-      setIsExecuting(false);
-      syncToPersistLayer(nextWorkspace);
-      return result;
+        if (!response.ok) {
+          throw new Error(data.error ?? "Workflow execution failed.");
+        }
+
+        const result = data.result;
+        if (!result) {
+          throw new Error("Workflow execution returned no result.");
+        }
+
+        let nextWorkspace!: WorkflowWorkspaceState;
+
+        setWorkspaceInternal((prev) => {
+          nextWorkspace = {
+            ...prev,
+            lastExecution: result,
+            error: result.status === "failed" ? "execute_failed" : undefined,
+            updatedAt: Date.now(),
+          };
+          workspaceRef.current = nextWorkspace;
+          return nextWorkspace;
+        });
+
+        if (result.status === "failed") {
+          setErrorDetail(result.message ?? result.error ?? null);
+        }
+
+        syncToPersistLayer(nextWorkspace);
+        return result;
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Workflow execution failed.";
+
+        const failedResult: WorkflowExecutionResult = {
+          workflowId: targetId,
+          status: "failed",
+          startedAt: Date.now(),
+          completedAt: Date.now(),
+          message,
+          logs: [],
+          error: "execute_failed",
+        };
+
+        let nextWorkspace!: WorkflowWorkspaceState;
+
+        setWorkspaceInternal((prev) => {
+          nextWorkspace = setWorkflowWorkspaceError(prev, "execute_failed");
+          nextWorkspace = {
+            ...nextWorkspace,
+            lastExecution: failedResult,
+          };
+          workspaceRef.current = nextWorkspace;
+          return nextWorkspace;
+        });
+
+        setErrorDetail(message);
+        syncToPersistLayer(nextWorkspace);
+        return failedResult;
+      } finally {
+        setIsExecuting(false);
+      }
     },
-    [syncToPersistLayer],
+    [clearErrorDetail, setErrorDetail, syncToPersistLayer],
   );
 
   const workflows = useMemo(() => workspace.workflows, [workspace.workflows]);
@@ -439,6 +587,9 @@ export function useWorkflow(): WorkflowTool {
     activeWorkflow,
     isExecuting,
     lastExecution,
+    errorDetail,
+    setErrorDetail,
+    clearErrorDetail,
     getWorkspace,
     setWorkspace,
     updateWorkspace,
@@ -450,6 +601,9 @@ export function useWorkflow(): WorkflowTool {
     createWorkflow,
     updateWorkflow,
     addNode,
+    beginRegenerate,
+    importWorkflowFromStream: importWorkflowFromStreamPayload,
+    applyStreamError,
     executeWorkflow,
     deleteWorkflow,
     deleteNode,

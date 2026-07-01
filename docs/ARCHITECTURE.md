@@ -144,8 +144,8 @@ tool-panel-host.tsx       → Render panel sidebar kanan
 
 | Tipe | Contoh | Perilaku |
 |------|--------|----------|
-| **Tool aktif** | `web-search`, `research`, `map`, `worksheet` | Terdaftar di `registry.ts`, punya hook + panel |
-| **Placeholder** | `workflow`, `image`, `video`, `music`, dll. | Hanya di `tool-rail-config.ts`, `comingSoon: true` |
+| **Tool aktif** | `web-search`, `research`, `map`, `worksheet`, `workflow` | Terdaftar di `registry.ts`, punya hook + panel |
+| **Placeholder** | `image`, `video`, `music`, `coding`, dll. | Hanya di `tool-rail-config.ts`, `comingSoon: true` |
 
 Placeholder tidak memerlukan hook atau panel — cukup entry di config rail.
 
@@ -158,7 +158,7 @@ Konfigurasi grup berada di `components/chat/tool-rail-config.ts`:
 | Grup | ID | Tool |
 |------|-----|------|
 | **Riset** | `research` | Web Search, Map, Research |
-| **Produktivitas** | `productivity` | Worksheet, Workflow (Coming Soon) |
+| **Produktivitas** | `productivity` | Worksheet, Workflow |
 | **Kreatif** | `creative` | Gambar, Video, Musik (Coming Soon) |
 | **Lanjutan** | `advanced` | Coding, Integration, Virtual Computer (Coming Soon) |
 
@@ -184,6 +184,35 @@ Setiap tool hook mengimplementasikan:
 | `hydrate()` / `resetForNewChat()` | Restore / reset state sesi |
 
 Coordinator mengatur **eksklusivitas panel** — hanya satu panel aktif dalam satu waktu.
+
+### Workflow Tool (Fase 1–3)
+
+Alur data mengikuti pola Worksheet (SSOT + persist layer):
+
+```
+Panel (workflow-panel.tsx)
+  → useWorkflow (mutasi nodes/edges, executeWorkflow)
+    → syncToPersistLayer()
+      → useWorkflowWorkspace.setWorkflowWorkspaceInbound()
+        → ChatSession.workflow
+```
+
+**Generasi dari chat** (tool armed):
+
+1. Client mengirim `workflow: true` ke `/api/chat`
+2. `buildWorkflowPromptSection()` menambahkan instruksi penanda `<<<IDA_WORKFLOW>>>`
+3. `parseWorkflowFromResponse()` mengekstrak JSON workflow dari respons LLM
+4. SSE `done.workflow` → `stream-tool-bridge.onWorkflowDone()` → `importWorkflowFromStream()`
+
+**Eksekusi backend**:
+
+```
+POST /api/workflow/execute
+  → lib/workflow-executor.ts (sort nodes, run LLM per step)
+    → resolveToolModel("workflow", "agent")
+```
+
+Hasil eksekusi (status, logs per node, output) disimpan di `WorkflowWorkspace.lastExecution`.
 
 ---
 

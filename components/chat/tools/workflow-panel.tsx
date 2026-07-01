@@ -14,13 +14,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 import type { WorkflowTool } from "@/components/chat/tools/use-workflow";
+import { WorksheetConfirmDialog } from "@/components/chat/tools/worksheet/worksheet-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
-import type { WorkflowNodeData, WorkflowNodeKind } from "@/lib/workflow";
+import {
+  getWorkflowNodePrompt,
+  type WorkflowNodeData,
+  type WorkflowNodeKind,
+} from "@/lib/workflow";
 import { cn } from "@/lib/utils";
 import type { Edge, Node } from "reactflow";
 
@@ -67,6 +72,7 @@ function getNodeKindLabel(
 interface WorkflowPanelProps {
   locale: Locale;
   workflowTool: WorkflowTool;
+  sessionId?: string;
   onClose: () => void;
   className?: string;
   embedded?: boolean;
@@ -75,13 +81,16 @@ interface WorkflowPanelProps {
 export function WorkflowPanel({
   locale,
   workflowTool,
+  sessionId,
   onClose,
   className,
   embedded = false,
 }: WorkflowPanelProps) {
   const copy = COPY[locale];
-  const { activeWorkflow, workflows, isExecuting } = workflowTool;
+  const { activeWorkflow, workflows, isExecuting, errorDetail, lastExecution } =
+    workflowTool;
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     setSelectedNodeId(null);
@@ -148,19 +157,23 @@ export function WorkflowPanel({
   }, [copy.workflowSaved, workflowTool]);
 
   const handleExecute = useCallback(async () => {
-    const result = await workflowTool.executeWorkflow();
-    if (result) {
+    const result = await workflowTool.executeWorkflow(undefined, {
+      locale,
+      sessionId,
+    });
+    if (result?.status === "completed") {
       toast.success(result.message ?? copy.workflowExecuted);
+    } else if (result?.status === "failed") {
+      toast.error(result.message ?? copy.workflowExecuted);
     }
-  }, [copy.workflowExecuted, workflowTool]);
+  }, [copy.workflowExecuted, locale, sessionId, workflowTool]);
 
-  const handleDeleteWorkflow = useCallback(() => {
+  const handleConfirmDeleteWorkflow = useCallback(() => {
     if (!activeWorkflow) return;
-    if (!window.confirm(copy.workflowDeleteConfirm)) return;
-
     workflowTool.deleteWorkflow(activeWorkflow.id);
     setSelectedNodeId(null);
-  }, [activeWorkflow, copy.workflowDeleteConfirm, workflowTool]);
+    setDeleteDialogOpen(false);
+  }, [activeWorkflow, workflowTool]);
 
   const handleDeleteNode = useCallback(() => {
     if (!selectedNodeId) return;
@@ -255,7 +268,7 @@ export function WorkflowPanel({
             variant="outline"
             size="xs"
             className="h-7 text-[10px] text-destructive hover:text-destructive"
-            onClick={handleDeleteWorkflow}
+            onClick={() => setDeleteDialogOpen(true)}
             disabled={!activeWorkflow}
           >
             <Trash2 className="mr-1 h-3 w-3" />
@@ -377,10 +390,33 @@ export function WorkflowPanel({
                       description: event.target.value || undefined,
                     })
                   }
-                  rows={4}
-                  className="min-h-[5rem] resize-none text-xs"
+                  rows={3}
+                  className="min-h-[4rem] resize-none text-xs"
                 />
               </div>
+              {selectedNode.data.kind !== "trigger" ? (
+                <div className="space-y-1">
+                  <Label htmlFor="workflow-node-prompt" className="text-xs">
+                    {copy.workflowNodePrompt}
+                  </Label>
+                  <Textarea
+                    id="workflow-node-prompt"
+                    value={getWorkflowNodePrompt(selectedNode)}
+                    onChange={(event) =>
+                      updateSelectedNodeData({
+                        prompt: event.target.value || undefined,
+                        config: {
+                          ...selectedNode.data.config,
+                          prompt: event.target.value || undefined,
+                        },
+                      })
+                    }
+                    rows={4}
+                    placeholder="Instruksi LLM untuk node ini..."
+                    className="min-h-[5rem] resize-none text-xs"
+                  />
+                </div>
+              ) : null}
               <Button
                 type="button"
                 variant="outline"
@@ -396,13 +432,52 @@ export function WorkflowPanel({
         ) : null}
       </div>
 
-      {workflowTool.lastExecution ? (
-        <div className="shrink-0 border-t px-3 py-2">
-          <p className="truncate text-[10px] text-muted-foreground">
-            {workflowTool.lastExecution.message}
-          </p>
+      {(errorDetail || lastExecution) && (
+        <div className="shrink-0 space-y-2 border-t px-3 py-2">
+          {errorDetail ? (
+            <p className="text-[10px] text-destructive">{errorDetail}</p>
+          ) : null}
+          {lastExecution?.message ? (
+            <p className="text-[10px] text-muted-foreground">
+              {lastExecution.message}
+            </p>
+          ) : null}
+          {lastExecution?.logs && lastExecution.logs.length > 0 ? (
+            <div className="max-h-28 overflow-y-auto rounded-md border bg-muted/20 p-2">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {copy.workflowExecutionLogs}
+              </p>
+              <ul className="space-y-1">
+                {lastExecution.logs.map((log) => (
+                  <li
+                    key={`${log.nodeId}-${log.startedAt}`}
+                    className="text-[10px] text-foreground/80"
+                  >
+                    <span className="font-medium">{log.label}</span>{" "}
+                    <span className="text-muted-foreground">({log.status})</span>
+                    {log.output ? (
+                      <p className="line-clamp-2 text-muted-foreground">
+                        {log.output}
+                      </p>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
-      ) : null}
+      )}
+
+      <WorksheetConfirmDialog
+        open={deleteDialogOpen}
+        locale={locale}
+        title={copy.workflowDeleteConfirm}
+        description={copy.workflowDeleteConfirmDescription}
+        confirmLabel={copy.workflowDelete}
+        destructive
+        onConfirm={handleConfirmDeleteWorkflow}
+        onCancel={() => setDeleteDialogOpen(false)}
+      />
     </aside>
   );
 }

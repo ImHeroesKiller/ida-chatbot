@@ -11,6 +11,24 @@ export interface IdaSseWorksheetPayload {
   content: string;
 }
 
+export interface IdaSseWorkflowPayload {
+  name: string;
+  description?: string;
+  nodes: Array<{
+    id: string;
+    label: string;
+    kind: "trigger" | "action" | "condition" | "output";
+    description?: string;
+    prompt?: string;
+    position?: { x: number; y: number };
+  }>;
+  edges: Array<{
+    id: string;
+    source: string;
+    target: string;
+  }>;
+}
+
 export interface IdaResearchSourcePayload extends IdaWebSearchSourcePayload {
   query?: string;
 }
@@ -38,6 +56,7 @@ export interface IdaSseMetaPayload {
   activeModel?: string;
   activeProvider?: string;
   worksheet?: IdaSseWorksheetPayload;
+  workflow?: IdaSseWorkflowPayload;
 }
 
 export interface IdaSseTokenPayload {
@@ -54,6 +73,8 @@ export interface IdaSseDonePayload {
   researchSummary?: string;
   worksheet?: IdaSseWorksheetPayload;
   worksheetError?: string;
+  workflow?: IdaSseWorkflowPayload;
+  workflowError?: string;
 }
 
 export interface IdaSseErrorPayload {
