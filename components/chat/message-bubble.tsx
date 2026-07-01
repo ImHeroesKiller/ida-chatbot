@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 
+import { fadeUp } from "@/lib/ui/motion-presets";
+
 import { AttachmentPreview } from "@/components/chat/attachment-preview";
 import { ChatToolResultCard } from "@/components/chat/chat-tool-result-card";
 import { MarkdownContent } from "@/components/chat/markdown-content";
@@ -77,19 +79,11 @@ export function MessageBubble({
   return (
     <motion.div
       initial={{
-        opacity: 0,
-        x: isUser ? 14 : -14,
-        y: 10,
+        ...fadeUp.initial,
+        x: isUser ? 12 : -12,
       }}
-      animate={{
-        opacity: 1,
-        x: 0,
-        y: 0,
-      }}
-      transition={{
-        duration: 0.35,
-        ease: [0.23, 1, 0.32, 1],
-      }}
+      animate={{ ...fadeUp.animate, x: 0 }}
+      transition={fadeUp.transition}
       className={cn(
         "group/message flex w-full",
         isUser ? "justify-end" : "justify-start",
@@ -127,10 +121,10 @@ export function MessageBubble({
         ) : (displayText.trim() || message.isVoiceNote) ? (
           <div
             className={cn(
-              "max-w-full px-4 py-3.5 transition-all duration-300 sm:px-5 sm:py-4",
+              "max-w-full px-4 py-3.5 transition-all duration-300 sm:px-5 sm:py-4 lg:px-6",
               isUser
-                ? "rounded-[22px] rounded-br-md bg-primary text-primary-foreground shadow-md shadow-primary/15 ring-1 ring-primary/20"
-                : "rounded-[22px] rounded-bl-md border border-border/45 bg-[#F5F5F7] text-foreground shadow-sm dark:border-border/35 dark:bg-[#1C1C1E] dark:shadow-md",
+                ? "rounded-[22px] rounded-br-md bg-primary text-primary-foreground shadow-md shadow-primary/15 ring-1 ring-primary/20 lg:shadow-lg lg:shadow-primary/20"
+                : "rounded-[22px] rounded-bl-md border border-border/40 text-foreground shadow-sm lg:ida-glass-subtle lg:shadow-md",
               isWelcome &&
                 "border-primary/25 bg-primary/5 ring-2 ring-primary/10 dark:bg-primary/10",
             )}

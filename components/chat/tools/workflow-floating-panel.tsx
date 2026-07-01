@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { GripVertical, X } from "lucide-react";
 import {
   memo,
@@ -12,6 +13,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useIsMobileViewport } from "@/lib/client/use-media-query";
+import { backdropFade, popoverPanel } from "@/lib/ui/motion-presets";
 import { cn } from "@/lib/utils";
 
 interface WorkflowFloatingPanelProps {
@@ -131,68 +133,84 @@ function WorkflowFloatingPanelInner({
     event.currentTarget.releasePointerCapture(event.pointerId);
   }, []);
 
-  if (!open) return null;
-
   return (
-    <div
-      className="absolute inset-0 z-30 flex items-end justify-center p-3 sm:items-start sm:justify-end sm:p-4"
-      onClick={handleBackdropClick}
-      role="presentation"
-    >
-      <div
-        className="absolute inset-0 bg-background/40 backdrop-blur-[1px]"
-        aria-hidden
-      />
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        className={cn(
-          "relative z-10 flex max-h-[min(78vh,32rem)] w-[min(100%,22rem)] flex-col overflow-hidden rounded-xl border bg-background/95 shadow-xl ring-1 ring-border/60 backdrop-blur-md",
-          isMobile && "w-full max-w-md",
-          className,
-        )}
-        style={
-          !isMobile && position
-            ? { position: "fixed", left: position.x, top: position.y }
-            : undefined
-        }
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div
-          className={cn(
-            "flex shrink-0 items-center gap-2 border-b bg-muted/30 px-3 py-2",
-            !isMobile && "cursor-grab active:cursor-grabbing",
-          )}
-          onPointerDown={handleDragStart}
-          onPointerMove={handleDragMove}
-          onPointerUp={handleDragEnd}
-          onPointerCancel={handleDragEnd}
+    <AnimatePresence>
+      {open ? (
+        <motion.div
+          key="workflow-floating-backdrop"
+          className="absolute inset-0 z-30 flex items-end justify-center p-3 sm:items-start sm:justify-end sm:p-5"
+          onClick={handleBackdropClick}
+          role="presentation"
+          initial={backdropFade.initial}
+          animate={backdropFade.animate}
+          exit={backdropFade.exit}
+          transition={backdropFade.transition}
         >
-          {!isMobile ? (
-            <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground/70" />
-          ) : null}
-          {icon ? (
-            <span className="flex shrink-0 text-primary">{icon}</span>
-          ) : null}
-          <h3 className="min-w-0 flex-1 truncate text-sm font-semibold">
-            {title}
-          </h3>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="h-7 w-7 shrink-0"
-            onClick={onClose}
-            aria-label="Close"
+          <motion.div
+            className="absolute inset-0 bg-background/50 backdrop-blur-md"
+            aria-hidden
+            initial={backdropFade.initial}
+            animate={backdropFade.animate}
+            exit={backdropFade.exit}
+            transition={backdropFade.transition}
+          />
+          <motion.div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
+            initial={popoverPanel.initial}
+            animate={popoverPanel.animate}
+            exit={popoverPanel.exit}
+            transition={popoverPanel.transition}
+            className={cn(
+              "relative z-10 flex max-h-[min(78vh,32rem)] w-[min(100%,24rem)] flex-col overflow-hidden rounded-2xl",
+              "ida-glass shadow-2xl ring-1 ring-border/50",
+              isMobile && "w-full max-w-md",
+              className,
+            )}
+            style={
+              !isMobile && position
+                ? { position: "fixed", left: position.x, top: position.y }
+                : undefined
+            }
+            onClick={(event) => event.stopPropagation()}
           >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-3">{children}</div>
-      </div>
-    </div>
+            <div
+              className={cn(
+                "flex shrink-0 items-center gap-2 border-b border-border/40 bg-muted/20 px-3.5 py-2.5",
+                !isMobile && "cursor-grab active:cursor-grabbing",
+              )}
+              onPointerDown={handleDragStart}
+              onPointerMove={handleDragMove}
+              onPointerUp={handleDragEnd}
+              onPointerCancel={handleDragEnd}
+            >
+              {!isMobile ? (
+                <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground/60" />
+              ) : null}
+              {icon ? (
+                <span className="flex shrink-0 text-primary">{icon}</span>
+              ) : null}
+              <h3 className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight">
+                {title}
+              </h3>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="h-7 w-7 shrink-0 rounded-lg transition-transform hover:scale-105"
+                onClick={onClose}
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-3.5">{children}</div>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   );
 }
 

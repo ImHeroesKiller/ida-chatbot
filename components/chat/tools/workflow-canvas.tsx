@@ -35,6 +35,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 
+import { motion } from "framer-motion";
 import { CheckCircle2, Loader2, PauseCircle, ShieldCheck, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -53,27 +54,32 @@ const KIND_STYLES: Record<
   { border: string; badge: string; dot: string }
 > = {
   trigger: {
-    border: "border-emerald-500/50 bg-emerald-500/10 dark:bg-emerald-500/15",
+    border:
+      "border-emerald-500/40 bg-emerald-500/8 shadow-sm shadow-emerald-500/10 dark:bg-emerald-500/12 dark:shadow-emerald-500/15",
     badge: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
     dot: "bg-emerald-500",
   },
   action: {
-    border: "border-blue-500/50 bg-blue-500/10 dark:bg-blue-500/15",
+    border:
+      "border-blue-500/40 bg-blue-500/8 shadow-sm shadow-blue-500/10 dark:bg-blue-500/12 dark:shadow-blue-500/15",
     badge: "bg-blue-500/15 text-blue-700 dark:text-blue-300",
     dot: "bg-blue-500",
   },
   condition: {
-    border: "border-amber-500/50 bg-amber-500/10 dark:bg-amber-500/15",
+    border:
+      "border-amber-500/40 bg-amber-500/8 shadow-sm shadow-amber-500/10 dark:bg-amber-500/12",
     badge: "bg-amber-500/15 text-amber-800 dark:text-amber-300",
     dot: "bg-amber-500",
   },
   output: {
-    border: "border-violet-500/50 bg-violet-500/10 dark:bg-violet-500/15",
+    border:
+      "border-violet-500/40 bg-violet-500/8 shadow-sm shadow-violet-500/10 dark:bg-violet-500/12",
     badge: "bg-violet-500/15 text-violet-700 dark:text-violet-300",
     dot: "bg-violet-500",
   },
   approval: {
-    border: "border-rose-500/50 bg-rose-500/10 dark:bg-rose-500/15",
+    border:
+      "border-rose-500/40 bg-rose-500/8 shadow-sm shadow-rose-500/10 dark:bg-rose-500/12",
     badge: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
     dot: "bg-rose-500",
   },
@@ -165,12 +171,16 @@ const WorkflowFlowNode = memo(
       : null;
 
     return (
-      <div
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 0.92, y: 6 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 420, damping: 30 }}
         className={cn(
-          "relative min-w-[7.5rem] max-w-[10rem] rounded-lg border px-2.5 py-1.5 shadow-sm transition-shadow sm:min-w-[9rem] sm:max-w-[12rem] sm:px-3 sm:py-2",
+          "relative min-w-[8rem] max-w-[11rem] rounded-xl border px-3 py-2 backdrop-blur-sm transition-shadow duration-300 sm:min-w-[9.5rem] sm:max-w-[12.5rem] sm:px-3.5 sm:py-2.5",
           styles.border,
           selected &&
-            "ring-2 ring-primary ring-offset-2 ring-offset-background",
+            "ring-2 ring-primary/80 ring-offset-2 ring-offset-background shadow-lg",
           executionRing,
         )}
       >
@@ -178,7 +188,7 @@ const WorkflowFlowNode = memo(
         <Handle
           type="target"
           position={Position.Left}
-          className="!h-2 !w-2 !border-background !bg-muted-foreground"
+          className="!h-2.5 !w-2.5 !border-2 !border-background !bg-primary/70 transition-transform hover:!scale-125"
         />
         <span
           className={cn(
@@ -199,9 +209,9 @@ const WorkflowFlowNode = memo(
         <Handle
           type="source"
           position={Position.Right}
-          className="!h-2 !w-2 !border-background !bg-muted-foreground"
+          className="!h-2.5 !w-2.5 !border-2 !border-background !bg-primary/70 transition-transform hover:!scale-125"
         />
-      </div>
+      </motion.div>
     );
   },
   (prev, next) =>
@@ -394,6 +404,16 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
     [nodes],
   );
 
+  const flowEdges = useMemo(
+    () =>
+      edges.map((edge) => ({
+        ...edge,
+        animated: true,
+        style: { strokeWidth: 2 },
+      })),
+    [edges],
+  );
+
   const executionStatusValue = nodeExecutionStatus ?? EMPTY_EXECUTION_STATUS;
 
   const handleNodesChange: OnNodesChange = useCallback((changes) => {
@@ -453,7 +473,7 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
         <ReactFlow
           key={workflowId ?? "workflow-canvas"}
           nodes={flowNodes}
-          edges={edges}
+          edges={flowEdges}
           nodeTypes={NODE_TYPES}
           edgeTypes={EDGE_TYPES}
           onNodesChange={handleNodesChange}
@@ -469,7 +489,7 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
           maxZoom={1.5}
           onlyRenderVisibleElements={flowNodes.length > 12}
           proOptions={PRO_OPTIONS}
-          className="touch-pan-y rounded-xl border bg-muted/20 dark:bg-muted/10"
+          className="workflow-canvas-flow touch-pan-y rounded-2xl border border-border/40 bg-muted/15 shadow-inner dark:bg-muted/8 lg:ida-glass-subtle"
         >
           <FitViewOnce workflowId={workflowId} nodeCount={flowNodes.length} />
           <Background

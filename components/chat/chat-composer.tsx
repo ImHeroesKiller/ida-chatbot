@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, Mic, Paperclip, Send } from "lucide-react";
 import {
   useCallback,
@@ -37,6 +38,7 @@ import type { IdaAttachment, IdaAttachmentType } from "@/lib/types";
 import { getVoiceErrorMessage } from "@/lib/voice/voice-error-copy";
 import { useVoiceInput } from "@/lib/voice/use-voice-input";
 import { useVoicePrefs } from "@/lib/voice/voice-prefs";
+import { fadeUp, scaleIn } from "@/lib/ui/motion-presets";
 import { cn } from "@/lib/utils";
 
 function createAttachmentId() {
@@ -373,8 +375,9 @@ export function ChatComposer({
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "relative z-30 shrink-0 overflow-visible border-t bg-muted/30 px-2.5 pt-2.5 dark:bg-muted/20",
+        "relative z-30 shrink-0 overflow-visible px-2.5 pt-2.5",
         "pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-5 sm:pt-3 sm:pb-4",
+        "lg:border-t-0 lg:bg-transparent lg:px-8 lg:pb-6 lg:pt-4",
       )}
     >
       <div className="ida-message-width mx-auto w-full max-w-full space-y-2.5">
@@ -445,7 +448,15 @@ export function ChatComposer({
           />
         )}
 
-        <div className="flex min-w-0 items-end gap-2">
+        <motion.div
+          initial={scaleIn.initial}
+          animate={scaleIn.animate}
+          transition={scaleIn.transition}
+          className={cn(
+            "flex min-w-0 items-end gap-2 rounded-2xl p-2 transition-shadow duration-300",
+            "lg:ida-glass lg:rounded-[28px] lg:p-3 lg:focus-within:ring-2 lg:focus-within:ring-primary/15",
+          )}
+        >
           <input
             ref={fileInputRef}
             type="file"
@@ -505,9 +516,9 @@ export function ChatComposer({
               rows={1}
               disabled={isLoading || isExtracting || isTranscribing || isListening}
               className={cn(
-                "chat-input max-h-28 min-h-12 resize-none rounded-2xl sm:min-h-11",
-                "focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/20",
-                "dark:bg-background/60",
+                "chat-input max-h-28 min-h-12 resize-none rounded-2xl border-0 bg-transparent sm:min-h-11",
+                "focus-visible:border-0 focus-visible:ring-0",
+                "lg:min-h-[3.25rem]",
               )}
             />
           </div>
@@ -549,7 +560,7 @@ export function ChatComposer({
             size="icon"
             disabled={!canSend}
             aria-label={copy.send}
-            className="h-12 w-12 shrink-0 transition-transform hover:scale-105 active:scale-95 sm:h-11 sm:w-11"
+            className="h-12 w-12 shrink-0 rounded-full transition-transform hover:scale-105 active:scale-95 sm:h-11 sm:w-11 lg:shadow-md"
           >
             {isExtracting || isTranscribing ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -557,7 +568,7 @@ export function ChatComposer({
               <Send className="h-4 w-4" />
             )}
           </Button>
-        </div>
+        </motion.div>
 
         <p className="hidden text-center text-[11px] text-muted-foreground sm:block">
           {copy.sendShortcut}

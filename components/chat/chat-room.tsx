@@ -91,6 +91,7 @@ import {
 } from "@/lib/voice/use-speech-synthesis";
 import { useVoicePrefs } from "@/lib/voice/voice-prefs";
 import { RightSidebar } from "@/components/chat/right-sidebar";
+import { DesktopToolPanel } from "@/components/chat/desktop-tool-panel";
 import { RightToolsRail } from "@/components/chat/right-tools-rail";
 import { useChatFontSize } from "@/lib/chat-font-prefs";
 import { cn } from "@/lib/utils";
@@ -412,7 +413,7 @@ function ChatRoomContent() {
 
           <div
             ref={scrollContainerRef}
-            className="relative min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2.5 pt-4 pb-3 sm:px-5 sm:py-4"
+            className="relative min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2.5 pt-4 pb-3 sm:px-5 sm:py-4 lg:px-8 lg:py-6"
           >
               <div className="ida-message-width mx-auto flex w-full flex-col gap-[calc(1.5rem*var(--ida-gap-scale))]">
                 {!hasUserMessages && <ChatEmptyState locale={locale} />}
@@ -516,12 +517,14 @@ function ChatRoomContent() {
           />
 
           {tools.activePanel ? (
-            <RightSidebar
-              key={`${currentChat?.id}-${tools.activePanel}`}
-              {...sharedToolPanelProps}
-              panel={tools.activePanel}
-              className="relative z-10 hidden shrink-0 md:flex"
-            />
+            <DesktopToolPanel className="relative z-10 hidden md:flex">
+              <RightSidebar
+                key={`${currentChat?.id}-${tools.activePanel}`}
+                {...sharedToolPanelProps}
+                panel={tools.activePanel}
+                className="h-full"
+              />
+            </DesktopToolPanel>
           ) : null}
         </div>
       </div>

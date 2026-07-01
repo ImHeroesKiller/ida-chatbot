@@ -67,7 +67,7 @@ export function AdminPanel({
 
   return (
     <div className="min-h-dvh overflow-y-auto bg-background">
-      <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur">
+      <header className="sticky top-0 z-10 border-b border-border/40 ida-glass">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-2">
             <Sparkles className="size-5" />
@@ -87,7 +87,7 @@ export function AdminPanel({
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList>
+          <TabsList className="ida-glass-subtle h-auto flex-wrap gap-1 rounded-2xl p-1.5 shadow-sm">
             <TabsTrigger value="dashboard">
               <LayoutDashboard className="size-4" />
               Dashboard

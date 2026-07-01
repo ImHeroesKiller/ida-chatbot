@@ -441,16 +441,16 @@ function WorkflowPanelInner({
   return (
     <aside
       className={cn(
-        "flex h-full min-h-0 flex-col border-l bg-background",
+        "flex h-full min-h-0 flex-col border-l border-border/30 lg:ida-desktop-panel",
         embedded
           ? "w-full"
-          : "relative z-10 w-full shrink-0 sm:w-[min(100%,32rem)]",
+          : "relative z-10 w-full shrink-0 lg:w-[min(100%,34rem)]",
         className,
       )}
       aria-label={copy.toolsWorkflow}
       role="complementary"
     >
-      <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2.5">
+      <div className="flex shrink-0 items-center gap-2 border-b border-border/40 bg-muted/15 px-3 py-2.5 backdrop-blur-sm lg:px-4">
         <GitBranch className="h-4 w-4 shrink-0 text-primary" />
         <h2 className="min-w-0 flex-1 truncate text-sm font-semibold">
           {copy.toolsWorkflow}

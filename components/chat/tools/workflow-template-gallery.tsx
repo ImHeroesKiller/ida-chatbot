@@ -19,6 +19,7 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -30,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
+import { staggerItem } from "@/lib/ui/motion-presets";
 import { cn } from "@/lib/utils";
 import type { WorkflowTemplateApplyMode } from "@/lib/workflow";
 import {
@@ -364,15 +366,17 @@ export function WorkflowTemplateGallery({
                 : copy.workflowTemplateNoResults}
             </li>
           ) : (
-            filteredTemplates.map((template) => {
+            filteredTemplates.map((template, index) => {
               const resolved = resolveWorkflowTemplate(template, locale);
               const Icon = TEMPLATE_ICONS[template.icon] ?? LayoutTemplate;
               const isUser = template.source === "user";
 
               return (
-                <li
+                <motion.li
                   key={`${template.source}-${template.id}`}
-                  className="rounded-xl border bg-card p-3 shadow-sm"
+                  {...staggerItem(index)}
+                  whileHover={{ y: -2, transition: { duration: 0.2 } }}
+                  className="ida-hover-lift rounded-2xl border border-border/40 bg-card/80 p-3.5 shadow-sm backdrop-blur-sm lg:ida-glass-subtle"
                 >
                   <div className="flex items-start gap-2">
                     <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -421,7 +425,7 @@ export function WorkflowTemplateGallery({
                       </Button>
                     ) : null}
                   </div>
-                </li>
+                </motion.li>
               );
             })
           )}

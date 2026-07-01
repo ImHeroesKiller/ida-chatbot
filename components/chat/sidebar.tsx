@@ -104,7 +104,7 @@ export function ChatSidebar({
     return (
       <aside
         className={cn(
-          "flex h-full flex-col bg-[#F5F5F7] dark:bg-[#1C1C1E] transition-[width] duration-200 ease-in-out border-r border-border/40",
+          "flex h-full flex-col transition-[width] duration-300 ease-out border-r border-border/30 lg:ida-glass-subtle",
           expanded ? "w-[280px] overflow-hidden" : "w-16 overflow-x-visible overflow-y-hidden",
           className,
         )}
@@ -142,10 +142,10 @@ export function ChatSidebar({
                 onClick={() => onSelect(session.id)}
                 title={session.title}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left transition-all duration-200",
+                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left transition-all duration-300",
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 font-bold"
-                    : "text-foreground/70 hover:bg-muted/80 hover:text-foreground font-medium",
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 font-semibold ring-1 ring-primary/20"
+                    : "text-foreground/70 hover:bg-accent/60 hover:text-foreground hover:shadow-sm font-medium",
                 )}
               >
                 {isPinned && (

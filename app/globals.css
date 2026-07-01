@@ -130,24 +130,24 @@ html[data-ida-density="spacious"] {
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: oklch(0.13 0.012 265);
+  --foreground: oklch(0.97 0.005 265);
+  --card: oklch(0.19 0.014 265);
+  --card-foreground: oklch(0.97 0.005 265);
+  --popover: oklch(0.2 0.014 265);
+  --popover-foreground: oklch(0.97 0.005 265);
+  --primary: oklch(0.93 0.01 265);
+  --primary-foreground: oklch(0.18 0.014 265);
+  --secondary: oklch(0.24 0.012 265);
+  --secondary-foreground: oklch(0.97 0.005 265);
+  --muted: oklch(0.24 0.012 265);
+  --muted-foreground: oklch(0.68 0.02 265);
+  --accent: oklch(0.26 0.018 265);
+  --accent-foreground: oklch(0.97 0.005 265);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.52 0.03 265);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -255,6 +255,73 @@ html[data-ida-animation="none"] *::after {
 
   .ida-skeleton-pulse {
     animation: ida-pulse 1.5s ease-in-out infinite;
+  }
+
+  .ida-glass {
+    background: color-mix(in oklch, var(--background) 72%, transparent);
+    backdrop-filter: blur(20px) saturate(1.15);
+    -webkit-backdrop-filter: blur(20px) saturate(1.15);
+    border: 1px solid color-mix(in oklch, var(--border) 65%, transparent);
+    box-shadow:
+      0 1px 2px color-mix(in oklch, var(--foreground) 4%, transparent),
+      0 12px 40px color-mix(in oklch, var(--foreground) 6%, transparent);
+  }
+
+  .ida-glass-subtle {
+    background: color-mix(in oklch, var(--background) 55%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
+  }
+
+  .ida-desktop-panel {
+    border-left: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+    background: color-mix(in oklch, var(--background) 88%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: -8px 0 32px color-mix(in oklch, var(--foreground) 5%, transparent);
+  }
+
+  .ida-hover-lift {
+    transition:
+      transform 0.22s cubic-bezier(0.23, 1, 0.32, 1),
+      box-shadow 0.22s cubic-bezier(0.23, 1, 0.32, 1),
+      border-color 0.22s ease;
+  }
+
+  .ida-hover-lift:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px color-mix(in oklch, var(--foreground) 8%, transparent);
+  }
+
+  .workflow-canvas-flow .react-flow__edge-path {
+    stroke: color-mix(in oklch, var(--primary) 42%, var(--muted-foreground));
+    stroke-width: 2;
+    transition: stroke 0.25s ease, stroke-width 0.25s ease;
+  }
+
+  .workflow-canvas-flow .react-flow__edge:hover .react-flow__edge-path {
+    stroke: color-mix(in oklch, var(--primary) 75%, white);
+    stroke-width: 2.5;
+  }
+
+  .workflow-canvas-flow .react-flow__edge.animated .react-flow__edge-path {
+    stroke-dasharray: 6 4;
+    animation: workflow-edge-flow 0.55s linear infinite;
+  }
+
+  .workflow-canvas-flow .react-flow__controls-button {
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .workflow-canvas-flow .react-flow__controls-button:hover {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes workflow-edge-flow {
+  to {
+    stroke-dashoffset: -10;
   }
 }
 

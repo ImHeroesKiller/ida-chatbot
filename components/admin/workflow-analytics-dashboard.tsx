@@ -8,6 +8,7 @@ import {
   LineChart as LineChartIcon,
   Users,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -32,7 +33,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { WorkflowAnalytics } from "@/lib/admin/types";
+import { fadeUp, staggerItem } from "@/lib/ui/motion-presets";
 import { cn } from "@/lib/utils";
+
+const ANALYTICS_CARD_CLASS =
+  "border-border/40 shadow-sm backdrop-blur-sm lg:ida-glass-subtle ida-hover-lift transition-shadow duration-300";
 
 function formatDuration(ms: number): string {
   if (ms <= 0) return "—";
@@ -98,25 +103,42 @@ export function WorkflowAnalyticsDashboard({
 
   if (loading) {
     return (
-      <p className="text-sm text-muted-foreground">
-        Loading workflow analytics…
-      </p>
+      <motion.div
+        {...fadeUp}
+        className="space-y-4"
+        aria-busy="true"
+        aria-label="Loading workflow analytics"
+      >
+        <div className="h-8 w-48 animate-pulse rounded-lg bg-muted/60" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-28 animate-pulse rounded-2xl border border-border/30 bg-muted/30"
+              style={{ animationDelay: `${index * 80}ms` }}
+            />
+          ))}
+        </div>
+      </motion.div>
     );
   }
 
   if (!analytics) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <motion.p
+        {...fadeUp}
+        className="rounded-2xl border border-dashed border-border/50 px-4 py-6 text-center text-sm text-muted-foreground lg:ida-glass-subtle"
+      >
         Workflow analytics unavailable. Ensure Supabase is configured and
         migrations 018+ are applied.
-      </p>
+      </motion.p>
     );
   }
 
   const { overview } = analytics;
 
   return (
-    <div className="space-y-6">
+    <motion.div {...fadeUp} className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Workflow Analytics</h2>
@@ -136,65 +158,54 @@ export function WorkflowAnalyticsDashboard({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1.5">
-              <GitBranch className="size-3.5" />
-              Total workflows
-            </CardDescription>
-            <CardTitle className="text-2xl">{overview.totalWorkflows}</CardTitle>
-          </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            {overview.workflowEnabledSessions} sessions with workflow canvas
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1.5">
-              <Activity className="size-3.5" />
-              Success rate
-            </CardDescription>
-            <CardTitle className="text-2xl">
-              {formatPercent(overview.successRate)}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            {overview.totalExecutions} recorded executions
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1.5">
-              <Clock className="size-3.5" />
-              Avg execution time
-            </CardDescription>
-            <CardTitle className="text-2xl">
-              {formatDuration(overview.avgExecutionTimeMs)}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            API requests (7d): {analytics.workflowRequestLogs.last7Days}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1.5">
-              <Users className="size-3.5" />
-              Active users
-            </CardDescription>
-            <CardTitle className="text-2xl">{overview.activeUsers}</CardTitle>
-          </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            {overview.activeUsersWeek} active this week
-          </CardContent>
-        </Card>
+        {[
+          {
+            icon: GitBranch,
+            label: "Total workflows",
+            value: overview.totalWorkflows,
+            detail: `${overview.workflowEnabledSessions} sessions with workflow canvas`,
+          },
+          {
+            icon: Activity,
+            label: "Success rate",
+            value: formatPercent(overview.successRate),
+            detail: `${overview.totalExecutions} recorded executions`,
+          },
+          {
+            icon: Clock,
+            label: "Avg execution time",
+            value: formatDuration(overview.avgExecutionTimeMs),
+            detail: `API requests (7d): ${analytics.workflowRequestLogs.last7Days}`,
+          },
+          {
+            icon: Users,
+            label: "Active users",
+            value: overview.activeUsers,
+            detail: `${overview.activeUsersWeek} active this week`,
+          },
+        ].map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <motion.div key={stat.label} {...staggerItem(index)}>
+              <Card className={cn("rounded-2xl", ANALYTICS_CARD_CLASS)}>
+                <CardHeader className="pb-2">
+                  <CardDescription className="flex items-center gap-1.5">
+                    <Icon className="size-3.5" />
+                    {stat.label}
+                  </CardDescription>
+                  <CardTitle className="text-2xl">{stat.value}</CardTitle>
+                </CardHeader>
+                <CardContent className="text-xs text-muted-foreground">
+                  {stat.detail}
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
+        <Card className={cn("rounded-2xl", ANALYTICS_CARD_CLASS)}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <LineChartIcon className="size-4" />
@@ -239,7 +250,7 @@ export function WorkflowAnalyticsDashboard({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={cn("rounded-2xl", ANALYTICS_CARD_CLASS)}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Bot className="size-4" />
@@ -285,7 +296,7 @@ export function WorkflowAnalyticsDashboard({
         </Card>
       </div>
 
-      <Card>
+      <Card className={cn("rounded-2xl", ANALYTICS_CARD_CLASS)}>
         <CardHeader>
           <CardTitle className="text-base">Per-workflow stats</CardTitle>
           <CardDescription>
@@ -341,7 +352,7 @@ export function WorkflowAnalyticsDashboard({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className={cn("rounded-2xl", ANALYTICS_CARD_CLASS)}>
         <CardHeader>
           <CardTitle className="text-base">Execution logs summary</CardTitle>
           <CardDescription>
@@ -357,10 +368,11 @@ export function WorkflowAnalyticsDashboard({
               No execution snapshots persisted yet.
             </p>
           ) : (
-            analytics.executionLogs.map((log) => (
-              <div
+            analytics.executionLogs.map((log, index) => (
+              <motion.div
                 key={log.id}
-                className="rounded-lg border bg-muted/20 px-3 py-2 text-sm"
+                {...staggerItem(index)}
+                className="rounded-xl border border-border/40 bg-muted/20 px-3 py-2 text-sm backdrop-blur-sm transition-colors duration-200 hover:bg-muted/30"
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{log.workflowName}</span>
@@ -389,7 +401,7 @@ export function WorkflowAnalyticsDashboard({
                 {log.message ? (
                   <p className="mt-1 line-clamp-2 text-xs">{log.message}</p>
                 ) : null}
-              </div>
+              </motion.div>
             ))
           )}
         </CardContent>
@@ -398,6 +410,6 @@ export function WorkflowAnalyticsDashboard({
       <p className="text-xs text-muted-foreground">
         Generated {new Date(analytics.generatedAt).toLocaleString()}
       </p>
-    </div>
+    </motion.div>
   );
 }
