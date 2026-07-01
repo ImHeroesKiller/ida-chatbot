@@ -62,17 +62,22 @@ export const WORKFLOW_JSON_SCHEMA_EXAMPLE = `{
   ]
 }`;
 
+export interface WorkflowStreamNodePayload {
+  id: string;
+  label: string;
+  kind: WorkflowNodeKind;
+  description?: string;
+  prompt?: string;
+  action?: string;
+  actionParams?: Record<string, string>;
+  config?: Record<string, unknown>;
+  position?: { x: number; y: number };
+}
+
 export interface WorkflowStreamPayload {
   name: string;
   description?: string;
-  nodes: Array<{
-    id: string;
-    label: string;
-    kind: WorkflowNodeKind;
-    description?: string;
-    prompt?: string;
-    position?: { x: number; y: number };
-  }>;
+  nodes: WorkflowStreamNodePayload[];
   edges: Array<{
     id: string;
     source: string;
@@ -427,11 +432,63 @@ function resolveNodeKind(value: unknown): WorkflowNodeKind {
     decision: "condition",
     branch: "condition",
     output: "output",
+    approval: "approval",
+    approve: "approval",
+    gate: "approval",
     end: "output",
     result: "output",
   };
 
   return aliases[normalized] ?? "action";
+}
+
+function readStreamNodeConfig(
+  entry: Record<string, unknown>,
+  prompt?: string,
+  action?: string,
+  actionParams?: Record<string, string>,
+): Record<string, unknown> | undefined {
+  const config: Record<string, unknown> = {};
+
+  if (entry.config && typeof entry.config === "object") {
+    Object.assign(config, entry.config as Record<string, unknown>);
+  }
+
+  const resolvedPrompt =
+    prompt ||
+    (typeof entry.prompt === "string" ? entry.prompt.trim() : "") ||
+    (typeof entry.instruction === "string" ? entry.instruction.trim() : "") ||
+    (typeof config.prompt === "string" ? config.prompt.trim() : "");
+  if (resolvedPrompt) config.prompt = resolvedPrompt;
+
+  const resolvedAction =
+    action ||
+    (typeof entry.action === "string" ? entry.action.trim() : "") ||
+    (typeof config.action === "string" ? config.action.trim() : "");
+  if (resolvedAction) config.action = resolvedAction;
+
+  const rawParams =
+    actionParams ||
+    (entry.actionParams && typeof entry.actionParams === "object"
+      ? (entry.actionParams as Record<string, string>)
+      : undefined) ||
+    (config.actionParams && typeof config.actionParams === "object"
+      ? (config.actionParams as Record<string, string>)
+      : undefined);
+
+  if (rawParams && Object.keys(rawParams).length > 0) {
+    config.actionParams = rawParams;
+  }
+
+  if (entry.schedule && typeof entry.schedule === "object") {
+    config.schedule = entry.schedule;
+  }
+
+  if (typeof entry.maxRetries === "number") {
+    config.maxRetries = entry.maxRetries;
+  }
+
+  return Object.keys(config).length > 0 ? config : undefined;
 }
 
 function resolveNodeLabel(
@@ -487,6 +544,28 @@ function normalizeStreamPayload(
       const label = resolveNodeLabel(entry, index);
       const kind = resolveNodeKind(entry.kind ?? entry.type);
 
+      const prompt =
+        typeof entry.prompt === "string"
+          ? entry.prompt.trim() || undefined
+          : typeof entry.instruction === "string"
+            ? entry.instruction.trim() || undefined
+            : undefined;
+
+      const action =
+        typeof entry.action === "string" ? entry.action.trim() : undefined;
+
+      const actionParams: Record<string, string> | undefined =
+        entry.actionParams && typeof entry.actionParams === "object"
+          ? Object.fromEntries(
+              Object.entries(entry.actionParams as Record<string, unknown>).filter(
+                (entry): entry is [string, string] =>
+                  typeof entry[1] === "string",
+              ),
+            )
+          : undefined;
+
+      const config = readStreamNodeConfig(entry, prompt, action, actionParams);
+
       return {
         id:
           typeof entry.id === "string" && entry.id.trim()
@@ -498,12 +577,13 @@ function normalizeStreamPayload(
           typeof entry.description === "string"
             ? entry.description.trim() || undefined
             : undefined,
-        prompt:
-          typeof entry.prompt === "string"
-            ? entry.prompt.trim() || undefined
-            : typeof entry.instruction === "string"
-              ? entry.instruction.trim() || undefined
-              : undefined,
+        prompt,
+        action: typeof config?.action === "string" ? config.action : action,
+        actionParams:
+          config?.actionParams && typeof config.actionParams === "object"
+            ? (config.actionParams as Record<string, string>)
+            : actionParams,
+        config,
         position:
           entry.position &&
           typeof entry.position.x === "number" &&
@@ -583,17 +663,30 @@ function normalizeStreamPayload(
 export function workflowPayloadToDefinition(
   payload: WorkflowStreamPayload,
 ): Omit<WorkflowDefinition, "createdAt" | "updatedAt" | "id"> {
-  const nodes: WorkflowNode[] = payload.nodes.map((node) => ({
-    id: node.id,
-    type: "workflow",
-    position: node.position ?? { x: 0, y: 0 },
-    data: {
-      label: node.label,
-      kind: node.kind,
-      description: node.description,
-      config: node.prompt ? { prompt: node.prompt } : undefined,
-    },
-  }));
+  const nodes: WorkflowNode[] = payload.nodes.map((node) => {
+    const config =
+      node.config ??
+      (node.prompt || node.action || node.actionParams
+        ? {
+            ...(node.prompt ? { prompt: node.prompt } : {}),
+            ...(node.action ? { action: node.action } : {}),
+            ...(node.actionParams ? { actionParams: node.actionParams } : {}),
+          }
+        : undefined);
+
+    return {
+      id: node.id,
+      type: "workflow",
+      position: node.position ?? { x: 0, y: 0 },
+      data: {
+        label: node.label,
+        kind: node.kind,
+        description: node.description,
+        prompt: node.prompt,
+        config,
+      },
+    };
+  });
 
   const edges: WorkflowEdge[] = payload.edges.map((edge) => ({
     id: edge.id,

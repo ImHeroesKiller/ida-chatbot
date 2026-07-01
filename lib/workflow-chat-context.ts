@@ -198,6 +198,11 @@ Kemampuan edit yang harus kamu pahami:
 - Ganti struktur edges agar tetap valid
 - Terapkan template jika diminta (ganti graph aktif dengan struktur template yang relevan)
 
+Aturan sinkronisasi:
+- Pertahankan "id" node yang sudah ada jika node masih relevan (cocokkan id atau label).
+- Untuk node action, sertakan "action" dan "actionParams" bila memakai tool.
+- Sertakan "prompt" pada node action/condition/output/approval.
+
 Output:
 - Tulis maksimal 2 kalimat konfirmasi singkat di luar penanda.
 - Kemudian keluarkan SATU workflow JSON LENGKAP yang sudah diperbarui di antara penanda workflow.`,
@@ -209,9 +214,14 @@ ${workflowJson}
 
 Edits you must understand:
 - Add / remove nodes (including approval, condition, trigger, action, output)
-- Change node prompts, action tools, conditions, outputs, trigger schedule
+- Change node prompts, action tools (action + actionParams), conditions, outputs, trigger schedule
 - Rewire edges to stay valid
 - Apply a template when asked (replace active graph with the relevant template structure)
+
+CRITICAL sync rules:
+- Preserve existing node "id" values whenever the node still exists (match by id or label).
+- For action nodes, include "action" (llm | web_search | research | worksheet_update | map_pin) and "actionParams" when tools are used.
+- Include "prompt" on action/condition/output/approval nodes.
 
 Output:
 - Write at most 2 short confirmation sentences outside markers.
@@ -224,9 +234,14 @@ ${workflowJson}
 
 需理解的编辑能力：
 - 添加/删除节点（含审批、条件、触发器、动作、输出）
-- 修改节点提示词、动作工具、条件、输出、触发器计划
+- 修改节点提示词、动作工具（action + actionParams）、条件、输出、触发器计划
 - 调整连线保持有效
 - 按用户要求应用模板（用相关模板结构替换当前图）
+
+同步规则：
+- 保留现有节点的 "id"（按 id 或标签匹配）。
+- 动作节点需包含 "action" 和 "actionParams"。
+- action/condition/output/approval 节点需包含 "prompt"。
 
 输出：
 - 标记外最多 2 句简短确认。

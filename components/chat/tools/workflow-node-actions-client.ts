@@ -10,6 +10,7 @@ import {
   addGeneratedWorksheetDocument,
   syncWorkspaceLegacyFields,
 } from "@/lib/worksheet-workspace";
+import { cleanWorksheetWorkflowOutput } from "@/lib/worksheet-workflow-output";
 import type { WorksheetDocument } from "@/lib/worksheet";
 
 export interface WorkflowToolCoordinatorBridge {
@@ -60,9 +61,10 @@ export async function executeClientWorkflowAction(
   switch (action.id) {
     case "worksheet_update": {
       const title = mergedParams.title?.trim() || "Workflow output";
-      const content =
+      const rawContent =
         mergedParams.content?.trim() ||
         "No worksheet content was provided for this step.";
+      const content = cleanWorksheetWorkflowOutput(rawContent, { title });
 
       tools.activateWorksheet();
       tools.openPanel(tools.worksheet.panelId);

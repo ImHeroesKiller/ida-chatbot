@@ -1,6 +1,7 @@
 import type { Edge, Node } from "reactflow";
 
 import type { WorkflowExecutionCheckpoint } from "@/lib/workflow-execution-state";
+import { mergeWorkflowChatEditGraph } from "@/lib/workflow-chat-edit";
 
 /** Built-in node kinds for the chat workflow canvas (React Flow). */
 export type WorkflowNodeKind =
@@ -382,15 +383,21 @@ export function applyWorkflowChatEdit(
     return importWorkflowFromStream(snapshot, input);
   }
 
-  return updateWorkflowDefinition(snapshot, active.id, {
-    name: input.name.trim() || active.name,
-    description: input.description?.trim() || active.description,
-    nodes: input.nodes.map((node) => ({
+  const { nodes, edges } = mergeWorkflowChatEditGraph({
+    existingNodes: active.nodes,
+    incomingNodes: input.nodes.map((node) => ({
       ...node,
       data: normalizeWorkflowNodeData(node.data),
       position: { ...node.position },
     })),
-    edges: input.edges.map((edge) => ({ ...edge })),
+    incomingEdges: input.edges.map((edge) => ({ ...edge })),
+  });
+
+  return updateWorkflowDefinition(snapshot, active.id, {
+    name: input.name.trim() || active.name,
+    description: input.description?.trim() || active.description,
+    nodes,
+    edges,
   });
 }
 

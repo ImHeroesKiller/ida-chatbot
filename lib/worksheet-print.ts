@@ -1,6 +1,7 @@
 import type { Locale } from "@/lib/config";
-import type { WorksheetBrandingConfig } from "@/lib/worksheet-branding-config";
 import { stripInlineMarkdown } from "@/lib/pdf-export";
+import { markdownToRichDocumentHtml } from "@/lib/worksheet-workflow-output";
+import type { WorksheetBrandingConfig } from "@/lib/worksheet-branding-config";
 import {
   buildLetterheadCss,
   buildLetterheadFooterHtml,
@@ -35,6 +36,9 @@ export function formatPrintExportDate(locale: Locale): string {
 }
 
 export function markdownToPrintHtml(markdown: string): string {
+  const rich = markdownToRichDocumentHtml(markdown);
+  if (rich) return rich;
+
   const lines = markdown.replace(/\r\n/g, "\n").split("\n");
   const parts: string[] = [];
   let inList = false;

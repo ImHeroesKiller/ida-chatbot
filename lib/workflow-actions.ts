@@ -4,6 +4,7 @@ import { executeWebSearch } from "@/lib/tools/web-search";
 import type { Locale } from "@/lib/config";
 import type { ResearchDepth } from "@/lib/research-types";
 import type { WorkflowNode } from "@/lib/workflow";
+import { cleanWorksheetWorkflowOutput } from "@/lib/worksheet-workflow-output";
 import { getWorkflowNodePrompt } from "@/lib/workflow";
 
 /** IDA tool actions a workflow node can invoke (stored in `node.data.config`). */
@@ -385,10 +386,14 @@ export async function executeServerWorkflowAction(
 
     case "worksheet_update": {
       const title = action.params.title?.trim() || "Workflow output";
-      const content =
+      const rawContent =
         action.params.content?.trim() ||
         options.workflowContext.trim() ||
         "Workflow step produced no worksheet content.";
+      const content = cleanWorksheetWorkflowOutput(rawContent, {
+        workflowContext: options.workflowContext,
+        title,
+      });
 
       return {
         success: true,
@@ -396,7 +401,7 @@ export async function executeServerWorkflowAction(
         message: `Worksheet content prepared: "${title}".`,
         dispatch: {
           title,
-          content,
+          content: content || rawContent,
         },
       };
     }

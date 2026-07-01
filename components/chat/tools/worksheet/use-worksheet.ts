@@ -17,6 +17,7 @@ import type {
   WorksheetVersionSource,
 } from "@/lib/worksheet";
 import type { WorksheetLetterheadSelection } from "@/lib/worksheet-letterhead-template";
+import { cleanWorksheetWorkflowOutput } from "@/lib/worksheet-workflow-output";
 import {
   addGeneratedWorksheetDocument,
   createEmptyWorksheetWorkspace,
@@ -478,7 +479,10 @@ export function useWorksheet(): WorksheetTool {
 
   const createDocumentFromStream = useCallback(
     (input: WorksheetStreamDocumentInput): WorksheetWorkspaceState | null => {
-      const trimmedContent = input.content.trim();
+      const cleanedContent = cleanWorksheetWorkflowOutput(input.content, {
+        title: input.title,
+      });
+      const trimmedContent = cleanedContent.trim();
       if (!trimmedContent) return null;
 
       let nextWorkspace!: WorksheetWorkspaceState;
@@ -488,7 +492,7 @@ export function useWorksheet(): WorksheetTool {
           prev,
           {
             title: input.title,
-            content: input.content,
+            content: cleanedContent,
             promptSummary: input.promptSummary,
           },
           { activate: input.activate ?? false },
