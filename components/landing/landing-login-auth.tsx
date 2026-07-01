@@ -1,12 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { LandingCtaButton } from "@/components/landing/landing-cta-button";
-import { LANDING_COPY } from "@/lib/landing/content";
+import { LandingLegalConsent } from "@/components/landing/landing-legal-consent";
 import { COPY } from "@/lib/i18n";
 
 function LoginLegalNote() {
@@ -33,17 +32,7 @@ export function LandingLoginAuth() {
       <Suspense fallback={<div className="h-12 animate-pulse rounded-lg bg-muted" />}>
         <LoginLegalNote />
       </Suspense>
-      <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
-        {LANDING_COPY.privacyNote}{" "}
-        <Link href="/terms" className="underline hover:text-foreground">
-          {LANDING_COPY.termsLink}
-        </Link>{" "}
-        dan{" "}
-        <Link href="/privacy" className="underline hover:text-foreground">
-          {LANDING_COPY.privacyLink}
-        </Link>
-        .
-      </p>
+      <LandingLegalConsent className="mt-4 text-center" />
     </div>
   );
 }

@@ -101,7 +101,7 @@ export const LANDING_COPY = {
     "Dengan masuk, Anda menyetujui Syarat Layanan dan Kebijakan Privasi IDA.",
   continueToChat: "Lanjut ke Chat",
   privacyLink: "Kebijakan Privasi",
-  termsLink: "Syarat Layanan",
+  termsLink: "Syarat & Ketentuan",
   toolsTitle: "Tools utama di dalam chat",
   toolsSubtitle:
     "Empat tools ini jadi inti pengalaman IDA — aktifkan kapan saja langsung dari composer chat.",

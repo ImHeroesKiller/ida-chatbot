@@ -1,4 +1,6 @@
 import Link from "next/link";
+
+import { LandingLegalConsent } from "@/components/landing/landing-legal-consent";
 import {
   ArrowRight,
   Bot,
@@ -298,8 +300,9 @@ export function LandingPageStatic() {
               <p className="mx-auto max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
                 {LANDING_COPY.finalCtaSubtitle}
               </p>
-              <div className="flex justify-center pt-2">
+              <div className="flex flex-col items-center gap-4 pt-2">
                 <LandingCtaLazy variant="section" />
+                <LandingLegalConsent className="max-w-lg text-center" />
               </div>
             </div>
 
@@ -330,6 +333,7 @@ export function LandingPageStatic() {
               <div className="mt-6">
                 <LandingLoginLazy />
               </div>
+              <LandingLegalConsent className="mx-auto mt-4 max-w-md text-center" />
             </div>
           </div>
         </section>
