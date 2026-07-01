@@ -13,7 +13,14 @@ import {
   Save,
   Trash2,
 } from "lucide-react";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import toast from "react-hot-toast";
 
 import type { WorkflowTool } from "@/components/chat/tools/use-workflow";
@@ -95,6 +102,7 @@ function WorkflowPanelInner({
     activeWorkflow,
     workflows,
     isExecuting,
+    executionNodeStatus,
     errorDetail,
     lastExecution,
     importLatestGeneratedWorkflow,
@@ -110,10 +118,16 @@ function WorkflowPanelInner({
   updateWorkflowRef.current = workflowTool.updateWorkflow;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showRawResponse, setShowRawResponse] = useState(false);
+  const logPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setSelectedNodeId(null);
   }, [activeWorkflow?.id]);
+
+  useEffect(() => {
+    if (!isExecuting || !logPanelRef.current) return;
+    logPanelRef.current.scrollTop = logPanelRef.current.scrollHeight;
+  }, [isExecuting, lastExecution?.logs?.length]);
 
   const canImportLatest = Boolean(lastGeneratedWorkflowSource?.trim());
 
@@ -386,6 +400,7 @@ function WorkflowPanelInner({
               nodes={activeWorkflow.nodes}
               edges={activeWorkflow.edges}
               selectedNodeId={selectedNodeId}
+              nodeExecutionStatus={executionNodeStatus}
               onNodesChange={handleNodesChange}
               onEdgesChange={handleEdgesChange}
               onSelectNode={handleSelectNode}
@@ -503,7 +518,10 @@ function WorkflowPanelInner({
         ) : null}
       </div>
 
-      {(workflowErrorMessage || lastExecution || showImportDebug) && (
+      {(workflowErrorMessage ||
+        isExecuting ||
+        lastExecution ||
+        showImportDebug) && (
         <div className="shrink-0 space-y-2 border-t px-3 py-2">
           {workflowErrorMessage ? (
             <p className="text-[10px] text-destructive">{workflowErrorMessage}</p>
@@ -581,26 +599,58 @@ function WorkflowPanelInner({
               {copy.workflowImportLatest}
             </Button>
           ) : null}
-          {lastExecution?.message ? (
+          {isExecuting ? (
+            <p className="flex items-center gap-1.5 text-[10px] text-sky-700 dark:text-sky-300">
+              <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+              {copy.workflowExecute}
+            </p>
+          ) : null}
+          {!isExecuting && lastExecution?.message ? (
             <p className="text-[10px] text-muted-foreground">
               {lastExecution.message}
             </p>
           ) : null}
-          {lastExecution?.logs && lastExecution.logs.length > 0 ? (
-            <div className="max-h-28 overflow-y-auto rounded-md border bg-muted/20 p-2">
+          {(isExecuting || (lastExecution?.logs && lastExecution.logs.length > 0)) ? (
+            <div
+              ref={logPanelRef}
+              className="max-h-36 overflow-y-auto rounded-md border bg-muted/20 p-2"
+            >
               <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {copy.workflowExecutionLogs}
               </p>
-              <ul className="space-y-1">
-                {lastExecution.logs.map((log) => (
+              <ul className="space-y-1.5">
+                {lastExecution?.logs?.map((log, index) => (
                   <li
-                    key={`${log.nodeId}-${log.startedAt}`}
-                    className="text-[10px] text-foreground/80"
+                    key={`${log.nodeId}-${log.startedAt}-${index}`}
+                    className={cn(
+                      "rounded px-1.5 py-1 text-[10px]",
+                      log.status === "running" &&
+                        "bg-sky-500/10 text-sky-900 dark:text-sky-100",
+                      log.status === "completed" &&
+                        "bg-emerald-500/10 text-foreground/90",
+                      log.status === "failed" &&
+                        "bg-destructive/10 text-destructive",
+                      log.status === "skipped" &&
+                        "bg-muted/40 text-muted-foreground",
+                    )}
                   >
-                    <span className="font-medium">{log.label}</span>{" "}
-                    <span className="text-muted-foreground">({log.status})</span>
+                    <div className="flex items-center gap-1.5">
+                      {log.status === "running" ? (
+                        <Loader2
+                          className="h-3 w-3 shrink-0 animate-spin text-sky-600"
+                          aria-hidden
+                        />
+                      ) : null}
+                      <span className="font-medium">{log.label}</span>
+                      <span className="text-muted-foreground capitalize">
+                        ({log.status})
+                      </span>
+                    </div>
+                    {log.message ? (
+                      <p className="mt-0.5 text-muted-foreground">{log.message}</p>
+                    ) : null}
                     {log.output ? (
-                      <p className="line-clamp-2 text-muted-foreground">
+                      <p className="mt-0.5 line-clamp-3 whitespace-pre-wrap text-muted-foreground">
                         {log.output}
                       </p>
                     ) : null}

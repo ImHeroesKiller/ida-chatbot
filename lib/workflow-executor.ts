@@ -19,6 +19,21 @@ export interface ExecuteChatWorkflowInput {
   sessionId?: string;
 }
 
+export type WorkflowExecuteProgressEvent =
+  | {
+      type: "start";
+      workflowId: string;
+      startedAt: number;
+      totalNodes: number;
+    }
+  | {
+      type: "progress";
+      log: WorkflowExecutionLogEntry;
+      logs: WorkflowExecutionLogEntry[];
+    }
+  | { type: "done"; result: WorkflowExecutionResult }
+  | { type: "error"; message: string; result?: WorkflowExecutionResult };
+
 function sortNodesForExecution(workflow: WorkflowDefinition): WorkflowNode[] {
   const nodes = [...workflow.nodes];
   if (nodes.length === 0) return [];
@@ -73,6 +88,24 @@ function getNodePrompt(node: WorkflowNode): string {
   if (configPrompt) return configPrompt;
   if (node.data.description?.trim()) return node.data.description.trim();
   return node.data.label;
+}
+
+function pushOrUpdateLog(
+  logs: WorkflowExecutionLogEntry[],
+  entry: WorkflowExecutionLogEntry,
+): WorkflowExecutionLogEntry[] {
+  if (entry.status !== "running") {
+    for (let index = logs.length - 1; index >= 0; index -= 1) {
+      const current = logs[index];
+      if (current.nodeId === entry.nodeId && current.status === "running") {
+        const next = [...logs];
+        next[index] = entry;
+        return next;
+      }
+    }
+  }
+
+  return [...logs, entry];
 }
 
 async function runLlmStep(options: {
@@ -156,17 +189,16 @@ Return only the step result.`,
 }
 
 /**
- * Execute a chat workflow sequentially (LangGraph-inspired, no approval gates).
- * Each actionable node runs through the configured workflow/agent model.
+ * Execute a chat workflow sequentially, yielding per-node progress events.
  */
-export async function executeChatWorkflow(
+export async function* executeChatWorkflowStream(
   input: ExecuteChatWorkflowInput,
-): Promise<WorkflowExecutionResult> {
+): AsyncGenerator<WorkflowExecuteProgressEvent> {
   const startedAt = Date.now();
   const orderedNodes = sortNodesForExecution(input.workflow);
 
   if (orderedNodes.length === 0) {
-    return {
+    const result: WorkflowExecutionResult = {
       workflowId: input.workflow.id,
       status: "failed",
       startedAt,
@@ -175,7 +207,17 @@ export async function executeChatWorkflow(
       logs: [],
       error: "empty_workflow",
     };
+    yield { type: "error", message: result.message ?? "empty_workflow", result };
+    yield { type: "done", result };
+    return;
   }
+
+  yield {
+    type: "start",
+    workflowId: input.workflow.id,
+    startedAt,
+    totalNodes: orderedNodes.length,
+  };
 
   const logs: WorkflowExecutionLogEntry[] = [];
   let context = `Workflow: ${input.workflow.name}`;
@@ -196,17 +238,27 @@ export async function executeChatWorkflow(
       if (node.data.kind === "trigger") {
         const output = `Triggered: ${node.data.label}`;
         context += `\n\n[${node.data.kind}] ${node.data.label}: ${output}`;
-        logs.push({
+        const log: WorkflowExecutionLogEntry = {
           ...logBase,
           status: "completed",
           output,
           message: "Trigger acknowledged",
           completedAt: Date.now(),
-        });
+        };
+        const nextLogs = pushOrUpdateLog(logs, log);
+        logs.splice(0, logs.length, ...nextLogs);
+        yield { type: "progress", log, logs: [...logs] };
         continue;
       }
 
-      logs.push({ ...logBase, status: "running" });
+      const runningLog: WorkflowExecutionLogEntry = {
+        ...logBase,
+        status: "running",
+        message: "Running…",
+      };
+      let nextLogs = pushOrUpdateLog(logs, runningLog);
+      logs.splice(0, logs.length, ...nextLogs);
+      yield { type: "progress", log: runningLog, logs: [...logs] };
 
       const output = await runLlmStep({
         locale: input.locale,
@@ -216,19 +268,22 @@ export async function executeChatWorkflow(
 
       context += `\n\n[${node.data.kind}] ${node.data.label}: ${output}`;
 
-      logs.push({
+      const completedLog: WorkflowExecutionLogEntry = {
         ...logBase,
         status: "completed",
         output,
         message: "Step completed",
         completedAt: Date.now(),
-      });
+      };
+      nextLogs = pushOrUpdateLog(logs, completedLog);
+      logs.splice(0, logs.length, ...nextLogs);
+      yield { type: "progress", log: completedLog, logs: [...logs] };
 
       if (
         node.data.kind === "condition" &&
         output.toUpperCase().startsWith("NO")
       ) {
-        logs.push({
+        const skippedLog: WorkflowExecutionLogEntry = {
           nodeId: node.id,
           label: node.data.label,
           kind: node.data.kind,
@@ -236,33 +291,82 @@ export async function executeChatWorkflow(
           message: "Condition evaluated to NO — downstream branches skipped",
           startedAt: Date.now(),
           completedAt: Date.now(),
-        });
+        };
+        logs.push(skippedLog);
+        yield { type: "progress", log: skippedLog, logs: [...logs] };
         break;
       }
     }
 
-    const completedAt = Date.now();
-    return {
+    const result: WorkflowExecutionResult = {
       workflowId: input.workflow.id,
       status: "completed",
       startedAt,
-      completedAt,
+      completedAt: Date.now(),
       message: `Workflow "${input.workflow.name}" completed successfully.`,
-      logs,
+      logs: [...logs],
       output: context,
     };
+    yield { type: "done", result };
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Workflow execution failed.";
 
-    return {
+    const runningNode = [...logs].reverse().find((log) => log.status === "running");
+    if (runningNode) {
+      const failedLog: WorkflowExecutionLogEntry = {
+        ...runningNode,
+        status: "failed",
+        message,
+        completedAt: Date.now(),
+      };
+      const nextLogs = pushOrUpdateLog(logs, failedLog);
+      logs.splice(0, logs.length, ...nextLogs);
+      yield { type: "progress", log: failedLog, logs: [...logs] };
+    }
+
+    const result: WorkflowExecutionResult = {
       workflowId: input.workflow.id,
       status: "failed",
       startedAt,
       completedAt: Date.now(),
       message,
-      logs,
+      logs: [...logs],
+      error: "execute_failed",
+    };
+    yield { type: "error", message, result };
+    yield { type: "done", result };
+  }
+}
+
+/**
+ * Execute a chat workflow sequentially (LangGraph-inspired, no approval gates).
+ * Each actionable node runs through the configured workflow/agent model.
+ */
+export async function executeChatWorkflow(
+  input: ExecuteChatWorkflowInput,
+): Promise<WorkflowExecutionResult> {
+  let result: WorkflowExecutionResult | null = null;
+
+  for await (const event of executeChatWorkflowStream(input)) {
+    if (event.type === "done") {
+      result = event.result;
+    } else if (event.type === "error" && event.result) {
+      result = event.result;
+    }
+  }
+
+  if (!result) {
+    return {
+      workflowId: input.workflow.id,
+      status: "failed",
+      startedAt: Date.now(),
+      completedAt: Date.now(),
+      message: "Workflow execution returned no result.",
+      logs: [],
       error: "execute_failed",
     };
   }
+
+  return result;
 }

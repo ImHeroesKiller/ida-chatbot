@@ -8,7 +8,11 @@ import {
   getClientIp,
   IdaRateLimitError,
 } from "@/lib/rate-limit";
-import { executeChatWorkflow } from "@/lib/workflow-executor";
+import { executeChatWorkflowStream } from "@/lib/workflow-executor";
+import {
+  createWorkflowExecuteSseStream,
+  workflowExecuteSseResponse,
+} from "@/lib/workflow-sse";
 import type { WorkflowDefinition } from "@/lib/workflow";
 
 const workflowNodeSchema = z.object({
@@ -87,35 +91,50 @@ export async function POST(request: Request) {
     throw error;
   }
 
-  try {
-    const workflow = parsed.data.workflow as WorkflowDefinition;
+  const workflow = parsed.data.workflow as WorkflowDefinition;
 
-    console.info("[workflow:execute] request", {
-      workflowId: workflow.id,
-      name: workflow.name,
-      nodeCount: workflow.nodes.length,
-      edgeCount: workflow.edges.length,
-      locale: parsed.data.locale,
-      sessionId: parsed.data.sessionId ?? null,
-    });
+  console.info("[workflow:execute] request", {
+    workflowId: workflow.id,
+    name: workflow.name,
+    nodeCount: workflow.nodes.length,
+    edgeCount: workflow.edges.length,
+    locale: parsed.data.locale,
+    sessionId: parsed.data.sessionId ?? null,
+    streaming: true,
+  });
 
-    const result = await executeChatWorkflow({
+  const stream = createWorkflowExecuteSseStream(async (send) => {
+    for await (const event of executeChatWorkflowStream({
       workflow,
       locale: parsed.data.locale,
       sessionId: parsed.data.sessionId,
-    });
+    })) {
+      if (event.type === "start") {
+        send("start", {
+          workflowId: event.workflowId,
+          startedAt: event.startedAt,
+          totalNodes: event.totalNodes,
+        });
+      } else if (event.type === "progress") {
+        send("progress", {
+          log: event.log,
+          logs: event.logs,
+        });
+      } else if (event.type === "done") {
+        console.info("[workflow:execute] completed", {
+          workflowId: event.result.workflowId,
+          status: event.result.status,
+          logCount: event.result.logs?.length ?? 0,
+        });
+        send("done", { result: event.result });
+      } else if (event.type === "error") {
+        send("error", {
+          error: event.message,
+          result: event.result,
+        });
+      }
+    }
+  });
 
-    console.info("[workflow:execute] completed", {
-      workflowId: result.workflowId,
-      status: result.status,
-      logCount: result.logs?.length ?? 0,
-    });
-
-    return NextResponse.json({ result });
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Workflow execution failed.";
-
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  return workflowExecuteSseResponse(stream);
 }

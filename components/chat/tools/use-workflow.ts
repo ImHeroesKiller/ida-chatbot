@@ -11,6 +11,7 @@ import {
 import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
 import type { ToolQuotaState } from "@/components/chat/tools/types";
 import type { Locale } from "@/lib/config";
+import { consumeWorkflowExecuteStream } from "@/lib/client/parse-workflow-sse";
 import {
   parseWorkflowFromResponse,
   workflowPayloadToDefinition,
@@ -36,6 +37,7 @@ import {
   type UpdateWorkflowPatch,
   type WorkflowDefinition,
   type WorkflowErrorCode,
+  type WorkflowExecutionLogEntry,
   type WorkflowExecutionResult,
   type WorkflowWorkspace,
 } from "@/lib/workflow";
@@ -103,6 +105,7 @@ export type WorkflowTool = BaseToolState &
     activeWorkflowId: string | null;
     activeWorkflow: WorkflowDefinition | null;
     isExecuting: boolean;
+    executionNodeStatus: Record<string, WorkflowExecutionLogEntry["status"]>;
     lastExecution: WorkflowExecutionResult | null;
     errorDetail: string | null;
     setErrorDetail: (message: string | null) => void;
@@ -183,6 +186,9 @@ export function useWorkflow(): WorkflowTool {
   );
   const workspaceRef = useRef(workspace);
   const [isExecuting, setIsExecuting] = useState(false);
+  const [executionNodeStatus, setExecutionNodeStatus] = useState<
+    Record<string, WorkflowExecutionLogEntry["status"]>
+  >({});
   const [errorDetail, setErrorDetailState] = useState<string | null>(null);
   const errorDetailRef = useRef<string | null>(null);
   const persistSyncRef = useRef<PersistLayerSync | null>(null);
@@ -600,6 +606,22 @@ export function useWorkflow(): WorkflowTool {
 
       setIsExecuting(true);
       clearErrorDetail();
+      setExecutionNodeStatus({});
+
+      const startedAt = Date.now();
+      const runningExecution: WorkflowExecutionResult = {
+        workflowId: targetId,
+        status: "running",
+        startedAt,
+        logs: [],
+      };
+
+      setWorkspaceInternal((prev) => ({
+        ...prev,
+        lastExecution: runningExecution,
+        error: undefined,
+        updatedAt: Date.now(),
+      }));
 
       try {
         const response = await fetch("/api/workflow/execute", {
@@ -612,19 +634,42 @@ export function useWorkflow(): WorkflowTool {
           }),
         });
 
-        const data = (await response.json().catch(() => ({}))) as {
-          result?: WorkflowExecutionResult;
-          error?: string;
-        };
-
         if (!response.ok) {
+          const data = (await response.json().catch(() => ({}))) as {
+            error?: string;
+          };
           throw new Error(data.error ?? "Workflow execution failed.");
         }
 
-        const result = data.result;
-        if (!result) {
-          throw new Error("Workflow execution returned no result.");
+        const contentType = response.headers.get("content-type") ?? "";
+        if (!contentType.includes("text/event-stream")) {
+          throw new Error("Workflow execution stream is not available.");
         }
+
+        const applyProgress = (logs: WorkflowExecutionLogEntry[]) => {
+          const statusMap: Record<string, WorkflowExecutionLogEntry["status"]> =
+            {};
+          for (const log of logs) {
+            statusMap[log.nodeId] = log.status;
+          }
+          setExecutionNodeStatus(statusMap);
+          setWorkspaceInternal((prev) => ({
+            ...prev,
+            lastExecution: {
+              workflowId: targetId,
+              status: "running",
+              startedAt,
+              logs: [...logs],
+            },
+            updatedAt: Date.now(),
+          }));
+        };
+
+        const result = await consumeWorkflowExecuteStream(response, {
+          onProgress: ({ logs }) => {
+            applyProgress(logs);
+          },
+        });
 
         let nextWorkspace!: WorkflowWorkspaceState;
 
@@ -638,6 +683,15 @@ export function useWorkflow(): WorkflowTool {
           workspaceRef.current = nextWorkspace;
           return nextWorkspace;
         });
+
+        if (result.logs?.length) {
+          const statusMap: Record<string, WorkflowExecutionLogEntry["status"]> =
+            {};
+          for (const log of result.logs) {
+            statusMap[log.nodeId] = log.status;
+          }
+          setExecutionNodeStatus(statusMap);
+        }
 
         if (result.status === "failed") {
           setErrorDetail(result.message ?? result.error ?? null);
@@ -704,6 +758,7 @@ export function useWorkflow(): WorkflowTool {
     activeWorkflowId,
     activeWorkflow,
     isExecuting,
+    executionNodeStatus,
     lastExecution,
     errorDetail,
     setErrorDetail,

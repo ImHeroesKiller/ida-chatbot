@@ -33,7 +33,13 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 
-import type { WorkflowNodeData, WorkflowNodeKind } from "@/lib/workflow";
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+
+import type {
+  WorkflowExecutionLogEntry,
+  WorkflowNodeData,
+  WorkflowNodeKind,
+} from "@/lib/workflow";
 import { cn } from "@/lib/utils";
 
 const KIND_STYLES: Record<
@@ -62,19 +68,68 @@ const KIND_STYLES: Record<
   },
 };
 
+const EXECUTION_RING: Record<
+  WorkflowExecutionLogEntry["status"],
+  string | null
+> = {
+  running: "ring-2 ring-sky-500/70 ring-offset-2 ring-offset-background animate-pulse",
+  completed: "ring-2 ring-emerald-500/70 ring-offset-2 ring-offset-background",
+  failed: "ring-2 ring-destructive/80 ring-offset-2 ring-offset-background",
+  skipped: "opacity-60 ring-1 ring-dashed ring-muted-foreground/40",
+};
+
+function ExecutionStatusBadge({
+  status,
+}: {
+  status?: WorkflowExecutionLogEntry["status"];
+}) {
+  if (!status || status === "skipped") return null;
+
+  if (status === "running") {
+    return (
+      <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-white shadow-sm">
+        <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+      </span>
+    );
+  }
+
+  if (status === "completed") {
+    return (
+      <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
+        <CheckCircle2 className="h-3 w-3" aria-hidden />
+      </span>
+    );
+  }
+
+  return (
+    <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-white shadow-sm">
+      <XCircle className="h-3 w-3" aria-hidden />
+    </span>
+  );
+}
+
 const WorkflowFlowNode = memo(
-  function WorkflowFlowNode({ data, selected }: NodeProps<WorkflowNodeData>) {
+  function WorkflowFlowNode({
+    data,
+    selected,
+  }: NodeProps<WorkflowNodeData & { executionStatus?: WorkflowExecutionLogEntry["status"] }>) {
     const styles = KIND_STYLES[data.kind] ?? KIND_STYLES.action;
+    const executionStatus = data.executionStatus;
+    const executionRing = executionStatus
+      ? EXECUTION_RING[executionStatus]
+      : null;
 
     return (
       <div
         className={cn(
-          "min-w-[9rem] max-w-[12rem] rounded-lg border px-3 py-2 shadow-sm transition-shadow",
+          "relative min-w-[9rem] max-w-[12rem] rounded-lg border px-3 py-2 shadow-sm transition-shadow",
           styles.border,
           selected &&
             "ring-2 ring-primary ring-offset-2 ring-offset-background",
+          executionRing,
         )}
       >
+        <ExecutionStatusBadge status={executionStatus} />
         <Handle
           type="target"
           position={Position.Left}
@@ -108,7 +163,8 @@ const WorkflowFlowNode = memo(
     prev.selected === next.selected &&
     prev.data.label === next.data.label &&
     prev.data.kind === next.data.kind &&
-    prev.data.description === next.data.description,
+    prev.data.description === next.data.description &&
+    prev.data.executionStatus === next.data.executionStatus,
 );
 
 /** Module-level stable references — never recreate per render. */
@@ -209,6 +265,7 @@ export interface WorkflowCanvasProps {
   nodes: Node<WorkflowNodeData>[];
   edges: Edge[];
   selectedNodeId: string | null;
+  nodeExecutionStatus?: Record<string, WorkflowExecutionLogEntry["status"]>;
   onNodesChange: (nodes: Node<WorkflowNodeData>[]) => void;
   onEdgesChange: (edges: Edge[]) => void;
   onSelectNode: (nodeId: string | null) => void;
@@ -223,6 +280,7 @@ function areCanvasPropsEqual(
   return (
     prev.workflowId === next.workflowId &&
     prev.selectedNodeId === next.selectedNodeId &&
+    prev.nodeExecutionStatus === next.nodeExecutionStatus &&
     prev.className === next.className &&
     prev.nodes === next.nodes &&
     prev.edges === next.edges &&
@@ -236,6 +294,7 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
   nodes,
   edges,
   selectedNodeId,
+  nodeExecutionStatus,
   onNodesChange,
   onEdgesChange,
   onSelectNode,
@@ -261,8 +320,12 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
       nodes.map((node) => ({
         ...node,
         type: node.type ?? "workflow",
+        data: {
+          ...node.data,
+          executionStatus: nodeExecutionStatus?.[node.id],
+        },
       })),
-    [nodes],
+    [nodeExecutionStatus, nodes],
   );
 
   const handleNodesChange: OnNodesChange = useCallback((changes) => {
