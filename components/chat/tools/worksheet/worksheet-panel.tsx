@@ -43,9 +43,9 @@ import {
   type WorksheetEditLayout,
 } from "@/components/chat/worksheet-split-editor";
 import {
-  WorksheetExportPdfDialog,
+  WorksheetExportDialog,
   type WorksheetPdfExportSettings,
-} from "@/components/chat/worksheet-export-pdf-dialog";
+} from "@/components/chat/tools/worksheet/components/worksheet-export-dialog";
 import { WorksheetPrintPreviewDialog } from "@/components/chat/worksheet-print-preview-dialog";
 import { WorksheetTemplateDialog } from "@/components/chat/worksheet-template-dialog";
 import {
@@ -1241,7 +1241,7 @@ export function WorksheetPanel({
         </div>
       </ScrollArea>
 
-      <WorksheetExportPdfDialog
+      <WorksheetExportDialog
         open={exportPdfDialogOpen}
         locale={locale}
         isExporting={isExportingPdf}

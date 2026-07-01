@@ -22,7 +22,7 @@ export interface WorksheetPdfExportSettings {
   showExportDate: boolean;
 }
 
-interface WorksheetExportPdfDialogProps {
+export interface WorksheetExportDialogProps {
   open: boolean;
   locale: Locale;
   isExporting?: boolean;
@@ -64,13 +64,13 @@ function BrandingToggle({
   );
 }
 
-export function WorksheetExportPdfDialog({
+export function WorksheetExportDialog({
   open,
   locale,
   isExporting = false,
   onConfirm,
   onCancel,
-}: WorksheetExportPdfDialogProps) {
+}: WorksheetExportDialogProps) {
   const copy = COPY[locale];
   const [paper, setPaper] = useState<PdfPaperFormat>("a4");
   const [orientation, setOrientation] = useState<PdfOrientation>("portrait");
