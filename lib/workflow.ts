@@ -424,109 +424,83 @@ export function removeWorkflowNode(
   });
 }
 
-/** Stable id for the built-in demo template (not generated per call). */
-export const DEBT_FOLLOW_UP_WORKFLOW_TEMPLATE_ID = "template-debt-follow-up";
+export type WorkflowTemplateApplyMode = "replace" | "append";
 
-/**
- * Demo template: Debt Follow-up Workflow (5 nodes).
- * Use as a starting point in the panel or for integration tests.
- */
-export function createDebtFollowUpWorkflowTemplate(): WorkflowDefinition {
-  const now = Date.now();
+export interface WorkflowTemplateDefinitionInput {
+  name: string;
+  description?: string;
+  nodes: WorkflowNode[];
+  edges: WorkflowEdge[];
+}
 
-  const nodes: WorkflowNode[] = [
-    {
-      id: "debt-trigger",
-      type: "workflow",
-      position: { x: 80, y: 120 },
-      data: {
-        label: "Loan Due Trigger",
-        kind: "trigger",
-        description: "Fires when a loan installment is 3 days before due date.",
-      },
-    },
-    {
-      id: "debt-check",
-      type: "workflow",
-      position: { x: 280, y: 80 },
-      data: {
-        label: "Check Payment Status",
-        kind: "action",
-        description: "Verify whether the borrower has paid the current installment.",
-        prompt:
-          "Check the borrower's latest payment status for the active loan. Return PAID, PARTIAL, or UNPAID with a one-line summary.",
-      },
-    },
-    {
-      id: "debt-condition",
-      type: "workflow",
-      position: { x: 480, y: 120 },
-      data: {
-        label: "Payment Overdue?",
-        kind: "condition",
-        description: "Branch on whether follow-up is required.",
-        prompt:
-          "Based on the payment status, answer YES if follow-up is needed (UNPAID or PARTIAL), otherwise NO.",
-      },
-    },
-    {
-      id: "debt-reminder",
-      type: "workflow",
-      position: { x: 680, y: 60 },
-      data: {
-        label: "Send Follow-up Message",
-        kind: "action",
-        description: "Draft a polite reminder for the borrower.",
-        prompt:
-          "Draft a professional Bahasa Indonesia WhatsApp reminder for an overdue loan installment. Include amount due, due date, and payment channel. Keep it under 120 words.",
-      },
-    },
-    {
-      id: "debt-output",
-      type: "workflow",
-      position: { x: 880, y: 120 },
-      data: {
-        label: "Log CRM Outcome",
-        kind: "output",
-        description: "Record the follow-up result for audit.",
-        prompt:
-          "Summarize the workflow outcome as a CRM note: trigger, decision, message sent, and recommended next step.",
-      },
-    },
-  ];
+function cloneTemplateGraph(
+  nodes: WorkflowNode[],
+  edges: WorkflowEdge[],
+): { nodes: WorkflowNode[]; edges: WorkflowEdge[] } {
+  const idMap = new Map<string, string>();
 
-  const edges: WorkflowEdge[] = [
-    { id: "edge-trigger-check", source: "debt-trigger", target: "debt-check" },
-    { id: "edge-check-condition", source: "debt-check", target: "debt-condition" },
-    {
-      id: "edge-condition-reminder",
-      source: "debt-condition",
-      target: "debt-reminder",
-    },
-    { id: "edge-reminder-output", source: "debt-reminder", target: "debt-output" },
-  ];
+  const clonedNodes = nodes.map((node) => {
+    const newId = createId("wf-node");
+    idMap.set(node.id, newId);
+    return {
+      ...node,
+      id: newId,
+      data: normalizeWorkflowNodeData(node.data),
+      position: { ...node.position },
+    };
+  });
 
-  return {
-    id: DEBT_FOLLOW_UP_WORKFLOW_TEMPLATE_ID,
-    name: "Debt Follow-up Workflow",
-    description:
-      "Automated follow-up for overdue loan installments — check status, branch, send reminder, log outcome.",
+  const clonedEdges = edges.map((edge) => ({
+    ...edge,
+    id: createId("wf-edge"),
+    source: idMap.get(edge.source) ?? edge.source,
+    target: idMap.get(edge.target) ?? edge.target,
+  }));
+
+  return { nodes: clonedNodes, edges: clonedEdges };
+}
+
+/** Apply a template graph to the workspace (replace active or append as new workflow). */
+export function applyWorkflowTemplateToWorkspace(
+  workspace: WorkflowWorkspace,
+  input: WorkflowTemplateDefinitionInput,
+  options?: { mode?: WorkflowTemplateApplyMode; activate?: boolean },
+): WorkflowWorkspace {
+  const mode = options?.mode ?? "replace";
+  const activate = options?.activate !== false;
+  const { nodes, edges } = cloneTemplateGraph(input.nodes, input.edges);
+
+  if (mode === "append") {
+    return importWorkflowFromStream(workspace, {
+      name: input.name,
+      description: input.description,
+      nodes,
+      edges,
+      activate,
+    });
+  }
+
+  const activeId = workspace.activeWorkflowId;
+  if (activeId) {
+    return updateWorkflowDefinition(workspace, activeId, {
+      name: input.name,
+      description: input.description,
+      nodes,
+      edges,
+    });
+  }
+
+  const created = createWorkflowDefinition(workspace, {
+    name: input.name,
+    description: input.description,
+    activate,
+  });
+  const newActiveId = created.activeWorkflowId;
+  if (!newActiveId) return created;
+
+  return updateWorkflowDefinition(created, newActiveId, {
     nodes,
     edges,
-    createdAt: now,
-    updatedAt: now,
-  };
+  });
 }
 
-/** Workspace preloaded with the Debt Follow-up demo template as the active workflow. */
-export function createDemoDebtFollowUpWorkspace(): WorkflowWorkspace {
-  const workflow = createDebtFollowUpWorkflowTemplate();
-  const now = Date.now();
-
-  return {
-    workflows: [workflow],
-    activeWorkflowId: workflow.id,
-    updatedAt: now,
-    lastExecution: null,
-  };
-}

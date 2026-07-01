@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Download,
   GitBranch,
+  LayoutTemplate,
   Loader2,
   PanelRightClose,
   Play,
@@ -24,6 +25,7 @@ import {
 import toast from "react-hot-toast";
 
 import type { WorkflowTool } from "@/components/chat/tools/use-workflow";
+import { WorkflowTemplateGallery } from "@/components/chat/tools/workflow-template-gallery";
 import { WorksheetConfirmDialog } from "@/components/chat/tools/worksheet/worksheet-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -126,6 +128,7 @@ function WorkflowPanelInner({
   updateWorkflowRef.current = workflowTool.updateWorkflow;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showRawResponse, setShowRawResponse] = useState(false);
+  const [activeTab, setActiveTab] = useState<"canvas" | "templates">("canvas");
   const logPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -368,6 +371,41 @@ function WorkflowPanelInner({
         </Button>
       </div>
 
+      <div className="shrink-0 border-b px-3 py-2">
+        <div className="mb-2 flex gap-1 rounded-lg bg-muted/40 p-1">
+          <Button
+            type="button"
+            size="xs"
+            variant={activeTab === "canvas" ? "default" : "ghost"}
+            className="h-7 flex-1 text-[10px]"
+            onClick={() => setActiveTab("canvas")}
+          >
+            <GitBranch className="mr-1 h-3 w-3" />
+            {copy.workflowTabCanvas}
+          </Button>
+          <Button
+            type="button"
+            size="xs"
+            variant={activeTab === "templates" ? "default" : "ghost"}
+            className="h-7 flex-1 text-[10px]"
+            onClick={() => setActiveTab("templates")}
+          >
+            <LayoutTemplate className="mr-1 h-3 w-3" />
+            {copy.workflowTabTemplates}
+          </Button>
+        </div>
+      </div>
+
+      {activeTab === "templates" ? (
+        <WorkflowTemplateGallery
+          locale={locale}
+          workflowTool={workflowTool}
+          onApplied={() => setActiveTab("canvas")}
+        />
+      ) : null}
+
+      {activeTab === "canvas" ? (
+        <>
       <div className="shrink-0 space-y-2 border-b px-3 py-2">
         <div className="flex flex-wrap gap-1.5">
           <Button
@@ -492,6 +530,15 @@ function WorkflowPanelInner({
                 <Button type="button" size="sm" onClick={handleNewWorkflow}>
                   <Plus className="mr-1.5 h-4 w-4" />
                   {copy.workflowNew}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setActiveTab("templates")}
+                >
+                  <LayoutTemplate className="mr-1.5 h-4 w-4" />
+                  {copy.workflowTabTemplates}
                 </Button>
                 {canImportLatest ? (
                   <Button
@@ -673,7 +720,7 @@ function WorkflowPanelInner({
       {(workflowErrorMessage ||
         isExecuting ||
         lastExecution ||
-        showImportDebug) && (
+        showImportDebug) ? (
         <div className="shrink-0 space-y-2 border-t px-3 py-2">
           {workflowErrorMessage ? (
             <p className="text-[10px] text-destructive">{workflowErrorMessage}</p>
@@ -815,7 +862,9 @@ function WorkflowPanelInner({
             </div>
           ) : null}
         </div>
-      )}
+      ) : null}
+        </>
+      ) : null}
 
       <WorksheetConfirmDialog
         open={deleteDialogOpen}

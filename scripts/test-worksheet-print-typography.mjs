@@ -5,24 +5,13 @@
  * comparison fixture for Full View vs PDF export review.
  */
 
+import { execSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createRequire } from "node:module";
 
-const require = createRequire(import.meta.url);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
-
-function loadTypographyModule() {
-  try {
-    const compiled = join(root, ".next/standalone/lib/worksheet-print-typography.js");
-    return require(compiled);
-  } catch {
-    // Fallback: transpile on the fly via tsx when available.
-    return null;
-  }
-}
 
 const SAMPLE_MARKDOWN = `# Laporan Konsistensi Visual
 
@@ -77,22 +66,27 @@ function assert(condition, message) {
   }
 }
 
-function runTokenChecks() {
+function loadTypographyPayload() {
+  const snippet =
+    'import { WORKSHEET_PRINT_BODY, WORKSHEET_PRINT_HEADING_STYLES, WORKSHEET_PRINT_MARGIN_MM, WORKSHEET_PRINT_PROSE_CSS, WORKSHEET_PRINT_TABLE } from "./lib/worksheet-print-typography.ts"; ' +
+    "console.log(JSON.stringify({ css: WORKSHEET_PRINT_PROSE_CSS, marginMm: WORKSHEET_PRINT_MARGIN_MM, bodyPt: WORKSHEET_PRINT_BODY.fontSizePt, paragraphGapMm: WORKSHEET_PRINT_BODY.paragraphGapAfterMm, h1SizePt: WORKSHEET_PRINT_HEADING_STYLES[1].sizePt, tableBorder: WORKSHEET_PRINT_TABLE.borderColor }));";
+  const output = execSync(`npx --yes tsx -e ${JSON.stringify(snippet)}`, {
+    cwd: root,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  return JSON.parse(output.trim());
+}
+
+function runTokenChecks(payload) {
   const checks = [];
 
-  const expected = {
-    bodyFontPt: 11,
-    h1SizePt: 20,
-    tableBorder: "#bebebe",
-    marginMm: 20,
-    paragraphGapMm: 3,
-  };
-
-  checks.push(["body font 11pt", expected.bodyFontPt === 11]);
-  checks.push(["H1 20pt", expected.h1SizePt === 20]);
-  checks.push(["table border #bebebe", expected.tableBorder === "#bebebe"]);
-  checks.push(["page margin 20mm", expected.marginMm === 20]);
-  checks.push(["paragraph gap 3mm", expected.paragraphGapMm === 3]);
+  checks.push(["body font 11pt", payload.bodyPt === 11]);
+  checks.push(["H1 20pt", payload.h1SizePt === 20]);
+  checks.push(["table border #bebebe", payload.tableBorder === "#bebebe"]);
+  checks.push(["page margin 20mm", payload.marginMm === 20]);
+  checks.push(["paragraph gap 3mm", payload.paragraphGapMm === 3]);
+  checks.push(["prose CSS generated", payload.css.length > 1000]);
 
   const failed = checks.filter(([, ok]) => !ok);
   assert(failed.length === 0, `Token checks failed: ${failed.map(([name]) => name).join(", ")}`);
@@ -100,20 +94,31 @@ function runTokenChecks() {
   return checks.length;
 }
 
+function inlineMarkdown(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/`(.+?)`/g, "<code>$1</code>");
+}
+
 function markdownToHtml(markdown) {
   const lines = markdown.replace(/\r\n/g, "\n").split("\n");
   const parts = [];
-  let inList = false;
+  let listDepth = 0;
   let listType = "ul";
   let inTable = false;
   let tableRows = [];
+  let inCodeBlock = false;
+  let codeLines = [];
 
-  const closeList = () => {
-    if (inList) {
+  const closeListsToDepth = (targetDepth) => {
+    while (listDepth > targetDepth) {
       parts.push(listType === "ol" ? "</ol>" : "</ul>");
-      inList = false;
+      listDepth -= 1;
     }
   };
+
+  const closeAllLists = () => closeListsToDepth(0);
 
   const flushTable = () => {
     if (!inTable) return;
@@ -140,14 +145,25 @@ function markdownToHtml(markdown) {
   for (const rawLine of lines) {
     const trimmed = rawLine.trim();
 
+    if (inCodeBlock) {
+      if (trimmed.startsWith("```")) {
+        parts.push(`<pre><code>${codeLines.join("\n")}</code></pre>`);
+        inCodeBlock = false;
+        codeLines = [];
+      } else {
+        codeLines.push(rawLine);
+      }
+      continue;
+    }
+
     if (!trimmed) {
-      closeList();
+      closeAllLists();
       flushTable();
       continue;
     }
 
     if (trimmed.startsWith("|")) {
-      closeList();
+      closeAllLists();
       if (/^:?-{3,}:?$/.test(trimmed.replace(/\|/g, "").trim())) {
         continue;
       }
@@ -160,95 +176,81 @@ function markdownToHtml(markdown) {
 
     const headingMatch = trimmed.match(/^(#{1,6})\s+(.+)$/);
     if (headingMatch) {
-      closeList();
+      closeAllLists();
       const level = headingMatch[1].length;
-      parts.push(`<h${level}>${headingMatch[2]}</h${level}>`);
+      parts.push(`<h${level}>${inlineMarkdown(headingMatch[2])}</h${level}>`);
       continue;
     }
 
-    if (/^[-*+]\s+/.test(trimmed)) {
-      if (!inList || listType !== "ul") {
-        closeList();
-        parts.push("<ul>");
-        inList = true;
+    const bulletMatch = rawLine.match(/^(\s*)[-*+]\s+(.+)$/);
+    if (bulletMatch) {
+      const depth = Math.floor(bulletMatch[1].length / 2) + 1;
+      if (listType !== "ul" || depth !== listDepth) {
+        closeListsToDepth(0);
         listType = "ul";
+        for (let level = 0; level < depth; level += 1) {
+          parts.push("<ul>");
+        }
+        listDepth = depth;
+      } else if (depth < listDepth) {
+        closeListsToDepth(depth);
+      } else if (depth > listDepth) {
+        parts.push("<ul>");
+        listDepth = depth;
       }
-      parts.push(`<li>${trimmed.replace(/^[-*+]\s+/, "")}</li>`);
+      parts.push(`<li>${inlineMarkdown(bulletMatch[2])}</li>`);
       continue;
     }
 
-    if (/^\d+\.\s+/.test(trimmed)) {
-      if (!inList || listType !== "ol") {
-        closeList();
-        parts.push("<ol>");
-        inList = true;
+    const orderedMatch = rawLine.match(/^(\s*)\d+\.\s+(.+)$/);
+    if (orderedMatch) {
+      const depth = Math.floor(orderedMatch[1].length / 2) + 1;
+      if (listType !== "ol" || depth !== listDepth) {
+        closeListsToDepth(0);
         listType = "ol";
+        for (let level = 0; level < depth; level += 1) {
+          parts.push("<ol>");
+        }
+        listDepth = depth;
+      } else if (depth < listDepth) {
+        closeListsToDepth(depth);
+      } else if (depth > listDepth) {
+        parts.push("<ol>");
+        listDepth = depth;
       }
-      parts.push(`<li>${trimmed.replace(/^\d+\.\s+/, "")}</li>`);
+      parts.push(`<li>${inlineMarkdown(orderedMatch[2])}</li>`);
       continue;
     }
 
     if (trimmed.startsWith(">")) {
-      closeList();
-      parts.push(`<blockquote><p>${trimmed.replace(/^>\s?/, "")}</p></blockquote>`);
+      closeAllLists();
+      parts.push(`<blockquote><p>${inlineMarkdown(trimmed.replace(/^>\s?/, ""))}</p></blockquote>`);
       continue;
     }
 
     if (trimmed === "---") {
-      closeList();
+      closeAllLists();
       parts.push("<hr />");
       continue;
     }
 
     if (trimmed.startsWith("```")) {
+      closeAllLists();
+      inCodeBlock = true;
+      codeLines = [];
       continue;
     }
 
-    closeList();
-    parts.push(`<p>${trimmed}</p>`);
+    closeAllLists();
+    parts.push(`<p>${inlineMarkdown(trimmed)}</p>`);
   }
 
-  closeList();
+  closeAllLists();
   flushTable();
   return parts.join("\n");
 }
 
-async function loadCss() {
-  const typographyPath = join(root, "lib/worksheet-print-typography.ts");
-  const source = await import("node:fs/promises").then((fs) =>
-    fs.readFile(typographyPath, "utf8"),
-  );
-
-  const match = source.match(/export const WORKSHEET_PRINT_PROSE_CSS = (.+);/s);
-  assert(match, "Could not locate WORKSHEET_PRINT_PROSE_CSS export");
-
-  if (match[1].trim() === "buildWorksheetPrintProseCss()") {
-    const { execSync } = await import("node:child_process");
-    const snippet = `
-      import {
-        WORKSHEET_PRINT_BODY,
-        WORKSHEET_PRINT_MARGIN_MM,
-        WORKSHEET_PRINT_PROSE_CSS,
-      } from "./lib/worksheet-print-typography.ts";
-      console.log(JSON.stringify({
-        css: WORKSHEET_PRINT_PROSE_CSS,
-        marginMm: WORKSHEET_PRINT_MARGIN_MM,
-        bodyPt: WORKSHEET_PRINT_BODY.fontSizePt,
-      }));
-    `;
-    const output = execSync(`npx --yes tsx -e ${JSON.stringify(snippet)}`, {
-      cwd: root,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-    return JSON.parse(output.trim());
-  }
-
-  return { css: "", marginMm: 20, bodyPt: 11 };
-}
-
-async function writeVisualFixture() {
-  const payload = await loadCss();
+async function writeVisualFixture(payload) {
   const bodyHtml = markdownToHtml(SAMPLE_MARKDOWN);
   const outPath = join(root, "scripts/.worksheet-print-visual-fixture.html");
 
@@ -295,8 +297,9 @@ async function writeVisualFixture() {
 }
 
 async function main() {
-  const tokenCount = runTokenChecks();
-  const fixturePath = await writeVisualFixture();
+  const payload = loadTypographyPayload();
+  const tokenCount = runTokenChecks(payload);
+  const fixturePath = await writeVisualFixture(payload);
 
   console.log(`OK: ${tokenCount} typography token checks passed`);
   console.log(`Visual fixture: ${fixturePath}`);

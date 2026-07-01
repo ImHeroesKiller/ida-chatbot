@@ -233,6 +233,44 @@ export const COPY: Record<
     workflowActionLlmHint: string;
     workflowExecutionLogs: string;
     workflowDeleteConfirmDescription: string;
+    workflowTabCanvas: string;
+    workflowTabTemplates: string;
+    workflowTemplatesTitle: string;
+    workflowTemplatesDescription: string;
+    workflowTemplatesSearch: string;
+    workflowTemplatesCategoryAll: string;
+    workflowTemplatesCategoryHr: string;
+    workflowTemplatesCategoryOperations: string;
+    workflowTemplatesCategoryProjectManagement: string;
+    workflowTemplatesCategoryReporting: string;
+    workflowTemplatesCategorySalesCrm: string;
+    workflowTemplatesCategoryIt: string;
+    workflowTemplatesCategoryCustom: string;
+    workflowTemplateUse: string;
+    workflowTemplateApplied: string;
+    workflowTemplateApplyReplace: string;
+    workflowTemplateApplyAppend: string;
+    workflowTemplateApplyTitle: string;
+    workflowTemplateApplyDescription: string;
+    workflowTemplateBuiltin: string;
+    workflowTemplateCustom: string;
+    workflowTemplateSave: string;
+    workflowTemplateSaveTitle: string;
+    workflowTemplateSaveDescription: string;
+    workflowTemplateSaveName: string;
+    workflowTemplateSaveNameRequired: string;
+    workflowTemplateSaved: string;
+    workflowTemplateSaveFailed: string;
+    workflowTemplateSaveAuthRequired: string;
+    workflowTemplateDelete: string;
+    workflowTemplateDeleted: string;
+    workflowTemplateDeleteFailed: string;
+    workflowTemplateExport: string;
+    workflowTemplateImport: string;
+    workflowTemplateImportFailed: string;
+    workflowTemplateExported: string;
+    workflowTemplateImported: string;
+    workflowTemplateNoResults: string;
     toolsImage: string;
     toolsVideo: string;
     toolsMusic: string;
@@ -746,6 +784,47 @@ export const COPY: Record<
     workflowExecutionLogs: "Log Eksekusi",
     workflowDeleteConfirmDescription:
       "Workflow aktif dan semua node-nya akan dihapus dari chat ini.",
+    workflowTabCanvas: "Kanvas",
+    workflowTabTemplates: "Template",
+    workflowTemplatesTitle: "Galeri Template Workflow",
+    workflowTemplatesDescription:
+      "Mulai dari template produktivitas perusahaan atau simpan workflow Anda sendiri.",
+    workflowTemplatesSearch: "Cari template…",
+    workflowTemplatesCategoryAll: "Semua",
+    workflowTemplatesCategoryHr: "HR",
+    workflowTemplatesCategoryOperations: "Operasional",
+    workflowTemplatesCategoryProjectManagement: "Manajemen Proyek",
+    workflowTemplatesCategoryReporting: "Pelaporan",
+    workflowTemplatesCategorySalesCrm: "Sales & CRM",
+    workflowTemplatesCategoryIt: "IT",
+    workflowTemplatesCategoryCustom: "Kustom",
+    workflowTemplateUse: "Gunakan Template",
+    workflowTemplateApplied: "Template diterapkan",
+    workflowTemplateApplyReplace: "Ganti workflow aktif",
+    workflowTemplateApplyAppend: "Tambah sebagai workflow baru",
+    workflowTemplateApplyTitle: "Terapkan template",
+    workflowTemplateApplyDescription:
+      "Ganti konten workflow aktif atau tambahkan sebagai workflow baru di workspace ini.",
+    workflowTemplateBuiltin: "Bawaan",
+    workflowTemplateCustom: "Kustom",
+    workflowTemplateSave: "Simpan Template",
+    workflowTemplateSaveTitle: "Simpan sebagai template",
+    workflowTemplateSaveDescription:
+      "Simpan workflow aktif ke galeri template akun Anda.",
+    workflowTemplateSaveName: "Nama template",
+    workflowTemplateSaveNameRequired: "Nama template wajib diisi.",
+    workflowTemplateSaved: "Template workflow disimpan",
+    workflowTemplateSaveFailed: "Gagal menyimpan template workflow.",
+    workflowTemplateSaveAuthRequired: "Masuk untuk menyimpan template kustom.",
+    workflowTemplateDelete: "Hapus template",
+    workflowTemplateDeleted: "Template dihapus",
+    workflowTemplateDeleteFailed: "Gagal menghapus template.",
+    workflowTemplateExport: "Ekspor JSON",
+    workflowTemplateImport: "Impor JSON",
+    workflowTemplateImportFailed: "File JSON workflow tidak valid.",
+    workflowTemplateExported: "Workflow diekspor",
+    workflowTemplateImported: "Workflow diimpor",
+    workflowTemplateNoResults: "Tidak ada template yang cocok.",
     toolsImage: "Gambar",
     toolsVideo: "Video",
     toolsMusic: "Musik",
@@ -1292,6 +1371,47 @@ export const COPY: Record<
     workflowExecutionLogs: "Execution Logs",
     workflowDeleteConfirmDescription:
       "The active workflow and all of its nodes will be removed from this chat.",
+    workflowTabCanvas: "Canvas",
+    workflowTabTemplates: "Templates",
+    workflowTemplatesTitle: "Workflow Template Gallery",
+    workflowTemplatesDescription:
+      "Start from company productivity templates or save your own workflows.",
+    workflowTemplatesSearch: "Search templates…",
+    workflowTemplatesCategoryAll: "All",
+    workflowTemplatesCategoryHr: "HR",
+    workflowTemplatesCategoryOperations: "Operations",
+    workflowTemplatesCategoryProjectManagement: "Project Management",
+    workflowTemplatesCategoryReporting: "Reporting",
+    workflowTemplatesCategorySalesCrm: "Sales & CRM",
+    workflowTemplatesCategoryIt: "IT",
+    workflowTemplatesCategoryCustom: "Custom",
+    workflowTemplateUse: "Use Template",
+    workflowTemplateApplied: "Template applied",
+    workflowTemplateApplyReplace: "Replace active workflow",
+    workflowTemplateApplyAppend: "Add as new workflow",
+    workflowTemplateApplyTitle: "Apply template",
+    workflowTemplateApplyDescription:
+      "Replace the active workflow content or add this template as a new workflow in the workspace.",
+    workflowTemplateBuiltin: "Built-in",
+    workflowTemplateCustom: "Custom",
+    workflowTemplateSave: "Save Template",
+    workflowTemplateSaveTitle: "Save as template",
+    workflowTemplateSaveDescription:
+      "Save the active workflow to your account template gallery.",
+    workflowTemplateSaveName: "Template name",
+    workflowTemplateSaveNameRequired: "Template name is required.",
+    workflowTemplateSaved: "Workflow template saved",
+    workflowTemplateSaveFailed: "Failed to save workflow template.",
+    workflowTemplateSaveAuthRequired: "Sign in to save custom templates.",
+    workflowTemplateDelete: "Delete template",
+    workflowTemplateDeleted: "Template deleted",
+    workflowTemplateDeleteFailed: "Failed to delete template.",
+    workflowTemplateExport: "Export JSON",
+    workflowTemplateImport: "Import JSON",
+    workflowTemplateImportFailed: "Invalid workflow JSON file.",
+    workflowTemplateExported: "Workflow exported",
+    workflowTemplateImported: "Workflow imported",
+    workflowTemplateNoResults: "No matching templates.",
     toolsImage: "Image",
     toolsVideo: "Video",
     toolsMusic: "Music",
@@ -1831,6 +1951,46 @@ export const COPY: Record<
     workflowActionLlmHint: "未选择工具时使用下方 LLM 提示词。",
     workflowExecutionLogs: "执行日志",
     workflowDeleteConfirmDescription: "当前工作流及其所有节点将从本对话中删除。",
+    workflowTabCanvas: "画布",
+    workflowTabTemplates: "模板",
+    workflowTemplatesTitle: "工作流模板库",
+    workflowTemplatesDescription:
+      "从企业效率模板开始，或保存您自己的工作流。",
+    workflowTemplatesSearch: "搜索模板…",
+    workflowTemplatesCategoryAll: "全部",
+    workflowTemplatesCategoryHr: "人力资源",
+    workflowTemplatesCategoryOperations: "运营",
+    workflowTemplatesCategoryProjectManagement: "项目管理",
+    workflowTemplatesCategoryReporting: "报告",
+    workflowTemplatesCategorySalesCrm: "销售与 CRM",
+    workflowTemplatesCategoryIt: "IT",
+    workflowTemplatesCategoryCustom: "自定义",
+    workflowTemplateUse: "使用模板",
+    workflowTemplateApplied: "模板已应用",
+    workflowTemplateApplyReplace: "替换当前工作流",
+    workflowTemplateApplyAppend: "添加为新工作流",
+    workflowTemplateApplyTitle: "应用模板",
+    workflowTemplateApplyDescription:
+      "替换当前工作流内容，或在本工作区添加为新工作流。",
+    workflowTemplateBuiltin: "内置",
+    workflowTemplateCustom: "自定义",
+    workflowTemplateSave: "保存模板",
+    workflowTemplateSaveTitle: "保存为模板",
+    workflowTemplateSaveDescription: "将当前工作流保存到账户模板库。",
+    workflowTemplateSaveName: "模板名称",
+    workflowTemplateSaveNameRequired: "模板名称不能为空。",
+    workflowTemplateSaved: "工作流模板已保存",
+    workflowTemplateSaveFailed: "保存工作流模板失败。",
+    workflowTemplateSaveAuthRequired: "登录后可保存自定义模板。",
+    workflowTemplateDelete: "删除模板",
+    workflowTemplateDeleted: "模板已删除",
+    workflowTemplateDeleteFailed: "删除模板失败。",
+    workflowTemplateExport: "导出 JSON",
+    workflowTemplateImport: "导入 JSON",
+    workflowTemplateImportFailed: "工作流 JSON 文件无效。",
+    workflowTemplateExported: "工作流已导出",
+    workflowTemplateImported: "工作流已导入",
+    workflowTemplateNoResults: "没有匹配的模板。",
     toolsImage: "图像",
     toolsVideo: "视频",
     toolsMusic: "音乐",

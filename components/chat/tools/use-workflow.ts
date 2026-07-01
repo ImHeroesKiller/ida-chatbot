@@ -10,14 +10,15 @@ import {
 } from "@/components/chat/tools/base-tool-state";
 import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
 import type { ToolQuotaState } from "@/components/chat/tools/types";
-import type { Locale } from "@/lib/config";
 import { consumeWorkflowExecuteStream } from "@/lib/client/parse-workflow-sse";
 import {
   parseWorkflowFromResponse,
   workflowPayloadToDefinition,
   type WorkflowStreamPayload,
 } from "@/lib/workflow-chat";
+import type { Locale } from "@/lib/config";
 import {
+  applyWorkflowTemplateToWorkspace,
   addWorkflowNode,
   areWorkflowWorkspaceSnapshotsEqual,
   buildWorkflowWorkspacePersistFingerprint,
@@ -39,8 +40,15 @@ import {
   type WorkflowErrorCode,
   type WorkflowExecutionLogEntry,
   type WorkflowExecutionResult,
+  type WorkflowTemplateApplyMode,
   type WorkflowWorkspace,
 } from "@/lib/workflow";
+import {
+  parseWorkflowImportJson,
+  resolveWorkflowTemplate,
+  serializeWorkflowForExport,
+  type WorkflowTemplate,
+} from "@/lib/workflow-templates";
 
 import {
   executeClientWorkflowAction,
@@ -168,6 +176,19 @@ export type WorkflowTool = BaseToolState &
       nodeId: string,
       workflowId?: string | null,
     ) => WorkflowWorkspaceState;
+    applyTemplate: (
+      template: WorkflowTemplate,
+      options?: {
+        locale?: Locale;
+        mode?: WorkflowTemplateApplyMode;
+        activate?: boolean;
+      },
+    ) => WorkflowDefinition | null;
+    exportActiveWorkflowJson: () => string | null;
+    importWorkflowJson: (
+      raw: string,
+      options?: { mode?: WorkflowTemplateApplyMode },
+    ) => WorkflowDefinition | null;
     resetWorkspace: () => void;
   };
 
@@ -635,6 +656,89 @@ export function useWorkflow(): WorkflowTool {
     );
   }, [lastGeneratedWorkflowSource]);
 
+  const applyTemplate = useCallback(
+    (
+      template: WorkflowTemplate,
+      options?: {
+        locale?: Locale;
+        mode?: WorkflowTemplateApplyMode;
+        activate?: boolean;
+      },
+    ): WorkflowDefinition | null => {
+      const locale = options?.locale ?? "id";
+      const resolved = resolveWorkflowTemplate(template, locale);
+
+      if (!resolved.nodes.length) return null;
+
+      let nextWorkspace!: WorkflowWorkspaceState;
+      let created: WorkflowDefinition | null = null;
+
+      setWorkspaceInternal((prev) => {
+        nextWorkspace = applyWorkflowTemplateToWorkspace(
+          prev,
+          {
+            name: resolved.name,
+            description: resolved.workflowDescription,
+            nodes: resolved.nodes,
+            edges: resolved.edges,
+          },
+          {
+            mode: options?.mode ?? "replace",
+            activate: options?.activate ?? true,
+          },
+        );
+        workspaceRef.current = nextWorkspace;
+        const activeId = nextWorkspace.activeWorkflowId;
+        created = activeId ? getWorkflowById(nextWorkspace, activeId) : null;
+        return nextWorkspace;
+      });
+
+      syncToPersistLayer(nextWorkspace, { force: true });
+      return created;
+    },
+    [syncToPersistLayer],
+  );
+
+  const exportActiveWorkflowJson = useCallback((): string | null => {
+    const workflow = getActiveWorkflow(workspaceRef.current);
+    if (!workflow) return null;
+
+    return serializeWorkflowForExport({
+      name: workflow.name,
+      description: workflow.description,
+      nodes: workflow.nodes,
+      edges: workflow.edges,
+    });
+  }, []);
+
+  const importWorkflowJson = useCallback(
+    (
+      raw: string,
+      options?: { mode?: WorkflowTemplateApplyMode },
+    ): WorkflowDefinition | null => {
+      const parsed = parseWorkflowImportJson(raw);
+      if (!parsed) return null;
+
+      let nextWorkspace!: WorkflowWorkspaceState;
+      let created: WorkflowDefinition | null = null;
+
+      setWorkspaceInternal((prev) => {
+        nextWorkspace = applyWorkflowTemplateToWorkspace(prev, parsed, {
+          mode: options?.mode ?? "replace",
+          activate: true,
+        });
+        workspaceRef.current = nextWorkspace;
+        const activeId = nextWorkspace.activeWorkflowId;
+        created = activeId ? getWorkflowById(nextWorkspace, activeId) : null;
+        return nextWorkspace;
+      });
+
+      syncToPersistLayer(nextWorkspace, { force: true });
+      return created;
+    },
+    [syncToPersistLayer],
+  );
+
   const executeWorkflow = useCallback(
     async (
       workflowId?: string | null,
@@ -931,6 +1035,9 @@ export function useWorkflow(): WorkflowTool {
     executeWorkflow,
     deleteWorkflow,
     deleteNode,
+    applyTemplate,
+    exportActiveWorkflowJson,
+    importWorkflowJson,
     resetWorkspace,
     setEnabled,
     toggleTool,
