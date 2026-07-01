@@ -53,6 +53,15 @@ export interface WorksheetCreateDocumentInput {
   activate?: boolean;
 }
 
+/** Payload from SSE stream when a worksheet document is generated. */
+export interface WorksheetStreamDocumentInput {
+  title: string;
+  content: string;
+  promptSummary?: string;
+  /** Stream inserts default to list view (`activate: false`). */
+  activate?: boolean;
+}
+
 export interface WorksheetHydrationInput extends ToolHydrationInput {
   workspace?: WorksheetDocument | null;
   locale?: Locale;
@@ -77,6 +86,10 @@ export type WorksheetTool = BaseToolState &
     setIsGenerating: (generating: boolean) => void;
     setGenerating: (generating: boolean) => void;
     createDocument: (input: WorksheetCreateDocumentInput) => WorksheetSavedDocument | null;
+    /** Append a chat-stream generated document to the workspace runtime state. */
+    createDocumentFromStream: (
+      input: WorksheetStreamDocumentInput,
+    ) => WorksheetWorkspaceState | null;
     selectDocument: (documentId: string) => void;
     deleteDocument: (documentId: string) => void;
     resetWorkspace: () => void;
@@ -245,6 +258,37 @@ export function useWorksheet(): WorksheetTool {
     [],
   );
 
+  const createDocumentFromStream = useCallback(
+    (input: WorksheetStreamDocumentInput): WorksheetWorkspaceState | null => {
+      const trimmedContent = input.content.trim();
+      if (!trimmedContent) return null;
+
+      let nextWorkspace!: WorksheetWorkspaceState;
+
+      setWorkspaceInternal((prev) => {
+        const appended = addGeneratedWorksheetDocument(
+          prev,
+          {
+            title: input.title,
+            content: input.content,
+            promptSummary: input.promptSummary,
+          },
+          { activate: input.activate ?? false },
+        );
+        nextWorkspace = syncWorkspaceLegacyFields({
+          ...appended,
+          updatedAt: Date.now(),
+          error: undefined,
+        });
+        workspaceRef.current = nextWorkspace;
+        return nextWorkspace;
+      });
+
+      return nextWorkspace;
+    },
+    [],
+  );
+
   const selectDocument = useCallback((documentId: string) => {
     setWorkspaceInternal((prev) => {
       const synced = syncWorkspaceLegacyFields(
@@ -297,6 +341,7 @@ export function useWorksheet(): WorksheetTool {
     setIsGenerating,
     setGenerating,
     createDocument,
+    createDocumentFromStream,
     selectDocument,
     deleteDocument,
     resetWorkspace,

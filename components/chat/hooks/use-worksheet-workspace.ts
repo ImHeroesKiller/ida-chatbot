@@ -29,6 +29,11 @@ import {
   type WorksheetTemplate,
 } from "@/lib/worksheet-templates";
 
+/**
+ * Persists worksheet workspace to `ChatSession` and mirrors mutations into
+ * `useWorksheet` via `syncWorkspaceToTool`. Runtime mutations from chat stream
+ * should prefer `tools.worksheet.createDocumentFromStream` first.
+ */
 interface UseWorksheetWorkspaceOptions {
   locale: Locale;
   hydrated: boolean;

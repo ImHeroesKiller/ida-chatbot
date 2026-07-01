@@ -143,23 +143,44 @@ export function createStreamToolBridge(
   const onWorksheetDone = (
     worksheet: NonNullable<IdaSseDonePayload["worksheet"]>,
   ) => {
-    const next = addGeneratedWorksheetDocument(
-      deps.worksheetWorkspaceRef.current,
-      {
+    const promptSummary = summarizeWorksheetPrompt(
+      deps.lastWorksheetPromptRef.current,
+    );
+
+    // Primary path: runtime workspace lives on the tool hook.
+    let next =
+      deps.tools.worksheet.createDocumentFromStream({
         title: worksheet.title,
         content: worksheet.content,
-        promptSummary: summarizeWorksheetPrompt(
-          deps.lastWorksheetPromptRef.current,
-        ),
-      },
-      { activate: false },
-    );
+        promptSummary,
+        activate: false,
+      }) ?? null;
+
+    // Fallback: legacy workspace ref path if stream payload is invalid.
+    if (!next) {
+      const legacyNext = addGeneratedWorksheetDocument(
+        deps.worksheetWorkspaceRef.current,
+        {
+          title: worksheet.title,
+          content: worksheet.content,
+          promptSummary,
+        },
+        { activate: false },
+      );
+      next = syncWorkspaceLegacyFields({
+        ...legacyNext,
+        updatedAt: Date.now(),
+      });
+      deps.tools.worksheet.syncWorkspaceFromExternal(next);
+    }
+
     const persisted = syncWorkspaceLegacyFields({
       ...next,
       updatedAt: Date.now(),
     });
 
     if (ctx.isActiveChat()) {
+      // Keep persistence hook aligned until it becomes persist-only.
       deps.setWorksheetWorkspace(next);
       deps.setWorksheetErrorDetail(null);
       deps.tools.activateWorksheet();
