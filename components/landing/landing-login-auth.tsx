@@ -5,7 +5,6 @@ import { Suspense } from "react";
 
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { LandingCtaButton } from "@/components/landing/landing-cta-button";
-import { LandingLegalConsent } from "@/components/landing/landing-legal-consent";
 import { COPY } from "@/lib/i18n";
 
 function LoginLegalNote() {
@@ -32,7 +31,6 @@ export function LandingLoginAuth() {
       <Suspense fallback={<div className="h-12 animate-pulse rounded-lg bg-muted" />}>
         <LoginLegalNote />
       </Suspense>
-      <LandingLegalConsent className="mt-4 text-center" />
     </div>
   );
 }

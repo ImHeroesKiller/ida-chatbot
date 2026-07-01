@@ -78,7 +78,7 @@
       "description": "使用 Google 登录以打开聊天室并开始使用您喜爱的工具。"
     },
     "legal": {
-      "consent": "使用 IDA 即表示您同意我们的{privacy}和{terms}。",
+      "consent": "使用 IDA 即表示您同意我们的<privacy></privacy>和<terms></terms>。",
       "privacy": "隐私政策",
       "terms": "服务条款"
     },

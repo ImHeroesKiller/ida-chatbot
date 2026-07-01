@@ -3,33 +3,27 @@
 import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
 
-const consentLinkClass = "underline hover:text-primary";
+const linkClass =
+  "font-medium underline transition-colors hover:text-primary";
 
-interface LandingLegalConsentProps {
-  className?: string;
-}
-
-export function LandingLegalConsent({ className }: LandingLegalConsentProps) {
+export function LandingLegalConsent() {
   const t = useTranslations("Landing.legal");
 
   return (
-    <p className={cn("text-sm leading-relaxed text-muted-foreground", className)}>
+    <p className="mx-auto max-w-md text-center text-xs text-muted-foreground">
       {t.rich("consent", {
-        privacy: (chunks) => (
-          <Link href="/privacy" className={consentLinkClass}>
-            {chunks}
+        privacy: () => (
+          <Link href="/privacy" className={linkClass}>
+            {t("privacy")}
           </Link>
         ),
-        terms: (chunks) => (
-          <Link href="/terms" className={consentLinkClass}>
-            {chunks}
+        terms: () => (
+          <Link href="/terms" className={linkClass}>
+            {t("terms")}
           </Link>
         ),
       })}
     </p>
   );
 }
-
-export { consentLinkClass as legalLinkClass };

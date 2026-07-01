@@ -74,7 +74,7 @@ export async function LandingPageStatic() {
       </header>
 
       <main className="flex-1">
-        <section className="relative overflow-hidden border-b px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
+        <section className="relative overflow-hidden border-b px-4 py-16 sm:px-6 sm:py-20">
           <div
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/12 via-background to-background"
             aria-hidden
@@ -121,7 +121,7 @@ export async function LandingPageStatic() {
 
         <section
           id="tools"
-          className="scroll-mt-20 border-b bg-gradient-to-b from-primary/[0.06] via-primary/[0.03] to-background px-4 py-14 sm:px-6 sm:py-20"
+          className="scroll-mt-20 border-b bg-gradient-to-b from-primary/[0.06] via-primary/[0.03] to-background px-4 py-16 sm:px-6 sm:py-20"
         >
           <div className="mx-auto max-w-6xl">
             <div className="mx-auto max-w-2xl text-center">
@@ -166,7 +166,7 @@ export async function LandingPageStatic() {
 
         <section
           id="benefits"
-          className="scroll-mt-20 px-4 py-14 sm:px-6 sm:py-20"
+          className="scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20"
         >
           <div className="mx-auto max-w-6xl">
             <div className="mx-auto max-w-2xl text-center">
@@ -201,7 +201,7 @@ export async function LandingPageStatic() {
 
         <section
           id="how-it-works"
-          className="scroll-mt-20 border-y bg-muted/25 px-4 py-14 dark:bg-muted/10 sm:px-6 sm:py-20"
+          className="scroll-mt-20 border-y bg-muted/25 px-4 py-16 dark:bg-muted/10 sm:px-6 sm:py-20"
         >
           <div className="mx-auto max-w-6xl">
             <div className="mx-auto max-w-2xl text-center">
@@ -230,7 +230,7 @@ export async function LandingPageStatic() {
 
         <section
           id="agentflow"
-          className="scroll-mt-20 border-y bg-muted/20 px-4 py-14 dark:bg-muted/10 sm:px-6 sm:py-20"
+          className="scroll-mt-20 border-y bg-muted/20 px-4 py-16 dark:bg-muted/10 sm:px-6 sm:py-20"
         >
           <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-14">
             <div className="order-2 lg:order-1">
@@ -260,19 +260,13 @@ export async function LandingPageStatic() {
 
         <section
           id="sign-in"
-          className="scroll-mt-20 border-t bg-gradient-to-b from-primary/[0.05] to-background px-4 py-14 sm:px-6 sm:py-20"
+          className="scroll-mt-20 border-t bg-gradient-to-b from-primary/[0.05] to-background px-4 py-16 sm:px-6 sm:py-20"
         >
           <div className="mx-auto max-w-md text-center">
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              {t("signIn.title")}
-            </h2>
-            <p className="mx-auto mt-2 text-sm text-muted-foreground">
-              {t("signIn.description")}
-            </p>
-            <div className="mt-6">
-              <LandingLoginLazy />
+            <LandingLoginLazy />
+            <div className="mt-4">
+              <LandingLegalConsent />
             </div>
-            <LandingLegalConsent className="mx-auto mt-4 max-w-md text-center" />
           </div>
         </section>
       </main>

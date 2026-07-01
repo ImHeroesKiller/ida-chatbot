@@ -78,7 +78,7 @@
       "description": "Sign in with Google to open the chat room and start using your favorite tools."
     },
     "legal": {
-      "consent": "By using IDA, you agree to our {privacy} and {terms}.",
+      "consent": "By using IDA, you agree to our <privacy></privacy> and <terms></terms>.",
       "privacy": "Privacy Policy",
       "terms": "Terms of Service"
     },
