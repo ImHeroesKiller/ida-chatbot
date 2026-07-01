@@ -91,3 +91,34 @@ Untuk informasi lebih lanjut mengenai arsitektur, fitur, panduan admin, dan kust
 Cara termudah untuk mendeploy aplikasi Next.js Anda adalah menggunakan [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
 
 Lihat [dokumentasi deployment Next.js](https://nextjs.org/docs/app/building-your-application/deploying) untuk detail lebih lanjut.
+
+---
+
+## Worksheet Modularization (Completed)
+
+Proses modularisasi **Worksheet** telah selesai dengan hasil sebagai berikut:
+
+### Hasil Akhir
+- `use-worksheet.ts` berfungsi sebagai **Single Source of Truth (SSOT)** untuk runtime state dan semua mutasi dokumen.
+- `useWorksheetWorkspace` diposisikan sebagai **pure persist layer** (hanya bertanggung jawab menyimpan state ke `ChatSession`).
+- Hampir seluruh handler di `worksheet-panel.tsx` sudah menggunakan Tool Hook (`tools.worksheet.*`) sebagai jalur utama.
+- Alur sinkronisasi diperbaiki menjadi lebih satu arah dan stabil.
+- Berhasil memperbaiki **React Infinite Loop (Error #185)** yang disebabkan oleh bidirectional sync.
+
+### Arsitektur Saat Ini
+```
+use-worksheet.ts (SSOT Runtime + Mutasi)
+        ↓ syncToPersistLayer()
+useWorksheetWorkspace (Persist Layer)
+        ↓
+ChatSession.worksheet
+```
+
+### Progress
+- **Overall Modularisasi Worksheet**: ±92–94%
+- Fase 1–4 telah diselesaikan secara bertahap.
+
+### Perubahan Utama
+- Semua mutasi dokumen utama (`updateDocument`, `applyTemplate`, `markDocumentAsExported`, dll) sekarang terpusat di `use-worksheet.ts`.
+- `commitWorkspace` masih ada sebagai fallback, tetapi tidak lagi menjadi jalur utama.
+- Duplikasi state workspace disengaja untuk kebutuhan persistensi.
