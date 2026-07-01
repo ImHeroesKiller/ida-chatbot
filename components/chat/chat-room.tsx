@@ -382,14 +382,9 @@ function ChatRoomContent() {
                 isToolActive={tools.isToolActive}
                 isAnyToolActive={tools.isAnyToolActive}
                 onToolMenuClick={tools.handleMenuToolClick}
-                onInternetToggle={() => {
-                  if (!tools.webSearchAvailable) return;
-                  const next = !tools.isToolActive("web-search");
-                  tools.webSearch.setEnabled(next);
-                  if (next && !isMobileViewport) {
-                    tools.openPanel(tools.webSearch.panelId);
-                  }
-                }}
+                onInternetToggle={() =>
+                  tools.toggleWebSearchInternet(!isMobileViewport)
+                }
                 onInputChange={chatSend.setInput}
                 onSend={(content, options) =>
                   void chatSend.sendMessage(content, options)

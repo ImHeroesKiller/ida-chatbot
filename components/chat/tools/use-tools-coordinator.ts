@@ -104,7 +104,7 @@ export function useToolsCoordinator(
 
   /**
    * Toggle one tool's armed state and panel together.
-   * Enabling closes sibling panels before opening the target.
+   * Other tools may stay armed; only sidebar panels are mutually exclusive.
    */
   const toggleTool = useCallback(
     (toolId: ToolId) => {
@@ -121,11 +121,33 @@ export function useToolsCoordinator(
         return;
       }
 
-      closeAllPanels();
       tool.setEnabled(true);
       openPanel(tool.panelId);
     },
     [closeAllPanels, ctx, entries, openPanel, panels.activePanel],
+  );
+
+  /**
+   * Internet toggle used by the mobile composer — preserves other armed tools.
+   */
+  const toggleWebSearchInternet = useCallback(
+    (openPanelOnEnable = false) => {
+      if (!ctx.webSearchAvailable) return;
+
+      const { webSearch } = bundle;
+      const isActive =
+        webSearch.isEnabled || panels.activePanel === webSearch.panelId;
+      const next = !isActive;
+
+      webSearch.setEnabled(next);
+
+      if (next && openPanelOnEnable) {
+        openPanel(webSearch.panelId);
+      } else if (!next && panels.activePanel === webSearch.panelId) {
+        webSearch.closePanel();
+      }
+    },
+    [bundle, ctx.webSearchAvailable, openPanel, panels.activePanel],
   );
 
   /**
@@ -151,6 +173,7 @@ export function useToolsCoordinator(
     collapsePanel: panels.collapsePanel,
     closeAllPanels,
     toggleTool,
+    toggleWebSearchInternet,
     setWorksheetEnabled: ui.setWorksheetEnabled,
     setWebSearchEnabled: ui.setWebSearchEnabled,
     setResearchEnabled: ui.setResearchEnabled,

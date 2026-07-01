@@ -4,6 +4,8 @@ import { researchTool } from "./research/research-tool";
 import { webSearchTool } from "./web-search/web-search-tool";
 import { worksheetTool } from "./worksheet/worksheet-tool";
 
+/** Modular tool registry — runtime hooks are wired via `useToolRuntime`. */
+
 const tools: Record<ToolId, Tool> = {
   worksheet: worksheetTool,
   "web-search": webSearchTool,

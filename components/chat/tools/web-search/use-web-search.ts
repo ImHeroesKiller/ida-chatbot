@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
   useBaseToolState,
@@ -9,7 +9,13 @@ import {
   type ToolHydrationInput,
 } from "@/components/chat/tools/base-tool-state";
 import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
+import type { ToolQuotaState } from "@/components/chat/tools/types";
 import type { IdaWebSearchSource } from "@/lib/types";
+
+import {
+  createWebSearchQuotaState,
+  WEB_SEARCH_QUOTA_DEFAULTS,
+} from "./web-search-quota";
 
 export type WebSearchResult = IdaWebSearchSource;
 
@@ -26,6 +32,8 @@ export type WebSearchTool = BaseToolState &
     isSearching: boolean;
     lastQuery: string | null;
     error: string | null;
+    /** Placeholder quota state — not enforced until account management exists. */
+    quota: ToolQuotaState;
     setSearchResults: (results: WebSearchResult[]) => void;
     setLastQuery: (query: string | null) => void;
     clearResults: () => void;
@@ -34,17 +42,27 @@ export type WebSearchTool = BaseToolState &
     endSearch: () => void;
   };
 
+/**
+ * Web Search tool hook — implements `BaseToolState` and is registered via
+ * `useToolsCoordinator` → `useToolRuntime`. Multiple tools may stay armed;
+ * the coordinator only enforces exclusive sidebar panels.
+ */
 export function useWebSearch(): WebSearchTool {
   const [searchResults, setSearchResultsState] = useState<WebSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [lastQuery, setLastQuery] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [quota, setQuota] = useState<ToolQuotaState>(createWebSearchQuotaState);
 
   const clearSearchData = useCallback(() => {
     setSearchResultsState([]);
     setLastQuery(null);
     setError(null);
     setIsSearching(false);
+  }, []);
+
+  const resetQuota = useCallback(() => {
+    setQuota(createWebSearchQuotaState());
   }, []);
 
   const hydrateSearchData = useCallback((state: WebSearchHydrationInput) => {
@@ -67,13 +85,24 @@ export function useWebSearch(): WebSearchTool {
   } = useBaseToolState<WebSearchHydrationInput>(PANEL_ID, {
     onDisable: clearSearchData,
     onHydrate: hydrateSearchData,
-    onReset: clearSearchData,
+    onReset: () => {
+      clearSearchData();
+      resetQuota();
+    },
   });
 
   const setSearchResults = useCallback((results: WebSearchResult[]) => {
     setSearchResultsState(results);
     setIsSearching(false);
     setError(null);
+
+    // TODO: Integrate with admin account management for per-user quota
+    if (WEB_SEARCH_QUOTA_DEFAULTS.enabled && results.length > 0) {
+      setQuota((current) => ({
+        ...current,
+        used: current.used + 1,
+      }));
+    }
   }, []);
 
   const clearResults = useCallback(() => {
@@ -95,6 +124,8 @@ export function useWebSearch(): WebSearchTool {
     setIsSearching(false);
   }, []);
 
+  const quotaSnapshot = useMemo(() => ({ ...quota }), [quota]);
+
   return {
     panelId,
     isEnabled,
@@ -103,6 +134,7 @@ export function useWebSearch(): WebSearchTool {
     isSearching,
     lastQuery,
     error,
+    quota: quotaSnapshot,
     setEnabled,
     toggleTool,
     openPanel,

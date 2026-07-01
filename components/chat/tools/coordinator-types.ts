@@ -72,6 +72,11 @@ export interface ToolPersistenceCoordinator {
 export interface ToolToggleCoordinator {
   /** Toggle armed state + panel for one tool with exclusive panel open. */
   toggleTool: (toolId: ToolId) => void;
+  /**
+   * Mobile/desktop internet toggle — arms Web Search without forcing other
+   * tools off; optionally opens the panel (desktop composer behavior).
+   */
+  toggleWebSearchInternet: (openPanelOnEnable?: boolean) => void;
 }
 
 export interface ToolUiCoordinator {
