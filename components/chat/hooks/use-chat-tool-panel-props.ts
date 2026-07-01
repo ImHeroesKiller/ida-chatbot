@@ -62,6 +62,7 @@ export function useChatToolPanelProps({
   const worksheetGenerating =
     tools.worksheet.isGenerating || worksheetGeneratingFromStream;
 
+  // Fallback commitWorkspace → inbound persist only (no hydrateFromExternal echo).
   const handleWorksheetChange = useCallback(
     (workspace: (typeof tools.worksheet)["workspace"]) => {
       worksheet.setWorksheetWorkspaceInbound(workspace);

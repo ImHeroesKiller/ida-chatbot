@@ -31,11 +31,24 @@ import {
 } from "@/lib/worksheet-templates";
 
 /**
- * Persist layer for `ChatSession.worksheet`.
+ * useWorksheetWorkspace
  *
- * Runtime document mutations should go through `useWorksheet` (tool hook) first;
- * this hook mirrors snapshots via `syncWorkspaceToTool` and auto-persists when
- * workspace state changes. Legacy handlers here remain as fallbacks during Phase 4.
+ * Layer ini bertanggung jawab untuk:
+ * - Persistensi state Worksheet ke ChatSession
+ * - Sinkronisasi inbound dari Tool Hook (`useWorksheet`)
+ *
+ * Layer ini TIDAK seharusnya menjadi pusat mutasi.
+ * Mutasi dokumen utama sebaiknya dilakukan melalui use-worksheet.ts (Tool Hook).
+ *
+ * Alur sinkronisasi satu arah (runtime):
+ *   useWorksheet (mutasi) → syncToPersistLayer() → setWorksheetWorkspaceInbound
+ *   → worksheetWorkspace state → useEffect → persistCurrentChat({ worksheet })
+ *
+ * Alur inbound dari chat (navigasi, bukan mutasi panel):
+ *   hydrateFromChat → persist state + syncWorkspaceToTool (hydrateFromExternal)
+ *
+ * Runtime SSOT untuk workspace dokumen: `tools.worksheet.workspace` (useWorksheet).
+ * State `worksheetWorkspace` di hook ini adalah mirror persist untuk ChatSession.
  */
 interface UseWorksheetWorkspaceOptions {
   locale: Locale;
@@ -44,7 +57,7 @@ interface UseWorksheetWorkspaceOptions {
   canPersistCurrentChatState: () => boolean;
   persistCurrentChat: (patch: Partial<Pick<ChatSession, "worksheet">>) => void;
   worksheetTemplateAppliedLabel: string;
-  /** Inbound mirror from persist layer into `useWorksheet` (hydrate snapshots). */
+  /** Outbound ke tool hook saat load chat / reset — bukan jalur mutasi panel. */
   syncWorkspaceToTool?: (workspace: WorksheetWorkspaceState) => void;
   /** Optional initial workspace snapshot from the tool hook. */
   getWorkspaceFromTool?: () => WorksheetWorkspaceState;
@@ -66,6 +79,7 @@ export function useWorksheetWorkspace({
   applyTemplateViaTool,
   clearAllViaTool,
 }: UseWorksheetWorkspaceOptions) {
+  /** Mirror persist untuk ChatSession — runtime SSOT ada di useWorksheet. */
   const [worksheetWorkspace, setWorksheetWorkspaceState] =
     useState<WorksheetWorkspaceState>(() => {
       const fromTool = getWorkspaceFromTool?.();
@@ -80,13 +94,15 @@ export function useWorksheetWorkspace({
   const [lastWorksheetPrompt, setLastWorksheetPrompt] = useState("");
   const lastWorksheetPromptRef = useRef("");
   /**
-   * Legacy mirror for stream bridge fallback.
-   * Runtime SSOT: `tools.worksheet.errorDetail` — do not read for UI.
+   * LEGACY mirror untuk stream bridge fallback.
+   * Runtime SSOT: `tools.worksheet.errorDetail` — jangan baca untuk UI.
    */
   const [worksheetErrorDetail, setWorksheetErrorDetail] = useState<
     string | null
   >(null);
 
+  // LEGACY / FALLBACK — mutasi + echo ke tool hook. Jangan gunakan sebagai jalur utama.
+  // Primary: mutasi via useWorksheet → syncToPersistLayer → setWorksheetWorkspaceInbound.
   const applyWorkspace = useCallback(
     (next: SetStateAction<WorksheetWorkspaceState>) => {
       setWorksheetWorkspaceState((prev) => {
@@ -100,7 +116,10 @@ export function useWorksheetWorkspace({
     [syncWorkspaceToTool],
   ) as Dispatch<SetStateAction<WorksheetWorkspaceState>>;
 
-  /** Inbound mirror from tool hook — does not echo back to `syncWorkspaceToTool`. */
+  /**
+   * Inbound mirror dari tool hook — update persist tanpa memicu hydrateFromExternal.
+   * Dipasang via registerSyncToPersistLayer di chat-room.tsx.
+   */
   const setWorksheetWorkspaceInbound = useCallback(
     (workspace: WorksheetWorkspaceState) => {
       const synced = syncWorkspaceLegacyFields(workspace);
@@ -143,13 +162,13 @@ export function useWorksheetWorkspace({
     worksheetWorkspace,
   ]);
 
+  /** Load worksheet dari ChatSession — outbound ke tool hook, bukan mutasi panel. */
   const hydrateFromChat = useCallback(
     (chat: ChatSession) => {
       const worksheet = normalizeWorksheetDocument(chat.worksheet, locale);
       worksheetWorkspaceRef.current = worksheet;
       setWorksheetWorkspaceState(worksheet);
       syncWorkspaceToTool?.(worksheet);
-      // Legacy mirror — tool hook clears via hydrateFromExternal + hydrate.
       setWorksheetErrorDetail(null);
 
       const lastUserMessage = [...chat.messages]
@@ -172,7 +191,7 @@ export function useWorksheetWorkspace({
     setLastWorksheetPrompt("");
   }, [locale, syncWorkspaceToTool]);
 
-  /** Legacy fallback — prefer `tools.worksheet` mutations via panel props. */
+  // LEGACY / FALLBACK — prefer onWorksheetChange via setWorksheetWorkspaceInbound (panel props).
   const handleWorksheetChange = useCallback(
     (workspace: WorksheetWorkspaceState) => {
       applyWorkspace(workspace);
@@ -180,6 +199,7 @@ export function useWorksheetWorkspace({
     [applyWorkspace],
   );
 
+  // LEGACY / FALLBACK — prefer tools.worksheet.applyTemplate via panel props.
   const handleWorksheetApplyTemplate = useCallback(
     (template: WorksheetTemplate) => {
       if (applyTemplateViaTool?.(template)) {
@@ -214,6 +234,7 @@ export function useWorksheetWorkspace({
     ],
   );
 
+  // LEGACY / FALLBACK — prefer tools.worksheet.clearAllDocuments via panel props.
   const handleWorksheetClear = useCallback(() => {
     if (clearAllViaTool?.()) {
       setWorksheetErrorDetail(null);
@@ -235,6 +256,7 @@ export function useWorksheetWorkspace({
 
   return {
     worksheetWorkspace,
+    /** LEGACY / FALLBACK alias untuk applyWorkspace — stream bridge & chat handlers. */
     setWorksheetWorkspace: applyWorkspace,
     setWorksheetWorkspaceInbound,
     worksheetWorkspaceRef,

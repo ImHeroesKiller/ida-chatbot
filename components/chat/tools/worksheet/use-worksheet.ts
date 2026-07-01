@@ -282,7 +282,6 @@ export function useWorksheet(): WorksheetTool {
 
   const hydrateFromExternal = useCallback(
     (external: WorksheetWorkspaceState): WorksheetWorkspaceState => {
-      console.log("[DEBUG] hydrateFromExternal called");
       const normalized = normalizeWorksheetDocument(
         external,
         localeRef.current,
@@ -311,7 +310,6 @@ export function useWorksheet(): WorksheetTool {
 
   const syncToPersistLayer = useCallback(
     (nextWorkspace?: WorksheetWorkspaceState): WorksheetWorkspaceState => {
-      console.log("[DEBUG] syncToPersistLayer called");
       const current = nextWorkspace ?? getWorkspace();
       if (!current) {
         return workspaceRef.current;
@@ -543,11 +541,9 @@ export function useWorksheet(): WorksheetTool {
         return nextWorkspace;
       });
 
-      // TEMP DISABLED FOR DEBUG
-      // return syncToPersistLayer(nextWorkspace);
-      return nextWorkspace;
+      return syncToPersistLayer(nextWorkspace);
     },
-    [],
+    [syncToPersistLayer],
   );
 
   const recordDocumentVersion = useCallback(
@@ -626,11 +622,9 @@ export function useWorksheet(): WorksheetTool {
         return nextWorkspace;
       });
 
-      // TEMP DISABLED FOR DEBUG
-      // return syncToPersistLayer(nextWorkspace);
-      return nextWorkspace;
+      return syncToPersistLayer(nextWorkspace);
     },
-    [],
+    [syncToPersistLayer],
   );
 
   const applyTemplate = useCallback(
@@ -668,11 +662,9 @@ export function useWorksheet(): WorksheetTool {
         return nextWorkspace;
       });
 
-      // TEMP DISABLED FOR DEBUG
-      // return syncToPersistLayer(nextWorkspace);
-      return nextWorkspace;
+      return syncToPersistLayer(nextWorkspace);
     },
-    [],
+    [syncToPersistLayer],
   );
 
   const clearAllDocuments = useCallback((): WorksheetWorkspaceState => {

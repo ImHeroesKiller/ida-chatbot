@@ -162,6 +162,7 @@ function ChatRoomContent() {
     },
   });
 
+  // Tool hook → persist layer (satu arah, tanpa echo hydrateFromExternal).
   const setWorksheetWorkspaceInboundRef = useRef(
     worksheet.setWorksheetWorkspaceInbound,
   );
@@ -221,10 +222,8 @@ function ChatRoomContent() {
     setIsLoading: chatSend.setIsLoading,
     setEditingMessageId,
     hydrateWorksheetFromChat: (chat) => {
+      // hydrateFromChat sudah memanggil syncWorkspaceToTool (hydrateFromExternal).
       worksheet.hydrateFromChat(chat);
-      tools.worksheet.hydrateFromExternal(
-        worksheet.worksheetWorkspaceRef.current,
-      );
       tools.worksheet.hydrate({
         enabled: tools.worksheet.isEnabled,
         panelOpen: tools.worksheet.isPanelOpen,

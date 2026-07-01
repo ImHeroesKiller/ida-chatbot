@@ -164,9 +164,10 @@ export function WorksheetPanel({
   const documentCount = workspace.documents?.length ?? 0;
 
   /**
-   * WORKSHEET_COMMIT_WORKSPACE_FALLBACKS (Phase 4):
-   * Primary path is `worksheetTool.*` (useWorksheet). `commitWorkspace` remains when
-   * a tool method is unavailable:
+   * WORKSHEET_COMMIT_WORKSPACE_FALLBACKS (Phase 4 Step 4):
+   * Primary: `worksheetTool.*` (useWorksheet) → syncToPersistLayer → persist layer.
+   * Fallback: `commitWorkspace` → onWorksheetChange → setWorksheetWorkspaceInbound
+   * (inbound-only, no hydrateFromExternal echo). Used when a tool method is unavailable:
    * - markExported, handleTitleChange, handleContentSave, handleContentChange
    * - handleRestoreVersion, performSelectDocument, handleBackToDocuments
    * - executeDeleteDocument, WorksheetBrandingDialog.onSelectionChange
