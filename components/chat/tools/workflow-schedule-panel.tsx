@@ -79,6 +79,8 @@ interface WorkflowSchedulePanelProps {
   triggerNode: WorkflowNode;
   sessionId?: string;
   onScheduleChange: (schedule: WorkflowScheduleConfig) => void;
+  /** When true, omit outer chrome (used inside WorkflowFloatingPanel). */
+  floating?: boolean;
 }
 
 function WorkflowSchedulePanelInner({
@@ -87,6 +89,7 @@ function WorkflowSchedulePanelInner({
   triggerNode,
   sessionId,
   onScheduleChange,
+  floating = false,
 }: WorkflowSchedulePanelProps) {
   const copy = COPY[locale];
   const schedule = readTriggerSchedule(triggerNode);
@@ -168,11 +171,13 @@ function WorkflowSchedulePanelInner({
     schedule.type === "event_email" || schedule.type === "event_calendar";
 
   return (
-    <div className="space-y-2 rounded-md border border-dashed p-2">
-      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-        <CalendarClock className="h-3 w-3" />
-        {copy.workflowScheduleTitle}
-      </div>
+    <div className={floating ? "space-y-2" : "space-y-2 rounded-md border border-dashed p-2"}>
+      {!floating ? (
+        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <CalendarClock className="h-3 w-3" />
+          {copy.workflowScheduleTitle}
+        </div>
+      ) : null}
 
       <div className="space-y-1">
         <Label htmlFor="workflow-schedule-type" className="text-xs">

@@ -339,6 +339,7 @@ export const COPY: Record<
     workflowScheduleSaved: string;
     workflowScheduleSaveFailed: string;
     workflowScheduleWebhookUrl: string;
+    workflowScheduleRequiresTrigger: string;
     workflowScheduledNotification: string;
     workflowStatusPaused: string;
     workflowStatusAwaitingApproval: string;
@@ -969,6 +970,7 @@ export const COPY: Record<
     workflowScheduleSaved: "Jadwal disimpan: {label}",
     workflowScheduleSaveFailed: "Gagal menyimpan jadwal.",
     workflowScheduleWebhookUrl: "URL webhook",
+    workflowScheduleRequiresTrigger: "Pilih node trigger untuk mengatur jadwal.",
     workflowScheduledNotification: "Workflow dijadwalkan: {label}",
     workflowStatusPaused: "dijeda",
     workflowStatusAwaitingApproval: "menunggu persetujuan",
@@ -1632,6 +1634,7 @@ export const COPY: Record<
     workflowScheduleSaved: "Schedule saved: {label}",
     workflowScheduleSaveFailed: "Failed to save schedule.",
     workflowScheduleWebhookUrl: "Webhook URL",
+    workflowScheduleRequiresTrigger: "Select a trigger node to configure the schedule.",
     workflowScheduledNotification: "Workflow scheduled: {label}",
     workflowStatusPaused: "paused",
     workflowStatusAwaitingApproval: "awaiting approval",
@@ -2284,6 +2287,7 @@ export const COPY: Record<
     workflowScheduleSaved: "计划已保存：{label}",
     workflowScheduleSaveFailed: "保存计划失败。",
     workflowScheduleWebhookUrl: "Webhook URL",
+    workflowScheduleRequiresTrigger: "请选择触发器节点以配置计划。",
     workflowScheduledNotification: "工作流已计划：{label}",
     workflowStatusPaused: "已暂停",
     workflowStatusAwaitingApproval: "等待审批",

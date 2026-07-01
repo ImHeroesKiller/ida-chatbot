@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import {
+  CalendarClock,
   ChevronDown,
   ChevronRight,
   Download,
@@ -12,6 +13,7 @@ import {
   Play,
   Plus,
   Save,
+  Shield,
   Trash2,
 } from "lucide-react";
 import {
@@ -27,34 +29,21 @@ import toast from "react-hot-toast";
 import type { WorkflowTool } from "@/components/chat/tools/use-workflow";
 import { WorkflowApprovalDialog } from "@/components/chat/tools/workflow-approval-dialog";
 import { WorkflowErrorRecoveryDialog } from "@/components/chat/tools/workflow-error-recovery-dialog";
+import { WorkflowFloatingPanel } from "@/components/chat/tools/workflow-floating-panel";
+import { WorkflowNodePropertiesPanel } from "@/components/chat/tools/workflow-node-properties-panel";
 import { WorkflowSchedulePanel } from "@/components/chat/tools/workflow-schedule-panel";
 import { WorksheetConfirmDialog } from "@/components/chat/tools/worksheet/worksheet-confirm-dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   getMultiAgentLabel,
   type MultiAgentId,
 } from "@/lib/agent/multi-agent";
 import type { Locale } from "@/lib/config";
-import { useIsMobileViewport } from "@/lib/client/use-media-query";
 import { COPY } from "@/lib/i18n";
 import { resolveWorkflowErrorMessage, resolveWorkflowExecutionToast } from "@/lib/workflow-feedback";
 import { inspectWorkflowResponse } from "@/lib/workflow-chat";
-import {
-  WORKFLOW_NODE_ACTIONS,
-  getWorkflowNodeActionDefinition,
-  parseWorkflowNodeActionId,
-  readWorkflowNodeActionParams,
-  type WorkflowNodeActionId,
-} from "@/lib/workflow-actions";
 import type { WorkflowScheduleConfig } from "@/lib/workflow-scheduler";
-import {
-  getWorkflowNodePrompt,
-  type WorkflowNodeData,
-  type WorkflowNodeKind,
-} from "@/lib/workflow";
+import { type WorkflowNodeData, type WorkflowNodeKind } from "@/lib/workflow";
 import { cn } from "@/lib/utils";
 import type { Edge, Node } from "reactflow";
 
@@ -142,7 +131,6 @@ function WorkflowPanelInner({
   embedded = false,
 }: WorkflowPanelProps) {
   const copy = COPY[locale];
-  const isMobileViewport = useIsMobileViewport();
   const {
     activeWorkflow,
     workflows,
@@ -171,21 +159,25 @@ function WorkflowPanelInner({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showRawResponse, setShowRawResponse] = useState(false);
   const [activeTab, setActiveTab] = useState<"canvas" | "templates">("canvas");
-  const [mobileEditorTab, setMobileEditorTab] = useState<"canvas" | "properties">(
-    "canvas",
-  );
+  const [floatingPanel, setFloatingPanel] = useState<
+    "properties" | "security" | "schedule" | null
+  >(null);
   const logPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setSelectedNodeId(null);
-    setMobileEditorTab("canvas");
+    setFloatingPanel(null);
   }, [activeWorkflow?.id]);
 
   useEffect(() => {
-    if (selectedNodeId && isMobileViewport) {
-      setMobileEditorTab("properties");
+    if (selectedNodeId) {
+      setFloatingPanel((prev) => (prev === "security" ? prev : "properties"));
+    } else {
+      setFloatingPanel((prev) =>
+        prev === "properties" || prev === "schedule" ? null : prev,
+      );
     }
-  }, [isMobileViewport, selectedNodeId]);
+  }, [selectedNodeId]);
 
   useEffect(() => {
     if (!isExecuting || !logPanelRef.current) return;
@@ -264,7 +256,35 @@ function WorkflowPanelInner({
     if (selectedNodeIdRef.current === nodeId) return;
     selectedNodeIdRef.current = nodeId;
     setSelectedNodeId(nodeId);
+    if (!nodeId) {
+      setFloatingPanel((prev) =>
+        prev === "properties" || prev === "schedule" ? null : prev,
+      );
+    }
   }, []);
+
+  const closeFloatingPanel = useCallback(() => {
+    setFloatingPanel((prev) => {
+      if (prev === "properties" || prev === "schedule") {
+        setSelectedNodeId(null);
+        selectedNodeIdRef.current = null;
+      }
+      return null;
+    });
+  }, []);
+
+  const openSecurityPanel = useCallback(() => {
+    setFloatingPanel("security");
+  }, []);
+
+  const openSchedulePanel = useCallback(() => {
+    const node = activeWorkflow?.nodes.find((n) => n.id === selectedNodeId);
+    if (!node || node.data.kind !== "trigger") {
+      toast.error(copy.workflowScheduleRequiresTrigger);
+      return;
+    }
+    setFloatingPanel("schedule");
+  }, [activeWorkflow?.nodes, copy.workflowScheduleRequiresTrigger, selectedNodeId]);
 
   const workflowErrorMessage = useMemo(() => {
     if (!errorDetail && !workspace.error) return null;
@@ -397,6 +417,8 @@ function WorkflowPanelInner({
     if (!selectedNodeId) return;
     workflowTool.deleteNode(selectedNodeId);
     setSelectedNodeId(null);
+    selectedNodeIdRef.current = null;
+    setFloatingPanel(null);
   }, [selectedNodeId, workflowTool]);
 
   const updateSelectedNodeData = useCallback(
@@ -413,52 +435,8 @@ function WorkflowPanelInner({
     [activeWorkflow, selectedNode, workflowTool],
   );
 
-  const selectedNodeActionId = useMemo(() => {
-    if (!selectedNode) return "llm" as WorkflowNodeActionId;
-    return parseWorkflowNodeActionId(selectedNode.data.config?.action);
-  }, [selectedNode]);
-
-  const selectedNodeAction = useMemo(
-    () => getWorkflowNodeActionDefinition(selectedNodeActionId),
-    [selectedNodeActionId],
-  );
-
-  const selectedNodeActionParams = useMemo(() => {
-    if (!selectedNode) return {};
-    return readWorkflowNodeActionParams(selectedNode);
-  }, [selectedNode]);
-
-  const handleNodeActionChange = useCallback(
-    (actionId: WorkflowNodeActionId) => {
-      if (!selectedNode) return;
-      updateSelectedNodeData({
-        config: {
-          ...selectedNode.data.config,
-          action: actionId,
-        },
-      });
-    },
-    [selectedNode, updateSelectedNodeData],
-  );
-
-  const handleNodeActionParamChange = useCallback(
-    (key: string, value: string) => {
-      if (!selectedNode) return;
-      updateSelectedNodeData({
-        config: {
-          ...selectedNode.data.config,
-          actionParams: {
-            ...readWorkflowNodeActionParams(selectedNode),
-            [key]: value,
-          },
-        },
-      });
-    },
-    [selectedNode, updateSelectedNodeData],
-  );
-
-  const showNodeActionConfig =
-    selectedNode?.data.kind === "action" || selectedNode?.data.kind === "output";
+  const triggerNode =
+    selectedNode?.data.kind === "trigger" ? selectedNode : null;
 
   return (
     <aside
@@ -581,6 +559,30 @@ function WorkflowPanelInner({
             <Trash2 className="mr-1 h-3 w-3" />
             {copy.workflowDelete}
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="xs"
+            className="h-7 text-[10px]"
+            onClick={openSecurityPanel}
+            disabled={!activeWorkflow}
+            title={copy.workflowSecurityTitle}
+          >
+            <Shield className="mr-1 h-3 w-3" />
+            {copy.workflowSecurityTitle}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="xs"
+            className="h-7 text-[10px]"
+            onClick={openSchedulePanel}
+            disabled={!activeWorkflow || !triggerNode}
+            title={copy.workflowScheduleTitle}
+          >
+            <CalendarClock className="mr-1 h-3 w-3" />
+            {copy.workflowScheduleTitle}
+          </Button>
         </div>
 
         <div className="space-y-1">
@@ -623,41 +625,8 @@ function WorkflowPanelInner({
         ) : null}
       </div>
 
-      {isMobileViewport && selectedNode ? (
-        <div className="shrink-0 border-b px-3 py-2">
-          <div className="flex gap-1 rounded-lg bg-muted/40 p-1">
-            <Button
-              type="button"
-              size="xs"
-              variant={mobileEditorTab === "canvas" ? "default" : "ghost"}
-              className="h-7 flex-1 text-[10px]"
-              onClick={() => setMobileEditorTab("canvas")}
-            >
-              {copy.workflowMobileCanvas}
-            </Button>
-            <Button
-              type="button"
-              size="xs"
-              variant={mobileEditorTab === "properties" ? "default" : "ghost"}
-              className="h-7 flex-1 text-[10px]"
-              onClick={() => setMobileEditorTab("properties")}
-            >
-              {copy.workflowMobileProperties}
-            </Button>
-          </div>
-        </div>
-      ) : null}
-
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <div
-          className={cn(
-            "min-h-0 flex-1 p-2 sm:p-3",
-            isMobileViewport &&
-              selectedNode &&
-              mobileEditorTab === "properties" &&
-              "hidden",
-          )}
-        >
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <div className="min-h-0 flex-1 p-2 sm:p-3">
           {activeWorkflow ? (
             <WorkflowCanvas
               key={activeWorkflow.id}
@@ -709,241 +678,75 @@ function WorkflowPanelInner({
           )}
         </div>
 
-        {selectedNode ? (
-          <div
-            className={cn(
-              "shrink-0 overflow-y-auto border-t bg-muted/10 p-2 dark:bg-muted/5 sm:p-3 lg:w-56 lg:border-t-0 lg:border-l xl:w-60",
-              isMobileViewport && mobileEditorTab === "canvas" && "hidden",
-              isMobileViewport && "max-h-[46vh]",
-            )}
+        {selectedNode && floatingPanel === "properties" ? (
+          <WorkflowFloatingPanel
+            open
+            onClose={closeFloatingPanel}
+            title={copy.workflowProperties}
+            icon={<GitBranch className="h-4 w-4" />}
           >
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              {copy.workflowProperties}
-            </p>
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <Label htmlFor="workflow-node-kind" className="text-xs">
-                  {copy.workflowNodeKind}
-                </Label>
-                <Input
-                  id="workflow-node-kind"
-                  value={selectedNode.data.kind}
-                  readOnly
-                  className="h-8 text-xs capitalize"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="workflow-node-label" className="text-xs">
-                  {copy.workflowNodeLabel}
-                </Label>
-                <Input
-                  id="workflow-node-label"
-                  value={selectedNode.data.label}
-                  onChange={(event) =>
-                    updateSelectedNodeData({ label: event.target.value })
-                  }
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="workflow-node-description" className="text-xs">
-                  {copy.workflowNodeDescription}
-                </Label>
-                <Textarea
-                  id="workflow-node-description"
-                  value={selectedNode.data.description ?? ""}
-                  onChange={(event) =>
-                    updateSelectedNodeData({
-                      description: event.target.value || undefined,
-                    })
-                  }
-                  rows={3}
-                  className="min-h-[4rem] resize-none text-xs"
-                />
-              </div>
-              {showNodeActionConfig ? (
-                <>
-                  <div className="space-y-1">
-                    <Label htmlFor="workflow-node-action" className="text-xs">
-                      {copy.workflowNodeAction}
-                    </Label>
-                    <select
-                      id="workflow-node-action"
-                      value={selectedNodeActionId}
-                      onChange={(event) =>
-                        handleNodeActionChange(
-                          event.target.value as WorkflowNodeActionId,
-                        )
-                      }
-                      className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
-                    >
-                      {WORKFLOW_NODE_ACTIONS.map((action) => (
-                        <option key={action.id} value={action.id}>
-                          {action.label}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="text-[10px] text-muted-foreground">
-                      {selectedNodeAction.description}
-                    </p>
-                  </div>
-                  {selectedNodeAction.paramFields.length > 0 ? (
-                    <div className="space-y-2 rounded-md border border-dashed p-2">
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        {copy.workflowActionParams}
-                      </p>
-                      {selectedNodeAction.paramFields.map((field) => (
-                        <div key={field.key} className="space-y-1">
-                          <Label
-                            htmlFor={`workflow-action-${field.key}`}
-                            className="text-xs"
-                          >
-                            {field.label}
-                          </Label>
-                          {field.multiline ? (
-                            <Textarea
-                              id={`workflow-action-${field.key}`}
-                              value={selectedNodeActionParams[field.key] ?? ""}
-                              onChange={(event) =>
-                                handleNodeActionParamChange(
-                                  field.key,
-                                  event.target.value,
-                                )
-                              }
-                              rows={3}
-                              placeholder={field.placeholder}
-                              className="min-h-[4rem] resize-none text-xs"
-                            />
-                          ) : (
-                            <Input
-                              id={`workflow-action-${field.key}`}
-                              value={selectedNodeActionParams[field.key] ?? ""}
-                              onChange={(event) =>
-                                handleNodeActionParamChange(
-                                  field.key,
-                                  event.target.value,
-                                )
-                              }
-                              placeholder={field.placeholder}
-                              className="h-8 text-xs"
-                            />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-[10px] text-muted-foreground">
-                      {copy.workflowActionLlmHint}
-                    </p>
-                  )}
-                </>
-              ) : null}
-              {selectedNode.data.kind === "trigger" && activeWorkflow ? (
-                <WorkflowSchedulePanel
-                  locale={locale}
-                  workflow={activeWorkflow}
-                  triggerNode={selectedNode}
-                  sessionId={sessionId}
-                  onScheduleChange={(schedule: WorkflowScheduleConfig) => {
-                    updateSelectedNodeData({
-                      config: {
-                        ...selectedNode.data.config,
-                        schedule,
-                      },
-                    });
-                  }}
-                />
-              ) : null}
-              {selectedNode.data.kind !== "trigger" ? (
-                <div className="space-y-1">
-                  <Label htmlFor="workflow-node-prompt" className="text-xs">
-                    {selectedNode.data.kind === "approval"
-                      ? copy.workflowApprovalPrompt
-                      : copy.workflowNodePrompt}
-                  </Label>
-                  <Textarea
-                    id="workflow-node-prompt"
-                    value={getWorkflowNodePrompt(selectedNode)}
-                    onChange={(event) =>
-                      updateSelectedNodeData({
-                        prompt: event.target.value || undefined,
-                        config: {
-                          ...selectedNode.data.config,
-                          prompt: event.target.value || undefined,
-                        },
-                      })
-                    }
-                    rows={4}
-                    placeholder={
-                      selectedNode.data.kind === "approval"
-                        ? copy.workflowApprovalDescription
-                        : "Instruksi LLM untuk node ini..."
-                    }
-                    className="min-h-[5rem] resize-none text-xs"
-                  />
-                </div>
-              ) : null}
-              {selectedNode.data.kind === "action" ||
-              selectedNode.data.kind === "output" ||
-              selectedNode.data.kind === "condition" ? (
-                <div className="space-y-1">
-                  <Label htmlFor="workflow-max-retries" className="text-xs">
-                    {copy.workflowMaxRetries}
-                  </Label>
-                  <Input
-                    id="workflow-max-retries"
-                    type="number"
-                    min={0}
-                    max={5}
-                    value={
-                      typeof selectedNode.data.config?.maxRetries === "number"
-                        ? selectedNode.data.config.maxRetries
-                        : 2
-                    }
-                    onChange={(event) =>
-                      updateSelectedNodeData({
-                        config: {
-                          ...selectedNode.data.config,
-                          maxRetries: Math.min(
-                            5,
-                            Math.max(0, Number(event.target.value) || 0),
-                          ),
-                        },
-                      })
-                    }
-                    className="h-8 text-xs"
-                  />
-                </div>
-              ) : null}
-              <Button
-                type="button"
-                variant="outline"
-                size="xs"
-                className="w-full text-destructive hover:text-destructive"
-                onClick={handleDeleteNode}
-              >
-                <Trash2 className="mr-1 h-3 w-3" />
-                {copy.workflowDeleteNode}
-              </Button>
-            </div>
-          </div>
+            <WorkflowNodePropertiesPanel
+              locale={locale}
+              node={selectedNode}
+              onUpdateNodeData={updateSelectedNodeData}
+              onOpenSchedule={
+                selectedNode.data.kind === "trigger"
+                  ? () => setFloatingPanel("schedule")
+                  : undefined
+              }
+              onDeleteNode={handleDeleteNode}
+            />
+          </WorkflowFloatingPanel>
+        ) : null}
+
+        {activeWorkflow && floatingPanel === "security" ? (
+          <WorkflowFloatingPanel
+            open
+            onClose={() => setFloatingPanel(null)}
+            title={copy.workflowSecurityTitle}
+            icon={<Shield className="h-4 w-4" />}
+          >
+            <WorkflowSecurityPanel
+              locale={locale}
+              workflow={activeWorkflow}
+              sessionId={sessionId}
+              floating
+              onSecurityUpdated={(updated) => {
+                workflowTool.updateWorkflow(activeWorkflow.id, {
+                  security: updated.security,
+                });
+              }}
+            />
+          </WorkflowFloatingPanel>
+        ) : null}
+
+        {activeWorkflow && triggerNode && floatingPanel === "schedule" ? (
+          <WorkflowFloatingPanel
+            open
+            onClose={() =>
+              setFloatingPanel(selectedNodeId ? "properties" : null)
+            }
+            title={copy.workflowScheduleTitle}
+            icon={<CalendarClock className="h-4 w-4" />}
+          >
+            <WorkflowSchedulePanel
+              locale={locale}
+              workflow={activeWorkflow}
+              triggerNode={triggerNode}
+              sessionId={sessionId}
+              floating
+              onScheduleChange={(schedule: WorkflowScheduleConfig) => {
+                updateSelectedNodeData({
+                  config: {
+                    ...triggerNode.data.config,
+                    schedule,
+                  },
+                });
+              }}
+            />
+          </WorkflowFloatingPanel>
         ) : null}
       </div>
-
-      {activeWorkflow ? (
-        <div className="shrink-0 border-t px-3 py-2">
-          <WorkflowSecurityPanel
-            locale={locale}
-            workflow={activeWorkflow}
-            sessionId={sessionId}
-            onSecurityUpdated={(updated) => {
-              workflowTool.updateWorkflow(activeWorkflow.id, {
-                security: updated.security,
-              });
-            }}
-          />
-        </div>
-      ) : null}
 
       {(workflowErrorMessage ||
         isExecuting ||

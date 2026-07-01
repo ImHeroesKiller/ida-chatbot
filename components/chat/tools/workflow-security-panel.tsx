@@ -20,6 +20,8 @@ interface WorkflowSecurityPanelProps {
   workflow: WorkflowDefinition;
   sessionId?: string;
   onSecurityUpdated: (workflow: WorkflowDefinition) => void;
+  /** When true, omit outer chrome (used inside WorkflowFloatingPanel). */
+  floating?: boolean;
 }
 
 function WorkflowSecurityPanelInner({
@@ -27,6 +29,7 @@ function WorkflowSecurityPanelInner({
   workflow,
   sessionId,
   onSecurityUpdated,
+  floating = false,
 }: WorkflowSecurityPanelProps) {
   const copy = COPY[locale];
   const security = workflow.security;
@@ -84,11 +87,17 @@ function WorkflowSecurityPanelInner({
   const role = security?.ownerId ? WORKFLOW_ROLE_LABELS.owner : "—";
 
   return (
-    <div className="space-y-2 rounded-md border bg-muted/15 p-2.5">
-      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-        <Shield className="h-3 w-3" />
-        {copy.workflowSecurityTitle}
-      </div>
+    <div
+      className={
+        floating ? "space-y-2" : "space-y-2 rounded-md border bg-muted/15 p-2.5"
+      }
+    >
+      {!floating ? (
+        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <Shield className="h-3 w-3" />
+          {copy.workflowSecurityTitle}
+        </div>
+      ) : null}
 
       <div className="space-y-1">
         <Label htmlFor="workflow-visibility" className="text-xs">
