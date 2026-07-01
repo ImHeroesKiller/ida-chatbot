@@ -1,80 +1,65 @@
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+
 import { BRAND } from "@/lib/brand";
-import { LANDING_COPY } from "@/lib/landing/content";
+import type { Locale } from "@/lib/config";
 
-import { getCanonicalUrl, getOgImageUrl, SEO_LOCALES } from "./config";
+import {
+  getOgImageUrl,
+  SEO_LOCALES,
+} from "./config";
+import { buildLanguageAlternates, getLocalizedCanonicalUrl } from "./locale-path";
 
-export const LANDING_SEO_KEYWORDS = [
-  "IDA",
-  "Intelligent Digital Assistant",
-  "AI Assistant Indonesia",
-  "Asisten AI",
-  "Asisten AI Indonesia",
-  "AI Agent Indonesia",
-  "chatbot Indonesia",
-  "Worksheet AI",
-  "AI Worksheet",
-  "Web Search AI",
-  "AI Research",
-  "chat AI gratis",
-  "asisten digital",
-  "productivity AI",
-  "AI untuk produktivitas",
-] as const;
+export async function buildLocalizedLandingMetadata(
+  locale: string,
+): Promise<Metadata> {
+  const t = await getTranslations({ locale, namespace: "Seo" });
+  const landing = await getTranslations({ locale, namespace: "Landing" });
 
-export const LANDING_SEO_TITLE =
-  "IDA — Asisten AI Indonesia | Chat, Worksheet, Web Search & Research";
-
-export const LANDING_SEO_DESCRIPTION =
-  "IDA adalah asisten AI buatan Indonesia untuk chat, Worksheet, Web Search, Research, dan Map. Gratis dicoba — mulai chat dan selesaikan tugas lebih cepat.";
-
-export function getLandingOpenGraphTitle(): string {
-  return `${LANDING_COPY.headline} — ${LANDING_COPY.headlineAccent}`;
-}
-
-export function buildLandingPageMetadata() {
-  const description = `${LANDING_SEO_DESCRIPTION} ${SEO_LOCALES.id.description}`;
-  const ogTitle = getLandingOpenGraphTitle();
-  const canonical = getCanonicalUrl("/");
+  const description = t("description");
+  const ogTitle = t("ogTitle");
+  const canonical = getLocalizedCanonicalUrl("/", locale);
   const ogImage = getOgImageUrl();
+  const localeTag =
+    SEO_LOCALES[locale as Locale]?.tag ?? SEO_LOCALES.id.tag;
+  const alternateLocales = Object.values(SEO_LOCALES)
+    .map((entry) => entry.tag)
+    .filter((tag) => tag !== localeTag);
 
   return {
-    title: LANDING_SEO_TITLE,
+    title: t("title"),
     description,
-    keywords: [...LANDING_SEO_KEYWORDS],
+    keywords: t.raw("keywords") as string[],
     alternates: {
       canonical,
-      languages: {
-        id: canonical,
-        en: `${canonical}?lang=en`,
-        "x-default": canonical,
-      },
+      languages: buildLanguageAlternates("/"),
     },
     openGraph: {
       title: ogTitle,
-      description: LANDING_SEO_DESCRIPTION,
+      description,
       url: canonical,
       siteName: BRAND.name,
-      locale: SEO_LOCALES.id.tag,
-      alternateLocale: [SEO_LOCALES.en.tag],
-      type: "website" as const,
+      locale: localeTag,
+      alternateLocale: alternateLocales,
+      type: "website",
       images: [
         {
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: `${BRAND.name} — Asisten AI Indonesia dengan Worksheet, Web Search, dan Research`,
+          alt: t("ogImageAlt"),
           type: "image/png",
         },
       ],
     },
     twitter: {
-      card: "summary_large_image" as const,
+      card: "summary_large_image",
       title: ogTitle,
-      description: LANDING_SEO_DESCRIPTION,
+      description,
       images: [
         {
           url: ogImage,
-          alt: `${BRAND.name} — Asisten AI Indonesia`,
+          alt: `${BRAND.name} — ${landing("hero.title")}`,
         },
       ],
     },
@@ -85,7 +70,7 @@ export function buildLandingPageMetadata() {
       googleBot: {
         index: true,
         follow: true,
-        "max-image-preview": "large" as const,
+        "max-image-preview": "large",
         "max-snippet": -1,
         "max-video-preview": -1,
       },

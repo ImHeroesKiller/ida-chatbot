@@ -1,40 +1,48 @@
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 import type { ReactNode } from "react";
 
 import { IdaLogo } from "@/components/brand/ida-logo";
+import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
+import { Link } from "@/i18n/navigation";
 import { IDA_CONFIG } from "@/lib/config";
 
 interface LegalPageProps {
   title: string;
   lastUpdated: string;
   backHref?: string;
-  backLabel?: string;
   children: ReactNode;
 }
 
-export function LegalPage({
+export async function LegalPage({
   title,
   lastUpdated,
   backHref = "/",
-  backLabel = "Kembali",
   children,
 }: LegalPageProps) {
+  const t = await getTranslations("Common");
+
   return (
     <div className="min-h-dvh bg-background">
       <header className="border-b px-4 py-4 sm:px-6">
-        <div className="mx-auto flex max-w-3xl items-center gap-3">
-          <Link
-            href={backHref}
-            className="inline-flex size-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            aria-label={backLabel}
-          >
-            <ArrowLeft className="size-4" />
-          </Link>
-          <Link href="/" className="flex items-center gap-2 hover:opacity-90">
-            <IdaLogo size="xs" />
-            <span className="text-sm font-semibold">{IDA_CONFIG.name}</span>
-          </Link>
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Link
+              href={backHref}
+              className="inline-flex size-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label={t("back")}
+            >
+              <ArrowLeft className="size-4" />
+            </Link>
+            <Link href="/" className="flex items-center gap-2 hover:opacity-90">
+              <IdaLogo size="xs" />
+              <span className="text-sm font-semibold">{IDA_CONFIG.name}</span>
+            </Link>
+          </div>
+          <Suspense fallback={null}>
+            <LocaleSwitcher />
+          </Suspense>
         </div>
       </header>
 
@@ -44,9 +52,7 @@ export function LegalPage({
             <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
               {title}
             </h1>
-            <p className="text-sm text-muted-foreground">
-              Terakhir diperbarui: {lastUpdated}
-            </p>
+            <p className="text-sm text-muted-foreground">{lastUpdated}</p>
           </header>
 
           <div className="legal-prose space-y-6 text-sm leading-relaxed text-foreground/90 sm:text-base">
@@ -55,13 +61,13 @@ export function LegalPage({
 
           <footer className="flex flex-wrap gap-4 border-t pt-6 text-sm text-muted-foreground">
             <Link href="/privacy" className="hover:text-foreground hover:underline">
-              Kebijakan Privasi
+              {t("privacyLink")}
             </Link>
             <Link href="/terms" className="hover:text-foreground hover:underline">
-              Syarat Layanan
+              {t("termsLink")}
             </Link>
             <Link href="/" className="hover:text-foreground hover:underline">
-              Beranda
+              {t("home")}
             </Link>
           </footer>
         </article>

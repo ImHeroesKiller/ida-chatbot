@@ -1,0 +1,355 @@
+{
+  "Common": {
+    "back": "Kembali",
+    "home": "Beranda",
+    "privacyLink": "Kebijakan Privasi",
+    "termsLink": "Syarat & Ketentuan"
+  },
+  "Seo": {
+    "title": "IDA — Asisten AI Indonesia | Chat, Worksheet, Web Search & Research",
+    "description": "IDA adalah asisten AI buatan Indonesia untuk chat, Worksheet, Web Search, Research, dan Map. Gratis dicoba — mulai chat dan selesaikan tugas lebih cepat.",
+    "ogTitle": "Asisten AI yang Mengerti Konteks Anda — IDA",
+    "ogImageAlt": "IDA — Asisten AI Indonesia dengan Worksheet, Web Search, dan Research",
+    "keywords": [
+      "IDA",
+      "Intelligent Digital Assistant",
+      "Asisten AI Indonesia",
+      "chatbot Indonesia",
+      "Worksheet AI",
+      "Web Search AI",
+      "AI Research",
+      "chat AI gratis",
+      "productivity AI"
+    ]
+  },
+  "Landing": {
+    "hero": {
+      "badge": "Asisten AI Profesional",
+      "title": "Asisten AI yang Mengerti Konteks Anda",
+      "subtitle": "IDA membantu Anda bekerja lebih cepat dengan Worksheet, Web Search, Research, dan Map — semua dalam satu tempat.",
+      "ctaPrimary": "Coba IDA Gratis",
+      "ctaSecondary": "Lihat Fitur",
+      "continueToChat": "Lanjut ke Chat",
+      "trustLine": "Gratis untuk dicoba · Login Google · Tanpa kartu kredit"
+    },
+    "features": {
+      "title": "Fitur Utama",
+      "worksheet": {
+        "title": "Worksheet",
+        "desc": "Buat dokumen profesional langsung dari chat. Edit, export PDF/DOCX, simpan versi, dan gunakan template."
+      },
+      "webSearch": {
+        "title": "Pencarian Web",
+        "desc": "Dapatkan informasi terkini langsung dari internet dengan sumber yang jelas."
+      },
+      "research": {
+        "title": "Research",
+        "desc": "Lakukan riset mendalam dengan beberapa tingkat kedalaman dan hasil terstruktur."
+      },
+      "map": {
+        "title": "Map",
+        "desc": "Integrasi peta untuk kebutuhan lokasi dan analisis spasial."
+      }
+    },
+    "benefits": {
+      "title": "Kenapa Memilih IDA?",
+      "items": [
+        "Hemat waktu dengan workflow yang terintegrasi",
+        "Hasil yang konsisten dan dapat diekspor",
+        "Privasi data terjaga",
+        "Dukungan bahasa Indonesia, English, dan 中文"
+      ]
+    },
+    "howItWorks": {
+      "title": "Cara Kerja",
+      "steps": [
+        "Login dengan Google",
+        "Mulai chat atau buka Tools",
+        "Gunakan Worksheet, Web Search, atau Research",
+        "Hasil langsung bisa diedit dan diekspor"
+      ]
+    },
+    "finalCta": {
+      "title": "Siap Meningkatkan Produktivitas Anda?",
+      "subtitle": "Mulai gunakan IDA sekarang. Gratis untuk memulai."
+    },
+    "signIn": {
+      "title": "Siap mencoba IDA?",
+      "description": "Masuk dengan Google untuk membuka chat room dan mulai pakai tools favoritmu."
+    },
+    "legal": {
+      "consent": "Dengan menggunakan IDA, Anda menyetujui {privacy} dan {terms}.",
+      "privacy": "Kebijakan Privasi",
+      "terms": "Syarat & Ketentuan"
+    },
+    "agentFlow": {
+      "badge": "Fitur lanjutan",
+      "title": "Butuh otomatisasi workflow?",
+      "description": "AgentFlow hadir untuk tim yang ingin mengotomasi proses dokumen dan workflow bisnis — di luar pengalaman chat utama IDA.",
+      "cta": "Pelajari AgentFlow",
+      "headerLink": "AgentFlow"
+    }
+  },
+  "Privacy": {
+    "title": "Kebijakan Privasi",
+    "lastUpdated": "Terakhir diperbarui: 1 Juli 2026",
+    "intro": "Kebijakan Privasi ini menjelaskan bagaimana IDA (\"IDA\", \"kami\") mengumpulkan, menggunakan, dan melindungi informasi Anda saat menggunakan layanan chatbot AI kami.",
+    "sections": {
+      "dataCollection": {
+        "title": "1. Data yang Kami Kumpulkan",
+        "blocks": [
+          {
+            "type": "labeled",
+            "label": "Data akun:",
+            "text": "Saat Anda masuk dengan Google, kami menerima informasi profil dasar seperti nama, alamat email, foto profil, dan pengenal pengguna (user ID) melalui Supabase Auth."
+          },
+          {
+            "type": "labeled",
+            "label": "Data percakapan:",
+            "text": "Pesan yang Anda kirim dan respons asisten, riwayat chat, judul sesi, serta preferensi antarmuka (tema, bahasa, pengaturan suara) disimpan untuk menyediakan layanan dan sinkronisasi antar perangkat."
+          },
+          {
+            "type": "labeled",
+            "label": "Data teknis:",
+            "text": "Log permintaan API (model, provider, token, status), alamat IP untuk rate limiting, dan metadata sesi untuk keamanan dan analitik operasional."
+          },
+          {
+            "type": "labeled",
+            "label": "Unggahan file:",
+            "text": "Gambar atau PDF yang Anda lampirkan diproses untuk ekstraksi teks (OCR) dan tidak disimpan permanen kecuali sebagai bagian dari riwayat percakapan Anda."
+          }
+        ]
+      },
+      "dataUse": {
+        "title": "2. Cara Kami Menggunakan Data",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "Menyediakan, memelihara, dan meningkatkan layanan chat IDA.",
+              "Menyinkronkan riwayat chat Anda di berbagai perangkat.",
+              "Memproses permintaan AI, pencarian knowledge base (RAG), dan fitur suara.",
+              "Mencegah penyalahgunaan, spam, dan pelanggaran keamanan.",
+              "Memenuhi kewajiban hukum dan menanggapi permintaan yang sah."
+            ]
+          }
+        ]
+      },
+      "storageRetention": {
+        "title": "3. Penyimpanan & Retensi",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Data disimpan di infrastruktur Supabase (database dan autentikasi). Riwayat chat dipertahankan selama akun aktif atau hingga Anda menghapusnya. Kami dapat menghapus data yang tidak aktif setelah periode waktu yang wajar sesuai kebijakan internal."
+          }
+        ]
+      },
+      "cookies": {
+        "title": "4. Cookies & Penyimpanan Lokal",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Kami menggunakan cookie sesi autentikasi (Supabase Auth) dan penyimpanan lokal browser (localStorage/sessionStorage) untuk tema, preferensi UI, dan cache konfigurasi. Cookie esensial diperlukan agar login dan sesi berfungsi."
+          }
+        ]
+      },
+      "thirdParty": {
+        "title": "5. Layanan Pihak Ketiga",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "IDA mengintegrasikan penyedia berikut yang memproses data sesuai kebijakan mereka:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Supabase — autentikasi, database, penyimpanan sesi.",
+              "Google — login OAuth dan model AI (Gemini) untuk chat, embedding, OCR, dan transkripsi.",
+              "Groq — transkripsi suara (opsional, jika dikonfigurasi).",
+              "xAI / OpenAI / Hugging Face — model AI alternatif atau TTS (jika diaktifkan oleh administrator).",
+              "Vercel — hosting aplikasi."
+            ]
+          },
+          {
+            "type": "text",
+            "text": "Konten percakapan dapat dikirim ke penyedia model AI untuk menghasilkan respons. Jangan bagikan informasi sensitif (password, OTP, data medis kritis) melalui chat."
+          }
+        ]
+      },
+      "security": {
+        "title": "6. Keamanan",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Kami menerapkan langkah-langkah wajar untuk melindungi data, termasuk enkripsi dalam transit (HTTPS), autentikasi berbasis OAuth, dan akses database terbatas pada sisi server. Tidak ada sistem yang 100% aman; gunakan layanan dengan risiko yang Anda pahami."
+          }
+        ]
+      },
+      "userRights": {
+        "title": "7. Hak Anda",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Anda dapat:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Mengakses dan memperbarui profil melalui halaman Akun.",
+              "Menghapus riwayat chat dari dalam aplikasi.",
+              "Meminta penghapusan akun dengan menghubungi pengelola layanan.",
+              "Berhenti menggunakan layanan kapan saja."
+            ]
+          }
+        ]
+      },
+      "policyChanges": {
+        "title": "8. Perubahan Kebijakan",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Kami dapat memperbarui kebijakan ini sewaktu-waktu. Perubahan material akan dicantumkan di halaman ini dengan tanggal pembaruan. Penggunaan berkelanjutan setelah perubahan berarti Anda menerima kebijakan yang diperbarui."
+          }
+        ]
+      },
+      "contact": {
+        "title": "9. Kontak",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Untuk pertanyaan privasi, hubungi pengelola IDA melalui saluran resmi organisasi yang mengoperasikan layanan ini."
+          }
+        ]
+      }
+    }
+  },
+  "Terms": {
+    "title": "Syarat Layanan",
+    "lastUpdated": "Terakhir diperbarui: 1 Juli 2026",
+    "intro": "Dengan mengakses atau menggunakan IDA (\"IDA\", \"layanan\"), Anda setuju untuk terikat oleh Syarat Layanan ini. Jika tidak setuju, harap tidak menggunakan layanan.",
+    "sections": {
+      "serviceDescription": {
+        "title": "1. Deskripsi Layanan",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "IDA adalah asisten digital berbasis kecerdasan buatan yang menyediakan percakapan, pencarian knowledge base (RAG), input suara, Worksheet, Web Search, Research, Map, dan fitur terkait. Layanan ditujukan untuk membantu informasi umum dan tidak menggantikan nasihat profesional (medis, hukum, keuangan, dll.)."
+          }
+        ]
+      },
+      "userAccount": {
+        "title": "2. Akun Pengguna",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "Anda harus masuk dengan akun Google yang valid.",
+              "Anda bertanggung jawab menjaga keamanan sesi dan perangkat Anda.",
+              "Anda setuju memberikan informasi yang akurat dan tidak menyalahgunakan akun orang lain.",
+              "Kami dapat menangguhkan atau menghentikan akun yang melanggar syarat ini."
+            ]
+          }
+        ]
+      },
+      "acceptableUse": {
+        "title": "3. Penggunaan yang Diperbolehkan",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Anda setuju untuk tidak:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Menggunakan layanan untuk aktivitas ilegal, berbahaya, atau menyesatkan.",
+              "Mengirim spam, malware, atau konten yang melanggar hak pihak ketiga.",
+              "Mencoba mengakses sistem, API, atau data pengguna lain tanpa izin.",
+              "Menghindari batasan teknis (rate limit, autentikasi, dll.).",
+              "Menggunakan output AI untuk keputusan kritis tanpa verifikasi independen."
+            ]
+          }
+        ]
+      },
+      "aiContent": {
+        "title": "4. Konten & Respons AI",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Respons IDA dihasilkan oleh model AI dan dapat tidak akurat, tidak lengkap, atau usang. Anda bertanggung jawab mengevaluasi dan memverifikasi informasi sebelum mengambil tindakan. Kami tidak menjamin keakuratan, ketersediaan, atau kesesuaian respons untuk tujuan tertentu."
+          }
+        ]
+      },
+      "intellectualProperty": {
+        "title": "5. Hak Kekayaan Intelektual",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Nama, logo, antarmuka, dan kode sumber IDA dilindungi oleh hukum yang berlaku. Anda tidak boleh menyalin, memodifikasi, atau mendistribusikan bagian layanan tanpa izin tertulis, kecuali diizinkan oleh lisensi open-source proyek (jika ada)."
+          },
+          {
+            "type": "text",
+            "text": "Anda mempertahankan hak atas konten yang Anda kirim. Dengan menggunakan layanan, Anda memberi kami lisensi terbatas untuk memproses konten tersebut guna menyediakan dan meningkatkan layanan."
+          }
+        ]
+      },
+      "thirdParty": {
+        "title": "6. Layanan Pihak Ketiga",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "IDA mengandalkan layanan pihak ketiga (Supabase, Google, Groq, dan penyedia model lain yang dikonfigurasi). Ketersediaan dan ketentuan mereka berlaku secara terpisah. Kami tidak bertanggung jawab atas gangguan yang disebabkan oleh pihak ketiga."
+          }
+        ]
+      },
+      "limitation": {
+        "title": "7. Batasan Tanggung Jawab",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Sejauh diizinkan hukum, IDA dan pengelolanya tidak bertanggung jawab atas kerugian tidak langsung, insidental, khusus, atau konsekuensial yang timbul dari penggunaan layanan, termasuk kehilangan data, gangguan bisnis, atau keputusan yang diambil berdasarkan output AI."
+          },
+          {
+            "type": "text",
+            "text": "Total tanggung jawab kami terbatas pada jumlah yang dibayarkan Anda untuk layanan dalam 12 bulan terakhir, atau nol jika layanan disediakan gratis."
+          }
+        ]
+      },
+      "termination": {
+        "title": "8. Penghentian",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Kami dapat mengubah, menangguhkan, atau menghentikan layanan kapan saja. Anda dapat berhenti menggunakan layanan dengan keluar dari akun dan tidak lagi mengakses aplikasi."
+          }
+        ]
+      },
+      "changes": {
+        "title": "9. Perubahan Syarat",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Syarat ini dapat diperbarui. Tanggal pembaruan terakhir tercantum di atas. Penggunaan berkelanjutan setelah perubahan berarti Anda menerima syarat yang diperbarui."
+          }
+        ]
+      },
+      "governingLaw": {
+        "title": "10. Hukum yang Berlaku",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Syarat ini diatur oleh hukum Republik Indonesia, tanpa memperhatikan konflik ketentuan hukum, kecuali diwajibkan lain oleh peraturan yang berlaku."
+          }
+        ]
+      },
+      "contact": {
+        "title": "11. Kontak",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Pertanyaan mengenai syarat layanan dapat diajukan melalui saluran resmi pengelola IDA."
+          }
+        ]
+      }
+    }
+  }
+}

@@ -5,10 +5,11 @@ import { Bot } from "lucide-react";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import { LandingCtaButton } from "@/components/landing/landing-cta-button";
-import { LANDING_AGENTFLOW } from "@/lib/landing/content";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 export function LandingHeaderActions() {
+  const t = useTranslations("Landing.agentFlow");
   const { user } = useAuth();
 
   return (
@@ -21,7 +22,7 @@ export function LandingHeaderActions() {
           )}
         >
           <Bot className="size-4" aria-hidden />
-          {LANDING_AGENTFLOW.headerLink}
+          {t("headerLink")}
         </Link>
       ) : null}
       <LandingCtaButton variant="header" />

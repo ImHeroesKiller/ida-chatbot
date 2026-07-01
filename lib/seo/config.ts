@@ -28,6 +28,13 @@ export const SEO_LOCALES = {
     description:
       "IDA — Intelligent Digital Assistant. AI chatbot with RAG, conversation memory, and multilingual support.",
   },
+  zh: {
+    tag: "zh-CN",
+    hreflang: "zh",
+    title: "IDA — 智能数字助手",
+    description:
+      "IDA — 智能数字助手。支持 RAG、对话记忆和多语言的 AI 聊天机器人。",
+  },
 } as const;
 
 export const PUBLIC_ROUTES = [

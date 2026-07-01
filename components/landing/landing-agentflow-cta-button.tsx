@@ -8,8 +8,8 @@ import toast from "react-hot-toast";
 import { useAuth } from "@/components/auth/auth-provider";
 import { GoogleIcon } from "@/components/landing/google-icon";
 import { Button } from "@/components/ui/button";
-import { LANDING_AGENTFLOW } from "@/lib/landing/content";
 import { COPY } from "@/lib/i18n";
+import { useTranslations } from "next-intl";
 import { isSupabaseBrowserConfigured } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +23,7 @@ export function LandingAgentFlowCtaButton({
   className,
 }: LandingAgentFlowCtaButtonProps) {
   const copy = COPY.id;
+  const t = useTranslations("Landing.agentFlow");
   const { user, signInWithGoogle, loading: authLoading } = useAuth();
   const [signingIn, setSigningIn] = useState(false);
   const supabaseReady = isSupabaseBrowserConfigured();
@@ -56,7 +57,7 @@ export function LandingAgentFlowCtaButton({
           className,
         )}
       >
-        {LANDING_AGENTFLOW.cta}
+        {t("cta")}
         <ArrowRight className="size-4" aria-hidden />
       </Link>
     );
@@ -74,7 +75,7 @@ export function LandingAgentFlowCtaButton({
       size="lg"
     >
       <GoogleIcon className="size-4" />
-      {busy ? "Redirecting..." : LANDING_AGENTFLOW.cta}
+      {busy ? "Redirecting..." : t("cta")}
       {!busy ? <ArrowRight className="size-4" aria-hidden /> : null}
     </Button>
   );

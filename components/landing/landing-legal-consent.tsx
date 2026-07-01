@@ -1,6 +1,8 @@
-import Link from "next/link";
+"use client";
 
-import { LANDING_COPY } from "@/lib/landing/content";
+import { useTranslations } from "next-intl";
+
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 const legalLinkClass =
@@ -11,17 +13,22 @@ interface LandingLegalConsentProps {
 }
 
 export function LandingLegalConsent({ className }: LandingLegalConsentProps) {
+  const t = useTranslations("Landing.legal");
+
   return (
     <p className={cn("text-sm leading-relaxed text-muted-foreground", className)}>
-      Dengan menggunakan IDA, kamu menyetujui{" "}
-      <Link href="/privacy" className={legalLinkClass}>
-        {LANDING_COPY.privacyLink}
-      </Link>{" "}
-      dan{" "}
-      <Link href="/terms" className={legalLinkClass}>
-        {LANDING_COPY.termsLink}
-      </Link>
-      .
+      {t.rich("consent", {
+        privacy: (chunks) => (
+          <Link href="/privacy" className={legalLinkClass}>
+            {chunks}
+          </Link>
+        ),
+        terms: (chunks) => (
+          <Link href="/terms" className={legalLinkClass}>
+            {chunks}
+          </Link>
+        ),
+      })}
     </p>
   );
 }

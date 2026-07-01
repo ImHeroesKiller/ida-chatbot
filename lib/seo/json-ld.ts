@@ -1,14 +1,26 @@
+import { getTranslations } from "next-intl/server";
+
 import { BRAND } from "@/lib/brand";
-import { LANDING_COPY } from "@/lib/landing/content";
+import type { Locale } from "@/lib/config";
 
-import { getCanonicalUrl, getOgImageUrl, getSiteUrl } from "./config";
-import {
-  LANDING_SEO_DESCRIPTION,
-  LANDING_SEO_KEYWORDS,
-} from "./landing-metadata";
+import { getCanonicalUrl, getOgImageUrl, getSiteUrl, SEO_LOCALES } from "./config";
+import { getLocalizedCanonicalUrl } from "./locale-path";
 
-export function buildOrganizationJsonLd() {
+async function getSeoCopy(locale: string) {
+  const t = await getTranslations({ locale, namespace: "Seo" });
+  const landing = await getTranslations({ locale, namespace: "Landing" });
+
+  return {
+    description: t("description"),
+    keywords: (t.raw("keywords") as string[]).join(", "),
+    pageName: landing("hero.title"),
+    localeTag: SEO_LOCALES[locale as Locale]?.tag ?? SEO_LOCALES.id.tag,
+  };
+}
+
+export async function buildOrganizationJsonLd(locale: string) {
   const siteUrl = getSiteUrl();
+  const seo = await getSeoCopy(locale);
 
   return {
     "@context": "https://schema.org",
@@ -17,7 +29,7 @@ export function buildOrganizationJsonLd() {
     legalName: BRAND.fullName,
     url: siteUrl,
     logo: new URL(BRAND.logoSrc, siteUrl).toString(),
-    description: LANDING_SEO_DESCRIPTION,
+    description: seo.description,
     areaServed: {
       "@type": "Country",
       name: "Indonesia",
@@ -27,8 +39,9 @@ export function buildOrganizationJsonLd() {
   };
 }
 
-export function buildWebSiteJsonLd() {
+export async function buildWebSiteJsonLd(locale: string) {
   const siteUrl = getSiteUrl();
+  const seo = await getSeoCopy(locale);
 
   return {
     "@context": "https://schema.org",
@@ -36,8 +49,8 @@ export function buildWebSiteJsonLd() {
     name: BRAND.name,
     alternateName: BRAND.fullName,
     url: siteUrl,
-    description: LANDING_SEO_DESCRIPTION,
-    inLanguage: "id-ID",
+    description: seo.description,
+    inLanguage: seo.localeTag,
     publisher: {
       "@type": "Organization",
       name: BRAND.name,
@@ -46,18 +59,19 @@ export function buildWebSiteJsonLd() {
   };
 }
 
-export function buildWebApplicationJsonLd() {
+export async function buildWebApplicationJsonLd(locale: string) {
   const siteUrl = getSiteUrl();
+  const seo = await getSeoCopy(locale);
 
   return {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: BRAND.name,
     alternateName: BRAND.fullName,
-    url: getCanonicalUrl("/"),
+    url: getLocalizedCanonicalUrl("/", locale),
     installUrl: getCanonicalUrl("/chat"),
     image: getOgImageUrl(),
-    description: LANDING_SEO_DESCRIPTION,
+    description: seo.description,
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     browserRequirements: "Requires JavaScript. Requires HTML5.",
@@ -73,9 +87,9 @@ export function buildWebApplicationJsonLd() {
       "Web Search",
       "Research",
       "Map",
-      "Multibahasa Indonesia English 中文",
+      "Multilingual Indonesian English Chinese",
     ],
-    keywords: LANDING_SEO_KEYWORDS.join(", "),
+    keywords: seo.keywords,
     inLanguage: ["id", "en", "zh"],
     countriesSupported: "ID",
     publisher: {
@@ -86,8 +100,9 @@ export function buildWebApplicationJsonLd() {
   };
 }
 
-export function buildSoftwareApplicationJsonLd() {
+export async function buildSoftwareApplicationJsonLd(locale: string) {
   const siteUrl = getSiteUrl();
+  const seo = await getSeoCopy(locale);
 
   return {
     "@context": "https://schema.org",
@@ -95,8 +110,8 @@ export function buildSoftwareApplicationJsonLd() {
     name: BRAND.name,
     applicationCategory: "ProductivityApplication",
     operatingSystem: "Web",
-    url: getCanonicalUrl("/"),
-    description: LANDING_SEO_DESCRIPTION,
+    url: getLocalizedCanonicalUrl("/", locale),
+    description: seo.description,
     offers: {
       "@type": "Offer",
       price: "0",
@@ -110,14 +125,16 @@ export function buildSoftwareApplicationJsonLd() {
   };
 }
 
-export function buildLandingPageJsonLd() {
+export async function buildLandingPageJsonLd(locale: string) {
+  const seo = await getSeoCopy(locale);
+
   return {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: LANDING_COPY.headline,
-    description: LANDING_SEO_DESCRIPTION,
-    url: getCanonicalUrl("/"),
-    inLanguage: "id-ID",
+    name: seo.pageName,
+    description: seo.description,
+    url: getLocalizedCanonicalUrl("/", locale),
+    inLanguage: seo.localeTag,
     isPartOf: {
       "@type": "WebSite",
       name: BRAND.name,

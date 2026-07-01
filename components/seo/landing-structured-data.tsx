@@ -1,3 +1,5 @@
+import { getLocale } from "next-intl/server";
+
 import {
   buildLandingPageJsonLd,
   buildOrganizationJsonLd,
@@ -6,14 +8,15 @@ import {
   buildWebSiteJsonLd,
 } from "@/lib/seo/json-ld";
 
-export function LandingStructuredData() {
-  const schemas = [
-    buildOrganizationJsonLd(),
-    buildWebSiteJsonLd(),
-    buildWebApplicationJsonLd(),
-    buildSoftwareApplicationJsonLd(),
-    buildLandingPageJsonLd(),
-  ];
+export async function LandingStructuredData() {
+  const locale = await getLocale();
+  const schemas = await Promise.all([
+    buildOrganizationJsonLd(locale),
+    buildWebSiteJsonLd(locale),
+    buildWebApplicationJsonLd(locale),
+    buildSoftwareApplicationJsonLd(locale),
+    buildLandingPageJsonLd(locale),
+  ]);
 
   return (
     <>

@@ -1,14 +1,16 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { IdaLogo } from "@/components/brand/ida-logo";
 import {
   LandingLegalConsent,
   legalLinkClass,
 } from "@/components/landing/landing-legal-consent";
+import { Link } from "@/i18n/navigation";
 import { IDA_CONFIG } from "@/lib/config";
-import { LANDING_COPY } from "@/lib/landing/content";
 
-export function LandingFooter() {
+export async function LandingFooter() {
+  const t = await getTranslations("Landing");
+
   return (
     <footer className="border-t bg-muted/30 dark:bg-muted/10">
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12">
@@ -21,7 +23,7 @@ export function LandingFooter() {
               </span>
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              {LANDING_COPY.subheadline}
+              {t("hero.subtitle")}
             </p>
           </div>
 
@@ -33,7 +35,7 @@ export function LandingFooter() {
               href="/#mulai"
               className="font-medium text-foreground hover:text-primary"
             >
-              {LANDING_COPY.primaryCta}
+              {t("hero.ctaPrimary")}
             </Link>
           </nav>
         </div>
@@ -41,13 +43,13 @@ export function LandingFooter() {
         <div className="mt-8 space-y-4 border-t border-border/60 pt-6">
           <nav
             className="flex flex-wrap items-center gap-x-6 gap-y-2"
-            aria-label="Kebijakan legal"
+            aria-label="Legal"
           >
             <Link href="/privacy" className={legalLinkClass}>
-              {LANDING_COPY.privacyLink}
+              {t("legal.privacy")}
             </Link>
             <Link href="/terms" className={legalLinkClass}>
-              {LANDING_COPY.termsLink}
+              {t("legal.terms")}
             </Link>
           </nav>
 
@@ -57,10 +59,6 @@ export function LandingFooter() {
             <p className="text-xs text-muted-foreground">
               © 2026 {IDA_CONFIG.name} — Intelligent Digital Assistant. All
               rights reserved.
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Asisten AI buatan Indonesia — chat + tools untuk produktivitas
-              harian.
             </p>
           </div>
         </div>

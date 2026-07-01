@@ -9,8 +9,8 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { GoogleIcon } from "@/components/landing/google-icon";
 import { Button } from "@/components/ui/button";
 import { resolveAuthRedirect } from "@/lib/auth/redirect";
-import { LANDING_COPY } from "@/lib/landing/content";
 import { COPY } from "@/lib/i18n";
+import { useTranslations } from "next-intl";
 import { isSupabaseBrowserConfigured } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +26,7 @@ export function LandingCtaButton({
   className,
 }: LandingCtaButtonProps) {
   const copy = COPY.id;
+  const t = useTranslations("Landing.hero");
   const { user, signInWithGoogle, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
   const [signingIn, setSigningIn] = useState(false);
@@ -70,15 +71,12 @@ export function LandingCtaButton({
           className,
         )}
       >
-        {LANDING_COPY.continueToChat}
+        {t("continueToChat")}
       </Link>
     );
   }
 
-  const label =
-    variant === "header"
-      ? LANDING_COPY.primaryCtaShort
-      : LANDING_COPY.primaryCta;
+  const label = t("ctaPrimary");
   const busy = signingIn || authLoading;
 
   return (

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 import { BRAND } from "@/lib/brand";
-import { LANDING_SEO_DESCRIPTION } from "@/lib/seo/landing-metadata";
+import idMessages from "@/messages/id.json";
 
 export const alt = `${BRAND.name} — Asisten AI Indonesia`;
 export const size = { width: 1200, height: 630 };
@@ -64,7 +64,7 @@ export default async function OpenGraphImage() {
             maxWidth: 880,
           }}
         >
-          {LANDING_SEO_DESCRIPTION.slice(0, 120)}…
+          {idMessages.Seo.description.slice(0, 120)}…
         </p>
       </div>
     ),

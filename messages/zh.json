@@ -1,0 +1,355 @@
+{
+  "Common": {
+    "back": "返回",
+    "home": "首页",
+    "privacyLink": "隐私政策",
+    "termsLink": "服务条款"
+  },
+  "Seo": {
+    "title": "IDA — 智能数字助手 | 聊天、Worksheet、网络搜索与 Research",
+    "description": "IDA 是 AI 助手，提供聊天、Worksheet、网络搜索、Research 和 Map。免费试用——开始聊天，更快完成工作。",
+    "ogTitle": "理解您上下文的 AI 助手 — IDA",
+    "ogImageAlt": "IDA — 配备 Worksheet、网络搜索和 Research 的 AI 助手",
+    "keywords": [
+      "IDA",
+      "智能数字助手",
+      "AI 助手",
+      "印尼聊天机器人",
+      "Worksheet AI",
+      "网络搜索 AI",
+      "AI Research",
+      "免费 AI 聊天",
+      "效率 AI"
+    ]
+  },
+  "Landing": {
+    "hero": {
+      "badge": "专业 AI 助手",
+      "title": "理解您上下文的 AI 助手",
+      "subtitle": "IDA 通过 Worksheet、网络搜索、Research 和 Map 帮助您更快工作——一切尽在一处。",
+      "ctaPrimary": "免费试用 IDA",
+      "ctaSecondary": "查看功能",
+      "continueToChat": "进入聊天",
+      "trustLine": "免费试用 · Google 登录 · 无需信用卡"
+    },
+    "features": {
+      "title": "主要功能",
+      "worksheet": {
+        "title": "Worksheet",
+        "desc": "直接从聊天创建专业文档。编辑、导出 PDF/DOCX、保存版本并使用模板。"
+      },
+      "webSearch": {
+        "title": "网络搜索",
+        "desc": "从互联网获取最新信息，来源清晰可查。"
+      },
+      "research": {
+        "title": "Research",
+        "desc": "进行多深度层次的深入研究，获得结构化结果。"
+      },
+      "map": {
+        "title": "Map",
+        "desc": "地图集成，满足位置需求与空间分析。"
+      }
+    },
+    "benefits": {
+      "title": "为什么选择 IDA？",
+      "items": [
+        "集成工作流，节省时间",
+        "结果一致，可导出",
+        "数据隐私受保护",
+        "支持印尼语、英语和中文"
+      ]
+    },
+    "howItWorks": {
+      "title": "使用方式",
+      "steps": [
+        "使用 Google 登录",
+        "开始聊天或打开工具",
+        "使用 Worksheet、网络搜索或 Research",
+        "结果可立即编辑并导出"
+      ]
+    },
+    "finalCta": {
+      "title": "准备好提升效率了吗？",
+      "subtitle": "立即开始使用 IDA。免费起步。"
+    },
+    "signIn": {
+      "title": "准备好试用 IDA 了吗？",
+      "description": "使用 Google 登录以打开聊天室并开始使用您喜爱的工具。"
+    },
+    "legal": {
+      "consent": "使用 IDA 即表示您同意我们的{privacy}和{terms}。",
+      "privacy": "隐私政策",
+      "terms": "服务条款"
+    },
+    "agentFlow": {
+      "badge": "高级功能",
+      "title": "需要工作流自动化？",
+      "description": "AgentFlow 面向希望自动化文档流程和业务工作流的团队——超越 IDA 核心聊天体验。",
+      "cta": "了解 AgentFlow",
+      "headerLink": "AgentFlow"
+    }
+  },
+  "Privacy": {
+    "title": "隐私政策",
+    "lastUpdated": "最后更新：2026年7月1日",
+    "intro": "本隐私政策说明 IDA（\"IDA\"、\"我们\"）在您使用 AI 聊天机器人服务时如何收集、使用和保护您的信息。",
+    "sections": {
+      "dataCollection": {
+        "title": "1. 我们收集的数据",
+        "blocks": [
+          {
+            "type": "labeled",
+            "label": "账户数据：",
+            "text": "当您使用 Google 登录时，我们通过 Supabase Auth 接收基本资料信息，如姓名、电子邮件、头像和用户 ID。"
+          },
+          {
+            "type": "labeled",
+            "label": "对话数据：",
+            "text": "您发送的消息和助手回复、聊天历史、会话标题以及界面偏好（主题、语言、语音设置）会被存储，以提供服务并在设备间同步。"
+          },
+          {
+            "type": "labeled",
+            "label": "技术数据：",
+            "text": "API 请求日志（模型、提供商、令牌、状态）、用于速率限制的 IP 地址，以及用于安全和运营分析的会话元数据。"
+          },
+          {
+            "type": "labeled",
+            "label": "文件上传：",
+            "text": "您附加的图片或 PDF 会进行处理以提取文本（OCR），除作为对话历史的一部分外不会永久存储。"
+          }
+        ]
+      },
+      "dataUse": {
+        "title": "2. 数据使用方式",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "提供、维护和改进 IDA 聊天服务。",
+              "在多台设备间同步您的聊天历史。",
+              "处理 AI 请求、知识库搜索（RAG）和语音功能。",
+              "防止滥用、垃圾信息和安全违规。",
+              "履行法律义务并响应合法请求。"
+            ]
+          }
+        ]
+      },
+      "storageRetention": {
+        "title": "3. 存储与保留",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "数据存储在 Supabase 基础设施（数据库和身份验证）上。聊天历史在账户活跃期间或您删除之前予以保留。我们可根据内部政策在合理期限后删除不活跃数据。"
+          }
+        ]
+      },
+      "cookies": {
+        "title": "4. Cookie 与本地存储",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "我们使用身份验证会话 Cookie（Supabase Auth）和浏览器本地存储（localStorage/sessionStorage）来保存主题、UI 偏好和配置缓存。基本 Cookie 是登录和会话正常运行所必需的。"
+          }
+        ]
+      },
+      "thirdParty": {
+        "title": "5. 第三方服务",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "IDA 集成以下根据其自身政策处理数据的提供商："
+          },
+          {
+            "type": "list",
+            "items": [
+              "Supabase — 身份验证、数据库、会话存储。",
+              "Google — OAuth 登录及 AI 模型（Gemini），用于聊天、嵌入、OCR 和转录。",
+              "Groq — 语音转录（可选，如已配置）。",
+              "xAI / OpenAI / Hugging Face — 替代 AI 模型或 TTS（如管理员启用）。",
+              "Vercel — 应用托管。"
+            ]
+          },
+          {
+            "type": "text",
+            "text": "对话内容可能会发送给 AI 模型提供商以生成回复。请勿通过聊天分享敏感信息（密码、OTP、关键医疗数据）。"
+          }
+        ]
+      },
+      "security": {
+        "title": "6. 安全",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "我们采取合理措施保护数据，包括传输加密（HTTPS）、基于 OAuth 的身份验证以及受限的服务器端数据库访问。没有任何系统是 100% 安全的；请在了解风险的前提下使用服务。"
+          }
+        ]
+      },
+      "userRights": {
+        "title": "7. 您的权利",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "您可以："
+          },
+          {
+            "type": "list",
+            "items": [
+              "通过账户页面访问和更新个人资料。",
+              "在应用内删除聊天历史。",
+              "联系服务运营方请求删除账户。",
+              "随时停止使用服务。"
+            ]
+          }
+        ]
+      },
+      "policyChanges": {
+        "title": "8. 政策变更",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "我们可能随时更新本政策。重大变更将在此页面公布并注明更新日期。变更后继续使用即表示您接受更新后的政策。"
+          }
+        ]
+      },
+      "contact": {
+        "title": "9. 联系我们",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "如有隐私相关问题，请通过运营本服务的组织的官方渠道联系 IDA 运营方。"
+          }
+        ]
+      }
+    }
+  },
+  "Terms": {
+    "title": "服务条款",
+    "lastUpdated": "最后更新：2026年7月1日",
+    "intro": "访问或使用 IDA（\"IDA\"、\"服务\"）即表示您同意受本服务条款约束。如不同意，请勿使用服务。",
+    "sections": {
+      "serviceDescription": {
+        "title": "1. 服务说明",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "IDA 是基于人工智能的数字助手，提供对话、知识库搜索（RAG）、语音输入、Worksheet、网络搜索、Research、Map 及相关功能。服务旨在提供一般信息，不替代专业建议（医疗、法律、财务等）。"
+          }
+        ]
+      },
+      "userAccount": {
+        "title": "2. 用户账户",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "您必须使用有效的 Google 账户登录。",
+              "您有责任保护会话和设备安全。",
+              "您同意提供准确信息，不得滥用他人账户。",
+              "我们可暂停或终止违反本条款的账户。"
+            ]
+          }
+        ]
+      },
+      "acceptableUse": {
+        "title": "3. 可接受的使用",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "您同意不得："
+          },
+          {
+            "type": "list",
+            "items": [
+              "将服务用于非法、有害或误导性活动。",
+              "发送垃圾信息、恶意软件或侵犯第三方权利的内容。",
+              "试图未经授权访问系统、API 或其他用户数据。",
+              "规避技术限制（速率限制、身份验证等）。",
+              "在未独立核实的情况下将 AI 输出用于关键决策。"
+            ]
+          }
+        ]
+      },
+      "aiContent": {
+        "title": "4. AI 内容与回复",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "IDA 回复由 AI 模型生成，可能不准确、不完整或过时。您有责任在采取行动前评估和核实信息。我们不保证准确性、可用性或适用于特定目的。"
+          }
+        ]
+      },
+      "intellectualProperty": {
+        "title": "5. 知识产权",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "IDA 的名称、标识、界面和源代码受适用法律保护。未经书面许可，您不得复制、修改或分发服务的任何部分，开源项目许可允许的情况除外。"
+          },
+          {
+            "type": "text",
+            "text": "您保留对所提交内容的权利。使用服务即表示您授予我们有限许可，以处理该内容来提供和改进服务。"
+          }
+        ]
+      },
+      "thirdParty": {
+        "title": "6. 第三方服务",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "IDA 依赖第三方服务（Supabase、Google、Groq 及其他已配置的模型提供商）。其可用性和条款单独适用。我们不对第三方造成的中断负责。"
+          }
+        ]
+      },
+      "limitation": {
+        "title": "7. 责任限制",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "在法律允许的范围内，IDA 及其运营方不对因使用服务而产生的间接、附带、特殊或后果性损害承担责任，包括数据丢失、业务中断或基于 AI 输出做出的决策。"
+          },
+          {
+            "type": "text",
+            "text": "我们的总责任限于您在过去 12 个月内为服务支付的金额，若服务免费提供则为零。"
+          }
+        ]
+      },
+      "termination": {
+        "title": "8. 终止",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "我们可随时修改、暂停或终止服务。您可通过退出账户并停止访问应用来停止使用服务。"
+          }
+        ]
+      },
+      "changes": {
+        "title": "9. 条款变更",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "本条款可能会更新。最后更新日期见上文。变更后继续使用即表示您接受更新后的条款。"
+          }
+        ]
+      },
+      "governingLaw": {
+        "title": "10. 适用法律",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "本条款受印度尼西亚共和国法律管辖，不适用法律冲突规则，除非适用法规另有要求。"
+          }
+        ]
+      },
+      "contact": {
+        "title": "11. 联系我们",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "有关服务条款的问题可通过 IDA 运营方的官方渠道提交。"
+          }
+        ]
+      }
+    }
+  }
+}

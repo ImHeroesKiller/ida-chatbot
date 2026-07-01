@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next";
 
 import { BRAND } from "@/lib/brand";
-import { LANDING_COPY } from "@/lib/landing/content";
+import idMessages from "@/messages/id.json";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "IDA — Asisten AI Indonesia",
     short_name: BRAND.shortName,
-    description: `${LANDING_COPY.subheadline} Worksheet, Web Search, Research, dan Map dalam satu chat.`,
+    description: idMessages.Seo.description,
     start_url: "/",
     scope: "/",
     id: "/",

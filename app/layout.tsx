@@ -58,7 +58,8 @@ export const metadata: Metadata = {
     canonical: getCanonicalUrl("/"),
     languages: {
       [SEO_LOCALES.id.hreflang]: getCanonicalUrl("/"),
-      [SEO_LOCALES.en.hreflang]: `${getCanonicalUrl("/")}?lang=en`,
+      [SEO_LOCALES.en.hreflang]: getCanonicalUrl("/en"),
+      [SEO_LOCALES.zh.hreflang]: getCanonicalUrl("/zh"),
       "x-default": getCanonicalUrl("/"),
     },
   },
@@ -73,7 +74,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: SEO_LOCALES.id.tag,
-    alternateLocale: [SEO_LOCALES.en.tag],
+    alternateLocale: [SEO_LOCALES.en.tag, SEO_LOCALES.zh.tag],
     url: getCanonicalUrl("/"),
     siteName: BRAND.name,
     title: BRAND.fullName,

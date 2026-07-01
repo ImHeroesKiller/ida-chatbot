@@ -3,9 +3,12 @@ import {
   buildWebApplicationJsonLd,
 } from "@/lib/seo/json-ld";
 
-export function StructuredData() {
-  const organization = buildOrganizationJsonLd();
-  const webApplication = buildWebApplicationJsonLd();
+export async function StructuredData() {
+  const locale = "id";
+  const [organization, webApplication] = await Promise.all([
+    buildOrganizationJsonLd(locale),
+    buildWebApplicationJsonLd(locale),
+  ]);
 
   return (
     <>
