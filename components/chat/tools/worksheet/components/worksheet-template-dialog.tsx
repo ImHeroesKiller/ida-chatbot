@@ -32,7 +32,7 @@ const TEMPLATE_ICONS = {
   checklist: ClipboardList,
 } as const;
 
-interface WorksheetTemplateDialogProps {
+export interface WorksheetTemplateDialogProps {
   open: boolean;
   locale: Locale;
   onSelect: (template: WorksheetTemplate) => void;

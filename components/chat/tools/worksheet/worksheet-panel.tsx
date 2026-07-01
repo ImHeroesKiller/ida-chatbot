@@ -47,7 +47,7 @@ import {
   type WorksheetPdfExportSettings,
 } from "@/components/chat/tools/worksheet/components/worksheet-export-dialog";
 import { WorksheetPrintPreviewDialog } from "@/components/chat/worksheet-print-preview-dialog";
-import { WorksheetTemplateDialog } from "@/components/chat/worksheet-template-dialog";
+import { WorksheetTemplateDialog } from "@/components/chat/tools/worksheet/components/worksheet-template-dialog";
 import {
   WorksheetIconAction,
   WorksheetIconMenu,

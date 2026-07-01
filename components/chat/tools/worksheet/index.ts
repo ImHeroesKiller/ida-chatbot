@@ -9,5 +9,6 @@ export * from "./components/worksheet-document-cards";
 export * from "./components/worksheet-documents-toolbar";
 export * from "./components/worksheet-version-history-dialog";
 export * from "./components/worksheet-export-dialog";
+export * from "./components/worksheet-template-dialog";
 export * from "./worksheet-save-template-dialog";
 export * from "./worksheet-full-view";
