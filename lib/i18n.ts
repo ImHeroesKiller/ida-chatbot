@@ -223,6 +223,8 @@ export const COPY: Record<
     workflowErrorEmptyWorkflow: string;
     workflowImportFailed: string;
     workflowDebugRawResponse: string;
+    workflowDebugExtractedJson: string;
+    workflowDebugMarkerPayload: string;
     workflowDebugShowRaw: string;
     workflowDebugHideRaw: string;
     workflowNodePrompt: string;
@@ -730,6 +732,8 @@ export const COPY: Record<
       "Workflow kosong atau tidak memiliki node. Perjelas langkah otomatisasi yang diinginkan.",
     workflowImportFailed: "Gagal mengimpor workflow dari respons chat.",
     workflowDebugRawResponse: "Respons mentah LLM (debug)",
+    workflowDebugExtractedJson: "JSON yang diekstrak parser",
+    workflowDebugMarkerPayload: "Isi di dalam penanda workflow",
     workflowDebugShowRaw: "Tampilkan respons mentah",
     workflowDebugHideRaw: "Sembunyikan respons mentah",
     workflowNodePrompt: "Prompt LLM",
@@ -1271,6 +1275,8 @@ export const COPY: Record<
       "The workflow is empty or has no nodes. Clarify the automation steps you need.",
     workflowImportFailed: "Failed to import workflow from the chat response.",
     workflowDebugRawResponse: "Raw LLM response (debug)",
+    workflowDebugExtractedJson: "JSON extracted by parser",
+    workflowDebugMarkerPayload: "Content inside workflow markers",
     workflowDebugShowRaw: "Show raw response",
     workflowDebugHideRaw: "Hide raw response",
     workflowNodePrompt: "LLM Prompt",
@@ -1806,6 +1812,8 @@ export const COPY: Record<
     workflowErrorEmptyWorkflow: "工作流为空或没有节点。请说明您需要的自动化步骤。",
     workflowImportFailed: "无法从聊天响应导入工作流。",
     workflowDebugRawResponse: "原始 LLM 响应（调试）",
+    workflowDebugExtractedJson: "解析器提取的 JSON",
+    workflowDebugMarkerPayload: "工作流标记内的内容",
     workflowDebugShowRaw: "显示原始响应",
     workflowDebugHideRaw: "隐藏原始响应",
     workflowNodePrompt: "LLM 提示词",

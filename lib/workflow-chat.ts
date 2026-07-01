@@ -75,6 +75,12 @@ export interface WorkflowParseDebugInfo {
   markerHits: number;
   usedMarker?: string;
   preview: string;
+  /** Inner payload from the last matched marker block. */
+  markerPayload?: string | null;
+  /** Best-effort JSON string the parser attempted first. */
+  extractedJson?: string | null;
+  /** Top candidate snippets (truncated) for UI debugging. */
+  candidatePreviews: string[];
 }
 
 const WORKFLOW_CHAT_FALLBACK: Record<Locale, string> = {
@@ -105,20 +111,62 @@ function stripCodeFences(raw: string): string {
   return fenced?.[1]?.trim() ?? trimmed;
 }
 
-function repairJsonPayload(raw: string): string {
-  let repaired = raw.trim();
-
-  repaired = repaired.replace(/^\uFEFF/, "");
-  repaired = repaired.replace(/,\s*([}\]])/g, "$1");
-  repaired = repaired.replace(/\/\*[\s\S]*?\*\//g, "");
-  repaired = repaired.replace(/\/\/.*$/gm, "");
-  repaired = repaired.replace(/([{,]\s*)([A-Za-z_][\w-]*)(\s*:)/g, '$1"$2"$3');
-  repaired = repaired.replace(/'/g, '"');
-
-  return repaired;
+function stripToJsonStart(raw: string): string {
+  const trimmed = raw.trim();
+  const jsonStart = trimmed.search(/[{\[]/);
+  if (jsonStart > 0) {
+    return trimmed.slice(jsonStart);
+  }
+  return trimmed;
 }
 
-function extractBalancedJsonObjects(text: string): string[] {
+function sliceToOutermostJsonObject(raw: string): string {
+  const trimmed = stripToJsonStart(raw);
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    return trimmed.slice(firstBrace, lastBrace + 1);
+  }
+  return trimmed;
+}
+
+function repairJsonPayload(raw: string): string {
+  let repaired = stripToJsonStart(stripCodeFences(raw));
+
+  repaired = repaired.replace(/^\uFEFF/, "");
+  repaired = repaired.replace(/[\u201C\u201D]/g, '"');
+  repaired = repaired.replace(/[\u2018\u2019]/g, "'");
+  repaired = repaired.replace(/\/\*[\s\S]*?\*\//g, "");
+  repaired = repaired.replace(/\/\/.*$/gm, "");
+  repaired = repaired.replace(/\b(undefined|NaN|Infinity)\b/g, "null");
+
+  for (let pass = 0; pass < 3; pass += 1) {
+    repaired = repaired.replace(/,\s*([}\]])/g, "$1");
+  }
+
+  repaired = repaired.replace(
+    /([{,]\s*)([A-Za-z_][\w-]*)(\s*:)/g,
+    '$1"$2"$3',
+  );
+  repaired = repaired.replace(
+    /:\s*([A-Za-z_][\w-]*)(\s*[,}\]])/g,
+    (_match, value: string, suffix: string) => {
+      const literals = new Set(["true", "false", "null"]);
+      if (literals.has(value)) {
+        return `: ${value}${suffix}`;
+      }
+      return `: "${value}"${suffix}`;
+    },
+  );
+  repaired = repaired.replace(/'/g, '"');
+
+  return sliceToOutermostJsonObject(repaired);
+}
+
+function extractBalancedJsonObjects(
+  text: string,
+  options?: { requireWorkflowKeys?: boolean },
+): string[] {
   const results: string[] = [];
   let depth = 0;
   let start = -1;
@@ -154,7 +202,8 @@ function extractBalancedJsonObjects(text: string): string[] {
       depth -= 1;
       if (depth === 0 && start >= 0) {
         const candidate = text.slice(start, index + 1);
-        if (/"(nodes|steps)"\s*:/i.test(candidate)) {
+        const hasWorkflowKeys = /"(nodes|steps)"\s*:/i.test(candidate);
+        if (!options?.requireWorkflowKeys || hasWorkflowKeys) {
           results.push(candidate);
         }
         start = -1;
@@ -165,15 +214,81 @@ function extractBalancedJsonObjects(text: string): string[] {
   return results;
 }
 
+function findLargestJsonCandidate(text: string): string | null {
+  const workflowObjects = extractBalancedJsonObjects(text, {
+    requireWorkflowKeys: true,
+  });
+  const allObjects = extractBalancedJsonObjects(text);
+  const pool = workflowObjects.length > 0 ? workflowObjects : allObjects;
+
+  return (
+    [...pool].sort((left, right) => right.length - left.length)[0] ?? null
+  );
+}
+
+function extractLastMarkerBlock(
+  fullText: string,
+  start: string,
+  end: string,
+): { inner: string; segment: string } | null {
+  const startIndex = fullText.lastIndexOf(start);
+  if (startIndex === -1) return null;
+
+  const contentStart = startIndex + start.length;
+  const endIndex = fullText.indexOf(end, contentStart);
+  if (endIndex === -1) return null;
+
+  const inner = fullText.slice(contentStart, endIndex).trim();
+  const segment = fullText.slice(startIndex, endIndex + end.length);
+
+  return { inner, segment };
+}
+
+function extractAllMarkerBlocks(
+  fullText: string,
+): Array<{ inner: string; segment: string; marker: string }> {
+  const blocks: Array<{ inner: string; segment: string; marker: string }> = [];
+
+  for (const { start, end } of WORKFLOW_MARKER_PAIRS) {
+    const lastBlock = extractLastMarkerBlock(fullText, start, end);
+    if (lastBlock) {
+      blocks.push({ ...lastBlock, marker: start });
+    }
+
+    const markerPattern = new RegExp(
+      `${escapeRegExp(start)}([\\s\\S]*?)${escapeRegExp(end)}`,
+      "gi",
+    );
+
+    for (const match of fullText.matchAll(markerPattern)) {
+      const inner = (match[1] ?? "").trim();
+      const segment = match[0] ?? "";
+      if (!inner || !segment) continue;
+      blocks.push({ inner, segment, marker: start });
+    }
+  }
+
+  const seen = new Set<string>();
+  return blocks.filter((block) => {
+    if (seen.has(block.segment)) return false;
+    seen.add(block.segment);
+    return true;
+  });
+}
+
 function tryParseWorkflowJson(raw: string): unknown | null {
   const stripped = stripCodeFences(raw);
   const candidates = [
     stripped,
+    stripToJsonStart(stripped),
+    sliceToOutermostJsonObject(stripped),
     repairJsonPayload(stripped),
-    repairJsonPayload(stripCodeFences(repairJsonPayload(stripped))),
+    repairJsonPayload(sliceToOutermostJsonObject(stripped)),
   ];
 
-  for (const candidate of candidates) {
+  const uniqueCandidates = [...new Set(candidates.filter(Boolean))];
+
+  for (const candidate of uniqueCandidates) {
     try {
       return JSON.parse(candidate);
     } catch {
@@ -200,22 +315,38 @@ function extractWorkflowJsonCandidates(fullText: string): string[] {
   const seen = new Set<string>();
   const candidates: string[] = [];
 
-  const pushCandidate = (value: string) => {
-    const trimmed = value.trim();
+  const pushCandidate = (value: string, priority = false) => {
+    const trimmed = stripToJsonStart(stripCodeFences(value)).trim();
     if (!trimmed || seen.has(trimmed)) return;
     seen.add(trimmed);
+    if (priority) {
+      candidates.unshift(trimmed);
+      return;
+    }
     candidates.push(trimmed);
   };
 
-  for (const { start, end } of WORKFLOW_MARKER_PAIRS) {
-    const markerPattern = new RegExp(
-      `${escapeRegExp(start)}([\\s\\S]*?)${escapeRegExp(end)}`,
-      "gi",
-    );
+  const markerBlocks = extractAllMarkerBlocks(fullText);
+  const lastPrimaryBlock = extractLastMarkerBlock(
+    fullText,
+    WORKFLOW_START_MARKER,
+    WORKFLOW_END_MARKER,
+  );
+  const lastLegacyBlock = extractLastMarkerBlock(
+    fullText,
+    WORKFLOW_LEGACY_START_MARKER,
+    WORKFLOW_LEGACY_END_MARKER,
+  );
 
-    for (const match of fullText.matchAll(markerPattern)) {
-      pushCandidate(stripCodeFences(match[1] ?? ""));
-    }
+  if (lastPrimaryBlock?.inner) {
+    pushCandidate(lastPrimaryBlock.inner, true);
+  }
+  if (lastLegacyBlock?.inner) {
+    pushCandidate(lastLegacyBlock.inner, true);
+  }
+
+  for (const block of markerBlocks) {
+    pushCandidate(block.inner, block.marker === WORKFLOW_START_MARKER);
   }
 
   const codeFencePattern = /```(?:json|workflow)?\s*([\s\S]*?)\s*```/gi;
@@ -226,13 +357,31 @@ function extractWorkflowJsonCandidates(fullText: string): string[] {
     }
   }
 
-  for (const object of extractBalancedJsonObjects(fullText)) {
+  const largest = findLargestJsonCandidate(fullText);
+  if (largest) {
+    pushCandidate(largest, true);
+  }
+
+  const balancedObjects = extractBalancedJsonObjects(fullText, {
+    requireWorkflowKeys: true,
+  });
+  for (const object of [...balancedObjects].sort(
+    (left, right) => right.length - left.length,
+  )) {
     pushCandidate(object);
   }
 
-  const objectPattern = /\{[\s\S]*?"(?:nodes|steps)"\s*:\s*\[[\s\S]*?\][\s\S]*?\}/gi;
+  const objectPattern =
+    /\{[\s\S]*?"(?:nodes|steps)"\s*:\s*\[[\s\S]*?\][\s\S]*?\}/gi;
   for (const match of fullText.matchAll(objectPattern)) {
     pushCandidate(match[0]?.trim() ?? "");
+  }
+
+  const allObjects = extractBalancedJsonObjects(fullText);
+  for (const object of [...allObjects].sort(
+    (left, right) => right.length - left.length,
+  )) {
+    pushCandidate(object);
   }
 
   return candidates;
@@ -488,16 +637,70 @@ function countMarkerHits(fullText: string): number {
   return hits;
 }
 
+function findLastMarkerSegment(fullText: string): string | null {
+  const primary = extractLastMarkerBlock(
+    fullText,
+    WORKFLOW_START_MARKER,
+    WORKFLOW_END_MARKER,
+  );
+  if (primary?.segment) return primary.segment;
+
+  const legacy = extractLastMarkerBlock(
+    fullText,
+    WORKFLOW_LEGACY_START_MARKER,
+    WORKFLOW_LEGACY_END_MARKER,
+  );
+  return legacy?.segment ?? null;
+}
+
+function truncateDebugText(value: string, limit = 1200): string {
+  if (value.length <= limit) return value;
+  return `${value.slice(0, limit)}\n… [truncated ${value.length - limit} chars]`;
+}
+
 export function buildWorkflowParseDebugInfo(
   fullText: string,
 ): WorkflowParseDebugInfo {
   const candidates = extractWorkflowJsonCandidates(fullText);
+  const lastPrimary = extractLastMarkerBlock(
+    fullText,
+    WORKFLOW_START_MARKER,
+    WORKFLOW_END_MARKER,
+  );
+  const lastLegacy = extractLastMarkerBlock(
+    fullText,
+    WORKFLOW_LEGACY_START_MARKER,
+    WORKFLOW_LEGACY_END_MARKER,
+  );
+  const markerPayload =
+    lastPrimary?.inner ?? lastLegacy?.inner ?? null;
 
   return {
     candidateCount: candidates.length,
     markerHits: countMarkerHits(fullText),
-    preview: fullText.slice(0, WORKFLOW_DEBUG_PREVIEW_LIMIT),
+    usedMarker: lastPrimary
+      ? WORKFLOW_START_MARKER
+      : lastLegacy
+        ? WORKFLOW_LEGACY_START_MARKER
+        : undefined,
+    preview: truncateDebugText(fullText, WORKFLOW_DEBUG_PREVIEW_LIMIT),
+    markerPayload: markerPayload
+      ? truncateDebugText(markerPayload, WORKFLOW_DEBUG_PREVIEW_LIMIT)
+      : null,
+    extractedJson: candidates[0]
+      ? truncateDebugText(candidates[0], WORKFLOW_DEBUG_PREVIEW_LIMIT)
+      : null,
+    candidatePreviews: candidates
+      .slice(0, 4)
+      .map((candidate) => truncateDebugText(candidate, 800)),
   };
+}
+
+/** Inspect a raw LLM response for workflow debug UI. */
+export function inspectWorkflowResponse(
+  fullText: string,
+): WorkflowParseDebugInfo {
+  return buildWorkflowParseDebugInfo(fullText);
 }
 
 export function logWorkflowParseAttempt(
@@ -523,6 +726,9 @@ export function logWorkflowParseAttempt(
     textLength: fullText.length,
     markerHits: debug.markerHits,
     candidateCount: debug.candidateCount,
+    usedMarker: debug.usedMarker,
+    markerPayloadPreview: debug.markerPayload,
+    extractedJsonPreview: debug.extractedJson,
     preview: debug.preview,
   });
 }
@@ -563,15 +769,7 @@ export function parseWorkflowFromResponse(
     const parsed = tryParseWorkflowJson(rawPayload);
     const payload = normalizeStreamPayload(parsed);
     if (payload) {
-      const markerSegment =
-        WORKFLOW_MARKER_PAIRS.map(({ start, end }) =>
-          fullText.match(
-            new RegExp(
-              `${escapeRegExp(start)}[\\s\\S]*?${escapeRegExp(end)}`,
-              "i",
-            ),
-          ),
-        ).find((match) => match)?.[0] ?? rawPayload;
+      const markerSegment = findLastMarkerSegment(fullText) ?? rawPayload;
 
       const result: WorkflowParseResult = {
         chatMessage: buildWorkflowChatMessage(fullText, locale, markerSegment),

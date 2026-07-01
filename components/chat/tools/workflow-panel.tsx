@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
+import { inspectWorkflowResponse } from "@/lib/workflow-chat";
 import {
   getWorkflowNodePrompt,
   type WorkflowNodeData,
@@ -162,6 +163,11 @@ export function WorkflowPanel({
   const showImportDebug = Boolean(
     workflowErrorMessage && lastGeneratedWorkflowSource?.trim(),
   );
+
+  const workflowParseDebug = useMemo(() => {
+    if (!lastGeneratedWorkflowSource?.trim()) return null;
+    return inspectWorkflowResponse(lastGeneratedWorkflowSource);
+  }, [lastGeneratedWorkflowSource]);
 
   const handleImportLatest = useCallback(() => {
     const imported = importLatestGeneratedWorkflow(locale);
@@ -521,9 +527,42 @@ export function WorkflowPanel({
                 </span>
               </button>
               {showRawResponse ? (
-                <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-words rounded bg-background/80 p-2 font-mono text-[9px] leading-relaxed text-foreground/80">
-                  {lastGeneratedWorkflowSource}
-                </pre>
+                <div className="mt-2 space-y-2">
+                  {workflowParseDebug?.markerPayload ? (
+                    <div>
+                      <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {copy.workflowDebugMarkerPayload}
+                        {workflowParseDebug.usedMarker
+                          ? ` (${workflowParseDebug.usedMarker})`
+                          : ""}
+                      </p>
+                      <pre className="max-h-32 overflow-auto whitespace-pre-wrap break-words rounded bg-background/80 p-2 font-mono text-[9px] leading-relaxed text-foreground/80">
+                        {workflowParseDebug.markerPayload}
+                      </pre>
+                    </div>
+                  ) : null}
+                  {workflowParseDebug?.extractedJson ? (
+                    <div>
+                      <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {copy.workflowDebugExtractedJson}
+                        {workflowParseDebug.candidateCount
+                          ? ` (${workflowParseDebug.candidateCount} candidates)`
+                          : ""}
+                      </p>
+                      <pre className="max-h-32 overflow-auto whitespace-pre-wrap break-words rounded bg-background/80 p-2 font-mono text-[9px] leading-relaxed text-foreground/80">
+                        {workflowParseDebug.extractedJson}
+                      </pre>
+                    </div>
+                  ) : null}
+                  <div>
+                    <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      {copy.workflowDebugRawResponse}
+                    </p>
+                    <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-words rounded bg-background/80 p-2 font-mono text-[9px] leading-relaxed text-foreground/80">
+                      {lastGeneratedWorkflowSource}
+                    </pre>
+                  </div>
+                </div>
               ) : null}
             </div>
           ) : null}
