@@ -54,7 +54,7 @@ import {
   WorksheetOverflowMenu,
   type WorksheetOverflowMenuItem,
 } from "@/components/chat/worksheet-panel-actions";
-import { WorksheetVersionHistoryDialog } from "@/components/chat/worksheet-version-history-dialog";
+import { WorksheetVersionHistoryDialog } from "@/components/chat/tools/worksheet/components/worksheet-version-history-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";

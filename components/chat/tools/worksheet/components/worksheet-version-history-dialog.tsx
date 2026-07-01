@@ -18,7 +18,7 @@ import {
 import { WORKSHEET_MODAL_OVERLAY_CLASS } from "@/lib/worksheet-overlay";
 import { cn } from "@/lib/utils";
 
-interface WorksheetVersionHistoryDialogProps {
+export interface WorksheetVersionHistoryDialogProps {
   open: boolean;
   locale: Locale;
   versions: WorksheetVersion[];

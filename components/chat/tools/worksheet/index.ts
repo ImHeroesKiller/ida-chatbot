@@ -7,5 +7,6 @@ export * from "./worksheet-generating-indicator";
 export * from "./components/worksheet-empty-state";
 export * from "./components/worksheet-document-cards";
 export * from "./components/worksheet-documents-toolbar";
+export * from "./components/worksheet-version-history-dialog";
 export * from "./worksheet-save-template-dialog";
 export * from "./worksheet-full-view";
