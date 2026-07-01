@@ -25,6 +25,8 @@ import {
 import toast from "react-hot-toast";
 
 import type { WorkflowTool } from "@/components/chat/tools/use-workflow";
+import { WorkflowApprovalDialog } from "@/components/chat/tools/workflow-approval-dialog";
+import { WorkflowErrorRecoveryDialog } from "@/components/chat/tools/workflow-error-recovery-dialog";
 import { WorkflowTemplateGallery } from "@/components/chat/tools/workflow-template-gallery";
 import { WorksheetConfirmDialog } from "@/components/chat/tools/worksheet/worksheet-confirm-dialog";
 import { Button } from "@/components/ui/button";
@@ -41,6 +43,10 @@ import {
   readWorkflowNodeActionParams,
   type WorkflowNodeActionId,
 } from "@/lib/workflow-actions";
+import {
+  formatScheduleLabel,
+  type WorkflowScheduleConfig,
+} from "@/lib/workflow-scheduler";
 import {
   getWorkflowNodePrompt,
   type WorkflowNodeData,
@@ -68,8 +74,49 @@ const NODE_KINDS: WorkflowNodeKind[] = [
   "trigger",
   "action",
   "condition",
+  "approval",
   "output",
 ];
+
+const WEEKDAY_OPTIONS = [
+  { value: 0, id: "Min", en: "Sun", zh: "日" },
+  { value: 1, id: "Sen", en: "Mon", zh: "一" },
+  { value: 2, id: "Sel", en: "Tue", zh: "二" },
+  { value: 3, id: "Rab", en: "Wed", zh: "三" },
+  { value: 4, id: "Kam", en: "Thu", zh: "四" },
+  { value: 5, id: "Jum", en: "Fri", zh: "五" },
+  { value: 6, id: "Sab", en: "Sat", zh: "六" },
+] as const;
+
+function readTriggerSchedule(node: {
+  data: WorkflowNodeData;
+}): WorkflowScheduleConfig {
+  const raw = node.data.config?.schedule;
+  if (!raw || typeof raw !== "object") {
+    return { type: "immediate" };
+  }
+  const schedule = raw as Partial<WorkflowScheduleConfig>;
+  return {
+    type:
+      schedule.type === "delay" ||
+      schedule.type === "daily" ||
+      schedule.type === "weekly"
+        ? schedule.type
+        : "immediate",
+    delayMs:
+      typeof schedule.delayMs === "number" && schedule.delayMs > 0
+        ? Math.min(schedule.delayMs, 30_000)
+        : undefined,
+    hour:
+      typeof schedule.hour === "number"
+        ? Math.min(23, Math.max(0, schedule.hour))
+        : 9,
+    dayOfWeek:
+      typeof schedule.dayOfWeek === "number"
+        ? Math.min(6, Math.max(0, schedule.dayOfWeek))
+        : 1,
+  };
+}
 
 function getNodeKindLabel(
   copy: (typeof COPY)["id"],
@@ -84,6 +131,8 @@ function getNodeKindLabel(
       return copy.workflowAddCondition;
     case "output":
       return copy.workflowAddOutput;
+    case "approval":
+      return copy.workflowAddApproval;
     default:
       return kind;
   }
@@ -115,11 +164,16 @@ function WorkflowPanelInner({
     activeExecutionId,
     errorDetail,
     lastExecution,
+    executionCheckpoint,
     importLatestGeneratedWorkflow,
     lastGeneratedWorkflowSource,
     workspace,
   } = workflowTool;
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
+  const [recoveryDialogOpen, setRecoveryDialogOpen] = useState(false);
+  const [resumeSubmitting, setResumeSubmitting] = useState(false);
+  const notifiedCheckpointRef = useRef<string | null>(null);
   const selectedNodeIdRef = useRef<string | null>(null);
   const activeWorkflowRef = useRef(activeWorkflow);
   const updateWorkflowRef = useRef(workflowTool.updateWorkflow);
@@ -139,6 +193,42 @@ function WorkflowPanelInner({
     if (!isExecuting || !logPanelRef.current) return;
     logPanelRef.current.scrollTop = logPanelRef.current.scrollHeight;
   }, [isExecuting, lastExecution?.logs?.length]);
+
+  const showApprovalDialog =
+    Boolean(executionCheckpoint) &&
+    executionCheckpoint?.pauseReason === "approval" &&
+    lastExecution?.status === "awaiting_approval" &&
+    executionCheckpoint.workflowId === activeWorkflow?.id;
+
+  const showRecoveryDialog =
+    Boolean(executionCheckpoint) &&
+    executionCheckpoint?.pauseReason === "recovery" &&
+    lastExecution?.status === "paused" &&
+    executionCheckpoint.workflowId === activeWorkflow?.id;
+
+  useEffect(() => {
+    setApprovalDialogOpen(showApprovalDialog);
+    setRecoveryDialogOpen(showRecoveryDialog);
+  }, [showApprovalDialog, showRecoveryDialog]);
+
+  useEffect(() => {
+    if (!executionCheckpoint || isExecuting) return;
+    const key = `${executionCheckpoint.pendingNodeId}:${executionCheckpoint.pauseReason}:${lastExecution?.status}`;
+    if (notifiedCheckpointRef.current === key) return;
+    notifiedCheckpointRef.current = key;
+
+    if (executionCheckpoint.pauseReason === "approval") {
+      toast(copy.workflowApprovalRequired, { icon: "🛡️" });
+    } else if (executionCheckpoint.pauseReason === "recovery") {
+      toast.error(copy.workflowRecoveryRequired);
+    }
+  }, [
+    copy.workflowApprovalRequired,
+    copy.workflowRecoveryRequired,
+    executionCheckpoint,
+    isExecuting,
+    lastExecution?.status,
+  ]);
 
   const canImportLatest = Boolean(lastGeneratedWorkflowSource?.trim());
 
@@ -256,16 +346,66 @@ function WorkflowPanelInner({
   }, [copy.workflowSaved, workflowTool]);
 
   const handleExecute = useCallback(async () => {
+    notifiedCheckpointRef.current = null;
     const result = await workflowTool.executeWorkflow(undefined, {
       locale,
       sessionId,
     });
     if (result?.status === "completed") {
       toast.success(result.message ?? copy.workflowExecuted);
+    } else if (result?.status === "awaiting_approval") {
+      toast(copy.workflowApprovalRequired, { icon: "🛡️" });
+    } else if (result?.status === "paused") {
+      toast.error(copy.workflowRecoveryRequired);
     } else if (result?.status === "failed") {
       toast.error(result.message ?? copy.workflowExecuted);
     }
-  }, [copy.workflowExecuted, locale, sessionId, workflowTool]);
+  }, [
+    copy.workflowApprovalRequired,
+    copy.workflowExecuted,
+    copy.workflowRecoveryRequired,
+    locale,
+    sessionId,
+    workflowTool,
+  ]);
+
+  const handleResume = useCallback(
+    async (action: "approve" | "reject" | "retry" | "skip" | "continue", note?: string) => {
+      setResumeSubmitting(true);
+      try {
+        const result = await workflowTool.resumeWorkflow(action, note, {
+          locale,
+          sessionId,
+        });
+        if (!result) return;
+
+        if (result.status === "completed") {
+          toast.success(result.message ?? copy.workflowResumed);
+          setApprovalDialogOpen(false);
+          setRecoveryDialogOpen(false);
+        } else if (result.status === "awaiting_approval") {
+          toast(copy.workflowApprovalRequired, { icon: "🛡️" });
+        } else if (result.status === "paused") {
+          toast.error(copy.workflowRecoveryRequired);
+        } else if (result.status === "failed") {
+          toast.error(result.message ?? copy.workflowExecuted);
+          setApprovalDialogOpen(false);
+          setRecoveryDialogOpen(false);
+        }
+      } finally {
+        setResumeSubmitting(false);
+      }
+    },
+    [
+      copy.workflowApprovalRequired,
+      copy.workflowExecuted,
+      copy.workflowRecoveryRequired,
+      copy.workflowResumed,
+      locale,
+      sessionId,
+      workflowTool,
+    ],
+  );
 
   const handleConfirmDeleteWorkflow = useCallback(() => {
     if (!activeWorkflow) return;
@@ -679,10 +819,154 @@ function WorkflowPanelInner({
                   )}
                 </>
               ) : null}
+              {selectedNode.data.kind === "trigger" ? (
+                <div className="space-y-2 rounded-md border border-dashed p-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {copy.workflowScheduleTitle}
+                  </p>
+                  {(() => {
+                    const schedule = readTriggerSchedule(selectedNode);
+                    const updateSchedule = (
+                      patch: Partial<WorkflowScheduleConfig>,
+                    ) => {
+                      updateSelectedNodeData({
+                        config: {
+                          ...selectedNode.data.config,
+                          schedule: { ...schedule, ...patch },
+                        },
+                      });
+                    };
+                    return (
+                      <>
+                        <div className="space-y-1">
+                          <Label
+                            htmlFor="workflow-schedule-type"
+                            className="text-xs"
+                          >
+                            {copy.workflowScheduleType}
+                          </Label>
+                          <select
+                            id="workflow-schedule-type"
+                            value={schedule.type}
+                            onChange={(event) =>
+                              updateSchedule({
+                                type: event.target
+                                  .value as WorkflowScheduleConfig["type"],
+                              })
+                            }
+                            className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+                          >
+                            <option value="immediate">
+                              {copy.workflowScheduleImmediate}
+                            </option>
+                            <option value="delay">
+                              {copy.workflowScheduleDelay}
+                            </option>
+                            <option value="daily">
+                              {copy.workflowScheduleDaily}
+                            </option>
+                            <option value="weekly">
+                              {copy.workflowScheduleWeekly}
+                            </option>
+                          </select>
+                        </div>
+                        {schedule.type === "delay" ? (
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor="workflow-schedule-delay"
+                              className="text-xs"
+                            >
+                              {copy.workflowScheduleDelayMs}
+                            </Label>
+                            <Input
+                              id="workflow-schedule-delay"
+                              type="number"
+                              min={1}
+                              max={30}
+                              value={Math.round((schedule.delayMs ?? 5000) / 1000)}
+                              onChange={(event) =>
+                                updateSchedule({
+                                  delayMs:
+                                    Math.min(
+                                      30,
+                                      Math.max(1, Number(event.target.value) || 1),
+                                    ) * 1000,
+                                })
+                              }
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                        ) : null}
+                        {schedule.type === "daily" || schedule.type === "weekly" ? (
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor="workflow-schedule-hour"
+                              className="text-xs"
+                            >
+                              {copy.workflowScheduleHour}
+                            </Label>
+                            <Input
+                              id="workflow-schedule-hour"
+                              type="number"
+                              min={0}
+                              max={23}
+                              value={schedule.hour ?? 9}
+                              onChange={(event) =>
+                                updateSchedule({
+                                  hour: Math.min(
+                                    23,
+                                    Math.max(0, Number(event.target.value) || 0),
+                                  ),
+                                })
+                              }
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                        ) : null}
+                        {schedule.type === "weekly" ? (
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor="workflow-schedule-dow"
+                              className="text-xs"
+                            >
+                              {copy.workflowScheduleDayOfWeek}
+                            </Label>
+                            <select
+                              id="workflow-schedule-dow"
+                              value={schedule.dayOfWeek ?? 1}
+                              onChange={(event) =>
+                                updateSchedule({
+                                  dayOfWeek: Number(event.target.value),
+                                })
+                              }
+                              className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+                            >
+                              {WEEKDAY_OPTIONS.map((day) => (
+                                <option key={day.value} value={day.value}>
+                                  {locale === "id"
+                                    ? day.id
+                                    : locale === "zh"
+                                      ? day.zh
+                                      : day.en}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        ) : null}
+                        <p className="text-[10px] text-muted-foreground">
+                          {formatScheduleLabel(schedule, locale)}
+                        </p>
+                      </>
+                    );
+                  })()}
+                </div>
+              ) : null}
               {selectedNode.data.kind !== "trigger" ? (
                 <div className="space-y-1">
                   <Label htmlFor="workflow-node-prompt" className="text-xs">
-                    {copy.workflowNodePrompt}
+                    {selectedNode.data.kind === "approval"
+                      ? copy.workflowApprovalPrompt
+                      : copy.workflowNodePrompt}
                   </Label>
                   <Textarea
                     id="workflow-node-prompt"
@@ -697,8 +981,44 @@ function WorkflowPanelInner({
                       })
                     }
                     rows={4}
-                    placeholder="Instruksi LLM untuk node ini..."
+                    placeholder={
+                      selectedNode.data.kind === "approval"
+                        ? copy.workflowApprovalDescription
+                        : "Instruksi LLM untuk node ini..."
+                    }
                     className="min-h-[5rem] resize-none text-xs"
+                  />
+                </div>
+              ) : null}
+              {selectedNode.data.kind === "action" ||
+              selectedNode.data.kind === "output" ||
+              selectedNode.data.kind === "condition" ? (
+                <div className="space-y-1">
+                  <Label htmlFor="workflow-max-retries" className="text-xs">
+                    {copy.workflowMaxRetries}
+                  </Label>
+                  <Input
+                    id="workflow-max-retries"
+                    type="number"
+                    min={0}
+                    max={5}
+                    value={
+                      typeof selectedNode.data.config?.maxRetries === "number"
+                        ? selectedNode.data.config.maxRetries
+                        : 2
+                    }
+                    onChange={(event) =>
+                      updateSelectedNodeData({
+                        config: {
+                          ...selectedNode.data.config,
+                          maxRetries: Math.min(
+                            5,
+                            Math.max(0, Number(event.target.value) || 0),
+                          ),
+                        },
+                      })
+                    }
+                    className="h-8 text-xs"
                   />
                 </div>
               ) : null}
@@ -834,6 +1154,10 @@ function WorkflowPanelInner({
                         "bg-destructive/10 text-destructive",
                       log.status === "skipped" &&
                         "bg-muted/40 text-muted-foreground",
+                      log.status === "paused" &&
+                        "bg-amber-500/10 text-amber-900 dark:text-amber-100",
+                      log.status === "awaiting_approval" &&
+                        "bg-amber-500/15 text-amber-900 dark:text-amber-100",
                     )}
                   >
                     <div className="flex items-center gap-1.5">
@@ -875,6 +1199,23 @@ function WorkflowPanelInner({
         destructive
         onConfirm={handleConfirmDeleteWorkflow}
         onCancel={() => setDeleteDialogOpen(false)}
+      />
+
+      <WorkflowApprovalDialog
+        open={approvalDialogOpen}
+        locale={locale}
+        checkpoint={executionCheckpoint}
+        isSubmitting={resumeSubmitting || isExecuting}
+        onApprove={(note) => void handleResume("approve", note)}
+        onReject={(note) => void handleResume("reject", note)}
+      />
+
+      <WorkflowErrorRecoveryDialog
+        open={recoveryDialogOpen}
+        locale={locale}
+        checkpoint={executionCheckpoint}
+        isSubmitting={resumeSubmitting || isExecuting}
+        onAction={(action, note) => void handleResume(action, note)}
       />
     </aside>
   );

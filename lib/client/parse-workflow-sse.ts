@@ -1,23 +1,35 @@
 import type {
+  WorkflowSseApprovalRequiredPayload,
   WorkflowSseDonePayload,
   WorkflowSseErrorPayload,
   WorkflowSseProgressPayload,
+  WorkflowSseRecoveryRequiredPayload,
+  WorkflowSseScheduledPayload,
   WorkflowSseStartPayload,
   WorkflowSseToolActionPayload,
 } from "@/lib/workflow-sse";
+import type { WorkflowExecutionCheckpoint } from "@/lib/workflow-execution-state";
 import type { WorkflowExecutionResult } from "@/lib/workflow";
+
+export interface WorkflowExecuteStreamResult {
+  result: WorkflowExecutionResult;
+  checkpoint: WorkflowExecutionCheckpoint | null;
+}
 
 export interface WorkflowExecuteStreamHandlers {
   onStart?: (payload: WorkflowSseStartPayload) => void;
   onProgress?: (payload: WorkflowSseProgressPayload) => void;
   onToolAction?: (payload: WorkflowSseToolActionPayload) => void | Promise<void>;
+  onApprovalRequired?: (payload: WorkflowSseApprovalRequiredPayload) => void;
+  onRecoveryRequired?: (payload: WorkflowSseRecoveryRequiredPayload) => void;
+  onScheduled?: (payload: WorkflowSseScheduledPayload) => void;
   onDone?: (payload: WorkflowSseDonePayload) => void;
 }
 
 export async function consumeWorkflowExecuteStream(
   response: Response,
   handlers: WorkflowExecuteStreamHandlers = {},
-): Promise<WorkflowExecutionResult> {
+): Promise<WorkflowExecuteStreamResult> {
   const reader = response.body?.getReader();
 
   if (!reader) {
@@ -27,6 +39,7 @@ export async function consumeWorkflowExecuteStream(
   const decoder = new TextDecoder();
   let buffer = "";
   let result: WorkflowExecutionResult | null = null;
+  let checkpoint: WorkflowExecutionCheckpoint | null = null;
   let error: string | undefined;
 
   while (true) {
@@ -61,9 +74,16 @@ export async function consumeWorkflowExecuteStream(
         handlers.onProgress?.(payload as WorkflowSseProgressPayload);
       } else if (eventType === "tool_action") {
         await handlers.onToolAction?.(payload as WorkflowSseToolActionPayload);
+      } else if (eventType === "approval_required") {
+        handlers.onApprovalRequired?.(payload as WorkflowSseApprovalRequiredPayload);
+      } else if (eventType === "recovery_required") {
+        handlers.onRecoveryRequired?.(payload as WorkflowSseRecoveryRequiredPayload);
+      } else if (eventType === "scheduled") {
+        handlers.onScheduled?.(payload as WorkflowSseScheduledPayload);
       } else if (eventType === "done") {
         const donePayload = payload as WorkflowSseDonePayload;
         result = donePayload.result;
+        checkpoint = donePayload.checkpoint ?? null;
         handlers.onDone?.(donePayload);
       } else if (eventType === "error") {
         const errorPayload = payload as WorkflowSseErrorPayload;
@@ -79,5 +99,5 @@ export async function consumeWorkflowExecuteStream(
     throw new Error(error ?? "Workflow execution returned no result.");
   }
 
-  return result;
+  return { result, checkpoint };
 }

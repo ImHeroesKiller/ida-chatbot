@@ -35,7 +35,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 
-import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, PauseCircle, ShieldCheck, XCircle } from "lucide-react";
 
 import type {
   WorkflowExecutionLogEntry,
@@ -68,6 +68,11 @@ const KIND_STYLES: Record<
     badge: "bg-violet-500/15 text-violet-700 dark:text-violet-300",
     dot: "bg-violet-500",
   },
+  approval: {
+    border: "border-rose-500/50 bg-rose-500/10 dark:bg-rose-500/15",
+    badge: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
+    dot: "bg-rose-500",
+  },
 };
 
 const EMPTY_EXECUTION_STATUS: Record<
@@ -91,6 +96,10 @@ const EXECUTION_RING: Record<
   completed: "ring-2 ring-emerald-500/70 ring-offset-2 ring-offset-background",
   failed: "ring-2 ring-destructive/80 ring-offset-2 ring-offset-background",
   skipped: "opacity-60 ring-1 ring-dashed ring-muted-foreground/40",
+  paused:
+    "ring-2 ring-amber-500/80 ring-offset-2 ring-offset-background animate-pulse",
+  awaiting_approval:
+    "ring-2 ring-rose-500/80 ring-offset-2 ring-offset-background animate-pulse",
 };
 
 function ExecutionStatusBadge({
@@ -99,6 +108,22 @@ function ExecutionStatusBadge({
   status?: WorkflowExecutionLogEntry["status"];
 }) {
   if (!status || status === "skipped") return null;
+
+  if (status === "paused") {
+    return (
+      <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white shadow-sm">
+        <PauseCircle className="h-3 w-3" aria-hidden />
+      </span>
+    );
+  }
+
+  if (status === "awaiting_approval") {
+    return (
+      <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white shadow-sm">
+        <ShieldCheck className="h-3 w-3" aria-hidden />
+      </span>
+    );
+  }
 
   if (status === "running") {
     return (

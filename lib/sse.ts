@@ -17,7 +17,7 @@ export interface IdaSseWorkflowPayload {
   nodes: Array<{
     id: string;
     label: string;
-    kind: "trigger" | "action" | "condition" | "output";
+    kind: "trigger" | "action" | "condition" | "output" | "approval";
     description?: string;
     prompt?: string;
     position?: { x: number; y: number };

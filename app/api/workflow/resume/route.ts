@@ -9,15 +9,21 @@ import {
   IdaRateLimitError,
 } from "@/lib/rate-limit";
 import { executeChatWorkflowStream } from "@/lib/workflow-executor";
-import { workflowDefinitionSchema } from "@/lib/workflow-api-schema";
+import {
+  workflowCheckpointSchema,
+  workflowDefinitionSchema,
+} from "@/lib/workflow-api-schema";
 import {
   createWorkflowExecuteSseStream,
   workflowExecuteSseResponse,
 } from "@/lib/workflow-sse";
 import type { WorkflowDefinition } from "@/lib/workflow";
 
-const executeRequestSchema = z.object({
+const resumeRequestSchema = z.object({
   workflow: workflowDefinitionSchema,
+  checkpoint: workflowCheckpointSchema,
+  action: z.enum(["approve", "reject", "retry", "skip", "continue"]),
+  note: z.string().max(500).optional(),
   locale: z.enum(LOCALES),
   sessionId: z.string().min(8).max(64).optional(),
   activeWorkflowId: z.string().min(1).optional(),
@@ -32,10 +38,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const parsed = executeRequestSchema.safeParse(body);
+  const parsed = resumeRequestSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Invalid workflow payload.", details: parsed.error.flatten() },
+      { error: "Invalid workflow resume payload.", details: parsed.error.flatten() },
       { status: 400 },
     );
   }
@@ -62,23 +68,15 @@ export async function POST(request: Request) {
 
   const workflow = parsed.data.workflow as WorkflowDefinition;
 
-  console.info("[workflow:execute] request", {
-    workflowId: workflow.id,
-    name: workflow.name,
-    nodeCount: workflow.nodes.length,
-    edgeCount: workflow.edges.length,
-    locale: parsed.data.locale,
-    sessionId: parsed.data.sessionId ?? null,
-    streaming: true,
-  });
-
   const stream = createWorkflowExecuteSseStream(async (send) => {
     for await (const event of executeChatWorkflowStream({
       workflow,
       locale: parsed.data.locale,
       sessionId: parsed.data.sessionId,
-      activeWorkflowId:
-        parsed.data.activeWorkflowId ?? workflow.id,
+      activeWorkflowId: parsed.data.activeWorkflowId ?? workflow.id,
+      checkpoint: parsed.data.checkpoint,
+      resumeAction: parsed.data.action,
+      resumeNote: parsed.data.note,
     })) {
       if (event.type === "start") {
         send("start", {
@@ -87,10 +85,7 @@ export async function POST(request: Request) {
           totalNodes: event.totalNodes,
         });
       } else if (event.type === "progress") {
-        send("progress", {
-          log: event.log,
-          logs: event.logs,
-        });
+        send("progress", { log: event.log, logs: event.logs });
       } else if (event.type === "tool_action") {
         send("tool_action", {
           nodeId: event.nodeId,
@@ -117,20 +112,9 @@ export async function POST(request: Request) {
           logs: event.logs,
         });
       } else if (event.type === "done") {
-        console.info("[workflow:execute] completed", {
-          workflowId: event.result.workflowId,
-          status: event.result.status,
-          logCount: event.result.logs?.length ?? 0,
-        });
-        send("done", {
-          result: event.result,
-          checkpoint: event.checkpoint ?? null,
-        });
+        send("done", { result: event.result, checkpoint: event.checkpoint ?? null });
       } else if (event.type === "error") {
-        send("error", {
-          error: event.message,
-          result: event.result,
-        });
+        send("error", { error: event.message, result: event.result });
       }
     }
   });

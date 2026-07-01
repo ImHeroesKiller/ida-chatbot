@@ -1,10 +1,14 @@
 import type { ResolvedWorkflowNodeAction } from "@/lib/workflow-actions";
+import type { WorkflowExecutionCheckpoint } from "@/lib/workflow-execution-state";
 import type { WorkflowExecutionLogEntry, WorkflowExecutionResult } from "@/lib/workflow";
 
 export type WorkflowSseEventType =
   | "start"
   | "progress"
   | "tool_action"
+  | "approval_required"
+  | "recovery_required"
+  | "scheduled"
   | "done"
   | "error";
 
@@ -28,8 +32,25 @@ export interface WorkflowSseToolActionPayload {
   logs: WorkflowExecutionLogEntry[];
 }
 
+export interface WorkflowSseApprovalRequiredPayload {
+  checkpoint: WorkflowExecutionCheckpoint;
+  logs: WorkflowExecutionLogEntry[];
+}
+
+export interface WorkflowSseRecoveryRequiredPayload {
+  checkpoint: WorkflowExecutionCheckpoint;
+  logs: WorkflowExecutionLogEntry[];
+}
+
+export interface WorkflowSseScheduledPayload {
+  nextRunAt: number;
+  label: string;
+  logs: WorkflowExecutionLogEntry[];
+}
+
 export interface WorkflowSseDonePayload {
   result: WorkflowExecutionResult;
+  checkpoint?: WorkflowExecutionCheckpoint | null;
 }
 
 export interface WorkflowSseErrorPayload {

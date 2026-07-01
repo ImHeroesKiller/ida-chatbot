@@ -1,7 +1,14 @@
 import type { Edge, Node } from "reactflow";
 
+import type { WorkflowExecutionCheckpoint } from "@/lib/workflow-execution-state";
+
 /** Built-in node kinds for the chat workflow canvas (React Flow). */
-export type WorkflowNodeKind = "trigger" | "action" | "condition" | "output";
+export type WorkflowNodeKind =
+  | "trigger"
+  | "action"
+  | "condition"
+  | "output"
+  | "approval";
 
 /** Payload stored on each React Flow node (`node.data`). */
 export interface WorkflowNodeData {
@@ -18,11 +25,19 @@ export type WorkflowErrorCode =
   | "empty_workflow"
   | "execute_failed";
 
+export type WorkflowExecutionLogStatus =
+  | "skipped"
+  | "running"
+  | "completed"
+  | "failed"
+  | "paused"
+  | "awaiting_approval";
+
 export interface WorkflowExecutionLogEntry {
   nodeId: string;
   label: string;
   kind: WorkflowNodeKind;
-  status: "skipped" | "running" | "completed" | "failed";
+  status: WorkflowExecutionLogStatus;
   /** Tool action invoked for this step (when not plain LLM). */
   actionId?: string;
   output?: string;
@@ -45,9 +60,17 @@ export interface WorkflowDefinition {
   updatedAt: number;
 }
 
+export type WorkflowExecutionStatus =
+  | "pending"
+  | "running"
+  | "completed"
+  | "failed"
+  | "paused"
+  | "awaiting_approval";
+
 export interface WorkflowExecutionResult {
   workflowId: string;
-  status: "pending" | "running" | "completed" | "failed";
+  status: WorkflowExecutionStatus;
   startedAt: number;
   completedAt?: number;
   message?: string;
@@ -67,6 +90,8 @@ export interface WorkflowWorkspace {
   activeExecutionId?: string | null;
   updatedAt: number;
   lastExecution?: WorkflowExecutionResult | null;
+  /** Persisted pause state for approval gates and error recovery. */
+  executionCheckpoint?: WorkflowExecutionCheckpoint | null;
   error?: WorkflowErrorCode;
 }
 
@@ -136,6 +161,7 @@ export function normalizeWorkflowWorkspace(
     activeExecutionId: workspace.activeExecutionId ?? null,
     updatedAt: workspace.updatedAt ?? Date.now(),
     lastExecution: workspace.lastExecution ?? null,
+    executionCheckpoint: workspace.executionCheckpoint ?? null,
     error: workspace.error,
   };
 }
@@ -273,6 +299,7 @@ export function buildWorkflowWorkspacePersistFingerprint(
     activeWorkflowId: workspace.activeWorkflowId,
     updatedAt: workspace.updatedAt,
     lastExecution: workspace.lastExecution,
+    executionCheckpoint: workspace.executionCheckpoint ?? null,
     error: workspace.error,
     workflows: workspace.workflows.map((wf) => ({
       id: wf.id,
@@ -374,6 +401,7 @@ const WORKFLOW_NODE_KINDS = new Set<WorkflowNodeKind>([
   "action",
   "condition",
   "output",
+  "approval",
 ]);
 
 function coerceWorkflowNodeKind(

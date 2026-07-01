@@ -273,6 +273,36 @@ export const COPY: Record<
     workflowTemplateExported: string;
     workflowTemplateImported: string;
     workflowTemplateNoResults: string;
+    workflowAddApproval: string;
+    workflowApprovalTitle: string;
+    workflowApprovalDescription: string;
+    workflowApprovalPrompt: string;
+    workflowApprovalNote: string;
+    workflowApprovalApprove: string;
+    workflowApprovalReject: string;
+    workflowApprovalRequired: string;
+    workflowRecoveryTitle: string;
+    workflowRecoveryDescription: string;
+    workflowRecoveryError: string;
+    workflowRecoverySuggestion: string;
+    workflowRecoveryRetry: string;
+    workflowRecoverySkip: string;
+    workflowRecoveryContinue: string;
+    workflowRecoveryRequired: string;
+    workflowScheduleTitle: string;
+    workflowScheduleType: string;
+    workflowScheduleImmediate: string;
+    workflowScheduleDelay: string;
+    workflowScheduleDaily: string;
+    workflowScheduleWeekly: string;
+    workflowScheduleDelayMs: string;
+    workflowScheduleHour: string;
+    workflowScheduleDayOfWeek: string;
+    workflowScheduledNotification: string;
+    workflowStatusPaused: string;
+    workflowStatusAwaitingApproval: string;
+    workflowMaxRetries: string;
+    workflowResumed: string;
     toolsImage: string;
     toolsVideo: string;
     toolsMusic: string;
@@ -829,6 +859,38 @@ export const COPY: Record<
     workflowTemplateExported: "Workflow diekspor",
     workflowTemplateImported: "Workflow diimpor",
     workflowTemplateNoResults: "Tidak ada template yang cocok.",
+    workflowAddApproval: "Approval",
+    workflowApprovalTitle: "Persetujuan Diperlukan",
+    workflowApprovalDescription:
+      "Workflow dijeda menunggu keputusan Anda sebelum melanjutkan.",
+    workflowApprovalPrompt: "Yang perlu disetujui",
+    workflowApprovalNote: "Catatan (opsional)",
+    workflowApprovalApprove: "Setujui",
+    workflowApprovalReject: "Tolak",
+    workflowApprovalRequired: "Workflow menunggu persetujuan Anda.",
+    workflowRecoveryTitle: "Pemulihan Error",
+    workflowRecoveryDescription:
+      "Langkah workflow gagal. Pilih cara melanjutkan eksekusi.",
+    workflowRecoveryError: "Detail error",
+    workflowRecoverySuggestion: "Saran",
+    workflowRecoveryRetry: "Retry",
+    workflowRecoverySkip: "Skip",
+    workflowRecoveryContinue: "Lanjutkan",
+    workflowRecoveryRequired: "Workflow dijeda karena error — tindakan diperlukan.",
+    workflowScheduleTitle: "Jadwal Trigger",
+    workflowScheduleType: "Tipe jadwal",
+    workflowScheduleImmediate: "Segera",
+    workflowScheduleDelay: "Tunda",
+    workflowScheduleDaily: "Harian",
+    workflowScheduleWeekly: "Mingguan",
+    workflowScheduleDelayMs: "Tunda (detik, maks 30)",
+    workflowScheduleHour: "Jam (0–23)",
+    workflowScheduleDayOfWeek: "Hari dalam minggu",
+    workflowScheduledNotification: "Workflow dijadwalkan: {label}",
+    workflowStatusPaused: "dijeda",
+    workflowStatusAwaitingApproval: "menunggu persetujuan",
+    workflowMaxRetries: "Maks retry otomatis",
+    workflowResumed: "Workflow dilanjutkan.",
     toolsImage: "Gambar",
     toolsVideo: "Video",
     toolsMusic: "Musik",
@@ -1418,6 +1480,38 @@ export const COPY: Record<
     workflowTemplateExported: "Workflow exported",
     workflowTemplateImported: "Workflow imported",
     workflowTemplateNoResults: "No matching templates.",
+    workflowAddApproval: "Approval",
+    workflowApprovalTitle: "Approval Required",
+    workflowApprovalDescription:
+      "The workflow is paused until you approve or reject this step.",
+    workflowApprovalPrompt: "Review",
+    workflowApprovalNote: "Note (optional)",
+    workflowApprovalApprove: "Approve",
+    workflowApprovalReject: "Reject",
+    workflowApprovalRequired: "Workflow is waiting for your approval.",
+    workflowRecoveryTitle: "Error Recovery",
+    workflowRecoveryDescription:
+      "A workflow step failed. Choose how to continue execution.",
+    workflowRecoveryError: "Error details",
+    workflowRecoverySuggestion: "Suggestion",
+    workflowRecoveryRetry: "Retry",
+    workflowRecoverySkip: "Skip",
+    workflowRecoveryContinue: "Continue",
+    workflowRecoveryRequired: "Workflow paused due to an error — action required.",
+    workflowScheduleTitle: "Trigger Schedule",
+    workflowScheduleType: "Schedule type",
+    workflowScheduleImmediate: "Immediately",
+    workflowScheduleDelay: "Delay",
+    workflowScheduleDaily: "Daily",
+    workflowScheduleWeekly: "Weekly",
+    workflowScheduleDelayMs: "Delay (seconds, max 30)",
+    workflowScheduleHour: "Hour (0–23)",
+    workflowScheduleDayOfWeek: "Day of week",
+    workflowScheduledNotification: "Workflow scheduled: {label}",
+    workflowStatusPaused: "paused",
+    workflowStatusAwaitingApproval: "awaiting approval",
+    workflowMaxRetries: "Max auto-retries",
+    workflowResumed: "Workflow resumed.",
     toolsImage: "Image",
     toolsVideo: "Video",
     toolsMusic: "Music",
@@ -1999,6 +2093,36 @@ export const COPY: Record<
     workflowTemplateExported: "工作流已导出",
     workflowTemplateImported: "工作流已导入",
     workflowTemplateNoResults: "没有匹配的模板。",
+    workflowAddApproval: "审批",
+    workflowApprovalTitle: "需要审批",
+    workflowApprovalDescription: "工作流已暂停，等待您批准或拒绝此步骤。",
+    workflowApprovalPrompt: "待审批内容",
+    workflowApprovalNote: "备注（可选）",
+    workflowApprovalApprove: "批准",
+    workflowApprovalReject: "拒绝",
+    workflowApprovalRequired: "工作流正在等待您的审批。",
+    workflowRecoveryTitle: "错误恢复",
+    workflowRecoveryDescription: "工作流步骤失败，请选择如何继续执行。",
+    workflowRecoveryError: "错误详情",
+    workflowRecoverySuggestion: "建议",
+    workflowRecoveryRetry: "重试",
+    workflowRecoverySkip: "跳过",
+    workflowRecoveryContinue: "继续",
+    workflowRecoveryRequired: "工作流因错误暂停，需要您处理。",
+    workflowScheduleTitle: "触发器计划",
+    workflowScheduleType: "计划类型",
+    workflowScheduleImmediate: "立即",
+    workflowScheduleDelay: "延迟",
+    workflowScheduleDaily: "每天",
+    workflowScheduleWeekly: "每周",
+    workflowScheduleDelayMs: "延迟（秒，最多 30）",
+    workflowScheduleHour: "小时（0–23）",
+    workflowScheduleDayOfWeek: "星期",
+    workflowScheduledNotification: "工作流已计划：{label}",
+    workflowStatusPaused: "已暂停",
+    workflowStatusAwaitingApproval: "等待审批",
+    workflowMaxRetries: "最大自动重试次数",
+    workflowResumed: "工作流已继续。",
     toolsImage: "图像",
     toolsVideo: "视频",
     toolsMusic: "音乐",

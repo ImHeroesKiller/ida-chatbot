@@ -11,6 +11,10 @@ import {
 import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
 import type { ToolQuotaState } from "@/components/chat/tools/types";
 import { consumeWorkflowExecuteStream } from "@/lib/client/parse-workflow-sse";
+import type {
+  WorkflowExecutionCheckpoint,
+  WorkflowResumeAction,
+} from "@/lib/workflow-execution-state";
 import {
   parseWorkflowFromResponse,
   workflowPayloadToDefinition,
@@ -172,6 +176,13 @@ export type WorkflowTool = BaseToolState &
       workflowId?: string | null,
       options?: { locale?: Locale; sessionId?: string },
     ) => Promise<WorkflowExecutionResult | null>;
+    resumeWorkflow: (
+      action: WorkflowResumeAction,
+      note?: string,
+      options?: { locale?: Locale; sessionId?: string },
+    ) => Promise<WorkflowExecutionResult | null>;
+    executionCheckpoint: WorkflowExecutionCheckpoint | null;
+    clearExecutionCheckpoint: () => WorkflowWorkspaceState;
     deleteWorkflow: (workflowId?: string | null) => WorkflowWorkspaceState;
     deleteNode: (
       nodeId: string,
@@ -791,6 +802,7 @@ export function useWorkflow(): WorkflowTool {
         ...prev,
         activeExecutionId: targetId,
         lastExecution: runningExecution,
+        executionCheckpoint: null,
         error: undefined,
         updatedAt: Date.now(),
       }));
@@ -850,61 +862,91 @@ export function useWorkflow(): WorkflowTool {
           }));
         };
 
-        const result = await consumeWorkflowExecuteStream(response, {
-          onProgress: ({ logs }) => {
-            applyProgress(logs);
-          },
-          onToolAction: async (payload) => {
-            applyProgress(payload.logs);
+        const persistCheckpoint = (checkpoint: WorkflowExecutionCheckpoint) => {
+          if (!isCurrentExecution()) return;
+          setWorkspaceInternal((prev) => {
+            const next = {
+              ...prev,
+              executionCheckpoint: checkpoint,
+              updatedAt: Date.now(),
+            };
+            workspaceRef.current = next;
+            return next;
+          });
+        };
 
-            if (!isCurrentExecution()) return;
-
-            const bridge = toolCoordinatorBridgeRef.current;
-            if (!bridge) return;
-
-            try {
-              const clientResult = await executeClientWorkflowAction(
-                bridge,
-                payload.action,
-                payload.dispatch,
-              );
+        const { result, checkpoint } = await consumeWorkflowExecuteStream(
+          response,
+          {
+            onProgress: ({ logs }) => {
+              applyProgress(logs);
+            },
+            onToolAction: async (payload) => {
+              applyProgress(payload.logs);
 
               if (!isCurrentExecution()) return;
 
-              setWorkspaceInternal((prev) => {
-                const logs = prev.lastExecution?.logs ?? [];
-                const patchedLogs = logs.map((log) =>
-                  log.nodeId === payload.nodeId
-                    ? {
-                        ...log,
-                        message: clientResult.success
-                          ? `${log.message ?? ""} ${clientResult.message}`.trim()
-                          : clientResult.message,
-                        output: clientResult.output || log.output,
-                      }
-                    : log,
+              const bridge = toolCoordinatorBridgeRef.current;
+              if (!bridge) return;
+
+              try {
+                const clientResult = await executeClientWorkflowAction(
+                  bridge,
+                  payload.action,
+                  payload.dispatch,
                 );
 
-                return {
-                  ...prev,
-                  lastExecution: {
-                    workflowId: targetId,
-                    status: "running",
-                    startedAt,
-                    logs: patchedLogs,
-                  },
-                  updatedAt: Date.now(),
-                };
-              });
-            } catch (error) {
-              console.error("[workflow:tool_action]", error);
-            }
+                if (!isCurrentExecution()) return;
+
+                setWorkspaceInternal((prev) => {
+                  const logs = prev.lastExecution?.logs ?? [];
+                  const patchedLogs = logs.map((log) =>
+                    log.nodeId === payload.nodeId
+                      ? {
+                          ...log,
+                          message: clientResult.success
+                            ? `${log.message ?? ""} ${clientResult.message}`.trim()
+                            : clientResult.message,
+                          output: clientResult.output || log.output,
+                        }
+                      : log,
+                  );
+
+                  return {
+                    ...prev,
+                    lastExecution: {
+                      workflowId: targetId,
+                      status: "running",
+                      startedAt,
+                      logs: patchedLogs,
+                    },
+                    updatedAt: Date.now(),
+                  };
+                });
+              } catch (error) {
+                console.error("[workflow:tool_action]", error);
+              }
+            },
+            onApprovalRequired: ({ checkpoint: pauseCheckpoint, logs }) => {
+              applyProgress(logs);
+              persistCheckpoint(pauseCheckpoint);
+            },
+            onRecoveryRequired: ({ checkpoint: pauseCheckpoint, logs }) => {
+              applyProgress(logs);
+              persistCheckpoint(pauseCheckpoint);
+            },
+            onScheduled: ({ logs }) => {
+              applyProgress(logs);
+            },
           },
-        });
+        );
 
         if (!isCurrentExecution()) {
           return null;
         }
+
+        const isPaused =
+          result.status === "paused" || result.status === "awaiting_approval";
 
         let nextWorkspace!: WorkflowWorkspaceState;
 
@@ -913,6 +955,8 @@ export function useWorkflow(): WorkflowTool {
             ...prev,
             activeExecutionId: null,
             lastExecution: result,
+            executionCheckpoint:
+              isPaused && checkpoint ? checkpoint : null,
             error: result.status === "failed" ? "execute_failed" : undefined,
             updatedAt: Date.now(),
           };
@@ -931,6 +975,8 @@ export function useWorkflow(): WorkflowTool {
 
         if (result.status === "failed") {
           setErrorDetail(result.message ?? result.error ?? null);
+        } else {
+          clearErrorDetail();
         }
 
         syncToPersistLayer(nextWorkspace);
@@ -990,6 +1036,282 @@ export function useWorkflow(): WorkflowTool {
     [clearErrorDetail, setErrorDetail, syncToPersistLayer],
   );
 
+  const resumeWorkflow = useCallback(
+    async (
+      action: WorkflowResumeAction,
+      note?: string,
+      options?: { locale?: Locale; sessionId?: string },
+    ): Promise<WorkflowExecutionResult | null> => {
+      if (isExecutingRef.current || workspaceRef.current.activeExecutionId) {
+        return null;
+      }
+
+      const checkpoint = workspaceRef.current.executionCheckpoint;
+      const activeId = workspaceRef.current.activeWorkflowId;
+      if (!checkpoint || !activeId || checkpoint.workflowId !== activeId) {
+        return null;
+      }
+
+      const workflow = getWorkflowById(workspaceRef.current, activeId);
+      if (!workflow) return null;
+
+      executionAbortRef.current?.abort();
+      executionAbortRef.current = null;
+
+      const executionToken = executionTokenRef.current + 1;
+      executionTokenRef.current = executionToken;
+      const abortController = new AbortController();
+      executionAbortRef.current = abortController;
+
+      isExecutingRef.current = true;
+      setIsExecuting(true);
+      clearErrorDetail();
+
+      const targetId = activeId;
+      const startedAt = checkpoint.startedAt;
+
+      setWorkspaceInternal((prev) => ({
+        ...prev,
+        activeExecutionId: targetId,
+        lastExecution: {
+          workflowId: targetId,
+          status: "running",
+          startedAt,
+          logs: checkpoint.logs,
+        },
+        updatedAt: Date.now(),
+      }));
+
+      const isCurrentExecution = () =>
+        executionTokenRef.current === executionToken &&
+        workspaceRef.current.activeExecutionId === targetId;
+
+      try {
+        const response = await fetch("/api/workflow/resume", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: abortController.signal,
+          body: JSON.stringify({
+            workflow,
+            checkpoint,
+            action,
+            note: note?.trim() || undefined,
+            locale: options?.locale ?? checkpoint.locale,
+            sessionId: options?.sessionId,
+            activeWorkflowId: targetId,
+          }),
+        });
+
+        if (!isCurrentExecution()) return null;
+
+        if (!response.ok) {
+          const data = (await response.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          throw new Error(data.error ?? "Workflow resume failed.");
+        }
+
+        const contentType = response.headers.get("content-type") ?? "";
+        if (!contentType.includes("text/event-stream")) {
+          throw new Error("Workflow resume stream is not available.");
+        }
+
+        const applyProgress = (logs: WorkflowExecutionLogEntry[]) => {
+          if (!isCurrentExecution()) return;
+
+          const statusMap: Record<string, WorkflowExecutionLogEntry["status"]> =
+            {};
+          for (const log of logs) {
+            statusMap[log.nodeId] = log.status;
+          }
+          setExecutionNodeStatus(statusMap);
+          setWorkspaceInternal((prev) => ({
+            ...prev,
+            activeExecutionId: targetId,
+            lastExecution: {
+              workflowId: targetId,
+              status: "running",
+              startedAt,
+              logs: [...logs],
+            },
+            updatedAt: Date.now(),
+          }));
+        };
+
+        const persistCheckpoint = (nextCheckpoint: WorkflowExecutionCheckpoint) => {
+          if (!isCurrentExecution()) return;
+          setWorkspaceInternal((prev) => {
+            const next = {
+              ...prev,
+              executionCheckpoint: nextCheckpoint,
+              updatedAt: Date.now(),
+            };
+            workspaceRef.current = next;
+            return next;
+          });
+        };
+
+        const { result, checkpoint: nextCheckpoint } =
+          await consumeWorkflowExecuteStream(response, {
+            onProgress: ({ logs }) => applyProgress(logs),
+            onToolAction: async (payload) => {
+              applyProgress(payload.logs);
+              if (!isCurrentExecution()) return;
+
+              const bridge = toolCoordinatorBridgeRef.current;
+              if (!bridge) return;
+
+              try {
+                const clientResult = await executeClientWorkflowAction(
+                  bridge,
+                  payload.action,
+                  payload.dispatch,
+                );
+
+                if (!isCurrentExecution()) return;
+
+                setWorkspaceInternal((prev) => {
+                  const logs = prev.lastExecution?.logs ?? [];
+                  const patchedLogs = logs.map((log) =>
+                    log.nodeId === payload.nodeId
+                      ? {
+                          ...log,
+                          message: clientResult.success
+                            ? `${log.message ?? ""} ${clientResult.message}`.trim()
+                            : clientResult.message,
+                          output: clientResult.output || log.output,
+                        }
+                      : log,
+                  );
+
+                  return {
+                    ...prev,
+                    lastExecution: {
+                      workflowId: targetId,
+                      status: "running",
+                      startedAt,
+                      logs: patchedLogs,
+                    },
+                    updatedAt: Date.now(),
+                  };
+                });
+              } catch (error) {
+                console.error("[workflow:tool_action]", error);
+              }
+            },
+            onApprovalRequired: ({ checkpoint: pauseCheckpoint, logs }) => {
+              applyProgress(logs);
+              persistCheckpoint(pauseCheckpoint);
+            },
+            onRecoveryRequired: ({ checkpoint: pauseCheckpoint, logs }) => {
+              applyProgress(logs);
+              persistCheckpoint(pauseCheckpoint);
+            },
+            onScheduled: ({ logs }) => applyProgress(logs),
+          });
+
+        if (!isCurrentExecution()) return null;
+
+        const isPaused =
+          result.status === "paused" || result.status === "awaiting_approval";
+
+        let nextWorkspace!: WorkflowWorkspaceState;
+
+        setWorkspaceInternal((prev) => {
+          nextWorkspace = {
+            ...prev,
+            activeExecutionId: null,
+            lastExecution: result,
+            executionCheckpoint:
+              isPaused && nextCheckpoint ? nextCheckpoint : null,
+            error: result.status === "failed" ? "execute_failed" : undefined,
+            updatedAt: Date.now(),
+          };
+          workspaceRef.current = nextWorkspace;
+          return nextWorkspace;
+        });
+
+        if (result.logs?.length) {
+          const statusMap: Record<string, WorkflowExecutionLogEntry["status"]> =
+            {};
+          for (const log of result.logs) {
+            statusMap[log.nodeId] = log.status;
+          }
+          setExecutionNodeStatus(statusMap);
+        }
+
+        if (result.status === "failed") {
+          setErrorDetail(result.message ?? result.error ?? null);
+        } else {
+          clearErrorDetail();
+        }
+
+        syncToPersistLayer(nextWorkspace);
+        return result;
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          return null;
+        }
+
+        if (!isCurrentExecution()) return null;
+
+        const message =
+          error instanceof Error ? error.message : "Workflow resume failed.";
+
+        const failedResult: WorkflowExecutionResult = {
+          workflowId: targetId,
+          status: "failed",
+          startedAt,
+          completedAt: Date.now(),
+          message,
+          logs: workspaceRef.current.lastExecution?.logs ?? checkpoint.logs,
+          error: "execute_failed",
+        };
+
+        let nextWorkspace!: WorkflowWorkspaceState;
+
+        setWorkspaceInternal((prev) => {
+          nextWorkspace = setWorkflowWorkspaceError(prev, "execute_failed");
+          nextWorkspace = {
+            ...nextWorkspace,
+            activeExecutionId: null,
+            lastExecution: failedResult,
+          };
+          workspaceRef.current = nextWorkspace;
+          return nextWorkspace;
+        });
+
+        setErrorDetail(message);
+        syncToPersistLayer(nextWorkspace);
+        return failedResult;
+      } finally {
+        if (executionTokenRef.current === executionToken) {
+          isExecutingRef.current = false;
+          setIsExecuting(false);
+          executionAbortRef.current = null;
+          setWorkspaceInternal((prev) => {
+            if (!prev.activeExecutionId) return prev;
+            const next = { ...prev, activeExecutionId: null };
+            workspaceRef.current = next;
+            return next;
+          });
+        }
+      }
+    },
+    [clearErrorDetail, setErrorDetail, syncToPersistLayer],
+  );
+
+  const clearExecutionCheckpoint = useCallback((): WorkflowWorkspaceState => {
+    const next = applyWorkspacePatch(workspaceRef.current, {
+      executionCheckpoint: null,
+      updatedAt: Date.now(),
+    });
+    workspaceRef.current = next;
+    setWorkspaceInternal(next);
+    syncToPersistLayer(next);
+    return next;
+  }, [syncToPersistLayer]);
+
   const workflows = useMemo(() => workspace.workflows, [workspace.workflows]);
   const activeWorkflowId = workspace.activeWorkflowId;
   const activeExecutionId = workspace.activeExecutionId ?? null;
@@ -998,6 +1320,7 @@ export function useWorkflow(): WorkflowTool {
     [workspace],
   );
   const lastExecution = workspace.lastExecution ?? null;
+  const executionCheckpoint = workspace.executionCheckpoint ?? null;
   const quotaSnapshot = useMemo(() => ({ ...quota }), [quota]);
   const workspaceSnapshot = useMemo(() => ({ ...workspace, workflows }), [
     workspace,
@@ -1040,6 +1363,9 @@ export function useWorkflow(): WorkflowTool {
     importLatestGeneratedWorkflow,
     applyStreamError,
     executeWorkflow,
+    resumeWorkflow,
+    executionCheckpoint,
+    clearExecutionCheckpoint,
     deleteWorkflow,
     deleteNode,
     applyTemplate,
