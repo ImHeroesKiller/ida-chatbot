@@ -37,7 +37,9 @@ interface UseChatSessionSyncOptions {
   setIsLoading: Dispatch<SetStateAction<boolean>>;
   setEditingMessageId: Dispatch<SetStateAction<string | null>>;
   hydrateWorksheetFromChat: (chat: ChatSession) => void;
+  hydrateWorkflowFromChat?: (chat: ChatSession) => void;
   resetWorksheetForNewChat: () => void;
+  resetWorkflowForNewChat?: () => void;
   onAfterSelectChat?: () => void;
   onAfterNewChat?: () => void;
 }
@@ -60,7 +62,9 @@ export function useChatSessionSync({
   setIsLoading,
   setEditingMessageId,
   hydrateWorksheetFromChat,
+  hydrateWorkflowFromChat,
   resetWorksheetForNewChat,
+  resetWorkflowForNewChat,
   onAfterSelectChat,
   onAfterNewChat,
 }: UseChatSessionSyncOptions) {
@@ -84,6 +88,7 @@ export function useChatSessionSync({
       setEditingMessageId(null);
       tools.hydrateFromChat(currentChat);
       hydrateWorksheetFromChat(currentChat);
+      hydrateWorkflowFromChat?.(currentChat);
     });
 
     markChatActive(currentChat.id);
@@ -91,6 +96,7 @@ export function useChatSessionSync({
     currentChat,
     hydrated,
     hydrateWorksheetFromChat,
+    hydrateWorkflowFromChat,
     localStateChatIdRef,
     markChatActive,
     setEditingMessageId,
@@ -124,6 +130,7 @@ export function useChatSessionSync({
     tools.research.isEnabled,
     tools.webSearch.isEnabled,
     tools.worksheet.isEnabled,
+    tools.workflow.isEnabled,
     tools.map.isEnabled,
     tools.map.viewState,
     tools,
@@ -154,6 +161,7 @@ export function useChatSessionSync({
       setEditingMessageId(null);
       tools.resetAllTools();
       resetWorksheetForNewChat();
+      resetWorkflowForNewChat?.();
       markChatActive(newChatId);
     });
 
@@ -164,6 +172,7 @@ export function useChatSessionSync({
     markChatSwitchPending,
     onAfterNewChat,
     resetWorksheetForNewChat,
+    resetWorkflowForNewChat,
     setEditingMessageId,
     setError,
     setInput,

@@ -2,12 +2,14 @@ import type { Tool, ToolId } from "./types";
 import { mapTool } from "./map/map-tool";
 import { researchTool } from "./research/research-tool";
 import { webSearchTool } from "./web-search/web-search-tool";
+import { workflowTool } from "./workflow-tool";
 import { worksheetTool } from "./worksheet/worksheet-tool";
 
 /** Modular tool registry — runtime hooks are wired via `useToolRuntime`. */
 
 const tools: Record<ToolId, Tool> = {
   worksheet: worksheetTool,
+  workflow: workflowTool,
   "web-search": webSearchTool,
   map: mapTool,
   research: researchTool,

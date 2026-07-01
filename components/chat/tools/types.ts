@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 
-export type ToolId = "worksheet" | "web-search" | "map" | "research";
+export type ToolId =
+  | "worksheet"
+  | "workflow"
+  | "web-search"
+  | "map"
+  | "research";
 
 export type ToolQuotaResetPeriod = "daily" | "weekly" | "monthly";
 

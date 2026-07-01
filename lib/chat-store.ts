@@ -19,6 +19,11 @@ import type { MapViewState } from "@/lib/map-types";
 import { normalizeMapViewState } from "@/lib/map-types";
 import type { ResearchSession } from "@/lib/research-types";
 import type { WorksheetDocument } from "@/lib/worksheet";
+import {
+  createEmptyWorkflowWorkspace,
+  normalizeWorkflowWorkspace,
+  type WorkflowWorkspace,
+} from "@/lib/workflow";
 import type { Locale } from "@/lib/config";
 import type { IdaMessage } from "@/lib/types";
 
@@ -35,12 +40,14 @@ export interface ChatSession {
   apiSessionId: string;
   activeRightPanel?: RightSidebarPanel | null;
   worksheetToolEnabled?: boolean;
+  workflowToolEnabled?: boolean;
   webSearchEnabled?: boolean;
   researchEnabled?: boolean;
   mapEnabled?: boolean;
   researchSessions?: ResearchSession[];
   mapViewState?: MapViewState;
   worksheet?: WorksheetDocument | null;
+  workflow?: WorkflowWorkspace | null;
   pinned?: boolean;
   createdAt: number;
   updatedAt: number;
@@ -275,12 +282,14 @@ export function createChatSession(locale: Locale): ChatSession {
     apiSessionId: createId("ida"),
     activeRightPanel: null,
     worksheetToolEnabled: false,
+    workflowToolEnabled: false,
     webSearchEnabled: false,
     researchEnabled: false,
     mapEnabled: false,
     researchSessions: [],
     mapViewState: normalizeMapViewState(null),
     worksheet: createEmptyWorksheet(),
+    workflow: createEmptyWorkflowWorkspace(),
     pinned: false,
     createdAt: now,
     updatedAt: now,
@@ -312,6 +321,8 @@ function normalizeSession(
     activeRightPanel: panel,
     worksheetToolEnabled:
       rest.worksheetToolEnabled ?? panel === "worksheet",
+    workflowToolEnabled:
+      rest.workflowToolEnabled ?? panel === "workflow",
     webSearchEnabled:
       rest.webSearchEnabled ?? panel === "web-search",
     researchEnabled:
@@ -322,6 +333,7 @@ function normalizeSession(
       : [],
     mapViewState: normalizeMapViewState(rest.mapViewState),
     worksheet: rest.worksheet ?? null,
+    workflow: normalizeWorkflowWorkspace(rest.workflow),
     pinned: Boolean(session.pinned),
   };
 }
@@ -834,12 +846,14 @@ export function useChatStore(locale: Locale) {
           | "title"
           | "activeRightPanel"
           | "worksheetToolEnabled"
+          | "workflowToolEnabled"
           | "webSearchEnabled"
           | "researchEnabled"
           | "mapEnabled"
           | "researchSessions"
           | "mapViewState"
           | "worksheet"
+          | "workflow"
         >
       >,
     ) => {
@@ -865,6 +879,10 @@ export function useChatStore(locale: Locale) {
             patch.worksheetToolEnabled !== undefined
               ? patch.worksheetToolEnabled
               : Boolean(chat.worksheetToolEnabled),
+          workflowToolEnabled:
+            patch.workflowToolEnabled !== undefined
+              ? patch.workflowToolEnabled
+              : Boolean(chat.workflowToolEnabled),
           webSearchEnabled:
             patch.webSearchEnabled !== undefined
               ? patch.webSearchEnabled
@@ -889,6 +907,10 @@ export function useChatStore(locale: Locale) {
             patch.worksheet !== undefined
               ? resolvePersistedWorksheet(patch.worksheet)
               : resolvePersistedWorksheet(chat.worksheet),
+          workflow:
+            patch.workflow !== undefined
+              ? normalizeWorkflowWorkspace(patch.workflow)
+              : normalizeWorkflowWorkspace(chat.workflow),
           updatedAt: Date.now(),
         };
       });

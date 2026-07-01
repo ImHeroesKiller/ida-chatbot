@@ -8,6 +8,8 @@ import { ResearchPanel } from "@/components/chat/tools/research";
 import type { useResearch } from "@/components/chat/tools/research/use-research";
 import { WebSearchPanel } from "@/components/chat/tools/web-search";
 import type { useWebSearch } from "@/components/chat/tools/web-search/use-web-search";
+import type { WorkflowTool } from "@/components/chat/tools/use-workflow";
+import { WorkflowPanel } from "@/components/chat/tools/workflow-panel";
 import { WorksheetPanel } from "@/components/chat/tools/worksheet";
 import type { WorksheetTool } from "@/components/chat/tools/worksheet/use-worksheet";
 import { Button } from "@/components/ui/button";
@@ -41,6 +43,7 @@ export interface ToolPanelHostProps {
   webSearch: WebSearchTool;
   research: ResearchTool;
   map: MapTool;
+  workflow?: WorkflowTool;
   webSearchSearching?: boolean;
   researchSearching?: boolean;
   worksheet: WorksheetDocument;
@@ -87,6 +90,7 @@ export function ToolPanelHost({
   webSearch,
   research,
   map,
+  workflow,
   webSearchSearching = false,
   researchSearching = false,
   worksheet,
@@ -151,6 +155,18 @@ export function ToolPanelHost({
       <MapPanel
         locale={locale}
         map={map}
+        onClose={onClose}
+        className={className}
+        embedded={embedded}
+      />
+    );
+  }
+
+  if (panel === "workflow" && workflow) {
+    return (
+      <WorkflowPanel
+        locale={locale}
+        workflowTool={workflow}
         onClose={onClose}
         className={className}
         embedded={embedded}

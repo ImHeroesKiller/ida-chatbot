@@ -4,6 +4,7 @@ import type { ToolId } from "./types";
 
 export const TOOL_PANEL_IDS = {
   worksheet: "worksheet",
+  workflow: "workflow",
   "web-search": "web-search",
   research: "research",
   map: "map",
@@ -11,9 +12,10 @@ export const TOOL_PANEL_IDS = {
 
 export function isToggleToolPanel(
   panel: RightSidebarPanel,
-): panel is "worksheet" | "web-search" | "research" | "map" {
+): panel is "worksheet" | "workflow" | "web-search" | "research" | "map" {
   return (
     panel === "worksheet" ||
+    panel === "workflow" ||
     panel === "web-search" ||
     panel === "research" ||
     panel === "map"

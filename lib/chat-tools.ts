@@ -1,5 +1,6 @@
 export type RightSidebarPanel =
   | "worksheet"
+  | "workflow"
   | "web-search"
   | "map"
   | "research";
@@ -10,6 +11,7 @@ export function normalizeRightSidebarPanel(
   panel: string | null | undefined,
 ): RightSidebarPanel | null {
   if (panel === "worksheet" || panel === "canvas") return "worksheet";
+  if (panel === "workflow") return "workflow";
   if (panel === "web-search" || panel === "websearch") return "web-search";
   if (panel === "map" || panel === "research") return panel;
   return null;

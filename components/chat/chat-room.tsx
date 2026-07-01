@@ -70,6 +70,7 @@ import { useChatSessionRefs } from "@/components/chat/hooks/use-chat-session-ref
 import { useChatSessionSync } from "@/components/chat/hooks/use-chat-session-sync";
 import { useChatToolPanelProps } from "@/components/chat/hooks/use-chat-tool-panel-props";
 import { useWorksheetWorkspace } from "@/components/chat/hooks/use-worksheet-workspace";
+import { useWorkflowWorkspace } from "@/components/chat/tools/use-workflow-workspace";
 import { useToolsCoordinator } from "@/components/chat/tools/use-tools-coordinator";
 import {
   Sheet,
@@ -178,6 +179,30 @@ function ChatRoomContent() {
     };
   }, [tools.worksheet.registerSyncToPersistLayer]);
 
+  const workflowWorkspace = useWorkflowWorkspace({
+    hydrated,
+    currentChat,
+    canPersistCurrentChatState: sessionRefs.canPersistCurrentChatState,
+    persistCurrentChat,
+    syncWorkspaceToTool: tools.workflow.hydrateFromExternal,
+    getWorkspaceFromTool: tools.workflow.getWorkspace,
+  });
+
+  const setWorkflowWorkspaceInboundRef = useRef(
+    workflowWorkspace.setWorkflowWorkspaceInbound,
+  );
+  setWorkflowWorkspaceInboundRef.current =
+    workflowWorkspace.setWorkflowWorkspaceInbound;
+
+  useEffect(() => {
+    tools.workflow.registerSyncToPersistLayer((workspace) => {
+      setWorkflowWorkspaceInboundRef.current(workspace);
+    });
+    return () => {
+      tools.workflow.registerSyncToPersistLayer(null);
+    };
+  }, [tools.workflow.registerSyncToPersistLayer]);
+
   const chatSend = useChatSend({
     locale,
     apiUserId,
@@ -232,7 +257,17 @@ function ChatRoomContent() {
         errorDetail: null,
       });
     },
+    hydrateWorkflowFromChat: (chat) => {
+      workflowWorkspace.hydrateFromChat(chat);
+      tools.workflow.hydrate({
+        enabled: tools.workflow.isEnabled,
+        panelOpen: tools.workflow.isPanelOpen,
+        workspace: chat.workflow,
+        isExecuting: false,
+      });
+    },
     resetWorksheetForNewChat: worksheet.resetForNewChat,
+    resetWorkflowForNewChat: workflowWorkspace.resetForNewChat,
     onAfterSelectChat: () => setMobileSidebarOpen(false),
     onAfterNewChat: () => setMobileSidebarOpen(false),
   });

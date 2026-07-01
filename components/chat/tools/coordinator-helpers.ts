@@ -113,7 +113,13 @@ function buildRailEntry(
   const isEnabled = state?.isEnabled ?? false;
   const isExpanded = options.activePanel === panel;
   const isAvailable = state?.isAvailable ?? true;
-  const togglePanels: ToolId[] = ["web-search", "research", "worksheet", "map"];
+  const togglePanels: ToolId[] = [
+    "web-search",
+    "research",
+    "worksheet",
+    "workflow",
+    "map",
+  ];
 
   return {
     id: toolId,

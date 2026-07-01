@@ -9,12 +9,14 @@ import type { ResearchTool } from "@/components/chat/tools/research/use-research
 import { TOOL_UI_CONFIG } from "@/components/chat/tools/tool-ui-config";
 import type { ToolId } from "@/components/chat/tools/types";
 import type { WebSearchTool } from "@/components/chat/tools/web-search/use-web-search";
+import type { WorkflowTool } from "@/components/chat/tools/use-workflow";
 import type { WorksheetTool } from "@/components/chat/tools/worksheet/use-worksheet";
 import type { ChatSession } from "@/lib/chat-store";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 
 export const COORDINATOR_TOOL_ORDER: ToolId[] = [
   "worksheet",
+  "workflow",
   "web-search",
   "research",
   "map",
@@ -27,6 +29,7 @@ export interface ToolRuntimeContext {
 
 export interface ToolRuntimeBundle {
   worksheet: WorksheetTool;
+  workflow: WorkflowTool;
   webSearch: WebSearchTool;
   research: ResearchTool;
   map: MapTool;
@@ -34,7 +37,7 @@ export interface ToolRuntimeBundle {
 
 export interface ToolRuntimeEntry {
   id: ToolId;
-  tool: WorksheetTool | WebSearchTool | ResearchTool | MapTool;
+  tool: WorksheetTool | WorkflowTool | WebSearchTool | ResearchTool | MapTool;
   isAvailable: (ctx: ToolRuntimeContext) => boolean;
 }
 
@@ -46,6 +49,11 @@ export function buildToolRuntime(
       id: "worksheet",
       tool: bundle.worksheet,
       isAvailable: () => isToolAvailable("worksheet"),
+    },
+    {
+      id: "workflow",
+      tool: bundle.workflow,
+      isAvailable: () => isToolAvailable("workflow"),
     },
     {
       id: "web-search",
@@ -87,6 +95,19 @@ export function hydrateToolFromChat(
         ),
         panelOpen,
         workspace: chat.worksheet,
+      });
+      break;
+
+    case "workflow":
+      (tool as WorkflowTool).hydrate({
+        enabled: resolveToolEnabled(
+          chat.workflowToolEnabled,
+          activePanel,
+          panelId,
+          isToolAvailable("workflow"),
+        ),
+        panelOpen,
+        workspace: chat.workflow,
       });
       break;
 
@@ -140,6 +161,8 @@ export function getToolPersistFields(
   switch (id) {
     case "worksheet":
       return { worksheetToolEnabled: tool.isEnabled };
+    case "workflow":
+      return { workflowToolEnabled: tool.isEnabled };
     case "web-search":
       return { webSearchEnabled: tool.isEnabled };
     case "research":

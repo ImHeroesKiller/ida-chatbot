@@ -10,6 +10,7 @@ import {
   type ToolRuntimeEntry,
 } from "@/components/chat/tools/tool-coordinator-config";
 import { useWebSearch } from "@/components/chat/tools/web-search/use-web-search";
+import { useWorkflow } from "@/components/chat/tools/use-workflow";
 import { useWorksheet } from "@/components/chat/tools/worksheet/use-worksheet";
 
 export function useToolRuntime(): {
@@ -17,6 +18,7 @@ export function useToolRuntime(): {
   entries: ToolRuntimeEntry[];
 } {
   const worksheet = useWorksheet();
+  const workflow = useWorkflow();
   const webSearch = useWebSearch();
   const research = useResearch();
   const map = useMap();
@@ -24,11 +26,12 @@ export function useToolRuntime(): {
   const bundle = useMemo(
     (): ToolRuntimeBundle => ({
       worksheet,
+      workflow,
       webSearch,
       research,
       map,
     }),
-    [map, research, webSearch, worksheet],
+    [map, research, webSearch, workflow, worksheet],
   );
 
   const entries = useMemo(() => buildToolRuntime(bundle), [bundle]);

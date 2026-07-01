@@ -207,6 +207,7 @@ export function useChatToolHandlers({
       webSearch: tools.webSearch,
       research: tools.research,
       map: tools.map,
+      workflow: tools.workflow,
       webSearchSearching:
         isLoading && tools.webSearch.isEnabled && tools.webSearch.isSearching,
       researchSearching:

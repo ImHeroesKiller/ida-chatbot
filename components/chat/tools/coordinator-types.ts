@@ -40,12 +40,14 @@ export interface ToolAvailabilityFlags {
   isWebSearchAvailable: boolean;
   isResearchAvailable: boolean;
   isMapAvailable: boolean;
+  isWorkflowAvailable: boolean;
 }
 
 export type ToolPersistPatch = Pick<
   ChatSession,
   | "activeRightPanel"
   | "worksheetToolEnabled"
+  | "workflowToolEnabled"
   | "webSearchEnabled"
   | "researchEnabled"
   | "mapEnabled"

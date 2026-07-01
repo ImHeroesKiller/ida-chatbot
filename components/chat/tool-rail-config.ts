@@ -16,7 +16,6 @@ import type { ToolId } from "@/components/chat/tools/types";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 
 export type ToolRailPlaceholderId =
-  | "workflow"
   | "image"
   | "video"
   | "music"
@@ -78,7 +77,7 @@ export const TOOL_RAIL_GROUPS: ToolRailGroupConfig[] = [
         id: "workflow",
         labelKey: "toolsWorkflow",
         icon: GitBranch,
-        comingSoon: true,
+        panel: "workflow",
       },
     ],
   },
@@ -116,7 +115,6 @@ export function isToolRailPlaceholder(
   id: ToolRailEntryId,
 ): id is ToolRailPlaceholderId {
   return (
-    id === "workflow" ||
     id === "image" ||
     id === "video" ||
     id === "music" ||

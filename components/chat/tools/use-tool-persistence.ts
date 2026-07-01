@@ -56,5 +56,6 @@ export function useToolPersistence({
     isWebSearchAvailable: isToolAvailable("web-search"),
     isResearchAvailable: isToolAvailable("research"),
     isMapAvailable: isToolAvailable("map"),
+    isWorkflowAvailable: isToolAvailable("workflow"),
   };
 }

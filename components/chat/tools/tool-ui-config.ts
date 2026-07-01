@@ -1,4 +1,4 @@
-import { FileText, Globe, Map, Search, type LucideIcon } from "lucide-react";
+import { FileText, GitBranch, Globe, Map, Search, type LucideIcon } from "lucide-react";
 
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 
@@ -8,12 +8,14 @@ export type ToolLabelKey =
   | "toolsWebSearch"
   | "toolsMap"
   | "toolsResearch"
-  | "toolsWorksheet";
+  | "toolsWorksheet"
+  | "toolsWorkflow";
 
 export type ToolMenuKind =
   | "toggle-web-search"
   | "toggle-research"
   | "toggle-worksheet"
+  | "toggle-workflow"
   | "toggle-map"
   | "open-panel";
 
@@ -31,6 +33,7 @@ export const TOOL_DISPLAY_ORDER: ToolId[] = [
   "map",
   "research",
   "worksheet",
+  "workflow",
 ];
 
 export const TOOL_UI_CONFIG: Record<ToolId, ToolUiConfig> = {
@@ -45,6 +48,12 @@ export const TOOL_UI_CONFIG: Record<ToolId, ToolUiConfig> = {
     labelKey: "toolsWorksheet",
     kind: "toggle-worksheet",
     railPanel: "worksheet",
+  },
+  workflow: {
+    icon: GitBranch,
+    labelKey: "toolsWorkflow",
+    kind: "toggle-workflow",
+    railPanel: "workflow",
   },
   map: {
     icon: Map,

@@ -197,6 +197,26 @@ export const COPY: Record<
     toolsResearch: string;
     toolsWorksheet: string;
     toolsWorkflow: string;
+    workflowNew: string;
+    workflowAddNode: string;
+    workflowAddTrigger: string;
+    workflowAddAction: string;
+    workflowAddCondition: string;
+    workflowAddOutput: string;
+    workflowSave: string;
+    workflowExecute: string;
+    workflowDelete: string;
+    workflowEmptyTitle: string;
+    workflowEmptyHint: string;
+    workflowProperties: string;
+    workflowNodeLabel: string;
+    workflowNodeDescription: string;
+    workflowNodeKind: string;
+    workflowDeleteNode: string;
+    workflowDeleteConfirm: string;
+    workflowSaved: string;
+    workflowExecuted: string;
+    workflowSelectWorkflow: string;
     toolsImage: string;
     toolsVideo: string;
     toolsMusic: string;
@@ -670,6 +690,27 @@ export const COPY: Record<
     toolsResearch: "Riset",
     toolsWorksheet: "Worksheet",
     toolsWorkflow: "Workflow",
+    workflowNew: "Workflow Baru",
+    workflowAddNode: "Tambah Node",
+    workflowAddTrigger: "Trigger",
+    workflowAddAction: "Action",
+    workflowAddCondition: "Condition",
+    workflowAddOutput: "Output",
+    workflowSave: "Simpan",
+    workflowExecute: "Jalankan",
+    workflowDelete: "Hapus",
+    workflowEmptyTitle: "Belum ada workflow",
+    workflowEmptyHint:
+      "Buat workflow baru lalu tambahkan node Trigger, Action, Condition, atau Output di kanvas.",
+    workflowProperties: "Properti Node",
+    workflowNodeLabel: "Label",
+    workflowNodeDescription: "Deskripsi",
+    workflowNodeKind: "Jenis",
+    workflowDeleteNode: "Hapus Node",
+    workflowDeleteConfirm: "Hapus workflow aktif?",
+    workflowSaved: "Workflow disimpan",
+    workflowExecuted: "Workflow dijalankan (stub)",
+    workflowSelectWorkflow: "Pilih workflow",
     toolsImage: "Gambar",
     toolsVideo: "Video",
     toolsMusic: "Musik",
@@ -1176,6 +1217,27 @@ export const COPY: Record<
     toolsResearch: "Research",
     toolsWorksheet: "Worksheet",
     toolsWorkflow: "Workflow",
+    workflowNew: "New Workflow",
+    workflowAddNode: "Add Node",
+    workflowAddTrigger: "Trigger",
+    workflowAddAction: "Action",
+    workflowAddCondition: "Condition",
+    workflowAddOutput: "Output",
+    workflowSave: "Save",
+    workflowExecute: "Execute",
+    workflowDelete: "Delete",
+    workflowEmptyTitle: "No workflow yet",
+    workflowEmptyHint:
+      "Create a new workflow, then add Trigger, Action, Condition, or Output nodes on the canvas.",
+    workflowProperties: "Node Properties",
+    workflowNodeLabel: "Label",
+    workflowNodeDescription: "Description",
+    workflowNodeKind: "Kind",
+    workflowDeleteNode: "Delete Node",
+    workflowDeleteConfirm: "Delete the active workflow?",
+    workflowSaved: "Workflow saved",
+    workflowExecuted: "Workflow executed (stub)",
+    workflowSelectWorkflow: "Select workflow",
     toolsImage: "Image",
     toolsVideo: "Video",
     toolsMusic: "Music",
@@ -1678,6 +1740,26 @@ export const COPY: Record<
     toolsResearch: "研究",
     toolsWorksheet: "Worksheet",
     toolsWorkflow: "工作流",
+    workflowNew: "新工作流",
+    workflowAddNode: "添加节点",
+    workflowAddTrigger: "触发器",
+    workflowAddAction: "动作",
+    workflowAddCondition: "条件",
+    workflowAddOutput: "输出",
+    workflowSave: "保存",
+    workflowExecute: "执行",
+    workflowDelete: "删除",
+    workflowEmptyTitle: "暂无工作流",
+    workflowEmptyHint: "创建新工作流，然后在画布上添加触发器、动作、条件或输出节点。",
+    workflowProperties: "节点属性",
+    workflowNodeLabel: "标签",
+    workflowNodeDescription: "描述",
+    workflowNodeKind: "类型",
+    workflowDeleteNode: "删除节点",
+    workflowDeleteConfirm: "删除当前工作流？",
+    workflowSaved: "工作流已保存",
+    workflowExecuted: "工作流已执行（占位）",
+    workflowSelectWorkflow: "选择工作流",
     toolsImage: "图像",
     toolsVideo: "视频",
     toolsMusic: "音乐",

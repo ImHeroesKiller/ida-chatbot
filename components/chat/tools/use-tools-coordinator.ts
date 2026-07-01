@@ -205,6 +205,7 @@ export function useToolsCoordinator(
 
   return {
     worksheet: bundle.worksheet,
+    workflow: bundle.workflow,
     webSearch: bundle.webSearch,
     research: bundle.research,
     map: bundle.map,
@@ -241,6 +242,7 @@ export function useToolsCoordinator(
     isWebSearchAvailable: persistence.isWebSearchAvailable,
     isResearchAvailable: persistence.isResearchAvailable,
     isMapAvailable: persistence.isMapAvailable,
+    isWorkflowAvailable: persistence.isWorkflowAvailable,
   };
 }
 

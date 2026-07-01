@@ -1,0 +1,317 @@
+import type { Edge, Node } from "reactflow";
+
+/** Built-in node kinds for the chat workflow canvas (React Flow). */
+export type WorkflowNodeKind = "trigger" | "action" | "condition" | "output";
+
+/** Payload stored on each React Flow node (`node.data`). */
+export interface WorkflowNodeData {
+  label: string;
+  kind: WorkflowNodeKind;
+  description?: string;
+  config?: Record<string, unknown>;
+}
+
+export type WorkflowNode = Node<WorkflowNodeData>;
+export type WorkflowEdge = Edge;
+
+/** A single automation workflow definition (nodes + edges). */
+export interface WorkflowDefinition {
+  id: string;
+  name: string;
+  description?: string;
+  nodes: WorkflowNode[];
+  edges: WorkflowEdge[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+/** Stub result from `executeWorkflow` — replaced in later phases. */
+export interface WorkflowExecutionResult {
+  workflowId: string;
+  status: "pending" | "running" | "completed" | "failed";
+  startedAt: number;
+  completedAt?: number;
+  message?: string;
+}
+
+/**
+ * Workspace snapshot persisted on `ChatSession.workflow`.
+ * Mirrors the worksheet multi-document pattern with a single active workflow.
+ */
+export interface WorkflowWorkspace {
+  workflows: WorkflowDefinition[];
+  activeWorkflowId: string | null;
+  updatedAt: number;
+  lastExecution?: WorkflowExecutionResult | null;
+}
+
+export interface CreateWorkflowInput {
+  name: string;
+  description?: string;
+  /** When true (default), the new workflow becomes active. */
+  activate?: boolean;
+}
+
+export type UpdateWorkflowPatch = Partial<
+  Pick<WorkflowDefinition, "name" | "description" | "nodes" | "edges">
+>;
+
+export interface AddWorkflowNodeInput {
+  label: string;
+  kind?: WorkflowNodeKind;
+  description?: string;
+  position?: { x: number; y: number };
+  config?: Record<string, unknown>;
+}
+
+function createId(prefix: string): string {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+/** Fresh workspace for a new chat session. */
+export function createEmptyWorkflowWorkspace(): WorkflowWorkspace {
+  const now = Date.now();
+  return {
+    workflows: [],
+    activeWorkflowId: null,
+    updatedAt: now,
+    lastExecution: null,
+  };
+}
+
+function cloneWorkflowDefinition(workflow: WorkflowDefinition): WorkflowDefinition {
+  return {
+    ...workflow,
+    nodes: workflow.nodes.map((node) => ({
+      ...node,
+      data: { ...node.data },
+      position: { ...node.position },
+    })),
+    edges: workflow.edges.map((edge) => ({ ...edge })),
+  };
+}
+
+/** Deep-normalize an inbound workspace snapshot from ChatSession. */
+export function normalizeWorkflowWorkspace(
+  workspace: WorkflowWorkspace | null | undefined,
+): WorkflowWorkspace {
+  if (!workspace) return createEmptyWorkflowWorkspace();
+
+  const workflows = (workspace.workflows ?? []).map(cloneWorkflowDefinition);
+  const activeWorkflowId =
+    workspace.activeWorkflowId &&
+    workflows.some((wf) => wf.id === workspace.activeWorkflowId)
+      ? workspace.activeWorkflowId
+      : (workflows[0]?.id ?? null);
+
+  return {
+    workflows,
+    activeWorkflowId,
+    updatedAt: workspace.updatedAt ?? Date.now(),
+    lastExecution: workspace.lastExecution ?? null,
+  };
+}
+
+export function getWorkflowById(
+  workspace: WorkflowWorkspace,
+  workflowId: string,
+): WorkflowDefinition | null {
+  return workspace.workflows.find((wf) => wf.id === workflowId) ?? null;
+}
+
+export function getActiveWorkflow(
+  workspace: WorkflowWorkspace,
+): WorkflowDefinition | null {
+  if (!workspace.activeWorkflowId) return null;
+  return getWorkflowById(workspace, workspace.activeWorkflowId);
+}
+
+export function setActiveWorkflow(
+  workspace: WorkflowWorkspace,
+  workflowId: string | null,
+): WorkflowWorkspace {
+  if (
+    workflowId !== null &&
+    !workspace.workflows.some((wf) => wf.id === workflowId)
+  ) {
+    return workspace;
+  }
+
+  return {
+    ...workspace,
+    activeWorkflowId: workflowId,
+    updatedAt: Date.now(),
+  };
+}
+
+/** Append a new workflow definition to the workspace. */
+export function createWorkflowDefinition(
+  workspace: WorkflowWorkspace,
+  input: CreateWorkflowInput,
+): WorkflowWorkspace {
+  const now = Date.now();
+  const workflow: WorkflowDefinition = {
+    id: createId("workflow"),
+    name: input.name.trim() || "Untitled Workflow",
+    description: input.description?.trim() || undefined,
+    nodes: [],
+    edges: [],
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const activate = input.activate !== false;
+
+  return {
+    ...workspace,
+    workflows: [...workspace.workflows, workflow],
+    activeWorkflowId: activate ? workflow.id : workspace.activeWorkflowId,
+    updatedAt: now,
+  };
+}
+
+/** Patch an existing workflow by id. */
+export function updateWorkflowDefinition(
+  workspace: WorkflowWorkspace,
+  workflowId: string,
+  patch: UpdateWorkflowPatch,
+): WorkflowWorkspace {
+  const index = workspace.workflows.findIndex((wf) => wf.id === workflowId);
+  if (index < 0) return workspace;
+
+  const now = Date.now();
+  const current = workspace.workflows[index];
+  const next: WorkflowDefinition = {
+    ...current,
+    ...patch,
+    name: patch.name !== undefined ? patch.name.trim() || current.name : current.name,
+    description:
+      patch.description !== undefined
+        ? patch.description.trim() || undefined
+        : current.description,
+    nodes: patch.nodes ?? current.nodes,
+    edges: patch.edges ?? current.edges,
+    updatedAt: now,
+  };
+
+  const workflows = [...workspace.workflows];
+  workflows[index] = next;
+
+  return {
+    ...workspace,
+    workflows,
+    updatedAt: now,
+  };
+}
+
+/** Add a canvas node to the target workflow (active workflow when id omitted). */
+export function addWorkflowNode(
+  workspace: WorkflowWorkspace,
+  input: AddWorkflowNodeInput,
+  workflowId?: string | null,
+): WorkflowWorkspace {
+  const targetId = workflowId ?? workspace.activeWorkflowId;
+  if (!targetId) return workspace;
+
+  const workflow = getWorkflowById(workspace, targetId);
+  if (!workflow) return workspace;
+
+  const nodeIndex = workflow.nodes.length;
+  const node: WorkflowNode = {
+    id: createId("wf-node"),
+    type: "default",
+    position: input.position ?? {
+      x: 120 + nodeIndex * 48,
+      y: 80 + nodeIndex * 72,
+    },
+    data: {
+      label: input.label.trim() || `Step ${nodeIndex + 1}`,
+      kind: input.kind ?? "action",
+      description: input.description?.trim() || undefined,
+      config: input.config,
+    },
+  };
+
+  return updateWorkflowDefinition(workspace, targetId, {
+    nodes: [...workflow.nodes, node],
+  });
+}
+
+/** Stable fingerprint to skip redundant persist writes. */
+export function buildWorkflowWorkspacePersistFingerprint(
+  workspace: WorkflowWorkspace,
+): string {
+  return JSON.stringify({
+    activeWorkflowId: workspace.activeWorkflowId,
+    updatedAt: workspace.updatedAt,
+    lastExecution: workspace.lastExecution,
+    workflows: workspace.workflows.map((wf) => ({
+      id: wf.id,
+      name: wf.name,
+      description: wf.description,
+      updatedAt: wf.updatedAt,
+      nodes: wf.nodes.map((node) => ({
+        id: node.id,
+        position: node.position,
+        data: node.data,
+      })),
+      edges: wf.edges.map((edge) => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+      })),
+    })),
+  });
+}
+
+export function areWorkflowWorkspaceSnapshotsEqual(
+  left: WorkflowWorkspace,
+  right: WorkflowWorkspace,
+): boolean {
+  return (
+    buildWorkflowWorkspacePersistFingerprint(left) ===
+    buildWorkflowWorkspacePersistFingerprint(right)
+  );
+}
+
+export function hasWorkflowWorkspaceContent(
+  workspace: WorkflowWorkspace,
+): boolean {
+  return workspace.workflows.length > 0;
+}
+
+/** Remove a workflow definition and re-point the active workflow if needed. */
+export function removeWorkflowDefinition(
+  workspace: WorkflowWorkspace,
+  workflowId: string,
+): WorkflowWorkspace {
+  const workflows = workspace.workflows.filter((wf) => wf.id !== workflowId);
+  const activeWorkflowId =
+    workspace.activeWorkflowId === workflowId
+      ? (workflows[0]?.id ?? null)
+      : workspace.activeWorkflowId;
+
+  return {
+    ...workspace,
+    workflows,
+    activeWorkflowId,
+    updatedAt: Date.now(),
+  };
+}
+
+/** Remove a node (and any connected edges) from a workflow. */
+export function removeWorkflowNode(
+  workspace: WorkflowWorkspace,
+  workflowId: string,
+  nodeId: string,
+): WorkflowWorkspace {
+  const workflow = getWorkflowById(workspace, workflowId);
+  if (!workflow) return workspace;
+
+  return updateWorkflowDefinition(workspace, workflowId, {
+    nodes: workflow.nodes.filter((node) => node.id !== nodeId),
+    edges: workflow.edges.filter(
+      (edge) => edge.source !== nodeId && edge.target !== nodeId,
+    ),
+  });
+}
