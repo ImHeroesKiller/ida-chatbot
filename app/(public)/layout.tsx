@@ -3,5 +3,9 @@ export default function PublicLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <div className="min-h-screen overflow-x-hidden">{children}</div>;
+  return (
+    <div className="h-dvh min-h-0 overflow-x-hidden overflow-y-auto overscroll-y-contain">
+      {children}
+    </div>
+  );
 }
