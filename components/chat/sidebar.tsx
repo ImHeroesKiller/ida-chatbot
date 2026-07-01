@@ -4,7 +4,6 @@ import Link from "next/link";
 import {
   History,
   MessageSquarePlus,
-  MessagesSquare,
   MoreHorizontal,
   PanelLeftClose,
   Pin,
@@ -47,20 +46,8 @@ interface ChatSidebarProps {
   className?: string;
 }
 
-function formatSessionTime(timestamp: number, locale: Locale): string {
-  const localeTag =
-    locale === "zh" ? "zh-CN" : locale === "en" ? "en-US" : "id-ID";
-
-  return new Intl.DateTimeFormat(localeTag, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(timestamp));
-}
-
 function SidebarSeparator({ className }: { className?: string }) {
-  return <div className={cn("mx-2 h-px bg-border/70", className)} />;
+  return <div className={cn("mx-2 h-px bg-border/40", className)} />;
 }
 
 export function ChatSidebar({
@@ -117,8 +104,8 @@ export function ChatSidebar({
     return (
       <aside
         className={cn(
-          "flex h-full flex-col bg-muted/20 transition-[width] duration-200 ease-in-out dark:bg-muted/10",
-          expanded ? "w-[260px] overflow-hidden" : "w-14 overflow-x-visible overflow-y-hidden",
+          "flex h-full flex-col bg-[#F5F5F7] dark:bg-[#1C1C1E] transition-[width] duration-200 ease-in-out border-r border-border/40",
+          expanded ? "w-[280px] overflow-hidden" : "w-16 overflow-x-visible overflow-y-hidden",
           className,
         )}
         aria-label={copy.sessionsLabel}
@@ -132,16 +119,13 @@ export function ChatSidebar({
   const sessionList = (
     <>
       {sessions.length === 0 ? (
-        <div className="flex flex-col items-center px-3 py-8 text-center">
-          <Inbox className="mb-2 h-8 w-8 text-muted-foreground/50" />
-          <p className="text-xs font-medium">{copy.noSessions}</p>
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            {copy.noSessionsHint}
-          </p>
+        <div className="flex flex-col items-center px-4 py-10 text-center">
+          <Inbox className="mb-3 h-10 w-10 text-muted-foreground/30" />
+          <p className="text-sm font-semibold text-foreground/60">{copy.noSessions}</p>
         </div>
       ) : filteredSessions.length === 0 ? (
-        <div className="px-2 py-6 text-center">
-          <p className="text-[11px] text-muted-foreground">
+        <div className="px-2 py-8 text-center">
+          <p className="text-sm text-muted-foreground/60">
             {copy.noSearchResults}
           </p>
         </div>
@@ -152,41 +136,34 @@ export function ChatSidebar({
           const isMenuOpen = openMenuId === session.id;
 
           return (
-            <div key={session.id} className="group/session relative">
+            <div key={session.id} className="group/session relative mb-1 px-2">
               <button
                 type="button"
                 onClick={() => onSelect(session.id)}
                 title={session.title}
                 className={cn(
-                  "flex w-full flex-col items-start gap-0.5 rounded-xl px-2.5 py-2 pr-8 text-left transition-colors",
+                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left transition-all duration-200",
                   isActive
-                    ? "bg-primary/10 text-foreground ring-1 ring-primary/20"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 font-bold"
+                    : "text-foreground/70 hover:bg-muted/80 hover:text-foreground font-medium",
                 )}
               >
-                <span className="flex w-full items-center gap-1.5">
-                  {isPinned ? (
-                    <Pin className="h-3.5 w-3.5 shrink-0 text-primary" />
-                  ) : (
-                    <MessagesSquare className="h-4 w-4 shrink-0" />
-                  )}
-                  <span className="truncate text-xs font-medium">
-                    {session.title}
-                  </span>
-                </span>
-                <span className="pl-5 text-[10px] text-muted-foreground">
-                  {formatSessionTime(session.updatedAt, locale)}
+                {isPinned && (
+                  <Pin className={cn("h-3.5 w-3.5 shrink-0", isActive ? "text-primary-foreground" : "text-primary")} />
+                )}
+                <span className="truncate text-[15px] flex-1">
+                  {session.title}
                 </span>
               </button>
 
-              <div className="absolute top-1.5 right-1">
+              <div className="absolute top-1/2 -translate-y-1/2 right-4">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon-sm"
                   className={cn(
-                    "h-6 w-6 opacity-0 transition-opacity",
-                    "group-hover/session:opacity-100",
+                    "h-7 w-7 rounded-full transition-all duration-200",
+                    isActive ? "text-primary-foreground/80 hover:bg-white/10 hover:text-primary-foreground" : "opacity-0 group-hover/session:opacity-100 text-muted-foreground hover:bg-muted",
                     isMenuOpen && "opacity-100",
                   )}
                   aria-label={copy.sessionMenu}
@@ -195,49 +172,50 @@ export function ChatSidebar({
                     setOpenMenuId(isMenuOpen ? null : session.id);
                   }}
                 >
-                  <MoreHorizontal className="h-3.5 w-3.5" />
+                  <MoreHorizontal className="h-4 w-4" />
                 </Button>
 
                 {isMenuOpen && (
                   <div
                     ref={menuRef}
-                    className="absolute top-7 right-0 z-20 min-w-[140px] rounded-lg border bg-popover p-1 shadow-lg"
+                    className="absolute top-8 right-0 z-20 min-w-[160px] rounded-xl border bg-popover p-1.5 shadow-2xl ring-1 ring-black/5"
                   >
                     <button
                       type="button"
-                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs hover:bg-muted"
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium hover:bg-muted transition-colors"
                       onClick={() => {
                         onPin(session.id, !isPinned);
                         setOpenMenuId(null);
                       }}
                     >
                       {isPinned ? (
-                        <PinOff className="h-3.5 w-3.5" />
+                        <PinOff className="h-4 w-4" />
                       ) : (
-                        <Pin className="h-3.5 w-3.5" />
+                        <Pin className="h-4 w-4" />
                       )}
                       {isPinned ? copy.unpinSession : copy.pinSession}
                     </button>
                     <button
                       type="button"
-                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs hover:bg-muted"
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium hover:bg-muted transition-colors"
                       onClick={() => {
                         setRenameTarget(session);
                         setOpenMenuId(null);
                       }}
                     >
-                      <Pencil className="h-3.5 w-3.5" />
+                      <Pencil className="h-4 w-4" />
                       {copy.renameSession}
                     </button>
+                    <div className="my-1 h-px bg-border/40" />
                     <button
                       type="button"
-                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-destructive hover:bg-destructive/10"
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-bold text-destructive hover:bg-destructive/10 transition-colors"
                       onClick={() => {
                         setDeleteTargetId(session.id);
                         setOpenMenuId(null);
                       }}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-4 w-4" />
                       {copy.deleteSession}
                     </button>
                   </div>
@@ -254,22 +232,22 @@ export function ChatSidebar({
     <>
       <aside
         className={cn(
-          "flex h-full flex-col bg-muted/20 transition-[width] duration-200 ease-in-out dark:bg-muted/10",
-          expanded ? "w-[260px] overflow-hidden" : "w-14 overflow-x-visible overflow-y-hidden",
+          "flex h-full flex-col bg-[#F5F5F7] dark:bg-[#1C1C1E] transition-[width] duration-300 ease-in-out border-r border-border/40",
+          expanded ? "w-[280px] overflow-hidden" : "w-16 overflow-x-visible overflow-y-hidden",
           className,
         )}
         aria-label={copy.sessionsLabel}
       >
-        <div className="shrink-0 px-2 pt-3 pb-2">
+        <div className="shrink-0 px-4 pt-5 pb-4">
           {expanded ? (
-            <div className="flex items-center gap-1 px-0.5">
+            <div className="flex items-center gap-3">
               <Link
                 href="/chat"
-                className="flex min-w-0 flex-1 items-center gap-2.5 text-foreground transition-opacity hover:opacity-90"
+                className="flex min-w-0 flex-1 items-center gap-3 text-foreground transition-all hover:opacity-80 active:scale-95"
                 title={IDA_CONFIG.name}
               >
-                <IdaLogo size="sm" />
-                <span className="truncate text-sm font-semibold tracking-tight">
+                <IdaLogo size="sm" className="scale-110" />
+                <span className="truncate text-lg font-extrabold tracking-tight">
                   {IDA_CONFIG.name}
                 </span>
               </Link>
@@ -278,19 +256,19 @@ export function ChatSidebar({
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  className="h-8 w-8 shrink-0 text-muted-foreground"
+                  className="h-9 w-9 shrink-0 rounded-full text-muted-foreground hover:bg-muted"
                   onClick={onCollapse}
                   aria-label={copy.collapseSidebar}
                   title={copy.collapseSidebar}
                 >
-                  <PanelLeftClose className="h-4 w-4" />
+                  <PanelLeftClose className="h-5 w-5" />
                 </Button>
               ) : null}
             </div>
           ) : (
             <Link
               href="/chat"
-              className="mx-auto flex h-11 w-11 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted/60"
+              className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl text-foreground transition-all hover:bg-muted active:scale-90 shadow-sm"
               title={IDA_CONFIG.name}
               aria-label={IDA_CONFIG.name}
             >
@@ -299,80 +277,80 @@ export function ChatSidebar({
           )}
         </div>
 
-        <SidebarSeparator />
-
-        <div className={cn("shrink-0 py-2", expanded ? "px-2" : "px-1.5")}>
+        <div className={cn("shrink-0 py-3", expanded ? "px-4" : "px-2")}>
           {expanded ? (
             <Button
               type="button"
-              variant="outline"
-              size="sm"
-              className="h-9 w-full justify-start gap-2 text-xs"
+              variant="default"
+              size="lg"
+              className="h-12 w-full justify-center gap-3 rounded-2xl text-base font-bold shadow-lg shadow-primary/20 active:scale-[0.98] transition-all"
               onClick={onNewChat}
             >
-              <MessageSquarePlus className="h-4 w-4" />
+              <MessageSquarePlus className="h-5 w-5" />
               {copy.newChat}
             </Button>
           ) : (
             <Button
               type="button"
-              variant="ghost"
-              size="icon-sm"
-              className="mx-auto flex h-11 w-11 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+              variant="default"
+              size="icon"
+              className="mx-auto flex h-12 w-12 rounded-xl shadow-md active:scale-90 transition-all"
               onClick={onNewChat}
               aria-label={copy.newChat}
               title={copy.newChat}
             >
-              <MessageSquarePlus className="h-5 w-5" />
+              <MessageSquarePlus className="h-6 w-6" />
             </Button>
           )}
         </div>
 
-        <SidebarSeparator />
+        <SidebarSeparator className="my-2" />
 
         {expanded ? (
           <>
-            <div className="shrink-0 px-2 pb-2">
-              <div className="relative">
-                <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <div className="shrink-0 px-4 pb-3">
+              <div className="relative group">
+                <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
                 <Input
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder={copy.searchSessions}
-                  className="h-8 pl-8 text-xs"
+                  className="h-10 pl-10 rounded-xl bg-muted/40 border-border/30 focus:bg-background transition-all text-sm"
                 />
               </div>
-              <h2 className="mt-3 px-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+              <h2 className="mt-5 px-1 text-[12px] font-bold tracking-widest text-muted-foreground/50 uppercase">
                 {copy.chatHistory}
               </h2>
             </div>
 
             <ScrollArea className="min-h-0 flex-1">
-              <div className="space-y-0.5 px-2 pb-2">{sessionList}</div>
+              <div className="pb-4">{sessionList}</div>
             </ScrollArea>
           </>
         ) : (
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-start px-1.5 pt-2">
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-start px-2 pt-4 gap-4">
             <Button
               type="button"
               variant="ghost"
-              size="icon-sm"
-              className="h-11 w-11 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+              size="icon"
+              className="h-12 w-12 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground active:scale-90 transition-all"
               onClick={onExpand}
               aria-label={copy.openChatHistory}
               title={copy.openChatHistory}
             >
-              <History className="h-5 w-5" />
+              <History className="h-6 w-6" />
             </Button>
           </div>
         )}
 
-        <SidebarSettings
-          locale={locale}
-          expanded={expanded}
-          onExpand={onExpand}
-          onClearAllChats={() => setClearAllOpen(true)}
-        />
+        <div className="mt-auto border-t border-border/40 bg-muted/10 p-2">
+          <SidebarSettings
+            locale={locale}
+            expanded={expanded}
+            onExpand={onExpand}
+            onClearAllChats={() => setClearAllOpen(true)}
+          />
+        </div>
       </aside>
 
       <RenameDialog

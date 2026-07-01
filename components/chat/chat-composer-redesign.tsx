@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Mic, Paperclip, Send, Plus, X, Settings2, ChevronDown } from "lucide-react";
+import { Loader2, Mic, Paperclip, Send, Plus, X, Settings2, Globe } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -105,6 +105,8 @@ export function ChatComposerRedesign({
   const appFeatures = useAppFeatures();
   const voiceEnabled = appFeatures?.features.voice !== false;
   const ocrEnabled = appFeatures?.features.ocr !== false;
+
+  const isInternetOn = isToolActive("web-search");
 
   const resolveOcrError = useCallback(
     (err: unknown): string => {
@@ -376,7 +378,7 @@ export function ChatComposerRedesign({
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "relative z-30 shrink-0 overflow-visible bg-background/60 backdrop-blur-lg",
+        "relative z-30 shrink-0 overflow-visible bg-background/40 backdrop-blur-xl",
         "px-4 pt-2 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-3 sm:pb-5",
       )}
     >
@@ -437,7 +439,7 @@ export function ChatComposerRedesign({
           "focus-within:ring-8 focus-within:ring-primary/5 focus-within:border-primary/30"
         )}>
           {/* Input Area (Top) */}
-          <div className="px-5 pt-4 pb-2">
+          <div className="px-5 pt-5 pb-2">
             <Textarea
               id={inputId}
               ref={textareaRef}
@@ -449,7 +451,7 @@ export function ChatComposerRedesign({
               disabled={isLoading || isExtracting || isTranscribing || isListening}
               className={cn(
                 "bg-transparent border-0 resize-none text-xl font-medium p-0",
-                "focus-visible:ring-0 focus-visible:outline-none min-h-[52px] max-h-48",
+                "focus-visible:ring-0 focus-visible:outline-none min-h-[56px] max-h-48",
                 "placeholder:text-muted-foreground/30",
               )}
             />
@@ -457,12 +459,12 @@ export function ChatComposerRedesign({
 
           {/* Controls Area (Bottom) */}
           <div className="flex items-center justify-between px-4 pb-4 pt-1">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-11 w-11 rounded-full text-foreground/60 hover:bg-muted/60 active:scale-90 transition-all"
+                className="h-12 w-12 rounded-full text-foreground/60 hover:bg-muted/60 active:scale-90 transition-all"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Plus className="h-7 w-7" />
@@ -471,25 +473,35 @@ export function ChatComposerRedesign({
               <Button
                 type="button"
                 variant="ghost"
-                className="h-11 px-4 gap-2.5 rounded-full text-foreground/70 hover:bg-muted/60 active:scale-95 transition-all"
+                className={cn(
+                  "h-12 px-5 gap-3 rounded-full transition-all active:scale-95",
+                  showTools ? "bg-primary/10 text-primary border border-primary/20 shadow-sm" : "text-foreground/70 hover:bg-muted/60"
+                )}
                 onClick={() => setShowTools(!showTools)}
               >
-                <Settings2 className="h-5 w-5 text-primary/80" />
-                <span className="text-base font-bold">Tools</span>
+                <Settings2 className={cn("h-6 w-6 transition-colors", showTools ? "text-primary" : "text-primary/70")} />
+                <span className="text-lg font-bold">Tools</span>
               </Button>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <Button
                 type="button"
                 variant="ghost"
-                className="h-11 px-4 gap-2 rounded-full text-foreground/70 hover:bg-muted/60 active:scale-95 transition-all"
+                disabled={!webSearchAvailable}
+                className={cn(
+                  "h-12 px-5 gap-2.5 rounded-full transition-all active:scale-95",
+                  isInternetOn 
+                    ? "bg-blue-500/10 text-blue-500 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.2)]" 
+                    : "text-foreground/50 hover:bg-muted/60"
+                )}
+                onClick={() => onToolMenuClick("web-search")}
               >
-                <span className="text-base font-bold">IDA Max</span>
-                <ChevronDown className="h-4 w-4 opacity-50" />
+                <Globe className={cn("h-5 w-5 transition-all", isInternetOn ? "text-blue-500 animate-pulse" : "text-foreground/40")} />
+                <span className="text-base font-bold">Internet {isInternetOn ? "ON" : "OFF"}</span>
               </Button>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 {voiceEnabled && !input.trim() && (
                   <Button
                     type="button"
@@ -497,7 +509,7 @@ export function ChatComposerRedesign({
                     size="icon"
                     disabled={isLoading || isExtracting || isTranscribing || !speechSupported}
                     className={cn(
-                      "h-11 w-11 rounded-full transition-all duration-300 active:scale-90",
+                      "h-12 w-12 rounded-full transition-all duration-300 active:scale-90",
                       isListening ? "bg-destructive text-destructive-foreground shadow-lg" : "text-foreground/60 hover:bg-muted/60"
                     )}
                     onPointerDown={handleMicPointerDown}
@@ -513,12 +525,12 @@ export function ChatComposerRedesign({
                     type="submit"
                     size="icon"
                     disabled={!canSend}
-                    className="h-11 w-11 rounded-full bg-primary text-primary-foreground shadow-md transition-all active:scale-90 hover:scale-105"
+                    className="h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-md transition-all active:scale-90 hover:scale-105"
                   >
                     {isExtracting || isTranscribing ? (
                       <Loader2 className="h-6 w-6 animate-spin" />
                     ) : (
-                      <Send className="h-5 w-5" />
+                      <Send className="h-6 w-6" />
                     )}
                   </Button>
                 )}
@@ -530,12 +542,12 @@ export function ChatComposerRedesign({
         <AnimatePresence>
           {showTools && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
               className="absolute bottom-full left-0 right-0 mb-4 px-4 sm:px-6"
             >
-              <div className="bg-background/90 backdrop-blur-xl border border-border/40 rounded-[24px] p-2 shadow-2xl">
+              <div className="bg-background/95 backdrop-blur-2xl border border-border/60 rounded-[28px] p-3 shadow-2xl ring-1 ring-black/5">
                 <ToolsMenu
                   locale={locale}
                   disabled={isLoading || isExtracting || isTranscribing}
@@ -545,7 +557,7 @@ export function ChatComposerRedesign({
                   isAnyToolActive={isAnyToolActive}
                   onToolClick={(toolId) => {
                     onToolMenuClick(toolId);
-                    setShowTools(false);
+                    if (toolId !== "web-search") setShowTools(false);
                   }}
                 />
               </div>

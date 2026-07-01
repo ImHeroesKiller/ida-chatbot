@@ -71,17 +71,17 @@ export function MessageBubble({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
       className={cn(
-        "group/message flex w-full",
+        "group/message flex w-full mb-4",
         isUser ? "justify-end" : "justify-start",
       )}
     >
       <div
         className={cn(
-          "flex min-w-0 w-full max-w-[min(92%,34rem)] flex-col gap-1 sm:max-w-[min(88%,34rem)]",
+          "flex min-w-0 w-full max-w-[min(94%,36rem)] flex-col gap-1.5 sm:max-w-[min(90%,36rem)]",
           isUser ? "items-end" : "items-start",
         )}
       >
@@ -97,8 +97,8 @@ export function MessageBubble({
         {isEditing && isUser ? (
           <div
             className={cn(
-              "w-full rounded-2xl border bg-card px-3 py-3 shadow-sm",
-              "rounded-br-md dark:border-border/80",
+              "w-full rounded-[24px] border bg-card px-4 py-4 shadow-xl",
+              "rounded-br-lg dark:border-border/60",
             )}
           >
             <MessageEditForm
@@ -111,21 +111,20 @@ export function MessageBubble({
         ) : (displayText.trim() || message.isVoiceNote) ? (
           <div
             className={cn(
-              "rounded-2xl px-3.5 py-2.5 transition-shadow duration-200 sm:px-4 sm:py-3",
-              "group-hover/message:shadow-sm",
+              "rounded-[24px] px-4 py-3 transition-all duration-300 sm:px-5 sm:py-3.5",
               isUser
-                ? "rounded-br-md bg-primary text-primary-foreground shadow-sm"
-                : "rounded-bl-md border bg-card text-card-foreground shadow-sm dark:border-border/80",
-              isWelcome && "ring-1 ring-primary/15",
+                ? "rounded-br-lg bg-primary text-primary-foreground shadow-lg shadow-primary/10"
+                : "rounded-bl-lg border border-border/40 bg-[#F5F5F7] dark:bg-[#1C1C1E] text-foreground shadow-md",
+              isWelcome && "ring-2 ring-primary/10 bg-primary/5 border-primary/20",
             )}
           >
             {message.isVoiceNote ? (
-              <p className="mb-1 text-[11px] opacity-80">{copy.voiceNoteLabel}</p>
+              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider opacity-70">{copy.voiceNoteLabel}</p>
             ) : null}
 
             {isUser ? (
               displayText.trim() ? (
-                <p className="chat-text leading-relaxed whitespace-pre-wrap break-words">
+                <p className="text-[16px] sm:text-[17px] leading-relaxed whitespace-pre-wrap break-words font-medium">
                   {displayText}
                 </p>
               ) : null
@@ -134,42 +133,48 @@ export function MessageBubble({
                 content={message.content}
                 isStreaming={isStreaming}
                 locale={locale}
-                className="chat-text"
+                className="text-[16px] sm:text-[17px] leading-relaxed font-normal"
               />
             )}
           </div>
         ) : null}
 
         {!isUser && !isEditing && message.webSearchSources?.length ? (
-          <WebSearchSources
-            sources={message.webSearchSources}
-            locale={locale}
-          />
+          <div className="w-full mt-1">
+            <WebSearchSources
+              sources={message.webSearchSources}
+              locale={locale}
+            />
+          </div>
         ) : null}
 
-        {showActions ? (
-          <MessageActions
-            messageId={message.id}
-            content={actionContent}
-            locale={locale}
-            isAssistant={!isUser}
-            showRegenerate={isLastAssistant}
-            showEdit={isUser && isLastUser}
-            onRegenerate={
-              onRegenerate ? () => onRegenerate(message.id) : undefined
-            }
-            onEdit={onEdit ? () => onEdit(message.id) : undefined}
-          />
-        ) : null}
+        <div className="flex items-center gap-3 px-2">
+          {timestamp && !isEditing ? (
+            <time
+              dateTime={new Date(message.createdAt!).toISOString()}
+              className="text-[11px] font-medium text-muted-foreground/60"
+            >
+              {timestamp}
+            </time>
+          ) : null}
 
-        {timestamp && !isEditing ? (
-          <time
-            dateTime={new Date(message.createdAt!).toISOString()}
-            className="px-1 text-[10px] text-muted-foreground sm:text-[11px]"
-          >
-            {timestamp}
-          </time>
-        ) : null}
+          {showActions ? (
+            <div className="opacity-0 group-hover/message:opacity-100 transition-opacity">
+              <MessageActions
+                messageId={message.id}
+                content={actionContent}
+                locale={locale}
+                isAssistant={!isUser}
+                showRegenerate={isLastAssistant}
+                showEdit={isUser && isLastUser}
+                onRegenerate={
+                  onRegenerate ? () => onRegenerate(message.id) : undefined
+                }
+                onEdit={onEdit ? () => onEdit(message.id) : undefined}
+              />
+            </div>
+          ) : null}
+        </div>
       </div>
     </motion.div>
   );
