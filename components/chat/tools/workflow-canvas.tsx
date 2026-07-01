@@ -1,6 +1,14 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  Component,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from "react";
 import ReactFlow, {
   Background,
   BackgroundVariant,
@@ -54,90 +62,148 @@ const KIND_STYLES: Record<
   },
 };
 
-const WorkflowFlowNode = memo(function WorkflowFlowNode({
-  data,
-  selected,
-}: NodeProps<WorkflowNodeData>) {
-  const styles = KIND_STYLES[data.kind] ?? KIND_STYLES.action;
+const WorkflowFlowNode = memo(
+  function WorkflowFlowNode({ data, selected }: NodeProps<WorkflowNodeData>) {
+    const styles = KIND_STYLES[data.kind] ?? KIND_STYLES.action;
 
-  return (
-    <div
-      className={cn(
-        "min-w-[9rem] max-w-[12rem] rounded-lg border px-3 py-2 shadow-sm transition-shadow",
-        styles.border,
-        selected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
-      )}
-    >
-      <Handle
-        type="target"
-        position={Position.Left}
-        className="!h-2 !w-2 !border-background !bg-muted-foreground"
-      />
-      <span
+    return (
+      <div
         className={cn(
-          "mb-1 inline-flex rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
-          styles.badge,
+          "min-w-[9rem] max-w-[12rem] rounded-lg border px-3 py-2 shadow-sm transition-shadow",
+          styles.border,
+          selected &&
+            "ring-2 ring-primary ring-offset-2 ring-offset-background",
         )}
       >
-        {data.kind}
-      </span>
-      <p className="truncate text-sm font-medium text-foreground">{data.label}</p>
-      {data.description ? (
-        <p className="mt-0.5 line-clamp-2 text-[10px] text-muted-foreground">
-          {data.description}
+        <Handle
+          type="target"
+          position={Position.Left}
+          className="!h-2 !w-2 !border-background !bg-muted-foreground"
+        />
+        <span
+          className={cn(
+            "mb-1 inline-flex rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
+            styles.badge,
+          )}
+        >
+          {data.kind}
+        </span>
+        <p className="truncate text-sm font-medium text-foreground">
+          {data.label}
         </p>
-      ) : null}
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="!h-2 !w-2 !border-background !bg-muted-foreground"
-      />
-    </div>
-  );
-});
+        {data.description ? (
+          <p className="mt-0.5 line-clamp-2 text-[10px] text-muted-foreground">
+            {data.description}
+          </p>
+        ) : null}
+        <Handle
+          type="source"
+          position={Position.Right}
+          className="!h-2 !w-2 !border-background !bg-muted-foreground"
+        />
+      </div>
+    );
+  },
+  (prev, next) =>
+    prev.selected === next.selected &&
+    prev.data.label === next.data.label &&
+    prev.data.kind === next.data.kind &&
+    prev.data.description === next.data.description,
+);
 
-const nodeTypes = {
+/** Module-level stable references — never recreate per render. */
+const NODE_TYPES = {
   default: WorkflowFlowNode,
   workflow: WorkflowFlowNode,
-};
+} as const;
+
+const EDGE_TYPES = {} as const;
 
 const FIT_VIEW_OPTIONS = { padding: 0.2, duration: 200 } as const;
 
-const FitViewOnWorkflowChange = memo(function FitViewOnWorkflowChange({
-  fitViewToken,
+const PRO_OPTIONS = { hideAttribution: true } as const;
+
+function getMiniMapNodeColor(node: Node): string {
+  const kind = (node.data as WorkflowNodeData | undefined)?.kind;
+  return kind ? KIND_STYLES[kind].dot : "#64748b";
+}
+
+/** React Flow emits select/dimensions on mount — ignore to avoid parent update loops. */
+function isPropagatableNodeChange(change: NodeChange): boolean {
+  return change.type !== "select" && change.type !== "dimensions";
+}
+
+function isPropagatableEdgeChange(change: EdgeChange): boolean {
+  return change.type !== "select";
+}
+
+const FitViewOnce = memo(function FitViewOnce({
   workflowId,
   nodeCount,
 }: {
-  fitViewToken: number;
   workflowId?: string;
   nodeCount: number;
 }) {
   const { fitView } = useReactFlow();
   const fitViewRef = useRef(fitView);
-  const lastFittedTokenRef = useRef(-1);
+  const lastWorkflowIdRef = useRef<string | null>(null);
 
   fitViewRef.current = fitView;
 
-  const runFitView = useCallback(() => {
-    if (!workflowId || nodeCount === 0) return;
-    try {
-      void fitViewRef.current(FIT_VIEW_OPTIONS);
-    } catch {
-      // Provider may be tearing down during remount.
-    }
-  }, [nodeCount, workflowId]);
-
   useEffect(() => {
-    if (!workflowId || nodeCount === 0 || fitViewToken <= 0) return;
-    if (lastFittedTokenRef.current === fitViewToken) return;
+    if (!workflowId || nodeCount === 0) return;
+    if (lastWorkflowIdRef.current === workflowId) return;
 
-    lastFittedTokenRef.current = fitViewToken;
-    const timer = window.setTimeout(runFitView, 120);
+    lastWorkflowIdRef.current = workflowId;
+    const timer = window.setTimeout(() => {
+      try {
+        void fitViewRef.current(FIT_VIEW_OPTIONS);
+      } catch {
+        // Provider may be unmounting.
+      }
+    }, 150);
+
     return () => window.clearTimeout(timer);
-  }, [fitViewToken, nodeCount, runFitView, workflowId]);
+  }, [nodeCount, workflowId]);
 
   return null;
 });
+
+interface WorkflowCanvasErrorBoundaryState {
+  hasError: boolean;
+}
+
+class WorkflowCanvasErrorBoundary extends Component<
+  { children: ReactNode },
+  WorkflowCanvasErrorBoundaryState
+> {
+  state: WorkflowCanvasErrorBoundaryState = { hasError: false };
+
+  static getDerivedStateFromError(): WorkflowCanvasErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error("[workflow:canvas] render error", error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex h-full min-h-[14rem] flex-col items-center justify-center rounded-xl border border-dashed border-destructive/40 bg-destructive/5 px-4 text-center">
+          <p className="text-sm font-medium text-destructive">
+            Workflow canvas error
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Hard refresh the page or re-import the workflow.
+          </p>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 export interface WorkflowCanvasProps {
   nodes: Node<WorkflowNodeData>[];
@@ -148,8 +214,22 @@ export interface WorkflowCanvasProps {
   onSelectNode: (nodeId: string | null) => void;
   className?: string;
   workflowId?: string;
-  /** Increments only when a new workflow is imported — triggers a single fitView. */
-  fitViewToken?: number;
+}
+
+function areCanvasPropsEqual(
+  prev: WorkflowCanvasProps,
+  next: WorkflowCanvasProps,
+): boolean {
+  return (
+    prev.workflowId === next.workflowId &&
+    prev.selectedNodeId === next.selectedNodeId &&
+    prev.className === next.className &&
+    prev.nodes === next.nodes &&
+    prev.edges === next.edges &&
+    prev.onNodesChange === next.onNodesChange &&
+    prev.onEdgesChange === next.onEdgesChange &&
+    prev.onSelectNode === next.onSelectNode
+  );
 }
 
 const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
@@ -161,54 +241,66 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
   onSelectNode,
   className,
   workflowId,
-  fitViewToken = 0,
 }: WorkflowCanvasProps) {
+  const nodesRef = useRef(nodes);
+  const edgesRef = useRef(edges);
+  const onNodesChangeRef = useRef(onNodesChange);
+  const onEdgesChangeRef = useRef(onEdgesChange);
+  const onSelectNodeRef = useRef(onSelectNode);
+  const selectedNodeIdRef = useRef(selectedNodeId);
+
+  nodesRef.current = nodes;
+  edgesRef.current = edges;
+  onNodesChangeRef.current = onNodesChange;
+  onEdgesChangeRef.current = onEdgesChange;
+  onSelectNodeRef.current = onSelectNode;
+  selectedNodeIdRef.current = selectedNodeId;
+
   const displayNodes = useMemo(
     () =>
       nodes.map((node) => ({
         ...node,
         type: node.type ?? "workflow",
-        selected: node.id === selectedNodeId,
       })),
-    [nodes, selectedNodeId],
+    [nodes],
   );
 
-  const handleNodesChange: OnNodesChange = useCallback(
-    (changes: NodeChange[]) => {
-      onNodesChange(
-        applyNodeChanges(changes, nodes) as Node<WorkflowNodeData>[],
-      );
-    },
-    [nodes, onNodesChange],
-  );
+  const handleNodesChange: OnNodesChange = useCallback((changes) => {
+    const meaningful = changes.filter(isPropagatableNodeChange);
+    if (meaningful.length === 0) return;
 
-  const handleEdgesChange: OnEdgesChange = useCallback(
-    (changes: EdgeChange[]) => {
-      onEdgesChange(applyEdgeChanges(changes, edges));
-    },
-    [edges, onEdgesChange],
-  );
+    onNodesChangeRef.current(
+      applyNodeChanges(meaningful, nodesRef.current) as Node<WorkflowNodeData>[],
+    );
+  }, []);
 
-  const handleConnect: OnConnect = useCallback(
-    (connection: Connection) => {
-      onEdgesChange(
-        addEdge(
-          {
-            ...connection,
-            id: `edge-${connection.source}-${connection.target}-${Date.now()}`,
-          },
-          edges,
-        ),
-      );
-    },
-    [edges, onEdgesChange],
-  );
+  const handleEdgesChange: OnEdgesChange = useCallback((changes) => {
+    const meaningful = changes.filter(isPropagatableEdgeChange);
+    if (meaningful.length === 0) return;
+
+    onEdgesChangeRef.current(applyEdgeChanges(meaningful, edgesRef.current));
+  }, []);
+
+  const handleConnect: OnConnect = useCallback((connection: Connection) => {
+    onEdgesChangeRef.current(
+      addEdge(
+        {
+          ...connection,
+          id: `edge-${connection.source}-${connection.target}-${Date.now()}`,
+        },
+        edgesRef.current,
+      ),
+    );
+  }, []);
 
   const handleSelectionChange = useCallback(
     ({ nodes: selectedNodes }: { nodes: Node[] }) => {
-      onSelectNode(selectedNodes[0]?.id ?? null);
+      const nextId = selectedNodes[0]?.id ?? null;
+      if (nextId === selectedNodeIdRef.current) return;
+      selectedNodeIdRef.current = nextId;
+      onSelectNodeRef.current(nextId);
     },
-    [onSelectNode],
+    [],
   );
 
   return (
@@ -216,21 +308,21 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
       <ReactFlow
         nodes={displayNodes}
         edges={edges}
-        nodeTypes={nodeTypes}
+        nodeTypes={NODE_TYPES}
+        edgeTypes={EDGE_TYPES}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
         onSelectionChange={handleSelectionChange}
+        nodesDraggable
+        nodesConnectable
+        elementsSelectable
         minZoom={0.35}
         maxZoom={1.5}
-        proOptions={{ hideAttribution: true }}
+        proOptions={PRO_OPTIONS}
         className="rounded-xl border bg-muted/20 dark:bg-muted/10"
       >
-        <FitViewOnWorkflowChange
-          fitViewToken={fitViewToken}
-          workflowId={workflowId}
-          nodeCount={displayNodes.length}
-        />
+        <FitViewOnce workflowId={workflowId} nodeCount={displayNodes.length} />
         <Background
           variant={BackgroundVariant.Dots}
           gap={18}
@@ -244,23 +336,24 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
         <MiniMap
           zoomable
           pannable
+          nodeColor={getMiniMapNodeColor}
           className="!rounded-lg !border !border-border !bg-background/80"
-          nodeColor={(node) => {
-            const kind = (node.data as WorkflowNodeData | undefined)?.kind;
-            return kind ? KIND_STYLES[kind].dot : "#64748b";
-          }}
         />
       </ReactFlow>
     </div>
   );
-});
+}, areCanvasPropsEqual);
 
-export const WorkflowCanvas = memo(function WorkflowCanvas(
+const WorkflowCanvasShell = memo(function WorkflowCanvasShell(
   props: WorkflowCanvasProps,
 ) {
   return (
-    <ReactFlowProvider>
-      <WorkflowCanvasInner {...props} />
-    </ReactFlowProvider>
+    <WorkflowCanvasErrorBoundary>
+      <ReactFlowProvider>
+        <WorkflowCanvasInner {...props} />
+      </ReactFlowProvider>
+    </WorkflowCanvasErrorBoundary>
   );
-});
+}, areCanvasPropsEqual);
+
+export const WorkflowCanvas = WorkflowCanvasShell;

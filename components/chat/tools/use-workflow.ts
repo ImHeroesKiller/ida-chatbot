@@ -66,6 +66,30 @@ export type WorkflowWorkspaceState = WorkflowWorkspace;
 
 type PersistLayerSync = (workspace: WorkflowWorkspaceState) => void;
 
+function buildWorkflowGraphFingerprint(
+  workflow: WorkflowDefinition,
+): string {
+  return JSON.stringify({
+    nodes: workflow.nodes.map((node) => ({
+      id: node.id,
+      position: node.position,
+      data: node.data,
+    })),
+    edges: workflow.edges.map((edge) => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+    })),
+  });
+}
+
+function isSameWorkflowGraph(
+  left: WorkflowDefinition,
+  right: WorkflowDefinition,
+): boolean {
+  return buildWorkflowGraphFingerprint(left) === buildWorkflowGraphFingerprint(right);
+}
+
 export interface WorkflowHydrationInput extends ToolHydrationInput {
   workspace?: WorkflowWorkspace | null;
   isExecuting?: boolean;
@@ -78,8 +102,6 @@ export type WorkflowTool = BaseToolState &
     workflows: WorkflowDefinition[];
     activeWorkflowId: string | null;
     activeWorkflow: WorkflowDefinition | null;
-    /** Bumps when stream import completes — forces canvas remount/fitView. */
-    canvasRevision: number;
     isExecuting: boolean;
     lastExecution: WorkflowExecutionResult | null;
     errorDetail: string | null;
@@ -168,9 +190,6 @@ export function useWorkflow(): WorkflowTool {
   const lastGeneratedWorkflowSourceRef = useRef<string | null>(null);
   const [lastGeneratedWorkflowSource, setLastGeneratedWorkflowSourceState] =
     useState<string | null>(null);
-  const [canvasRevision, setCanvasRevision] = useState(0);
-  const canvasFitWorkflowIdRef = useRef<string | null>(null);
-
   const resetPersistFingerprint = useCallback(() => {
     lastPersistedFingerprintRef.current = null;
   }, []);
@@ -227,33 +246,45 @@ export function useWorkflow(): WorkflowTool {
       options?: { force?: boolean },
     ): WorkflowWorkspaceState => {
       const current = nextWorkspace ?? getWorkspace();
-      const snapshot = normalizeWorkflowWorkspace({
-        ...current,
-        updatedAt: Date.now(),
-      });
+      const snapshot = normalizeWorkflowWorkspace(current);
       const fingerprint = buildWorkflowWorkspacePersistFingerprint(snapshot);
 
       if (
         !options?.force &&
         fingerprint === lastPersistedFingerprintRef.current
       ) {
-        return snapshot;
+        return workspaceRef.current;
       }
 
-      lastPersistedFingerprintRef.current = fingerprint;
-      persistSyncRef.current?.(snapshot);
-      workspaceRef.current = snapshot;
-      setWorkspaceInternal(snapshot);
-      return snapshot;
+      if (
+        !options?.force &&
+        areWorkflowWorkspaceSnapshotsEqual(workspaceRef.current, snapshot)
+      ) {
+        return workspaceRef.current;
+      }
+
+      const persisted = normalizeWorkflowWorkspace({
+        ...snapshot,
+        updatedAt: Date.now(),
+      });
+      const persistedFingerprint =
+        buildWorkflowWorkspacePersistFingerprint(persisted);
+      const shouldUpdateReact =
+        options?.force === true ||
+        !areWorkflowWorkspaceSnapshotsEqual(workspaceRef.current, persisted);
+
+      lastPersistedFingerprintRef.current = persistedFingerprint;
+      persistSyncRef.current?.(persisted);
+      workspaceRef.current = persisted;
+
+      if (shouldUpdateReact) {
+        setWorkspaceInternal(persisted);
+      }
+
+      return persisted;
     },
     [getWorkspace],
   );
-
-  const bumpCanvasRevisionForWorkflow = useCallback((workflowId: string) => {
-    if (canvasFitWorkflowIdRef.current === workflowId) return;
-    canvasFitWorkflowIdRef.current = workflowId;
-    setCanvasRevision((revision) => revision + 1);
-  }, []);
 
   const resetQuota = useCallback(() => {
     setQuota(createWorkflowQuotaState());
@@ -283,8 +314,6 @@ export function useWorkflow(): WorkflowTool {
     clearErrorDetail();
     resetPersistFingerprint();
     setLastGeneratedWorkflowSource(null);
-    canvasFitWorkflowIdRef.current = null;
-    setCanvasRevision(0);
   }, [clearErrorDetail, resetPersistFingerprint, setLastGeneratedWorkflowSource]);
 
   const hydrateWorkspaceState = useCallback((state: WorkflowHydrationInput) => {
@@ -377,15 +406,24 @@ export function useWorkflow(): WorkflowTool {
       workflowId: string,
       patch: UpdateWorkflowPatch,
     ): WorkflowWorkspaceState => {
-      let nextWorkspace!: WorkflowWorkspaceState;
+      const prev = workspaceRef.current;
+      const current = getWorkflowById(prev, workflowId);
+      const candidate = updateWorkflowDefinition(prev, workflowId, patch);
+      const next = getWorkflowById(candidate, workflowId);
 
-      setWorkspaceInternal((prev) => {
-        nextWorkspace = updateWorkflowDefinition(prev, workflowId, patch);
-        workspaceRef.current = nextWorkspace;
-        return nextWorkspace;
-      });
+      if (
+        current &&
+        next &&
+        isSameWorkflowGraph(current, next) &&
+        current.name === next.name &&
+        current.description === next.description
+      ) {
+        return prev;
+      }
 
-      return syncToPersistLayer(nextWorkspace);
+      workspaceRef.current = candidate;
+      setWorkspaceInternal(candidate);
+      return syncToPersistLayer(candidate);
     },
     [syncToPersistLayer],
   );
@@ -489,7 +527,6 @@ export function useWorkflow(): WorkflowTool {
 
       setIsExecuting(false);
       clearErrorDetail();
-      bumpCanvasRevisionForWorkflow(created.id);
       syncToPersistLayer(normalized, { force: true });
 
       console.info("[workflow:import] success", {
@@ -502,7 +539,7 @@ export function useWorkflow(): WorkflowTool {
 
       return created;
     },
-    [bumpCanvasRevisionForWorkflow, clearErrorDetail, syncToPersistLayer],
+    [clearErrorDetail, syncToPersistLayer],
   );
 
   const applyStreamError = useCallback(
@@ -666,7 +703,6 @@ export function useWorkflow(): WorkflowTool {
     workflows,
     activeWorkflowId,
     activeWorkflow,
-    canvasRevision,
     isExecuting,
     lastExecution,
     errorDetail,

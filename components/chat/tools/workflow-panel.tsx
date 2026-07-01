@@ -13,7 +13,7 @@ import {
   Save,
   Trash2,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import type { WorkflowTool } from "@/components/chat/tools/use-workflow";
@@ -82,7 +82,7 @@ interface WorkflowPanelProps {
   embedded?: boolean;
 }
 
-export function WorkflowPanel({
+function WorkflowPanelInner({
   locale,
   workflowTool,
   sessionId,
@@ -99,10 +99,15 @@ export function WorkflowPanel({
     lastExecution,
     importLatestGeneratedWorkflow,
     lastGeneratedWorkflowSource,
-    canvasRevision,
     workspace,
   } = workflowTool;
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const selectedNodeIdRef = useRef<string | null>(null);
+  const activeWorkflowRef = useRef(activeWorkflow);
+  const updateWorkflowRef = useRef(workflowTool.updateWorkflow);
+
+  activeWorkflowRef.current = activeWorkflow;
+  updateWorkflowRef.current = workflowTool.updateWorkflow;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showRawResponse, setShowRawResponse] = useState(false);
 
@@ -117,29 +122,23 @@ export function WorkflowPanel({
     return activeWorkflow.nodes.find((node) => node.id === selectedNodeId) ?? null;
   }, [activeWorkflow, selectedNodeId]);
 
-  const persistCanvas = useCallback(
-    (nodes: Node<WorkflowNodeData>[], edges: Edge[]) => {
-      if (!activeWorkflow) return;
-      workflowTool.updateWorkflow(activeWorkflow.id, { nodes, edges });
-    },
-    [activeWorkflow, workflowTool],
-  );
+  const handleNodesChange = useCallback((nodes: Node<WorkflowNodeData>[]) => {
+    const workflow = activeWorkflowRef.current;
+    if (!workflow) return;
+    updateWorkflowRef.current(workflow.id, { nodes, edges: workflow.edges });
+  }, []);
 
-  const handleNodesChange = useCallback(
-    (nodes: Node<WorkflowNodeData>[]) => {
-      if (!activeWorkflow) return;
-      persistCanvas(nodes, activeWorkflow.edges);
-    },
-    [activeWorkflow, persistCanvas],
-  );
+  const handleEdgesChange = useCallback((edges: Edge[]) => {
+    const workflow = activeWorkflowRef.current;
+    if (!workflow) return;
+    updateWorkflowRef.current(workflow.id, { nodes: workflow.nodes, edges });
+  }, []);
 
-  const handleEdgesChange = useCallback(
-    (edges: Edge[]) => {
-      if (!activeWorkflow) return;
-      persistCanvas(activeWorkflow.nodes, edges);
-    },
-    [activeWorkflow, persistCanvas],
-  );
+  const handleSelectNode = useCallback((nodeId: string | null) => {
+    if (selectedNodeIdRef.current === nodeId) return;
+    selectedNodeIdRef.current = nodeId;
+    setSelectedNodeId(nodeId);
+  }, []);
 
   const workflowErrorMessage = useMemo(() => {
     if (errorDetail) return errorDetail;
@@ -384,13 +383,12 @@ export function WorkflowPanel({
             <WorkflowCanvas
               key={activeWorkflow.id}
               workflowId={activeWorkflow.id}
-              fitViewToken={canvasRevision}
               nodes={activeWorkflow.nodes}
               edges={activeWorkflow.edges}
               selectedNodeId={selectedNodeId}
               onNodesChange={handleNodesChange}
               onEdgesChange={handleEdgesChange}
-              onSelectNode={setSelectedNodeId}
+              onSelectNode={handleSelectNode}
               className="h-full"
             />
           ) : (
@@ -627,3 +625,5 @@ export function WorkflowPanel({
     </aside>
   );
 }
+
+export const WorkflowPanel = memo(WorkflowPanelInner);
