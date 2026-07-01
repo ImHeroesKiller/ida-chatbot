@@ -2,6 +2,7 @@ import type { Locale } from "@/lib/config";
 import {
   applyWorkflowTemplateToWorkspace,
   createEmptyWorkflowWorkspace,
+  normalizeWorkflowTemplateGraph,
   type WorkflowEdge,
   type WorkflowNode,
   type WorkflowNodeKind,
@@ -67,6 +68,17 @@ export interface ResolvedWorkflowTemplate {
 }
 
 export type WorkflowTemplateApplyMode = "replace" | "append";
+
+export type WorkflowTemplateApplyError =
+  | "empty_template"
+  | "invalid_graph"
+  | "apply_failed";
+
+export interface WorkflowTemplateApplyResult {
+  workflow: import("@/lib/workflow").WorkflowDefinition | null;
+  error?: WorkflowTemplateApplyError;
+  fixes?: string[];
+}
 
 export const WORKFLOW_EXPORT_VERSION = 1;
 
@@ -1114,6 +1126,11 @@ function resolveBuiltinTemplate(
     localizeNode(node, steps, locale),
   );
 
+  const graph = normalizeWorkflowTemplateGraph(
+    localizedNodes,
+    template.definition.edges,
+  );
+
   return {
     id: template.id,
     source: template.source,
@@ -1123,8 +1140,8 @@ function resolveBuiltinTemplate(
     description: localize(template.description, locale),
     name: localize(template.definition.name, locale),
     workflowDescription: localize(template.definition.description, locale),
-    nodes: localizedNodes,
-    edges: template.definition.edges.map((edge) => ({ ...edge })),
+    nodes: graph.nodes,
+    edges: graph.edges,
   };
 }
 
@@ -1149,6 +1166,11 @@ export function resolveWorkflowTemplate(
     }
   }
 
+  const graph = normalizeWorkflowTemplateGraph(
+    template.definition.nodes,
+    template.definition.edges,
+  );
+
   return {
     id: template.id,
     source: template.source,
@@ -1158,12 +1180,8 @@ export function resolveWorkflowTemplate(
     description: localize(template.description, locale),
     name: localize(template.definition.name, locale),
     workflowDescription: localize(template.definition.description, locale),
-    nodes: template.definition.nodes.map((node) => ({
-      ...node,
-      data: { ...node.data },
-      position: { ...node.position },
-    })),
-    edges: template.definition.edges.map((edge) => ({ ...edge })),
+    nodes: graph.nodes,
+    edges: graph.edges,
   };
 }
 
@@ -1246,31 +1264,62 @@ export function serializeWorkflowForExport(input: {
 
 export function parseWorkflowImportJson(
   raw: string,
-): {
-  name: string;
-  description?: string;
-  nodes: WorkflowNode[];
-  edges: WorkflowEdge[];
-} | null {
+):
+  | {
+      name: string;
+      description?: string;
+      nodes: WorkflowNode[];
+      edges: WorkflowEdge[];
+      fixes: string[];
+    }
+  | null {
   try {
-    const parsed = JSON.parse(raw) as Partial<WorkflowExportPayload>;
-    if (!Array.isArray(parsed.nodes) || parsed.nodes.length === 0) {
+    const parsed = JSON.parse(raw) as Partial<WorkflowExportPayload> & {
+      workflow?: {
+        name?: string;
+        description?: string;
+        nodes?: unknown[];
+        edges?: unknown[];
+      };
+    };
+
+    const nested = parsed.workflow;
+    const nodesSource = Array.isArray(parsed.nodes)
+      ? parsed.nodes
+      : Array.isArray(nested?.nodes)
+        ? nested.nodes
+        : null;
+
+    if (!nodesSource || nodesSource.length === 0) {
       return null;
     }
 
-    const nodes = parsed.nodes as WorkflowNode[];
-    const edges = Array.isArray(parsed.edges) ? (parsed.edges as WorkflowEdge[]) : [];
+    const edgesSource = Array.isArray(parsed.edges)
+      ? parsed.edges
+      : Array.isArray(nested?.edges)
+        ? nested.edges
+        : [];
+
+    const graph = normalizeWorkflowTemplateGraph(nodesSource, edgesSource);
+    if (graph.nodes.length === 0) {
+      return null;
+    }
+
+    const name =
+      (typeof parsed.name === "string" && parsed.name.trim()) ||
+      (typeof nested?.name === "string" && nested.name.trim()) ||
+      "Imported Workflow";
+    const description =
+      (typeof parsed.description === "string" && parsed.description.trim()) ||
+      (typeof nested?.description === "string" && nested.description.trim()) ||
+      undefined;
 
     return {
-      name: typeof parsed.name === "string" && parsed.name.trim()
-        ? parsed.name.trim()
-        : "Imported Workflow",
-      description:
-        typeof parsed.description === "string"
-          ? parsed.description.trim() || undefined
-          : undefined,
-      nodes,
-      edges,
+      name,
+      description: description || undefined,
+      nodes: graph.nodes,
+      edges: graph.edges,
+      fixes: graph.fixes,
     };
   } catch {
     return null;

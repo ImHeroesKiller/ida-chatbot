@@ -38,6 +38,7 @@ import {
   searchWorkflowTemplates,
   workflowTemplateFromUserRecord,
   type WorkflowTemplate,
+  type WorkflowTemplateApplyError,
   type WorkflowTemplateCategory,
   type WorkflowTemplateIcon,
 } from "@/lib/workflow-templates";
@@ -168,11 +169,30 @@ export function WorkflowTemplateGallery({
     >;
   }, [allTemplates]);
 
+  const templateApplyErrorMessage = useCallback(
+    (error?: WorkflowTemplateApplyError) => {
+      switch (error) {
+        case "empty_template":
+          return copy.workflowTemplateEmpty;
+        case "invalid_graph":
+          return copy.workflowTemplateImportFailed;
+        case "apply_failed":
+        default:
+          return copy.workflowTemplateApplyFailed;
+      }
+    },
+    [
+      copy.workflowTemplateApplyFailed,
+      copy.workflowTemplateEmpty,
+      copy.workflowTemplateImportFailed,
+    ],
+  );
+
   const handleApply = useCallback(
     (template: WorkflowTemplate, mode: WorkflowTemplateApplyMode) => {
-      const applied = workflowTool.applyTemplate(template, { locale, mode });
-      if (!applied) {
-        toast.error(copy.workflowTemplateImportFailed);
+      const result = workflowTool.applyTemplate(template, { locale, mode });
+      if (!result.workflow) {
+        toast.error(templateApplyErrorMessage(result.error));
         return;
       }
       toast.success(copy.workflowTemplateApplied);
@@ -181,9 +201,9 @@ export function WorkflowTemplateGallery({
     },
     [
       copy.workflowTemplateApplied,
-      copy.workflowTemplateImportFailed,
       locale,
       onApplied,
+      templateApplyErrorMessage,
       workflowTool,
     ],
   );
@@ -235,9 +255,9 @@ export function WorkflowTemplateGallery({
     async (file: File) => {
       try {
         const raw = await file.text();
-        const imported = workflowTool.importWorkflowJson(raw, { mode: "append" });
-        if (!imported) {
-          toast.error(copy.workflowTemplateImportFailed);
+        const result = workflowTool.importWorkflowJson(raw, { mode: "append" });
+        if (!result.workflow) {
+          toast.error(templateApplyErrorMessage(result.error));
           return;
         }
         toast.success(copy.workflowTemplateImported);
@@ -247,9 +267,9 @@ export function WorkflowTemplateGallery({
       }
     },
     [
-      copy.workflowTemplateImportFailed,
       copy.workflowTemplateImported,
       onApplied,
+      templateApplyErrorMessage,
       workflowTool,
     ],
   );

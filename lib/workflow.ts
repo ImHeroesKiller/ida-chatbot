@@ -369,22 +369,186 @@ export function importWorkflowFromStream(
   };
 }
 
+const WORKFLOW_NODE_KINDS = new Set<WorkflowNodeKind>([
+  "trigger",
+  "action",
+  "condition",
+  "output",
+]);
+
+function coerceWorkflowNodeKind(
+  value: unknown,
+  index: number,
+  total: number,
+): WorkflowNodeKind {
+  if (
+    typeof value === "string" &&
+    WORKFLOW_NODE_KINDS.has(value as WorkflowNodeKind)
+  ) {
+    return value as WorkflowNodeKind;
+  }
+
+  if (index === 0) return "trigger";
+  if (index === total - 1 && total > 1) return "output";
+  return "action";
+}
+
 export function normalizeWorkflowNodeData(
-  data: WorkflowNodeData,
+  data: WorkflowNodeData | null | undefined,
 ): WorkflowNodeData {
+  const safe = data ?? { label: "Step", kind: "action" as WorkflowNodeKind };
+  const label =
+    typeof safe.label === "string" ? safe.label.trim() || "Step" : "Step";
+  const kind =
+    typeof safe.kind === "string" &&
+    WORKFLOW_NODE_KINDS.has(safe.kind as WorkflowNodeKind)
+      ? safe.kind
+      : "action";
   const prompt =
-    data.prompt?.trim() ||
-    (typeof data.config?.prompt === "string"
-      ? data.config.prompt.trim()
+    (typeof safe.prompt === "string" ? safe.prompt.trim() : "") ||
+    (typeof safe.config?.prompt === "string"
+      ? safe.config.prompt.trim()
       : undefined);
+  const description =
+    typeof safe.description === "string"
+      ? safe.description.trim() || undefined
+      : undefined;
 
   return {
-    ...data,
-    label: data.label.trim() || "Step",
-    description: data.description?.trim() || undefined,
+    ...safe,
+    label,
+    kind,
+    description,
     prompt,
-    config: prompt ? { ...data.config, prompt } : data.config,
+    config: prompt ? { ...safe.config, prompt } : safe.config,
   };
+}
+
+export interface NormalizeWorkflowTemplateGraphResult {
+  nodes: WorkflowNode[];
+  edges: WorkflowEdge[];
+  fixes: string[];
+}
+
+/** Normalize template/import nodes & edges; auto-fix missing id, position, kind, and edges. */
+export function normalizeWorkflowTemplateGraph(
+  nodesInput: unknown,
+  edgesInput?: unknown,
+): NormalizeWorkflowTemplateGraphResult {
+  const fixes: string[] = [];
+  const rawNodes = Array.isArray(nodesInput) ? nodesInput : [];
+  const nodeIdSet = new Set<string>();
+  const nodes: WorkflowNode[] = [];
+
+  rawNodes.forEach((raw, index) => {
+    if (!raw || typeof raw !== "object") {
+      fixes.push(`node[${index}]: skipped invalid entry`);
+      return;
+    }
+
+    const node = raw as Partial<WorkflowNode>;
+    let id =
+      typeof node.id === "string" && node.id.trim()
+        ? node.id.trim()
+        : createId("wf-node");
+    if (!node.id) fixes.push(`node[${index}]: generated id`);
+
+    while (nodeIdSet.has(id)) {
+      id = createId("wf-node");
+      fixes.push(`node[${index}]: deduplicated id`);
+    }
+    nodeIdSet.add(id);
+
+    const rawPosition =
+      node.position && typeof node.position === "object"
+        ? (node.position as { x?: unknown; y?: unknown })
+        : null;
+    const position = {
+      x:
+        typeof rawPosition?.x === "number" && Number.isFinite(rawPosition.x)
+          ? rawPosition.x
+          : 80 + index * 200,
+      y:
+        typeof rawPosition?.y === "number" && Number.isFinite(rawPosition.y)
+          ? rawPosition.y
+          : 120,
+    };
+    if (!node.position) fixes.push(`node[${index}]: generated position`);
+
+    const rawData =
+      node.data && typeof node.data === "object"
+        ? (node.data as Partial<WorkflowNodeData>)
+        : {};
+    const kind = coerceWorkflowNodeKind(rawData.kind, index, rawNodes.length);
+
+    nodes.push({
+      id,
+      type: typeof node.type === "string" ? node.type : "workflow",
+      position,
+      data: normalizeWorkflowNodeData({
+        ...rawData,
+        kind,
+        label:
+          typeof rawData.label === "string"
+            ? rawData.label
+            : `Step ${index + 1}`,
+      }),
+    });
+  });
+
+  const edges: WorkflowEdge[] = [];
+  const rawEdges = Array.isArray(edgesInput) ? edgesInput : [];
+
+  if (rawEdges.length === 0 && nodes.length > 1) {
+    for (let index = 0; index < nodes.length - 1; index += 1) {
+      edges.push({
+        id: createId("wf-edge"),
+        source: nodes[index]!.id,
+        target: nodes[index + 1]!.id,
+      });
+    }
+    fixes.push("edges: auto-chained linear");
+  } else {
+    rawEdges.forEach((raw, index) => {
+      if (!raw || typeof raw !== "object") {
+        fixes.push(`edge[${index}]: skipped invalid entry`);
+        return;
+      }
+
+      const edge = raw as Partial<WorkflowEdge>;
+      const source =
+        typeof edge.source === "string" ? edge.source.trim() : "";
+      const target =
+        typeof edge.target === "string" ? edge.target.trim() : "";
+
+      if (!source || !target || !nodeIdSet.has(source) || !nodeIdSet.has(target)) {
+        fixes.push(`edge[${index}]: skipped dangling edge`);
+        return;
+      }
+
+      edges.push({
+        id:
+          typeof edge.id === "string" && edge.id.trim()
+            ? edge.id.trim()
+            : createId("wf-edge"),
+        source,
+        target,
+      });
+    });
+
+    if (edges.length === 0 && nodes.length > 1) {
+      for (let index = 0; index < nodes.length - 1; index += 1) {
+        edges.push({
+          id: createId("wf-edge"),
+          source: nodes[index]!.id,
+          target: nodes[index + 1]!.id,
+        });
+      }
+      fixes.push("edges: rebuilt linear fallback");
+    }
+  }
+
+  return { nodes, edges, fixes };
 }
 
 export function getWorkflowNodePrompt(node: WorkflowNode): string {
@@ -437,9 +601,10 @@ function cloneTemplateGraph(
   nodes: WorkflowNode[],
   edges: WorkflowEdge[],
 ): { nodes: WorkflowNode[]; edges: WorkflowEdge[] } {
+  const normalized = normalizeWorkflowTemplateGraph(nodes, edges);
   const idMap = new Map<string, string>();
 
-  const clonedNodes = nodes.map((node) => {
+  const clonedNodes = normalized.nodes.map((node) => {
     const newId = createId("wf-node");
     idMap.set(node.id, newId);
     return {
@@ -450,7 +615,7 @@ function cloneTemplateGraph(
     };
   });
 
-  const clonedEdges = edges.map((edge) => ({
+  const clonedEdges = normalized.edges.map((edge) => ({
     ...edge,
     id: createId("wf-edge"),
     source: idMap.get(edge.source) ?? edge.source,
@@ -460,35 +625,13 @@ function cloneTemplateGraph(
   return { nodes: clonedNodes, edges: clonedEdges };
 }
 
-/** Apply a template graph to the workspace (replace active or append as new workflow). */
-export function applyWorkflowTemplateToWorkspace(
+function createWorkflowFromTemplateGraph(
   workspace: WorkflowWorkspace,
   input: WorkflowTemplateDefinitionInput,
-  options?: { mode?: WorkflowTemplateApplyMode; activate?: boolean },
+  options?: { activate?: boolean },
 ): WorkflowWorkspace {
-  const mode = options?.mode ?? "replace";
   const activate = options?.activate !== false;
   const { nodes, edges } = cloneTemplateGraph(input.nodes, input.edges);
-
-  if (mode === "append") {
-    return importWorkflowFromStream(workspace, {
-      name: input.name,
-      description: input.description,
-      nodes,
-      edges,
-      activate,
-    });
-  }
-
-  const activeId = workspace.activeWorkflowId;
-  if (activeId) {
-    return updateWorkflowDefinition(workspace, activeId, {
-      name: input.name,
-      description: input.description,
-      nodes,
-      edges,
-    });
-  }
 
   const created = createWorkflowDefinition(workspace, {
     name: input.name,
@@ -502,5 +645,41 @@ export function applyWorkflowTemplateToWorkspace(
     nodes,
     edges,
   });
+}
+
+/** Apply a template graph to the workspace (replace active or append as new workflow). */
+export function applyWorkflowTemplateToWorkspace(
+  workspace: WorkflowWorkspace,
+  input: WorkflowTemplateDefinitionInput,
+  options?: { mode?: WorkflowTemplateApplyMode; activate?: boolean },
+): WorkflowWorkspace {
+  const mode = options?.mode ?? "replace";
+  const activate = options?.activate !== false;
+  const snapshot = normalizeWorkflowWorkspace(workspace);
+  const { nodes, edges } = cloneTemplateGraph(input.nodes, input.edges);
+
+  if (mode === "append") {
+    return importWorkflowFromStream(snapshot, {
+      name: input.name,
+      description: input.description,
+      nodes,
+      edges,
+      activate,
+    });
+  }
+
+  const activeId = snapshot.activeWorkflowId;
+  const activeWorkflow = activeId ? getWorkflowById(snapshot, activeId) : null;
+
+  if (activeWorkflow) {
+    return updateWorkflowDefinition(snapshot, activeWorkflow.id, {
+      name: input.name,
+      description: input.description,
+      nodes,
+      edges,
+    });
+  }
+
+  return createWorkflowFromTemplateGraph(snapshot, input, { activate });
 }
 

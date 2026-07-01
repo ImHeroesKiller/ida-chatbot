@@ -48,6 +48,7 @@ import {
   resolveWorkflowTemplate,
   serializeWorkflowForExport,
   type WorkflowTemplate,
+  type WorkflowTemplateApplyResult,
 } from "@/lib/workflow-templates";
 
 import {
@@ -183,12 +184,12 @@ export type WorkflowTool = BaseToolState &
         mode?: WorkflowTemplateApplyMode;
         activate?: boolean;
       },
-    ) => WorkflowDefinition | null;
+    ) => WorkflowTemplateApplyResult;
     exportActiveWorkflowJson: () => string | null;
     importWorkflowJson: (
       raw: string,
       options?: { mode?: WorkflowTemplateApplyMode },
-    ) => WorkflowDefinition | null;
+    ) => WorkflowTemplateApplyResult;
     resetWorkspace: () => void;
   };
 
@@ -664,37 +665,40 @@ export function useWorkflow(): WorkflowTool {
         mode?: WorkflowTemplateApplyMode;
         activate?: boolean;
       },
-    ): WorkflowDefinition | null => {
+    ): WorkflowTemplateApplyResult => {
       const locale = options?.locale ?? "id";
       const resolved = resolveWorkflowTemplate(template, locale);
 
-      if (!resolved.nodes.length) return null;
+      if (!resolved.nodes.length) {
+        return { workflow: null, error: "empty_template" };
+      }
 
-      let nextWorkspace!: WorkflowWorkspaceState;
-      let created: WorkflowDefinition | null = null;
+      const prev = normalizeWorkflowWorkspace(workspaceRef.current);
+      const nextWorkspace = applyWorkflowTemplateToWorkspace(
+        prev,
+        {
+          name: resolved.name.trim() || resolved.title,
+          description: resolved.workflowDescription,
+          nodes: resolved.nodes,
+          edges: resolved.edges,
+        },
+        {
+          mode: options?.mode ?? "replace",
+          activate: options?.activate ?? true,
+        },
+      );
 
-      setWorkspaceInternal((prev) => {
-        nextWorkspace = applyWorkflowTemplateToWorkspace(
-          prev,
-          {
-            name: resolved.name,
-            description: resolved.workflowDescription,
-            nodes: resolved.nodes,
-            edges: resolved.edges,
-          },
-          {
-            mode: options?.mode ?? "replace",
-            activate: options?.activate ?? true,
-          },
-        );
-        workspaceRef.current = nextWorkspace;
-        const activeId = nextWorkspace.activeWorkflowId;
-        created = activeId ? getWorkflowById(nextWorkspace, activeId) : null;
-        return nextWorkspace;
-      });
+      const activeId = nextWorkspace.activeWorkflowId;
+      const workflow = activeId ? getWorkflowById(nextWorkspace, activeId) : null;
 
+      if (!workflow || workflow.nodes.length === 0) {
+        return { workflow: null, error: "apply_failed" };
+      }
+
+      workspaceRef.current = nextWorkspace;
+      setWorkspaceInternal(nextWorkspace);
       syncToPersistLayer(nextWorkspace, { force: true });
-      return created;
+      return { workflow };
     },
     [syncToPersistLayer],
   );
@@ -715,26 +719,29 @@ export function useWorkflow(): WorkflowTool {
     (
       raw: string,
       options?: { mode?: WorkflowTemplateApplyMode },
-    ): WorkflowDefinition | null => {
+    ): WorkflowTemplateApplyResult => {
       const parsed = parseWorkflowImportJson(raw);
-      if (!parsed) return null;
+      if (!parsed) {
+        return { workflow: null, error: "invalid_graph" };
+      }
 
-      let nextWorkspace!: WorkflowWorkspaceState;
-      let created: WorkflowDefinition | null = null;
-
-      setWorkspaceInternal((prev) => {
-        nextWorkspace = applyWorkflowTemplateToWorkspace(prev, parsed, {
-          mode: options?.mode ?? "replace",
-          activate: true,
-        });
-        workspaceRef.current = nextWorkspace;
-        const activeId = nextWorkspace.activeWorkflowId;
-        created = activeId ? getWorkflowById(nextWorkspace, activeId) : null;
-        return nextWorkspace;
+      const prev = normalizeWorkflowWorkspace(workspaceRef.current);
+      const nextWorkspace = applyWorkflowTemplateToWorkspace(prev, parsed, {
+        mode: options?.mode ?? "replace",
+        activate: true,
       });
 
+      const activeId = nextWorkspace.activeWorkflowId;
+      const workflow = activeId ? getWorkflowById(nextWorkspace, activeId) : null;
+
+      if (!workflow || workflow.nodes.length === 0) {
+        return { workflow: null, error: "apply_failed", fixes: parsed.fixes };
+      }
+
+      workspaceRef.current = nextWorkspace;
+      setWorkspaceInternal(nextWorkspace);
       syncToPersistLayer(nextWorkspace, { force: true });
-      return created;
+      return { workflow, fixes: parsed.fixes };
     },
     [syncToPersistLayer],
   );

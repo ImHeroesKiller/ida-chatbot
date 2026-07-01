@@ -20,8 +20,8 @@ function assert(condition, message) {
 function loadModule() {
   const snippet =
     'import { BUILTIN_WORKFLOW_TEMPLATES, createDemoWorkflowWorkspace, getBuiltinWorkflowTemplates, parseWorkflowImportJson, resolveWorkflowTemplate, searchWorkflowTemplates, serializeWorkflowForExport } from "./lib/workflow-templates.ts"; ' +
-    'import { applyWorkflowTemplateToWorkspace, createEmptyWorkflowWorkspace } from "./lib/workflow.ts"; ' +
-    "console.log(JSON.stringify({ builtinCount: BUILTIN_WORKFLOW_TEMPLATES.length, templateIds: BUILTIN_WORKFLOW_TEMPLATES.map((t) => t.id), demoNodes: createDemoWorkflowWorkspace().workflows[0]?.nodes.length ?? 0, resolved: resolveWorkflowTemplate(BUILTIN_WORKFLOW_TEMPLATES[0], 'en').nodes.length, search: searchWorkflowTemplates(getBuiltinWorkflowTemplates(), 'en', 'onboarding').length, replace: applyWorkflowTemplateToWorkspace(createEmptyWorkflowWorkspace(), { name: 'Test', nodes: BUILTIN_WORKFLOW_TEMPLATES[0].definition.nodes, edges: BUILTIN_WORKFLOW_TEMPLATES[0].definition.edges }, { mode: 'replace' }).workflows.length, append: applyWorkflowTemplateToWorkspace(createEmptyWorkflowWorkspace(), { name: 'Append', nodes: BUILTIN_WORKFLOW_TEMPLATES[1].definition.nodes, edges: BUILTIN_WORKFLOW_TEMPLATES[1].definition.edges }, { mode: 'append' }).workflows.length, exportRoundTrip: (() => { const wf = createDemoWorkflowWorkspace().workflows[0]; const json = serializeWorkflowForExport(wf); const parsed = parseWorkflowImportJson(json); return parsed?.nodes.length === wf.nodes.length; })() }));";
+    'import { applyWorkflowTemplateToWorkspace, createEmptyWorkflowWorkspace, getWorkflowById } from "./lib/workflow.ts"; ' +
+    "console.log(JSON.stringify({ builtinCount: BUILTIN_WORKFLOW_TEMPLATES.length, templateIds: BUILTIN_WORKFLOW_TEMPLATES.map((t) => t.id), demoNodes: createDemoWorkflowWorkspace().workflows[0]?.nodes.length ?? 0, resolved: resolveWorkflowTemplate(BUILTIN_WORKFLOW_TEMPLATES[0], 'en').nodes.length, search: searchWorkflowTemplates(getBuiltinWorkflowTemplates(), 'en', 'onboarding').length, replace: applyWorkflowTemplateToWorkspace(createEmptyWorkflowWorkspace(), { name: 'Test', nodes: BUILTIN_WORKFLOW_TEMPLATES[0].definition.nodes, edges: BUILTIN_WORKFLOW_TEMPLATES[0].definition.edges }, { mode: 'replace' }).workflows.length, append: applyWorkflowTemplateToWorkspace(createEmptyWorkflowWorkspace(), { name: 'Append', nodes: BUILTIN_WORKFLOW_TEMPLATES[1].definition.nodes, edges: BUILTIN_WORKFLOW_TEMPLATES[1].definition.edges }, { mode: 'append' }).workflows.length, staleReplace: (() => { const resolved = resolveWorkflowTemplate(BUILTIN_WORKFLOW_TEMPLATES[2], 'id'); const ws = { ...createEmptyWorkflowWorkspace(), activeWorkflowId: 'ghost-id', workflows: [] }; const next = applyWorkflowTemplateToWorkspace(ws, { name: resolved.name, nodes: resolved.nodes, edges: resolved.edges }, { mode: 'replace' }); const wf = next.activeWorkflowId ? getWorkflowById(next, next.activeWorkflowId) : null; return Boolean(wf && wf.nodes.length > 0); })(), autoFix: (() => { const parsed = parseWorkflowImportJson(JSON.stringify({ name: 'Broken', nodes: [{ data: { label: 'A' } }, { data: { label: 'B', kind: 'output' } }] })); return parsed?.nodes.length === 2 && parsed.edges.length === 1; })(), exportRoundTrip: (() => { const wf = createDemoWorkflowWorkspace().workflows[0]; const json = serializeWorkflowForExport(wf); const parsed = parseWorkflowImportJson(json); return parsed?.nodes.length === wf.nodes.length; })() }));";
   const output = execSync(`npx --yes tsx -e ${JSON.stringify(snippet)}`, {
     cwd: root,
     encoding: "utf8",
@@ -58,10 +58,22 @@ function testJsonRoundTrip(payload) {
   console.log("PASS: JSON export/import round-trip");
 }
 
+function testStaleActiveIdReplace(payload) {
+  assert(payload.staleReplace === true, "replace with stale activeWorkflowId should still apply");
+  console.log("PASS: stale activeWorkflowId replace fallback");
+}
+
+function testAutoFixImport(payload) {
+  assert(payload.autoFix === true, "import auto-fix for missing id/position/edges failed");
+  console.log("PASS: import auto-fix common graph issues");
+}
+
 const payload = loadModule();
 testNoDebtTemplates(payload);
 testBuiltinCatalog(payload);
 testApplyModes(payload);
 testJsonRoundTrip(payload);
+testStaleActiveIdReplace(payload);
+testAutoFixImport(payload);
 
 console.log("\nAll workflow template tests passed.");

@@ -268,6 +268,8 @@ export const COPY: Record<
     workflowTemplateExport: string;
     workflowTemplateImport: string;
     workflowTemplateImportFailed: string;
+    workflowTemplateApplyFailed: string;
+    workflowTemplateEmpty: string;
     workflowTemplateExported: string;
     workflowTemplateImported: string;
     workflowTemplateNoResults: string;
@@ -822,6 +824,8 @@ export const COPY: Record<
     workflowTemplateExport: "Ekspor JSON",
     workflowTemplateImport: "Impor JSON",
     workflowTemplateImportFailed: "File JSON workflow tidak valid.",
+    workflowTemplateApplyFailed: "Gagal menerapkan template workflow.",
+    workflowTemplateEmpty: "Template tidak memiliki node yang valid.",
     workflowTemplateExported: "Workflow diekspor",
     workflowTemplateImported: "Workflow diimpor",
     workflowTemplateNoResults: "Tidak ada template yang cocok.",
@@ -1409,6 +1413,8 @@ export const COPY: Record<
     workflowTemplateExport: "Export JSON",
     workflowTemplateImport: "Import JSON",
     workflowTemplateImportFailed: "Invalid workflow JSON file.",
+    workflowTemplateApplyFailed: "Failed to apply workflow template.",
+    workflowTemplateEmpty: "Template has no valid nodes.",
     workflowTemplateExported: "Workflow exported",
     workflowTemplateImported: "Workflow imported",
     workflowTemplateNoResults: "No matching templates.",
@@ -1988,6 +1994,8 @@ export const COPY: Record<
     workflowTemplateExport: "导出 JSON",
     workflowTemplateImport: "导入 JSON",
     workflowTemplateImportFailed: "工作流 JSON 文件无效。",
+    workflowTemplateApplyFailed: "应用工作流模板失败。",
+    workflowTemplateEmpty: "模板没有有效的节点。",
     workflowTemplateExported: "工作流已导出",
     workflowTemplateImported: "工作流已导入",
     workflowTemplateNoResults: "没有匹配的模板。",
