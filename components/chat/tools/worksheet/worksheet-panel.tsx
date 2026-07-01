@@ -34,7 +34,7 @@ import { WorksheetBrandingDialog } from "@/components/chat/worksheet-branding-di
 import { WorksheetConfirmDialog } from "@/components/chat/tools/worksheet/worksheet-confirm-dialog";
 import { WorksheetDocumentCards } from "@/components/chat/tools/worksheet/components/worksheet-document-cards";
 import { WorksheetEmptyState } from "@/components/chat/tools/worksheet/components/worksheet-empty-state";
-import { WorksheetDocumentsToolbar } from "@/components/chat/tools/worksheet/worksheet-documents-toolbar";
+import { WorksheetDocumentsToolbar } from "@/components/chat/tools/worksheet/components/worksheet-documents-toolbar";
 import { WorksheetFullView } from "@/components/chat/tools/worksheet/worksheet-full-view";
 import { WorksheetGeneratingIndicator } from "@/components/chat/tools/worksheet/worksheet-generating-indicator";
 import { WorksheetSaveTemplateDialog } from "@/components/chat/tools/worksheet/worksheet-save-template-dialog";

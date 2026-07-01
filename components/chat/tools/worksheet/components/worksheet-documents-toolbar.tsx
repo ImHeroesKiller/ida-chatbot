@@ -12,7 +12,7 @@ import type {
 } from "@/lib/worksheet-workspace";
 import { cn } from "@/lib/utils";
 
-interface WorksheetDocumentsToolbarProps {
+export interface WorksheetDocumentsToolbarProps {
   locale: Locale;
   search: string;
   filters: WorksheetDocumentListFilters;
