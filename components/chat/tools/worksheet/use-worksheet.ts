@@ -216,10 +216,13 @@ function applyWorkspaceState(
 }
 
 /**
- * Worksheet tool hook — runtime SSOT for document mutations.
+ * useWorksheet — Single Source of Truth (SSOT) untuk runtime state & mutasi dokumen.
  *
- * All mutation helpers should call `syncToPersistLayer` so `useWorksheetWorkspace`
- * (persist layer) stays aligned. `syncWorkspaceFromExternal` is for inbound snapshots only.
+ * Semua mutasi panel/stream harus melalui hook ini, lalu:
+ *   mutasi → syncToPersistLayer() → setWorksheetWorkspaceInbound → ChatSession
+ *
+ * `hydrateFromExternal` hanya untuk inbound navigasi (load chat), bukan echo dari persist.
+ * `useWorksheetWorkspace` adalah persist layer — jangan mutasi dokumen di sana.
  */
 export function useWorksheet(): WorksheetTool {
   const [quota, setQuota] = useState<ToolQuotaState>(createWorksheetQuotaState);
@@ -438,6 +441,8 @@ export function useWorksheet(): WorksheetTool {
 
       let created: WorksheetSavedDocument | null = null;
 
+      let nextWorkspace!: WorksheetWorkspaceState;
+
       setWorkspaceInternal((prev) => {
         const next = addGeneratedWorksheetDocument(
           prev,
@@ -450,6 +455,7 @@ export function useWorksheet(): WorksheetTool {
         );
         const synced = syncWorkspaceLegacyFields(next);
         workspaceRef.current = synced;
+        nextWorkspace = synced;
         const activeId = synced.activeDocumentId;
         created =
           synced.documents?.find((doc) => doc.id === activeId) ??
@@ -458,9 +464,10 @@ export function useWorksheet(): WorksheetTool {
         return synced;
       });
 
+      syncToPersistLayer(nextWorkspace);
       return created;
     },
-    [],
+    [syncToPersistLayer],
   );
 
   const beginRegenerate = useCallback(() => {
@@ -497,9 +504,9 @@ export function useWorksheet(): WorksheetTool {
 
       setIsGeneratingState(false);
       clearErrorDetail();
-      return nextWorkspace;
+      return syncToPersistLayer(nextWorkspace);
     },
-    [clearErrorDetail],
+    [clearErrorDetail, syncToPersistLayer],
   );
 
   const regenerateDocumentFromStream = createDocumentFromStream;
@@ -521,9 +528,9 @@ export function useWorksheet(): WorksheetTool {
       setIsGeneratingState(false);
       setErrorDetail(message ?? null);
 
-      return nextWorkspace;
+      return syncToPersistLayer(nextWorkspace);
     },
-    [setErrorDetail],
+    [setErrorDetail, syncToPersistLayer],
   );
 
   const updateDocument = useCallback(

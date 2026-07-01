@@ -99,7 +99,7 @@ interface WorksheetPanelProps {
   locale: Locale;
   workspace: WorksheetWorkspaceState;
   onWorkspaceChange: (workspace: WorksheetWorkspaceState) => void;
-  /** Optional tool hook sync during Phase 3 workspace migration. */
+  /** Runtime SSOT mutations via useWorksheet (Phase 4 Final). */
   worksheetTool?: Pick<
     WorksheetTool,
     | "setLocale"
@@ -164,19 +164,31 @@ export function WorksheetPanel({
   const documentCount = workspace.documents?.length ?? 0;
 
   /**
-   * WORKSHEET_COMMIT_WORKSPACE_FALLBACKS (Phase 4 Step 4):
-   * Primary: `worksheetTool.*` (useWorksheet) → syncToPersistLayer → persist layer.
-   * Fallback: `commitWorkspace` → onWorksheetChange → setWorksheetWorkspaceInbound
-   * (inbound-only, no hydrateFromExternal echo). Used when a tool method is unavailable:
-   * - markExported, handleTitleChange, handleContentSave, handleContentChange
-   * - handleRestoreVersion, performSelectDocument, handleBackToDocuments
-   * - executeDeleteDocument, WorksheetBrandingDialog.onSelectionChange
+   * WORKSHEET_COMMIT_WORKSPACE_FALLBACKS (Phase 4 Final):
+   * Primary: `worksheetTool.*` (useWorksheet SSOT) → syncToPersistLayer → persist layer.
+   * Fallback: `commitWorkspace` → onWorkspaceChange → setWorksheetWorkspaceInbound
+   * (inbound-only). Hanya dipakai bila `worksheetTool` tidak tersedia.
    */
   const commitWorkspace = useCallback(
     (next: WorksheetWorkspaceState) => {
       onWorkspaceChange(syncWorkspaceLegacyFields(next));
     },
     [onWorkspaceChange],
+  );
+
+  /** Primary tool-hook mutation, atau fallback commitWorkspace bila tool tidak ada. */
+  const mutateViaToolOrCommit = useCallback(
+    (
+      toolMutation: (tool: NonNullable<typeof worksheetTool>) => void,
+      fallbackWorkspace: WorksheetWorkspaceState,
+    ) => {
+      if (worksheetTool) {
+        toolMutation(worksheetTool);
+        return;
+      }
+      commitWorkspace(fallbackWorkspace);
+    },
+    [commitWorkspace, worksheetTool],
   );
 
   useEffect(() => {
@@ -324,16 +336,12 @@ export function WorksheetPanel({
       const documentId = workspace.activeDocumentId;
       if (!documentId) return;
 
-      if (worksheetTool?.markDocumentAsExported) {
-        worksheetTool.markDocumentAsExported(documentId, format);
-        return;
-      }
-
-      commitWorkspace(
+      mutateViaToolOrCommit(
+        (tool) => tool.markDocumentAsExported(documentId, format),
         markWorksheetDocumentExported(workspace, documentId, format),
       );
     },
-    [commitWorkspace, worksheetTool, workspace],
+    [mutateViaToolOrCommit, workspace],
   );
 
   const handleDownloadDocx = useCallback(async () => {
@@ -461,16 +469,12 @@ export function WorksheetPanel({
       const documentId = workspace.activeDocumentId;
       if (!documentId) return;
 
-      if (worksheetTool?.updateDocument) {
-        worksheetTool.updateDocument(documentId, { title: nextTitle });
-        return;
-      }
-
-      commitWorkspace(
+      mutateViaToolOrCommit(
+        (tool) => tool.updateDocument(documentId, { title: nextTitle }),
         updateWorksheetDocument(workspace, documentId, { title: nextTitle }),
       );
     },
-    [commitWorkspace, worksheetTool, workspace],
+    [mutateViaToolOrCommit, workspace],
   );
 
   const handleContentSave = useCallback(
@@ -486,16 +490,13 @@ export function WorksheetPanel({
         return;
       }
 
-      if (worksheetTool?.recordDocumentVersion) {
-        worksheetTool.recordDocumentVersion(documentId, {
-          title,
-          content: nextContent,
-          source: "manual_save",
-        });
-        return;
-      }
-
-      commitWorkspace(
+      mutateViaToolOrCommit(
+        (tool) =>
+          tool.recordDocumentVersion(documentId, {
+            title,
+            content: nextContent,
+            source: "manual_save",
+          }),
         recordWorksheetDocumentVersion(workspace, documentId, {
           title,
           content: nextContent,
@@ -503,7 +504,7 @@ export function WorksheetPanel({
         }),
       );
     },
-    [commitWorkspace, title, worksheetTool, workspace],
+    [mutateViaToolOrCommit, title, worksheetTool, workspace],
   );
 
   const handleContentChange = useCallback(
@@ -511,22 +512,19 @@ export function WorksheetPanel({
       const documentId = workspace.activeDocumentId;
       if (!documentId) return;
 
-      if (worksheetTool?.updateDocument) {
-        worksheetTool.updateDocument(documentId, {
-          content: nextContent,
-          status: "edited",
-        });
-        return;
-      }
-
-      commitWorkspace(
+      mutateViaToolOrCommit(
+        (tool) =>
+          tool.updateDocument(documentId, {
+            content: nextContent,
+            status: "edited",
+          }),
         updateWorksheetDocument(workspace, documentId, {
           content: nextContent,
           status: "edited",
         }),
       );
     },
-    [commitWorkspace, worksheetTool, workspace],
+    [mutateViaToolOrCommit, workspace],
   );
 
   const handleRestoreVersion = useCallback(
@@ -537,17 +535,13 @@ export function WorksheetPanel({
       const version = findWorksheetVersion(versions, versionId);
       if (!version) return;
 
-      if (worksheetTool?.recordDocumentVersion) {
-        worksheetTool.recordDocumentVersion(documentId, {
-          title: version.title,
-          content: version.content,
-          source: "restored",
-        });
-        toast.success(copy.worksheetHistoryRestoredToast);
-        return;
-      }
-
-      commitWorkspace(
+      mutateViaToolOrCommit(
+        (tool) =>
+          tool.recordDocumentVersion(documentId, {
+            title: version.title,
+            content: version.content,
+            source: "restored",
+          }),
         recordWorksheetDocumentVersion(workspace, documentId, {
           title: version.title,
           content: version.content,
@@ -557,10 +551,9 @@ export function WorksheetPanel({
       toast.success(copy.worksheetHistoryRestoredToast);
     },
     [
-      commitWorkspace,
       copy.worksheetHistoryRestoredToast,
+      mutateViaToolOrCommit,
       versions,
-      worksheetTool,
       workspace,
     ],
   );
@@ -572,13 +565,12 @@ export function WorksheetPanel({
         setDraftContent(nextDocument?.content ?? "");
         setIsEditing(false);
       }
-      if (worksheetTool?.selectDocument) {
-        worksheetTool.selectDocument(documentId);
-      } else {
-        commitWorkspace(setActiveWorksheetDocument(workspace, documentId));
-      }
+      mutateViaToolOrCommit(
+        (tool) => tool.selectDocument(documentId),
+        setActiveWorksheetDocument(workspace, documentId),
+      );
     },
-    [allDocuments, commitWorkspace, isEditing, worksheetTool, workspace],
+    [allDocuments, isEditing, mutateViaToolOrCommit, workspace],
   );
 
   const handleSelectDocument = useCallback(
@@ -608,17 +600,16 @@ export function WorksheetPanel({
   );
 
   const handleBackToDocuments = useCallback(() => {
-    if (worksheetTool?.setActiveDocumentId) {
-      worksheetTool.setActiveDocumentId(null);
-    } else {
-      commitWorkspace(setActiveWorksheetDocument(workspace, null));
-    }
+    mutateViaToolOrCommit(
+      (tool) => tool.setActiveDocumentId(null),
+      setActiveWorksheetDocument(workspace, null),
+    );
     if (isEditing) {
       setDraftContent(content);
       setIsEditing(false);
     }
     setIsFullViewOpen(false);
-  }, [commitWorkspace, content, isEditing, worksheetTool, workspace]);
+  }, [content, isEditing, mutateViaToolOrCommit, workspace]);
 
   const handleSaveEdit = useCallback(() => {
     const trimmed = draftContent.trim();
@@ -663,8 +654,8 @@ export function WorksheetPanel({
       if (worksheetTool?.applyTemplate) {
         worksheetTool.applyTemplate(template);
         toast.success(copy.worksheetTemplateApplied);
-      } else {
-        onApplyTemplate?.(template);
+      } else if (onApplyTemplate) {
+        onApplyTemplate(template);
       }
 
       setTemplateDialogOpen(false);
@@ -695,23 +686,19 @@ export function WorksheetPanel({
   const executeDeleteDocument = useCallback(
     (documentId: string, documentTitle: string) => {
       const next = removeWorksheetDocument(workspace, documentId, locale);
+      const isLastDocument = !(next.documents?.length);
 
-      if (!(next.documents?.length)) {
-        onClear?.();
-        setConfirmDialog(null);
-        toast.success(
-          copy.worksheetDeleteDocumentSuccessNamed.replace(
-            "{title}",
-            documentTitle,
-          ),
-        );
-        return;
-      }
-
-      if (worksheetTool?.deleteDocument) {
-        worksheetTool.deleteDocument(documentId);
+      if (isLastDocument) {
+        if (worksheetTool?.clearAllDocuments) {
+          worksheetTool.clearAllDocuments();
+        } else {
+          onClear?.();
+        }
       } else {
-        commitWorkspace(next);
+        mutateViaToolOrCommit(
+          (tool) => tool.deleteDocument(documentId),
+          next,
+        );
       }
 
       if (workspace.activeDocumentId === documentId) {
@@ -729,9 +716,9 @@ export function WorksheetPanel({
       );
     },
     [
-      commitWorkspace,
       copy.worksheetDeleteDocumentSuccessNamed,
       locale,
+      mutateViaToolOrCommit,
       onClear,
       worksheetTool,
       workspace,
@@ -1402,12 +1389,10 @@ export function WorksheetPanel({
         activeTemplateName={activeTemplate?.name ?? null}
         previewBranding={resolvedBranding}
         onSelectionChange={(selection) => {
-          if (worksheetTool?.updateDocumentLetterhead) {
-            worksheetTool.updateDocumentLetterhead(selection);
-            return;
-          }
-
-          commitWorkspace(setWorksheetLetterheadSelection(workspace, selection));
+          mutateViaToolOrCommit(
+            (tool) => tool.updateDocumentLetterhead(selection),
+            setWorksheetLetterheadSelection(workspace, selection),
+          );
         }}
         onClose={() => setBrandingDialogOpen(false)}
       />

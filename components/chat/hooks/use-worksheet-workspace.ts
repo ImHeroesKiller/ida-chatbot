@@ -31,24 +31,19 @@ import {
 } from "@/lib/worksheet-templates";
 
 /**
- * useWorksheetWorkspace
+ * useWorksheetWorkspace — Pure Persist Layer (Fase 4 Final)
  *
- * Layer ini bertanggung jawab untuk:
- * - Persistensi state Worksheet ke ChatSession
- * - Sinkronisasi inbound dari Tool Hook (`useWorksheet`)
+ * Tanggung jawab:
+ * - Persistensi mirror Worksheet ke ChatSession
+ * - Inbound sync dari Tool Hook via `setWorksheetWorkspaceInbound`
  *
- * Layer ini TIDAK seharusnya menjadi pusat mutasi.
- * Mutasi dokumen utama sebaiknya dilakukan melalui use-worksheet.ts (Tool Hook).
+ * BUKAN pusat mutasi. Semua mutasi dokumen → `useWorksheet` (SSOT).
  *
- * Alur sinkronisasi satu arah (runtime):
- *   useWorksheet (mutasi) → syncToPersistLayer() → setWorksheetWorkspaceInbound
- *   → worksheetWorkspace state → useEffect → persistCurrentChat({ worksheet })
+ * Alur satu arah:
+ *   Panel → useWorksheet → syncToPersistLayer → setWorksheetWorkspaceInbound → ChatSession
  *
- * Alur inbound dari chat (navigasi, bukan mutasi panel):
+ * Navigasi chat (bukan mutasi panel):
  *   hydrateFromChat → persist state + syncWorkspaceToTool (hydrateFromExternal)
- *
- * Runtime SSOT untuk workspace dokumen: `tools.worksheet.workspace` (useWorksheet).
- * State `worksheetWorkspace` di hook ini adalah mirror persist untuk ChatSession.
  */
 interface UseWorksheetWorkspaceOptions {
   locale: Locale;
