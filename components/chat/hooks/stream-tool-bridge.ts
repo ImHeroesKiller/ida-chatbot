@@ -332,7 +332,6 @@ export function createStreamToolBridge(
     }
 
     if (ctx.isActiveChat()) {
-      deps.tools.workflow.syncToPersistLayer(verifiedWorkspace, { force: true });
       deps.tools.workflow.clearErrorDetail();
       deps.tools.workflow.setEnabled(true);
       deps.tools.openPanel(deps.tools.workflow.panelId);

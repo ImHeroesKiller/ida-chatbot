@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import ReactFlow, {
   Background,
   BackgroundVariant,
@@ -101,27 +101,43 @@ const nodeTypes = {
   workflow: WorkflowFlowNode,
 };
 
-function FitViewOnWorkflowChange({
-  fitViewKey,
+const FIT_VIEW_OPTIONS = { padding: 0.2, duration: 200 } as const;
+
+const FitViewOnWorkflowChange = memo(function FitViewOnWorkflowChange({
+  fitViewToken,
+  workflowId,
   nodeCount,
 }: {
-  fitViewKey: string;
+  fitViewToken: number;
+  workflowId?: string;
   nodeCount: number;
 }) {
   const { fitView } = useReactFlow();
+  const fitViewRef = useRef(fitView);
+  const lastFittedTokenRef = useRef(-1);
+
+  fitViewRef.current = fitView;
+
+  const runFitView = useCallback(() => {
+    if (!workflowId || nodeCount === 0) return;
+    try {
+      void fitViewRef.current(FIT_VIEW_OPTIONS);
+    } catch {
+      // Provider may be tearing down during remount.
+    }
+  }, [nodeCount, workflowId]);
 
   useEffect(() => {
-    if (nodeCount === 0) return;
+    if (!workflowId || nodeCount === 0 || fitViewToken <= 0) return;
+    if (lastFittedTokenRef.current === fitViewToken) return;
 
-    const timer = window.setTimeout(() => {
-      void fitView({ padding: 0.2, duration: 220 });
-    }, 60);
-
+    lastFittedTokenRef.current = fitViewToken;
+    const timer = window.setTimeout(runFitView, 120);
     return () => window.clearTimeout(timer);
-  }, [fitView, fitViewKey, nodeCount]);
+  }, [fitViewToken, nodeCount, runFitView, workflowId]);
 
   return null;
-}
+});
 
 export interface WorkflowCanvasProps {
   nodes: Node<WorkflowNodeData>[];
@@ -131,11 +147,12 @@ export interface WorkflowCanvasProps {
   onEdgesChange: (edges: Edge[]) => void;
   onSelectNode: (nodeId: string | null) => void;
   className?: string;
-  /** Changes when workflow is imported — triggers fitView + remount via panel key. */
-  fitViewKey?: string;
+  workflowId?: string;
+  /** Increments only when a new workflow is imported — triggers a single fitView. */
+  fitViewToken?: number;
 }
 
-function WorkflowCanvasInner({
+const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
   nodes,
   edges,
   selectedNodeId,
@@ -143,7 +160,8 @@ function WorkflowCanvasInner({
   onEdgesChange,
   onSelectNode,
   className,
-  fitViewKey = "default",
+  workflowId,
+  fitViewToken = 0,
 }: WorkflowCanvasProps) {
   const displayNodes = useMemo(
     () =>
@@ -203,15 +221,14 @@ function WorkflowCanvasInner({
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
         onSelectionChange={handleSelectionChange}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
         minZoom={0.35}
         maxZoom={1.5}
         proOptions={{ hideAttribution: true }}
         className="rounded-xl border bg-muted/20 dark:bg-muted/10"
       >
         <FitViewOnWorkflowChange
-          fitViewKey={fitViewKey}
+          fitViewToken={fitViewToken}
+          workflowId={workflowId}
           nodeCount={displayNodes.length}
         />
         <Background
@@ -236,12 +253,14 @@ function WorkflowCanvasInner({
       </ReactFlow>
     </div>
   );
-}
+});
 
-export function WorkflowCanvas(props: WorkflowCanvasProps) {
+export const WorkflowCanvas = memo(function WorkflowCanvas(
+  props: WorkflowCanvasProps,
+) {
   return (
     <ReactFlowProvider>
       <WorkflowCanvasInner {...props} />
     </ReactFlowProvider>
   );
-}
+});

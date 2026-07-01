@@ -169,6 +169,7 @@ export function useWorkflow(): WorkflowTool {
   const [lastGeneratedWorkflowSource, setLastGeneratedWorkflowSourceState] =
     useState<string | null>(null);
   const [canvasRevision, setCanvasRevision] = useState(0);
+  const canvasFitWorkflowIdRef = useRef<string | null>(null);
 
   const resetPersistFingerprint = useCallback(() => {
     lastPersistedFingerprintRef.current = null;
@@ -248,7 +249,9 @@ export function useWorkflow(): WorkflowTool {
     [getWorkspace],
   );
 
-  const bumpCanvasRevision = useCallback(() => {
+  const bumpCanvasRevisionForWorkflow = useCallback((workflowId: string) => {
+    if (canvasFitWorkflowIdRef.current === workflowId) return;
+    canvasFitWorkflowIdRef.current = workflowId;
     setCanvasRevision((revision) => revision + 1);
   }, []);
 
@@ -280,6 +283,7 @@ export function useWorkflow(): WorkflowTool {
     clearErrorDetail();
     resetPersistFingerprint();
     setLastGeneratedWorkflowSource(null);
+    canvasFitWorkflowIdRef.current = null;
     setCanvasRevision(0);
   }, [clearErrorDetail, resetPersistFingerprint, setLastGeneratedWorkflowSource]);
 
@@ -483,11 +487,9 @@ export function useWorkflow(): WorkflowTool {
         return null;
       }
 
-      workspaceRef.current = normalized;
-      setWorkspaceInternal(normalized);
       setIsExecuting(false);
       clearErrorDetail();
-      bumpCanvasRevision();
+      bumpCanvasRevisionForWorkflow(created.id);
       syncToPersistLayer(normalized, { force: true });
 
       console.info("[workflow:import] success", {
@@ -500,7 +502,7 @@ export function useWorkflow(): WorkflowTool {
 
       return created;
     },
-    [bumpCanvasRevision, clearErrorDetail, syncToPersistLayer],
+    [bumpCanvasRevisionForWorkflow, clearErrorDetail, syncToPersistLayer],
   );
 
   const applyStreamError = useCallback(

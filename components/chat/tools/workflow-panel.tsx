@@ -108,11 +108,7 @@ export function WorkflowPanel({
 
   useEffect(() => {
     setSelectedNodeId(null);
-  }, [activeWorkflow?.id, canvasRevision]);
-
-  const canvasFitKey = activeWorkflow
-    ? `${activeWorkflow.id}:${canvasRevision}:${activeWorkflow.nodes.length}`
-    : `empty:${canvasRevision}`;
+  }, [activeWorkflow?.id]);
 
   const canImportLatest = Boolean(lastGeneratedWorkflowSource?.trim());
 
@@ -386,14 +382,15 @@ export function WorkflowPanel({
         <div className="min-h-0 flex-1 p-3">
           {activeWorkflow ? (
             <WorkflowCanvas
-              key={canvasFitKey}
+              key={activeWorkflow.id}
+              workflowId={activeWorkflow.id}
+              fitViewToken={canvasRevision}
               nodes={activeWorkflow.nodes}
               edges={activeWorkflow.edges}
               selectedNodeId={selectedNodeId}
               onNodesChange={handleNodesChange}
               onEdgesChange={handleEdgesChange}
               onSelectNode={setSelectedNodeId}
-              fitViewKey={canvasFitKey}
               className="h-full"
             />
           ) : (
