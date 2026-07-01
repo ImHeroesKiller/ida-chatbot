@@ -8,6 +8,7 @@ import {
   getClientIp,
   IdaRateLimitError,
 } from "@/lib/rate-limit";
+import { logWorkflowExecutionRequest } from "@/lib/admin/workflow-analytics";
 import { executeChatWorkflowStream } from "@/lib/workflow-executor";
 import { workflowDefinitionSchema } from "@/lib/workflow-api-schema";
 import {
@@ -73,6 +74,8 @@ export async function POST(request: Request) {
   });
 
   const stream = createWorkflowExecuteSseStream(async (send) => {
+    const requestStartedAt = Date.now();
+
     for await (const event of executeChatWorkflowStream({
       workflow,
       locale: parsed.data.locale,
@@ -128,11 +131,33 @@ export async function POST(request: Request) {
           status: event.result.status,
           logCount: event.result.logs?.length ?? 0,
         });
+        void logWorkflowExecutionRequest({
+          route: "workflow/execute",
+          sessionId: parsed.data.sessionId,
+          status:
+            event.result.status === "completed" ||
+            event.result.status === "awaiting_approval" ||
+            event.result.status === "paused"
+              ? "success"
+              : "error",
+          errorMessage:
+            event.result.status === "failed"
+              ? (event.result.message ?? "execute_failed")
+              : null,
+          durationMs: Date.now() - requestStartedAt,
+        });
         send("done", {
           result: event.result,
           checkpoint: event.checkpoint ?? null,
         });
       } else if (event.type === "error") {
+        void logWorkflowExecutionRequest({
+          route: "workflow/execute",
+          sessionId: parsed.data.sessionId,
+          status: "error",
+          errorMessage: event.message,
+          durationMs: Date.now() - requestStartedAt,
+        });
         send("error", {
           error: event.message,
           result: event.result,

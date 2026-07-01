@@ -135,6 +135,73 @@ export interface PlatformStats {
   activeUsers: ActiveUserRow[];
 }
 
+export interface WorkflowAnalyticsOverview {
+  totalWorkflows: number;
+  totalExecutions: number;
+  successRate: number;
+  avgExecutionTimeMs: number;
+  activeUsers: number;
+  activeUsersWeek: number;
+  workflowEnabledSessions: number;
+}
+
+export interface WorkflowPerWorkflowStat {
+  workflowName: string;
+  definitionCount: number;
+  executionCount: number;
+  successCount: number;
+  failedCount: number;
+  avgDurationMs: number;
+  lastExecutedAt: string | null;
+}
+
+export interface WorkflowAgentPerformanceStat {
+  agentId: string;
+  label: string;
+  invocations: number;
+  completed: number;
+  failed: number;
+  successRate: number;
+}
+
+export interface WorkflowExecutionLogSummary {
+  id: string;
+  sessionId: string;
+  userId: string | null;
+  workflowName: string;
+  status: string;
+  startedAt: string;
+  durationMs: number | null;
+  nodeCount: number;
+  agentIds: string[];
+  message: string | null;
+}
+
+export interface WorkflowAnalyticsDailyPoint {
+  date: string;
+  label: string;
+  executions: number;
+  completed: number;
+  failed: number;
+}
+
+export interface WorkflowRequestLogSummary {
+  total: number;
+  success: number;
+  errors: number;
+  last7Days: number;
+}
+
+export interface WorkflowAnalytics {
+  overview: WorkflowAnalyticsOverview;
+  perWorkflow: WorkflowPerWorkflowStat[];
+  agentPerformance: WorkflowAgentPerformanceStat[];
+  executionLogs: WorkflowExecutionLogSummary[];
+  dailyExecutions: WorkflowAnalyticsDailyPoint[];
+  workflowRequestLogs: WorkflowRequestLogSummary;
+  generatedAt: string;
+}
+
 export interface AdminStats {
   todayTotal: number;
   last7DaysTotal: number;

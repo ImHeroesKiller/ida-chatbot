@@ -28,7 +28,8 @@
     "test:workflow-execute-stream": "node scripts/test-workflow-execute-stream.mjs",
     "test:workflow-actions": "node scripts/test-workflow-actions.mjs",
     "test:workflow-templates": "node scripts/test-workflow-templates.mjs",
-    "test:multi-agent": "node scripts/test-multi-agent.mjs"
+    "test:multi-agent": "node scripts/test-multi-agent.mjs",
+    "test:workflow-analytics": "node scripts/test-workflow-analytics.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -70,6 +71,7 @@
     "react-hot-toast": "^2.6.0",
     "react-markdown": "^10.1.0",
     "reactflow": "^11.11.4",
+    "recharts": "^3.9.1",
     "remark-gfm": "^4.0.1",
     "shadcn": "^4.12.0",
     "tailwind-merge": "^3.6.0",

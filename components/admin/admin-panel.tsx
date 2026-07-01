@@ -4,12 +4,14 @@ import {
   Bot,
   Database,
   LayoutDashboard,
+  LineChart,
   LogOut,
   Palette,
   ScrollText,
   Settings,
   Sparkles,
 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -21,6 +23,7 @@ import { LogsTab } from "@/components/admin/logs-tab";
 import { AgentModelsTab } from "@/components/admin/agent-models-tab";
 import { ModelsTab } from "@/components/admin/models-tab";
 import { SettingsTab } from "@/components/admin/settings-tab";
+import { WorkflowAnalyticsDashboard } from "@/components/admin/workflow-analytics-dashboard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -67,7 +70,7 @@ export function AdminPanel({
             <div>
               <h1 className="text-base font-semibold">IDA Admin</h1>
               <p className="text-xs text-muted-foreground">
-                Dashboard, models, knowledge, appearance, settings & logs
+                Dashboard, models, knowledge, analytics, settings & logs
               </p>
             </div>
           </div>
@@ -109,6 +112,10 @@ export function AdminPanel({
               <ScrollText className="size-4" />
               Logs
             </TabsTrigger>
+            <TabsTrigger value="analytics">
+              <LineChart className="size-4" />
+              Analytics
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="mt-6">
@@ -131,6 +138,17 @@ export function AdminPanel({
           </TabsContent>
           <TabsContent value="logs" className="mt-6">
             <LogsTab />
+          </TabsContent>
+          <TabsContent value="analytics" className="mt-6">
+            <div className="mb-4 flex justify-end">
+              <Link
+                href="/admin/analytics"
+                className="inline-flex h-8 items-center rounded-lg border px-3 text-sm hover:bg-muted"
+              >
+                Open full analytics page
+              </Link>
+            </div>
+            <WorkflowAnalyticsDashboard showBackLink={false} />
           </TabsContent>
         </Tabs>
       </main>
