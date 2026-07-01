@@ -346,7 +346,6 @@ export function ChatSidebar({
           <SidebarSettings
             locale={locale}
             expanded={expanded}
-            onExpand={onExpand}
             onClearAllChats={() => setClearAllOpen(true)}
           />
         </div>

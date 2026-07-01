@@ -24,7 +24,7 @@ export interface WorksheetDocumentsToolbarProps {
 }
 
 const selectClassName =
-  "h-8 min-w-0 flex-1 rounded-lg border border-input bg-background px-2.5 text-[11px] text-foreground sm:flex-none sm:min-w-[7.5rem]";
+  "h-8 min-w-0 flex-1 rounded-lg border border-foreground/25 bg-background px-2.5 text-[11px] text-foreground transition-colors outline-none focus-visible:border-foreground/50 focus-visible:ring-3 focus-visible:ring-foreground/10 sm:flex-none sm:min-w-[7.5rem]";
 
 export function WorksheetDocumentsToolbar({
   locale,
@@ -64,7 +64,7 @@ export function WorksheetDocumentsToolbar({
     filters.time !== "all";
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-2", className)}>
       <div className="relative">
         <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
         <Input

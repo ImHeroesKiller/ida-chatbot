@@ -41,11 +41,11 @@ export function WorksheetEmptyState({
     return (
       <div
         className={cn(
-          "flex min-h-[11rem] flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/15 px-4 py-8 text-center sm:min-h-[12rem] sm:px-6",
+          "flex min-h-[9rem] flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-muted/15 px-3 py-5 text-center sm:min-h-[10rem] sm:px-4",
           className,
         )}
       >
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-background shadow-sm">
+        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background shadow-sm">
           <SearchX className="h-5 w-5 text-muted-foreground" aria-hidden />
         </div>
         <p className="max-w-sm text-sm font-semibold tracking-tight text-foreground">
@@ -59,7 +59,7 @@ export function WorksheetEmptyState({
             type="button"
             variant="outline"
             size="sm"
-            className="mt-5 h-9 gap-1.5 text-xs"
+            className="mt-4 h-8 gap-1.5 text-xs"
             onClick={onResetFilters}
           >
             <RotateCcw className="h-3.5 w-3.5" aria-hidden />
@@ -73,14 +73,14 @@ export function WorksheetEmptyState({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm",
+        "overflow-hidden rounded-xl border border-border/80 bg-card shadow-sm",
         className,
       )}
     >
-      <div className="border-b border-border/60 bg-muted/20 px-4 py-6 text-center sm:px-6 sm:py-7">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-border/70 bg-background shadow-sm">
+      <div className="border-b border-border/60 bg-muted/20 px-3 py-4 text-center sm:px-4 sm:py-5">
+        <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-border/70 bg-background shadow-sm">
           <FileText
-            className="h-7 w-7 text-muted-foreground"
+            className="h-6 w-6 text-muted-foreground"
             aria-hidden
           />
         </div>
@@ -92,12 +92,12 @@ export function WorksheetEmptyState({
         </p>
       </div>
 
-      <div className="space-y-4 px-4 py-5 sm:px-6">
+      <div className="space-y-3 px-3 py-3.5 sm:px-4">
         <div>
           <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
             {copy.worksheetEmptyStepsTitle}
           </p>
-          <ol className="mt-3 space-y-3">
+          <ol className="mt-2 space-y-2">
             {steps.map((step, index) => (
               <li
                 key={step}
@@ -118,7 +118,7 @@ export function WorksheetEmptyState({
               type="button"
               variant="default"
               size="sm"
-              className="h-10 w-full gap-1.5 text-xs sm:w-auto"
+              className="h-9 w-full gap-1.5 text-xs sm:w-auto"
               onClick={onCreateNew}
             >
               <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden />
@@ -130,7 +130,7 @@ export function WorksheetEmptyState({
               type="button"
               variant="outline"
               size="sm"
-              className="h-10 w-full gap-1.5 text-xs sm:w-auto"
+              className="h-9 w-full gap-1.5 text-xs sm:w-auto"
               onClick={onUseTemplate}
             >
               <LayoutTemplate className="h-3.5 w-3.5" aria-hidden />
@@ -139,7 +139,7 @@ export function WorksheetEmptyState({
           ) : null}
         </div>
 
-        <p className="rounded-xl border border-dashed border-border/70 bg-muted/15 px-3.5 py-2.5 text-[11px] leading-relaxed text-muted-foreground sm:text-xs">
+        <p className="rounded-lg border border-dashed border-border/70 bg-muted/15 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground sm:text-xs">
           {copy.worksheetEmptyEditHint}
         </p>
       </div>

@@ -155,7 +155,7 @@ const WorksheetDocumentCard = memo(function WorksheetDocumentCard({
     >
       <div
         className={cn(
-          "group flex items-stretch overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-200",
+          "group flex items-stretch overflow-hidden rounded-xl border bg-card shadow-sm transition-all duration-200",
           "hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md",
           isActive && "border-primary/35 ring-1 ring-primary/15",
         )}
@@ -163,14 +163,14 @@ const WorksheetDocumentCard = memo(function WorksheetDocumentCard({
         <button
           type="button"
           onClick={handleSelect}
-          className="min-w-0 flex-1 p-3.5 text-left transition-colors group-hover:bg-primary/[0.03] sm:p-4"
+          className="min-w-0 flex-1 p-2.5 text-left transition-colors group-hover:bg-primary/[0.03] sm:p-3"
         >
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border bg-gradient-to-br from-primary/10 to-primary/5">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border bg-gradient-to-br from-primary/10 to-primary/5">
               <FileText className="h-4 w-4 text-primary" />
             </div>
 
-            <div className="min-w-0 flex-1 space-y-2">
+            <div className="min-w-0 flex-1 space-y-1.5">
               <div className="flex items-start justify-between gap-2">
                 <p className="line-clamp-2 text-sm leading-snug font-semibold">
                   {document.title}
@@ -178,7 +178,7 @@ const WorksheetDocumentCard = memo(function WorksheetDocumentCard({
                 <StatusBadge document={document} locale={locale} />
               </div>
 
-              <p className="line-clamp-2 rounded-lg border border-dashed bg-muted/20 px-2.5 py-1.5 text-[11px] leading-relaxed text-muted-foreground">
+              <p className="line-clamp-2 rounded-md border border-dashed bg-muted/20 px-2 py-1 text-[11px] leading-relaxed text-muted-foreground">
                 {summary}
               </p>
 
@@ -214,7 +214,7 @@ const WorksheetDocumentCard = memo(function WorksheetDocumentCard({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="my-3 mr-2 h-8 w-8 shrink-0 self-start text-muted-foreground opacity-80 transition-opacity hover:text-destructive group-hover:opacity-100 sm:my-4"
+            className="my-2 mr-1.5 h-7 w-7 shrink-0 self-start text-muted-foreground opacity-80 transition-opacity hover:text-destructive group-hover:opacity-100 sm:my-2.5"
             aria-label={copy.worksheetDeleteDocument}
             title={copy.worksheetDeleteDocument}
             onClick={handleDelete}
@@ -275,7 +275,7 @@ export const WorksheetDocumentCards = memo(function WorksheetDocumentCards({
     documents.length >= WORKSHEET_CARDS_VIRTUALIZATION_THRESHOLD;
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-2", className)}>
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-medium text-muted-foreground">
           {copy.worksheetDocumentsTitle}
@@ -287,7 +287,7 @@ export const WorksheetDocumentCards = memo(function WorksheetDocumentCards({
       </div>
 
       <ul
-        className="space-y-2.5"
+        className="space-y-2"
         data-virtualization-ready={useVirtualizationHint ? "true" : undefined}
       >
         {isGenerating ? (

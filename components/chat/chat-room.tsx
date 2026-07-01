@@ -415,10 +415,15 @@ function ChatRoomContent() {
 
           <div
             ref={scrollContainerRef}
-            className="relative min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2.5 pt-3 pb-2 sm:px-4 sm:py-3 lg:px-5 lg:py-3"
+            className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain px-2.5 pt-3 pb-2 sm:px-4 sm:py-3 lg:px-5 lg:py-3"
           >
-              <div className="ida-message-width mx-auto flex w-full flex-col gap-[calc(1.125rem*var(--ida-gap-scale))]">
-                {!hasUserMessages && <ChatEmptyState locale={locale} />}
+              <div
+                className={cn(
+                  "ida-message-width mx-auto flex w-full flex-col gap-[calc(1.125rem*var(--ida-gap-scale))]",
+                  !hasUserMessages && "min-h-full flex-1 justify-center py-8 sm:py-10",
+                )}
+              >
+                {!hasUserMessages ? <ChatEmptyState locale={locale} /> : null}
 
                 {visibleMessages.map((message) => {
                   const isStreaming = message.id === chatSend.streamingMessageId;

@@ -921,7 +921,7 @@ export function WorksheetPanel({
 
     if (isEditing) {
       return (
-        <div className="mt-3 flex items-center justify-between gap-2 border-t border-border/60 pt-3">
+        <div className="mt-2 flex items-center justify-between gap-2 border-t border-border/60 pt-2">
           {hasUnsavedChanges ? (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-2.5 py-1 text-[10px] font-medium text-amber-700 dark:text-amber-300">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
@@ -1095,7 +1095,7 @@ export function WorksheetPanel({
       <div
         className={cn(
           "flex shrink-0 items-center gap-2 border-b",
-          embedded ? "px-4 py-3" : "px-3 py-2.5",
+          embedded ? "px-3 py-2.5" : "px-2.5 py-2",
         )}
       >
         {showEditor ? (
@@ -1202,7 +1202,7 @@ export function WorksheetPanel({
       </div>
 
       {errorMessage && !isGenerating ? (
-        <div className="shrink-0 border-b bg-destructive/5 px-3 py-2.5">
+        <div className="shrink-0 border-b bg-destructive/5 px-2.5 py-2">
           <div className="flex gap-2">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
             <div className="min-w-0 flex-1 space-y-2">
@@ -1236,7 +1236,7 @@ export function WorksheetPanel({
         <div
           className={cn(
             "shrink-0 space-y-2 border-b",
-            embedded ? "px-4 py-3.5" : "px-3 py-3",
+            embedded ? "px-3 py-2.5" : "px-2.5 py-2",
           )}
         >
           <label className="text-[11px] font-medium text-muted-foreground">
@@ -1256,8 +1256,8 @@ export function WorksheetPanel({
         <div
           className={cn(
             embedded
-              ? "p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
-              : "p-3 pb-4",
+              ? "p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
+              : "p-2 pb-3",
           )}
         >
           {!showEditor ? (
@@ -1271,7 +1271,7 @@ export function WorksheetPanel({
                   totalCount={documentCount}
                   onSearchChange={setDocumentSearch}
                   onFiltersChange={setDocumentFilters}
-                  className="mb-4"
+                  className="mb-2.5"
                 />
               ) : null}
 
@@ -1341,7 +1341,7 @@ export function WorksheetPanel({
                     embedded={embedded}
                   />
                 ) : hasContent ? (
-                  <div className="rounded-xl border bg-card p-3 shadow-sm">
+                  <div className="rounded-lg border bg-card p-2.5 shadow-sm">
                     <MarkdownContent
                       locale={locale}
                       content={content}

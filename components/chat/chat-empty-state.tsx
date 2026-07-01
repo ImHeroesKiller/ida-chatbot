@@ -16,29 +16,25 @@ export function ChatEmptyState({ locale, className }: ChatEmptyStateProps) {
   const copy = COPY[locale];
 
   return (
-    <div className={cn("flex flex-col items-center justify-center pt-12 pb-6 sm:pt-16 sm:pb-8 lg:pt-10 lg:pb-6", className)}>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-        className="mb-8"
-      >
+    <motion.div
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.55, ease: [0.23, 1, 0.32, 1] }}
+      className={cn(
+        "flex w-full flex-col items-center justify-center px-6 text-center",
+        className,
+      )}
+    >
+      <div className="mb-7">
         <IdaLogo size="lg" className="h-20 w-20 opacity-20 grayscale" />
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
-        className="text-center px-6"
-      >
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground/80 mb-3">
-          {copy.emptyStateTitle}
-        </h1>
-        <p className="text-lg font-medium text-muted-foreground max-w-sm mx-auto leading-relaxed">
-          {copy.emptyStateSubtitle}
-        </p>
-      </motion.div>
-    </div>
+      <h1 className="mb-3 text-3xl font-extrabold tracking-tight text-foreground/80">
+        {copy.emptyStateTitle}
+      </h1>
+      <p className="mx-auto max-w-sm text-lg leading-relaxed font-medium text-muted-foreground">
+        {copy.emptyStateSubtitle}
+      </p>
+    </motion.div>
   );
 }
