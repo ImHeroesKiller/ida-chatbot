@@ -9,6 +9,7 @@ import type { useResearch } from "@/components/chat/tools/research/use-research"
 import { WebSearchPanel } from "@/components/chat/tools/web-search";
 import type { useWebSearch } from "@/components/chat/tools/web-search/use-web-search";
 import { WorksheetPanel } from "@/components/chat/tools/worksheet";
+import type { WorksheetTool } from "@/components/chat/tools/worksheet/use-worksheet";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
@@ -43,6 +44,10 @@ export interface ToolPanelHostProps {
   webSearchSearching?: boolean;
   researchSearching?: boolean;
   worksheet: WorksheetDocument;
+  worksheetTool?: Pick<
+    WorksheetTool,
+    "setLocale" | "selectDocument" | "deleteDocument"
+  >;
   worksheetErrorDetail?: string | null;
   worksheetGenerating?: boolean;
   worksheetCanRegenerate?: boolean;
@@ -71,6 +76,7 @@ export function ToolPanelHost({
   webSearchSearching = false,
   researchSearching = false,
   worksheet,
+  worksheetTool,
   worksheetErrorDetail = null,
   worksheetGenerating = false,
   worksheetCanRegenerate = false,
@@ -143,6 +149,7 @@ export function ToolPanelHost({
       <WorksheetPanel
         locale={locale}
         workspace={worksheet}
+        worksheetTool={worksheetTool}
         onWorkspaceChange={onWorksheetChange}
         errorDetail={worksheetErrorDetail}
         isGenerating={worksheetGenerating}

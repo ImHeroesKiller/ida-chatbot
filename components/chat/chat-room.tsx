@@ -197,7 +197,15 @@ function ChatRoomContent() {
     setStreamingMessageId: chatSend.setStreamingMessageId,
     setIsLoading: chatSend.setIsLoading,
     setEditingMessageId,
-    hydrateWorksheetFromChat: worksheet.hydrateFromChat,
+    hydrateWorksheetFromChat: (chat) => {
+      worksheet.hydrateFromChat(chat);
+      tools.worksheet.hydrate({
+        enabled: tools.worksheet.isEnabled,
+        panelOpen: tools.worksheet.isPanelOpen,
+        workspace: worksheet.worksheetWorkspaceRef.current,
+        locale,
+      });
+    },
     resetWorksheetForNewChat: worksheet.resetForNewChat,
     onAfterSelectChat: () => setMobileSidebarOpen(false),
     onAfterNewChat: () => setMobileSidebarOpen(false),

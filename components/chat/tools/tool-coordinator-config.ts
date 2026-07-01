@@ -78,7 +78,7 @@ export function hydrateToolFromChat(
 
   switch (id) {
     case "worksheet":
-      tool.hydrate({
+      (tool as WorksheetTool).hydrate({
         enabled: resolveToolEnabled(
           chat.worksheetToolEnabled,
           activePanel,
@@ -86,6 +86,7 @@ export function hydrateToolFromChat(
           isToolAvailable("worksheet"),
         ),
         panelOpen,
+        workspace: chat.worksheet,
       });
       break;
 

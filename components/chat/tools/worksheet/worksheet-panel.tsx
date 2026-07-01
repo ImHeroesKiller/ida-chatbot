@@ -63,10 +63,11 @@ import { COPY } from "@/lib/i18n";
 import { exportWorksheetToDocx } from "@/lib/worksheet-docx-export";
 import { exportWorksheetToPdf } from "@/lib/pdf-export";
 import { useResolvedWorksheetBranding } from "@/lib/worksheet-letterhead-branding";
-import {
-  findWorksheetVersion,
-  type WorksheetDocument,
-} from "@/lib/worksheet";
+import { findWorksheetVersion } from "@/lib/worksheet";
+import type {
+  WorksheetTool,
+  WorksheetWorkspaceState,
+} from "@/components/chat/tools/worksheet/use-worksheet";
 import {
   loadWorksheetDocumentFilters,
   saveWorksheetDocumentFilters,
@@ -96,8 +97,13 @@ import { cn } from "@/lib/utils";
 
 interface WorksheetPanelProps {
   locale: Locale;
-  workspace: WorksheetDocument;
-  onWorkspaceChange: (workspace: WorksheetDocument) => void;
+  workspace: WorksheetWorkspaceState;
+  onWorkspaceChange: (workspace: WorksheetWorkspaceState) => void;
+  /** Optional tool hook sync during Phase 3 workspace migration. */
+  worksheetTool?: Pick<
+    WorksheetTool,
+    "setLocale" | "selectDocument" | "deleteDocument"
+  >;
   errorDetail?: string | null;
   isGenerating?: boolean;
   canRegenerate?: boolean;
@@ -128,6 +134,7 @@ export function WorksheetPanel({
   onClose,
   className,
   embedded = false,
+  worksheetTool,
 }: WorksheetPanelProps) {
   const copy = COPY[locale];
   const error = workspace.error ?? null;
@@ -143,11 +150,15 @@ export function WorksheetPanel({
   const documentCount = workspace.documents?.length ?? 0;
 
   const commitWorkspace = useCallback(
-    (next: WorksheetDocument) => {
+    (next: WorksheetWorkspaceState) => {
       onWorkspaceChange(syncWorkspaceLegacyFields(next));
     },
     [onWorkspaceChange],
   );
+
+  useEffect(() => {
+    worksheetTool?.setLocale(locale);
+  }, [locale, worksheetTool]);
 
   const {
     branding: resolvedBranding,
@@ -484,8 +495,9 @@ export function WorksheetPanel({
         setIsEditing(false);
       }
       commitWorkspace(setActiveWorksheetDocument(workspace, documentId));
+      worksheetTool?.selectDocument(documentId);
     },
-    [allDocuments, commitWorkspace, isEditing, workspace],
+    [allDocuments, commitWorkspace, isEditing, worksheetTool, workspace],
   );
 
   const handleSelectDocument = useCallback(
@@ -599,6 +611,7 @@ export function WorksheetPanel({
       }
 
       commitWorkspace(next);
+      worksheetTool?.deleteDocument(documentId);
 
       if (workspace.activeDocumentId === documentId) {
         setIsFullViewOpen(false);
@@ -619,6 +632,7 @@ export function WorksheetPanel({
       copy.worksheetDeleteDocumentSuccessNamed,
       locale,
       onClear,
+      worksheetTool,
       workspace,
     ],
   );
