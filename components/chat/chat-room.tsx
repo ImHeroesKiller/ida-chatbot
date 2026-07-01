@@ -2,12 +2,9 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { Search, Globe, Map as MapIcon, BookOpen } from "lucide-react";
-
 import { HeaderAccountButton } from "@/components/chat/header-account-button";
 import { ChatHeader } from "@/components/chat/header";
 import { ChatHeaderMobileRedesign } from "@/components/chat/header-mobile-redesign";
-import { QuickActionsBar } from "@/components/chat/quick-actions-bar";
 import { useUserProfile } from "@/lib/auth/use-user-profile";
 import { MessageBubble } from "@/components/chat/message-bubble";
 import { MessageSkeleton } from "@/components/chat/message-skeleton";
@@ -265,35 +262,6 @@ function ChatRoomContent() {
     onNewChat: handleNewChat,
   };
 
-  const quickActions = [
-    {
-      id: "web-search",
-      label: copy.toolsWebSearch,
-      icon: <Globe className="h-5 w-5" />,
-      onClick: () => tools.handleMenuToolClick("web-search"),
-      disabled: !webSearchAvailable,
-    },
-    {
-      id: "research",
-      label: copy.toolsResearch,
-      icon: <BookOpen className="h-5 w-5" />,
-      onClick: () => tools.handleMenuToolClick("research"),
-      disabled: !webSearchAvailable,
-    },
-    {
-      id: "map",
-      label: copy.toolsMap,
-      icon: <MapIcon className="h-5 w-5" />,
-      onClick: () => tools.handleMenuToolClick("map"),
-    },
-    {
-      id: "new-chat",
-      label: copy.newChat,
-      icon: <Search className="h-5 w-5" />,
-      onClick: handleNewChat,
-    },
-  ];
-
   return (
     <MessageReactionsProvider>
       <div
@@ -395,13 +363,6 @@ function ChatRoomContent() {
           )}
 
           <div className="relative z-30 shrink-0">
-            {isMobileViewport && !hasUserMessages && (
-              <QuickActionsBar
-                actions={quickActions}
-                className="mb-2"
-              />
-            )}
-            
             {isMobileViewport ? (
               <ChatComposerRedesign
                 key={currentChat?.id}

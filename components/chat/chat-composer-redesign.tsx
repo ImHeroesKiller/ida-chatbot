@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Mic, Paperclip, Send, Plus, X, Settings2, Globe } from "lucide-react";
+import { Loader2, Mic, Send, Plus, Settings2, Globe } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -92,11 +92,12 @@ export function ChatComposerRedesign({
   const inputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const toolsButtonRef = useRef<HTMLButtonElement>(null);
 
   const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [hasVoiceInput, setHasVoiceInput] = useState(false);
-  const [showTools, setShowTools] = useState(false);
+  const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const sendingRef = useRef(false);
   const skipVoiceAutoSendRef = useRef(false);
   const holdingMicRef = useRef(false);
@@ -104,7 +105,6 @@ export function ChatComposerRedesign({
   const { prefs } = useVoicePrefs();
   const appFeatures = useAppFeatures();
   const voiceEnabled = appFeatures?.features.voice !== false;
-  const ocrEnabled = appFeatures?.features.ocr !== false;
 
   const isInternetOn = isToolActive("web-search");
 
@@ -185,7 +185,7 @@ export function ChatComposerRedesign({
       onInputChange("");
       setPendingUpload(null);
       setHasVoiceInput(false);
-      setShowTools(false);
+      setToolsMenuOpen(false);
       sendingRef.current = false;
 
       window.setTimeout(() => textareaRef.current?.focus(), 50);
@@ -438,7 +438,6 @@ export function ChatComposerRedesign({
           "flex flex-col bg-[#F5F5F7] dark:bg-[#1C1C1E] rounded-[32px] border border-border/40 shadow-xl overflow-hidden transition-all duration-300",
           "focus-within:ring-8 focus-within:ring-primary/5 focus-within:border-primary/30"
         )}>
-          {/* Input Area (Top) */}
           <div className="px-5 pt-5 pb-2">
             <Textarea
               id={inputId}
@@ -457,7 +456,6 @@ export function ChatComposerRedesign({
             />
           </div>
 
-          {/* Controls Area (Bottom) */}
           <div className="flex items-center justify-between px-4 pb-4 pt-1">
             <div className="flex items-center gap-2">
               <Button
@@ -471,15 +469,17 @@ export function ChatComposerRedesign({
               </Button>
 
               <Button
+                ref={toolsButtonRef}
                 type="button"
                 variant="ghost"
+                disabled={isLoading || isExtracting || isTranscribing}
                 className={cn(
                   "h-12 px-5 gap-3 rounded-full transition-all active:scale-95",
-                  showTools ? "bg-primary/10 text-primary border border-primary/20 shadow-sm" : "text-foreground/70 hover:bg-muted/60"
+                  toolsMenuOpen ? "bg-primary/10 text-primary border border-primary/20 shadow-sm" : "text-foreground/70 hover:bg-muted/60"
                 )}
-                onClick={() => setShowTools(!showTools)}
+                onClick={() => setToolsMenuOpen((open) => !open)}
               >
-                <Settings2 className={cn("h-6 w-6 transition-colors", showTools ? "text-primary" : "text-primary/70")} />
+                <Settings2 className={cn("h-6 w-6 transition-colors", toolsMenuOpen ? "text-primary" : "text-primary/70")} />
                 <span className="text-lg font-bold">Tools</span>
               </Button>
             </div>
@@ -491,8 +491,8 @@ export function ChatComposerRedesign({
                 disabled={!webSearchAvailable}
                 className={cn(
                   "h-12 px-5 gap-2.5 rounded-full transition-all active:scale-95",
-                  isInternetOn 
-                    ? "bg-blue-500/10 text-blue-500 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.2)]" 
+                  isInternetOn
+                    ? "bg-blue-500/10 text-blue-500 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
                     : "text-foreground/50 hover:bg-muted/60"
                 )}
                 onClick={() => onToolMenuClick("web-search")}
@@ -539,31 +539,22 @@ export function ChatComposerRedesign({
           </div>
         </div>
 
-        <AnimatePresence>
-          {showTools && (
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.98 }}
-              className="absolute bottom-full left-0 right-0 mb-4 px-4 sm:px-6"
-            >
-              <div className="bg-background/95 backdrop-blur-2xl border border-border/60 rounded-[28px] p-3 shadow-2xl ring-1 ring-black/5">
-                <ToolsMenu
-                  locale={locale}
-                  disabled={isLoading || isExtracting || isTranscribing}
-                  webSearchAvailable={webSearchAvailable}
-                  researchAvailable={researchAvailable}
-                  isToolActive={isToolActive}
-                  isAnyToolActive={isAnyToolActive}
-                  onToolClick={(toolId) => {
-                    onToolMenuClick(toolId);
-                    if (toolId !== "web-search") setShowTools(false);
-                  }}
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <ToolsMenu
+          locale={locale}
+          disabled={isLoading || isExtracting || isTranscribing}
+          webSearchAvailable={webSearchAvailable}
+          researchAvailable={researchAvailable}
+          isToolActive={isToolActive}
+          isAnyToolActive={isAnyToolActive}
+          open={toolsMenuOpen}
+          onOpenChange={setToolsMenuOpen}
+          hideTrigger
+          anchorRef={toolsButtonRef}
+          onToolClick={(toolId) => {
+            onToolMenuClick(toolId);
+            if (toolId !== "web-search") setToolsMenuOpen(false);
+          }}
+        />
 
         <input
           ref={fileInputRef}

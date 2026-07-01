@@ -8,6 +8,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type RefObject,
 } from "react";
 import { createPortal } from "react-dom";
 
@@ -34,6 +35,11 @@ interface ToolsMenuProps {
   isToolActive: (toolId: ToolId) => boolean;
   isAnyToolActive: boolean;
   onToolClick: (toolId: ToolId) => void;
+  className?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
+  anchorRef?: RefObject<HTMLElement | null>;
 }
 
 export function ToolsMenu({
@@ -44,11 +50,34 @@ export function ToolsMenu({
   isToolActive,
   isAnyToolActive,
   onToolClick,
+  className,
+  open: controlledOpen,
+  onOpenChange,
+  hideTrigger = false,
+  anchorRef: externalAnchorRef,
 }: ToolsMenuProps) {
   const copy = COPY[locale];
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = useCallback(
+    (value: boolean | ((current: boolean) => boolean)) => {
+      const nextValue =
+        typeof value === "function"
+          ? value(isControlled ? (controlledOpen ?? false) : internalOpen)
+          : value;
+
+      if (isControlled) {
+        onOpenChange?.(nextValue);
+      } else {
+        setInternalOpen(nextValue);
+      }
+    },
+    [controlledOpen, internalOpen, isControlled, onOpenChange],
+  );
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
-  const anchorRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const positioningRef = externalAnchorRef ?? triggerRef;
   const menuRef = useRef<HTMLDivElement>(null);
 
   const menuGroups = useMemo(
@@ -80,7 +109,7 @@ export function ToolsMenu({
       : copy.toolsMenu;
 
   const updateMenuPosition = useCallback(() => {
-    const anchor = anchorRef.current;
+    const anchor = positioningRef.current;
     if (!anchor) return;
 
     const rect = anchor.getBoundingClientRect();
@@ -88,7 +117,7 @@ export function ToolsMenu({
       top: rect.top - 8,
       left: rect.left,
     });
-  }, []);
+  }, [positioningRef]);
 
   useLayoutEffect(() => {
     if (!open) return;
@@ -110,7 +139,7 @@ export function ToolsMenu({
     const handlePointerDown = (event: MouseEvent) => {
       const target = event.target as Node;
       if (
-        anchorRef.current?.contains(target) ||
+        positioningRef.current?.contains(target) ||
         menuRef.current?.contains(target)
       ) {
         return;
@@ -254,29 +283,31 @@ export function ToolsMenu({
   ) : null;
 
   return (
-    <div className="relative z-30 shrink-0">
-      <Button
-        ref={anchorRef}
-        type="button"
-        variant={isAnyToolActive ? "default" : "outline"}
-        size="icon"
-        disabled={disabled}
-        aria-label={copy.toolsMenu}
-        aria-expanded={open}
-        aria-haspopup="menu"
-        title={buttonTitle}
-        className={cn(
-          "relative h-12 w-12 sm:h-11 sm:w-11",
-          isAnyToolActive && "ring-2 ring-primary/40",
-          open && "ring-2 ring-primary/60",
-        )}
-        onClick={() => setOpen((value) => !value)}
-      >
-        <Wrench className="h-4 w-4" />
-        {isAnyToolActive ? (
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
-        ) : null}
-      </Button>
+    <div className={cn("relative z-30 shrink-0", className)}>
+      {!hideTrigger ? (
+        <Button
+          ref={triggerRef}
+          type="button"
+          variant={isAnyToolActive ? "default" : "outline"}
+          size="icon"
+          disabled={disabled}
+          aria-label={copy.toolsMenu}
+          aria-expanded={open}
+          aria-haspopup="menu"
+          title={buttonTitle}
+          className={cn(
+            "relative h-12 w-12 sm:h-11 sm:w-11",
+            isAnyToolActive && "ring-2 ring-primary/40",
+            open && "ring-2 ring-primary/60",
+          )}
+          onClick={() => setOpen((value) => !value)}
+        >
+          <Wrench className="h-4 w-4" />
+          {isAnyToolActive ? (
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
+          ) : null}
+        </Button>
+      ) : null}
 
       {typeof document !== "undefined" && menuContent
         ? createPortal(menuContent, document.body)
