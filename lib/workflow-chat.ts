@@ -60,14 +60,92 @@ function stripCodeFences(raw: string): string {
   return fenced?.[1]?.trim() ?? trimmed;
 }
 
+function repairJsonPayload(raw: string): string {
+  return raw.replace(/,\s*([}\]])/g, "$1");
+}
+
+function tryParseWorkflowJson(raw: string): unknown | null {
+  const candidates = [raw, repairJsonPayload(raw)];
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      // try next candidate
+    }
+  }
+
+  return null;
+}
+
+function extractWorkflowJsonCandidates(fullText: string): string[] {
+  const candidates: string[] = [];
+  const markerPattern = new RegExp(
+    `${escapeRegExp(WORKFLOW_START_MARKER)}([\\s\\S]*?)${escapeRegExp(WORKFLOW_END_MARKER)}`,
+    "gi",
+  );
+
+  for (const match of fullText.matchAll(markerPattern)) {
+    const payload = stripCodeFences(match[1] ?? "");
+    if (payload) candidates.push(payload);
+  }
+
+  const codeFencePattern = /```(?:json)?\s*([\s\S]*?)\s*```/gi;
+  for (const match of fullText.matchAll(codeFencePattern)) {
+    const payload = match[1]?.trim();
+    if (payload?.includes('"nodes"')) {
+      candidates.push(payload);
+    }
+  }
+
+  const objectPattern = /\{[\s\S]*?"nodes"\s*:\s*\[[\s\S]*?\][\s\S]*?\}/g;
+  for (const match of fullText.matchAll(objectPattern)) {
+    candidates.push(match[0]?.trim() ?? "");
+  }
+
+  return candidates.filter(Boolean);
+}
+
+function inferEdgesFromNodes(
+  nodes: WorkflowStreamPayload["nodes"],
+): WorkflowStreamPayload["edges"] {
+  if (nodes.length < 2) return [];
+
+  return nodes.slice(0, -1).map((node, index) => ({
+    id: `edge-${index}-${node.id}-${nodes[index + 1]!.id}`,
+    source: node.id,
+    target: nodes[index + 1]!.id,
+  }));
+}
+
+function resolveNodeKind(value: unknown): WorkflowNodeKind {
+  const normalized =
+    typeof value === "string" ? value.trim().toLowerCase() : "";
+  const aliases: Record<string, WorkflowNodeKind> = {
+    trigger: "trigger",
+    start: "trigger",
+    action: "action",
+    task: "action",
+    condition: "condition",
+    decision: "condition",
+    branch: "condition",
+    output: "output",
+    end: "output",
+    result: "output",
+  };
+
+  return aliases[normalized] ?? "action";
+}
+
 function normalizeStreamPayload(
   raw: unknown,
 ): WorkflowStreamPayload | null {
   if (!raw || typeof raw !== "object") return null;
 
-  const data = raw as Partial<WorkflowStreamPayload>;
-  const name = typeof data.name === "string" ? data.name.trim() : "";
-  if (!name) return null;
+  const data = raw as Partial<WorkflowStreamPayload> & { title?: string };
+  const name =
+    (typeof data.name === "string" ? data.name.trim() : "") ||
+    (typeof data.title === "string" ? data.title.trim() : "");
 
   const nodes = Array.isArray(data.nodes)
     ? data.nodes
@@ -78,11 +156,9 @@ function normalizeStreamPayload(
             typeof entry.label === "string" && entry.label.trim()
               ? entry.label.trim()
               : `Step ${index + 1}`;
-          const kind = (
-            ["trigger", "action", "condition", "output"] as const
-          ).includes(entry.kind as WorkflowNodeKind)
-            ? (entry.kind as WorkflowNodeKind)
-            : "action";
+          const kind = resolveNodeKind(
+            entry.kind ?? (entry as { type?: string }).type,
+          );
 
           return {
             id:
@@ -115,18 +191,34 @@ function normalizeStreamPayload(
 
   if (nodes.length === 0) return null;
 
+  const resolvedName = name || "Generated Workflow";
   const nodeIds = new Set(nodes.map((node) => node.id));
-  const edges = Array.isArray(data.edges)
+  const nodeIdList = nodes.map((node) => node.id);
+
+  const resolveEdgeEndpoint = (value: unknown): string | null => {
+    if (typeof value !== "string" || !value.trim()) return null;
+    const trimmed = value.trim();
+    if (nodeIds.has(trimmed)) return trimmed;
+
+    const indexMatch = trimmed.match(/(\d+)/);
+    if (indexMatch) {
+      const index = Number.parseInt(indexMatch[1]!, 10) - 1;
+      if (index >= 0 && index < nodeIdList.length) {
+        return nodeIdList[index] ?? null;
+      }
+    }
+
+    return null;
+  };
+
+  let edges = Array.isArray(data.edges)
     ? data.edges
         .map((edge, index) => {
           if (!edge || typeof edge !== "object") return null;
           const entry = edge as WorkflowStreamPayload["edges"][number];
-          if (
-            typeof entry.source !== "string" ||
-            typeof entry.target !== "string" ||
-            !nodeIds.has(entry.source) ||
-            !nodeIds.has(entry.target)
-          ) {
+          const source = resolveEdgeEndpoint(entry.source);
+          const target = resolveEdgeEndpoint(entry.target);
+          if (!source || !target || source === target) {
             return null;
           }
 
@@ -134,16 +226,20 @@ function normalizeStreamPayload(
             id:
               typeof entry.id === "string" && entry.id.trim()
                 ? entry.id.trim()
-                : `edge-${index}-${entry.source}-${entry.target}`,
-            source: entry.source,
-            target: entry.target,
+                : `edge-${index}-${source}-${target}`,
+            source,
+            target,
           };
         })
         .filter((edge): edge is NonNullable<typeof edge> => edge !== null)
     : [];
 
+  if (edges.length === 0) {
+    edges = inferEdgesFromNodes(nodes);
+  }
+
   return {
-    name,
+    name: resolvedName,
     description:
       typeof data.description === "string"
         ? data.description.trim() || undefined
@@ -182,69 +278,94 @@ export function workflowPayloadToDefinition(
   };
 }
 
+function buildWorkflowChatMessage(
+  fullText: string,
+  locale: Locale,
+  matchedSegment?: string,
+): string {
+  let chatMessage = fullText.trim();
+
+  if (matchedSegment) {
+    chatMessage = fullText.replace(matchedSegment, "").trim();
+  } else {
+    chatMessage = fullText
+      .replace(
+        new RegExp(
+          `${escapeRegExp(WORKFLOW_START_MARKER)}[\\s\\S]*?${escapeRegExp(WORKFLOW_END_MARKER)}`,
+          "gi",
+        ),
+        "",
+      )
+      .replace(/```(?:json)?\s*[\s\S]*?\s*```/gi, "")
+      .trim();
+  }
+
+  return (
+    chatMessage.slice(0, 600) ||
+    WORKFLOW_CHAT_FALLBACK[locale]
+  );
+}
+
+export function getWorkflowStreamErrorMessage(
+  code: WorkflowErrorCode,
+  locale: Locale,
+): string {
+  const messages: Record<WorkflowErrorCode, Record<Locale, string>> = {
+    parse_failed: {
+      id: "Workflow tidak dapat diproses dari respons chat. Coba impor manual atau kirim ulang permintaan.",
+      en: "The workflow could not be parsed from the chat response. Try manual import or resend your request.",
+      zh: "无法从聊天响应解析工作流。请尝试手动导入或重新发送请求。",
+    },
+    empty_workflow: {
+      id: "Workflow kosong atau tidak memiliki node. Perjelas langkah otomatisasi yang diinginkan.",
+      en: "The workflow is empty or has no nodes. Clarify the automation steps you need.",
+      zh: "工作流为空或没有节点。请说明您需要的自动化步骤。",
+    },
+    execute_failed: {
+      id: "Eksekusi workflow gagal.",
+      en: "Workflow execution failed.",
+      zh: "工作流执行失败。",
+    },
+  };
+
+  return messages[code][locale];
+}
+
 export function parseWorkflowFromResponse(
   fullText: string,
   locale: Locale,
 ): WorkflowParseResult {
-  const markerPattern = new RegExp(
-    `${escapeRegExp(WORKFLOW_START_MARKER)}([\\s\\S]*?)${escapeRegExp(WORKFLOW_END_MARKER)}`,
-    "i",
-  );
-  const match = fullText.match(markerPattern);
+  const candidates = extractWorkflowJsonCandidates(fullText);
 
-  if (!match) {
-    const jsonBlock = fullText.match(/```json\s*([\s\S]*?)\s*```/i);
-    if (jsonBlock) {
-      try {
-        const payload = normalizeStreamPayload(
-          JSON.parse(stripCodeFences(jsonBlock[1])),
-        );
-        if (payload) {
-          const chatMessage = fullText
-            .replace(jsonBlock[0], "")
-            .trim()
-            .slice(0, 600);
-          return {
-            chatMessage: chatMessage || WORKFLOW_CHAT_FALLBACK[locale],
-            workflow: payload,
-          };
-        }
-      } catch {
-        // fall through
-      }
-    }
+  for (const rawPayload of candidates) {
+    const parsed = tryParseWorkflowJson(stripCodeFences(rawPayload));
+    const payload = normalizeStreamPayload(parsed);
+    if (payload) {
+      const markerSegment = fullText.includes(WORKFLOW_START_MARKER)
+        ? fullText.match(
+            new RegExp(
+              `${escapeRegExp(WORKFLOW_START_MARKER)}[\\s\\S]*?${escapeRegExp(WORKFLOW_END_MARKER)}`,
+              "i",
+            ),
+          )?.[0]
+        : rawPayload;
 
-    return {
-      chatMessage: fullText.trim() || WORKFLOW_PARSE_ERROR_CHAT[locale],
-      workflow: null,
-      error: "parse_failed",
-    };
-  }
-
-  const rawPayload = stripCodeFences(match[1]);
-  const chatMessage = fullText.replace(match[0], "").trim();
-
-  try {
-    const payload = normalizeStreamPayload(JSON.parse(rawPayload));
-    if (!payload) {
       return {
-        chatMessage: chatMessage || WORKFLOW_PARSE_ERROR_CHAT[locale],
-        workflow: null,
-        error: "empty_workflow",
+        chatMessage: buildWorkflowChatMessage(
+          fullText,
+          locale,
+          markerSegment,
+        ),
+        workflow: payload,
       };
     }
-
-    return {
-      chatMessage: chatMessage || WORKFLOW_CHAT_FALLBACK[locale],
-      workflow: payload,
-    };
-  } catch {
-    return {
-      chatMessage: chatMessage || WORKFLOW_PARSE_ERROR_CHAT[locale],
-      workflow: null,
-      error: "parse_failed",
-    };
   }
+
+  return {
+    chatMessage: fullText.trim() || WORKFLOW_PARSE_ERROR_CHAT[locale],
+    workflow: null,
+    error: fullText.trim() ? "parse_failed" : "empty_workflow",
+  };
 }
 
 export function buildWorkflowPromptSection(locale: Locale): string {

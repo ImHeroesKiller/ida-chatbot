@@ -12,6 +12,7 @@ import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
 import type { ToolQuotaState } from "@/components/chat/tools/types";
 import type { Locale } from "@/lib/config";
 import {
+  parseWorkflowFromResponse,
   workflowPayloadToDefinition,
   type WorkflowStreamPayload,
 } from "@/lib/workflow-chat";
@@ -111,6 +112,13 @@ export type WorkflowTool = BaseToolState &
     importWorkflowFromStream: (
       payload: WorkflowStreamPayload,
     ) => WorkflowDefinition | null;
+    /** Raw assistant text from the latest workflow-armed chat stream. */
+    lastGeneratedWorkflowSource: string | null;
+    setLastGeneratedWorkflowSource: (source: string | null) => void;
+    hasImportableGeneratedWorkflow: boolean;
+    importLatestGeneratedWorkflow: (
+      locale: Locale,
+    ) => WorkflowDefinition | null;
     applyStreamError: (
       errorCode: WorkflowErrorCode,
       message?: string | null,
@@ -156,6 +164,9 @@ export function useWorkflow(): WorkflowTool {
   const errorDetailRef = useRef<string | null>(null);
   const persistSyncRef = useRef<PersistLayerSync | null>(null);
   const lastPersistedFingerprintRef = useRef<string | null>(null);
+  const lastGeneratedWorkflowSourceRef = useRef<string | null>(null);
+  const [lastGeneratedWorkflowSource, setLastGeneratedWorkflowSourceState] =
+    useState<string | null>(null);
 
   const resetPersistFingerprint = useCallback(() => {
     lastPersistedFingerprintRef.current = null;
@@ -243,6 +254,12 @@ export function useWorkflow(): WorkflowTool {
     setErrorDetailState(null);
   }, []);
 
+  const setLastGeneratedWorkflowSource = useCallback((source: string | null) => {
+    const normalized = source?.trim() ? source : null;
+    lastGeneratedWorkflowSourceRef.current = normalized;
+    setLastGeneratedWorkflowSourceState(normalized);
+  }, []);
+
   const resetWorkspace = useCallback(() => {
     const empty = createEmptyWorkflowWorkspace();
     workspaceRef.current = empty;
@@ -250,7 +267,8 @@ export function useWorkflow(): WorkflowTool {
     setIsExecuting(false);
     clearErrorDetail();
     resetPersistFingerprint();
-  }, [clearErrorDetail, resetPersistFingerprint]);
+    setLastGeneratedWorkflowSource(null);
+  }, [clearErrorDetail, resetPersistFingerprint, setLastGeneratedWorkflowSource]);
 
   const hydrateWorkspaceState = useCallback((state: WorkflowHydrationInput) => {
     if (state.workspace !== undefined) {
@@ -420,6 +438,8 @@ export function useWorkflow(): WorkflowTool {
 
   const importWorkflowFromStreamPayload = useCallback(
     (payload: WorkflowStreamPayload): WorkflowDefinition | null => {
+      if (!payload.nodes?.length) return null;
+
       const definition = workflowPayloadToDefinition(payload);
       const nodes: WorkflowNode[] = definition.nodes;
       const edges: WorkflowEdge[] = definition.edges;
@@ -468,6 +488,29 @@ export function useWorkflow(): WorkflowTool {
     },
     [setErrorDetail, syncToPersistLayer],
   );
+
+  const importLatestGeneratedWorkflow = useCallback(
+    (locale: Locale): WorkflowDefinition | null => {
+      const source = lastGeneratedWorkflowSourceRef.current;
+      if (!source?.trim()) return null;
+
+      const parsed = parseWorkflowFromResponse(source, locale);
+      if (!parsed.workflow) {
+        applyStreamError(parsed.error ?? "parse_failed", null);
+        return null;
+      }
+
+      return importWorkflowFromStreamPayload(parsed.workflow);
+    },
+    [applyStreamError, importWorkflowFromStreamPayload],
+  );
+
+  const hasImportableGeneratedWorkflow = useMemo(() => {
+    if (!lastGeneratedWorkflowSource?.trim()) return false;
+    return Boolean(
+      parseWorkflowFromResponse(lastGeneratedWorkflowSource, "en").workflow,
+    );
+  }, [lastGeneratedWorkflowSource]);
 
   const executeWorkflow = useCallback(
     async (
@@ -603,6 +646,10 @@ export function useWorkflow(): WorkflowTool {
     addNode,
     beginRegenerate,
     importWorkflowFromStream: importWorkflowFromStreamPayload,
+    lastGeneratedWorkflowSource,
+    setLastGeneratedWorkflowSource,
+    hasImportableGeneratedWorkflow,
+    importLatestGeneratedWorkflow,
     applyStreamError,
     executeWorkflow,
     deleteWorkflow,

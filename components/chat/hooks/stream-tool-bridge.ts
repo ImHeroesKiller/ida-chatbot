@@ -6,6 +6,10 @@ import type { StreamToolCoordinator } from "@/components/chat/tools/coordinator-
 import type { ChatSession } from "@/lib/chat-store";
 import type { Locale } from "@/lib/config";
 import type { IdaSseDonePayload, IdaSseMetaPayload } from "@/lib/sse";
+import {
+  getWorkflowStreamErrorMessage,
+  type WorkflowStreamPayload,
+} from "@/lib/workflow-chat";
 import type { IdaMessage } from "@/lib/types";
 import {
   type WorksheetDocument,
@@ -261,13 +265,47 @@ export function createStreamToolBridge(
     });
   };
 
-  const onWorkflowDone = (
-    workflow: NonNullable<import("@/lib/sse").IdaSseWorkflowPayload>,
+  const persistWorkflowWorkspace = (
+    nextWorkspace: ReturnType<typeof deps.tools.workflow.getWorkspace>,
+    options?: { errorMessage?: string | null },
   ) => {
-    const imported = deps.tools.workflow.importWorkflowFromStream(workflow);
-    if (!imported) return;
+    if (ctx.isActiveChat()) {
+      deps.tools.workflow.syncToPersistLayer(nextWorkspace);
+      deps.tools.workflow.setEnabled(true);
+      deps.tools.openPanel(deps.tools.workflow.panelId);
 
+      if (options?.errorMessage) {
+        deps.tools.workflow.setErrorDetail(options.errorMessage);
+      }
+    }
+
+    deps.persistCurrentChat({
+      workflow: nextWorkspace,
+      activeRightPanel: deps.tools.workflow.panelId,
+      workflowToolEnabled: true,
+    });
+  };
+
+  const onWorkflowDone = (workflow: WorkflowStreamPayload) => {
+    const imported = deps.tools.workflow.importWorkflowFromStream(workflow);
     const nextWorkspace = deps.tools.workflow.getWorkspace();
+
+    if (!imported) {
+      const errorMessage = getWorkflowStreamErrorMessage(
+        "parse_failed",
+        deps.locale,
+      );
+      const errored =
+        deps.tools.workflow.applyStreamError?.("parse_failed", errorMessage) ??
+        nextWorkspace;
+
+      persistWorkflowWorkspace(errored, { errorMessage });
+
+      if (ctx.isActiveChat()) {
+        toast.error(errorMessage);
+      }
+      return;
+    }
 
     if (ctx.isActiveChat()) {
       deps.tools.workflow.syncToPersistLayer(nextWorkspace);
@@ -286,21 +324,16 @@ export function createStreamToolBridge(
 
   const onWorkflowError = (errorCode: string) => {
     const code = errorCode as import("@/lib/workflow").WorkflowErrorCode;
+    const errorMessage = getWorkflowStreamErrorMessage(code, deps.locale);
     const nextWorkspace =
-      deps.tools.workflow.applyStreamError?.(code, null) ??
+      deps.tools.workflow.applyStreamError?.(code, errorMessage) ??
       deps.tools.workflow.getWorkspace();
 
-    if (ctx.isActiveChat()) {
-      deps.tools.workflow.syncToPersistLayer(nextWorkspace);
-      deps.tools.workflow.setEnabled(true);
-      deps.tools.openPanel(deps.tools.workflow.panelId);
-    }
+    persistWorkflowWorkspace(nextWorkspace, { errorMessage });
 
-    deps.persistCurrentChat({
-      workflow: nextWorkspace,
-      activeRightPanel: deps.tools.workflow.panelId,
-      workflowToolEnabled: true,
-    });
+    if (ctx.isActiveChat()) {
+      toast.error(errorMessage);
+    }
   };
 
   const onWorksheetError = (errorCode: string) => {

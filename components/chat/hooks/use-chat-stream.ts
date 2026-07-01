@@ -13,6 +13,7 @@ import {
 import type { StreamToolCoordinator } from "@/components/chat/tools/coordinator-types";
 import { buildChatApiRequestBody } from "@/lib/client/chat-api-payload";
 import { consumeIdaSseStream } from "@/lib/client/parse-sse";
+import { parseWorkflowFromResponse } from "@/lib/workflow-chat";
 import type { ChatSession } from "@/lib/chat-store";
 import type { Locale } from "@/lib/config";
 import type { IdaSseMetaPayload } from "@/lib/sse";
@@ -199,6 +200,15 @@ export function useChatStream({
               done.researchSummary,
             );
 
+            const streamedMessage = messageState.messages.find(
+              (message) => message.id === streamId,
+            );
+            const fullStreamedText = streamedMessage?.content ?? "";
+
+            if (useWorkflow && fullStreamedText.trim()) {
+              tools.workflow.setLastGeneratedWorkflowSource(fullStreamedText);
+            }
+
             if (done.message?.trim()) {
               messageState.messages = messageState.messages.map((message) =>
                 message.id === streamId
@@ -214,10 +224,23 @@ export function useChatStream({
               bridge.onWorksheetError(done.worksheetError);
             }
 
-            if (done.workflow) {
-              bridge.onWorkflowDone(done.workflow);
-            } else if (done.workflowError && useWorkflow) {
-              bridge.onWorkflowError(done.workflowError);
+            if (useWorkflow) {
+              if (done.workflow) {
+                bridge.onWorkflowDone(done.workflow);
+              } else {
+                const clientParsed = parseWorkflowFromResponse(
+                  fullStreamedText,
+                  locale,
+                );
+
+                if (clientParsed.workflow) {
+                  bridge.onWorkflowDone(clientParsed.workflow);
+                } else if (done.workflowError) {
+                  bridge.onWorkflowError(done.workflowError);
+                } else if (clientParsed.error) {
+                  bridge.onWorkflowError(clientParsed.error);
+                }
+              }
             }
           },
         );

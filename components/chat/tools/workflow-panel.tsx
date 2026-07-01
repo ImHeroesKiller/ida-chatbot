@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import {
+  Download,
   GitBranch,
   Loader2,
   PanelRightClose,
@@ -87,8 +88,16 @@ export function WorkflowPanel({
   embedded = false,
 }: WorkflowPanelProps) {
   const copy = COPY[locale];
-  const { activeWorkflow, workflows, isExecuting, errorDetail, lastExecution } =
-    workflowTool;
+  const {
+    activeWorkflow,
+    workflows,
+    isExecuting,
+    errorDetail,
+    lastExecution,
+    hasImportableGeneratedWorkflow,
+    importLatestGeneratedWorkflow,
+    workspace,
+  } = workflowTool;
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -124,6 +133,43 @@ export function WorkflowPanel({
     },
     [activeWorkflow, persistCanvas],
   );
+
+  const workflowErrorMessage = useMemo(() => {
+    if (errorDetail) return errorDetail;
+
+    switch (workspace.error) {
+      case "parse_failed":
+        return copy.workflowErrorParseFailed;
+      case "empty_workflow":
+        return copy.workflowErrorEmptyWorkflow;
+      case "execute_failed":
+        return copy.workflowExecuted;
+      default:
+        return null;
+    }
+  }, [
+    copy.workflowErrorEmptyWorkflow,
+    copy.workflowErrorParseFailed,
+    copy.workflowExecuted,
+    errorDetail,
+    workspace.error,
+  ]);
+
+  const handleImportLatest = useCallback(() => {
+    const imported = importLatestGeneratedWorkflow(locale);
+    if (imported) {
+      toast.success(copy.workflowCreated);
+      setSelectedNodeId(null);
+      return;
+    }
+
+    toast.error(copy.workflowImportFailed);
+  }, [
+    copy.workflowCreated,
+    copy.workflowImportFailed,
+    importLatestGeneratedWorkflow,
+    locale,
+  ]);
 
   const handleNewWorkflow = useCallback(() => {
     const created = workflowTool.createWorkflow({
@@ -335,15 +381,23 @@ export function WorkflowPanel({
               <p className="mt-1 max-w-xs text-xs text-muted-foreground">
                 {copy.workflowEmptyHint}
               </p>
-              <Button
-                type="button"
-                size="sm"
-                className="mt-4"
-                onClick={handleNewWorkflow}
-              >
-                <Plus className="mr-1.5 h-4 w-4" />
-                {copy.workflowNew}
-              </Button>
+              <div className="mt-4 flex flex-col gap-2">
+                <Button type="button" size="sm" onClick={handleNewWorkflow}>
+                  <Plus className="mr-1.5 h-4 w-4" />
+                  {copy.workflowNew}
+                </Button>
+                {hasImportableGeneratedWorkflow ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={handleImportLatest}
+                  >
+                    <Download className="mr-1.5 h-4 w-4" />
+                    {copy.workflowImportLatest}
+                  </Button>
+                ) : null}
+              </div>
             </div>
           )}
         </div>
@@ -432,10 +486,22 @@ export function WorkflowPanel({
         ) : null}
       </div>
 
-      {(errorDetail || lastExecution) && (
+      {(workflowErrorMessage || lastExecution) && (
         <div className="shrink-0 space-y-2 border-t px-3 py-2">
-          {errorDetail ? (
-            <p className="text-[10px] text-destructive">{errorDetail}</p>
+          {workflowErrorMessage ? (
+            <p className="text-[10px] text-destructive">{workflowErrorMessage}</p>
+          ) : null}
+          {!activeWorkflow && hasImportableGeneratedWorkflow ? (
+            <Button
+              type="button"
+              size="xs"
+              variant="outline"
+              className="h-7 text-[10px]"
+              onClick={handleImportLatest}
+            >
+              <Download className="mr-1 h-3 w-3" />
+              {copy.workflowImportLatest}
+            </Button>
           ) : null}
           {lastExecution?.message ? (
             <p className="text-[10px] text-muted-foreground">

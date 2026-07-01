@@ -218,6 +218,10 @@ export const COPY: Record<
     workflowExecuted: string;
     workflowSelectWorkflow: string;
     workflowCreated: string;
+    workflowImportLatest: string;
+    workflowErrorParseFailed: string;
+    workflowErrorEmptyWorkflow: string;
+    workflowImportFailed: string;
     workflowNodePrompt: string;
     workflowExecutionLogs: string;
     workflowDeleteConfirmDescription: string;
@@ -716,6 +720,12 @@ export const COPY: Record<
     workflowExecuted: "Workflow dijalankan (stub)",
     workflowSelectWorkflow: "Pilih workflow",
     workflowCreated: "Workflow berhasil dibuat",
+    workflowImportLatest: "Impor Workflow Terakhir",
+    workflowErrorParseFailed:
+      "Format respons workflow tidak dikenali. Coba impor manual atau kirim ulang permintaan.",
+    workflowErrorEmptyWorkflow:
+      "Workflow kosong atau tidak memiliki node. Perjelas langkah otomatisasi yang diinginkan.",
+    workflowImportFailed: "Gagal mengimpor workflow dari respons chat.",
     workflowNodePrompt: "Prompt LLM",
     workflowExecutionLogs: "Log Eksekusi",
     workflowDeleteConfirmDescription:
@@ -1248,6 +1258,12 @@ export const COPY: Record<
     workflowExecuted: "Workflow executed (stub)",
     workflowSelectWorkflow: "Select workflow",
     workflowCreated: "Workflow created successfully",
+    workflowImportLatest: "Import Latest Generated Workflow",
+    workflowErrorParseFailed:
+      "The workflow response format was not recognized. Try manual import or resend your request.",
+    workflowErrorEmptyWorkflow:
+      "The workflow is empty or has no nodes. Clarify the automation steps you need.",
+    workflowImportFailed: "Failed to import workflow from the chat response.",
     workflowNodePrompt: "LLM Prompt",
     workflowExecutionLogs: "Execution Logs",
     workflowDeleteConfirmDescription:
@@ -1775,6 +1791,11 @@ export const COPY: Record<
     workflowExecuted: "工作流已执行（占位）",
     workflowSelectWorkflow: "选择工作流",
     workflowCreated: "工作流创建成功",
+    workflowImportLatest: "导入最近生成的工作流",
+    workflowErrorParseFailed:
+      "无法识别工作流响应格式。请尝试手动导入或重新发送请求。",
+    workflowErrorEmptyWorkflow: "工作流为空或没有节点。请说明您需要的自动化步骤。",
+    workflowImportFailed: "无法从聊天响应导入工作流。",
     workflowNodePrompt: "LLM 提示词",
     workflowExecutionLogs: "执行日志",
     workflowDeleteConfirmDescription: "当前工作流及其所有节点将从本对话中删除。",
