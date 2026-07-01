@@ -194,9 +194,9 @@ function ActionButton({
         onClick={onClick}
         aria-label={label}
         className={cn(
-          "h-9 w-9 rounded-lg text-muted-foreground sm:h-7 sm:w-7",
-          "hover:bg-muted hover:text-foreground active:scale-95",
-          active && "bg-primary/10 text-foreground",
+          "h-8 w-8 rounded-lg border border-border/60 bg-background/80 text-foreground/70 shadow-sm sm:h-7 sm:w-7",
+          "hover:border-border hover:bg-muted hover:text-foreground active:scale-95",
+          active && "border-primary/30 bg-primary/10 text-primary",
         )}
       >
         {children}

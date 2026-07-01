@@ -318,9 +318,6 @@ export function ChatSidebar({
                   className="h-10 pl-10 rounded-xl bg-muted/40 border-border/30 focus:bg-background transition-all text-sm"
                 />
               </div>
-              <h2 className="mt-5 px-1 text-[12px] font-bold tracking-widest text-muted-foreground/50 uppercase">
-                {copy.chatHistory}
-              </h2>
             </div>
 
             <ScrollArea className="min-h-0 flex-1">

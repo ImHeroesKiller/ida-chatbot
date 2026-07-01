@@ -63,6 +63,7 @@ interface ChatComposerRedesignProps {
   isToolActive: (toolId: import("@/components/chat/tools/types").ToolId) => boolean;
   isAnyToolActive: boolean;
   onToolMenuClick: (toolId: import("@/components/chat/tools/types").ToolId) => void;
+  onInternetToggle: () => void;
   onInputChange: (value: string) => void;
   onSend: (content: string, options?: {
     attachment?: IdaAttachment;
@@ -85,6 +86,7 @@ export function ChatComposerRedesign({
   isToolActive,
   isAnyToolActive,
   onToolMenuClick,
+  onInternetToggle,
   onInputChange,
   onSend,
 }: ChatComposerRedesignProps) {
@@ -495,7 +497,7 @@ export function ChatComposerRedesign({
                     ? "bg-blue-500/10 text-blue-500 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
                     : "text-foreground/50 hover:bg-muted/60"
                 )}
-                onClick={() => onToolMenuClick("web-search")}
+                onClick={onInternetToggle}
               >
                 <Globe className={cn("h-5 w-5 transition-all", isInternetOn ? "text-blue-500 animate-pulse" : "text-foreground/40")} />
                 <span className="text-base font-bold">Internet {isInternetOn ? "ON" : "OFF"}</span>

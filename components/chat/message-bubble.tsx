@@ -172,7 +172,7 @@ export function MessageBubble({
           ) : null}
 
           {showActions ? (
-            <div className="opacity-0 transition-opacity group-hover/message:opacity-100">
+            <div className="opacity-100 transition-opacity sm:opacity-0 sm:group-hover/message:opacity-100 sm:group-focus-within/message:opacity-100">
               <MessageActions
                 messageId={message.id}
                 content={actionContent}
