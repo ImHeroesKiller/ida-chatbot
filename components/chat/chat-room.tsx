@@ -90,7 +90,7 @@ import {
   useSpeechSynthesis,
 } from "@/lib/voice/use-speech-synthesis";
 import { useVoicePrefs } from "@/lib/voice/voice-prefs";
-import { ToolModal } from "@/components/chat/tool-modal";
+import { ToolModal, type ToolModalSize } from "@/components/chat/tool-modal";
 import { ToolPanelHost } from "@/components/chat/tools/tool-panel-host";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 import { useChatFontSize } from "@/lib/chat-font-prefs";
@@ -363,6 +363,24 @@ function ChatRoomContent() {
     return titleMap[panel] || panel;
   };
 
+  // Per-tool modal size config for better UX on heavy tools
+  const getToolModalSize = (panel: RightSidebarPanel | null): ToolModalSize => {
+    if (!panel) return 'lg';
+    switch (panel) {
+      case 'worksheet':
+      case 'workflow':
+        return 'xl'; // heavy editors/canvas need more space
+      case 'image-gen':
+      case 'video-gen':
+      case 'music-gen':
+      case 'research':
+      case 'map':
+        return 'xl'; // creative/research tools benefit from larger view
+      default:
+        return 'lg';
+    }
+  };
+
   return (
     <MessageReactionsProvider>
       <div
@@ -532,14 +550,16 @@ function ChatRoomContent() {
           open
           onClose={tools.collapsePanel}
           title={getToolTitle(tools.activePanel, copy)}
+          size={getToolModalSize(tools.activePanel)}
           disableBackdropClose={false}
+          contentClassName="p-0" // let individual tool panels control their internal padding when embedded
         >
           <ToolPanelHost
             key={`${currentChat?.id}-${tools.activePanel}`}
             {...sharedToolPanelProps}
             panel={tools.activePanel}
-            className="h-full"
-            // embedded={true} // optional: some tools change UI slightly in compact/modals
+            embedded={true}
+            className="h-full w-full border-0"
           />
         </ToolModal>
       )}

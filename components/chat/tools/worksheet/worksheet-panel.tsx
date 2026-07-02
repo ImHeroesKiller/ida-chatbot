@@ -1083,10 +1083,10 @@ export function WorksheetPanel({
       ref={panelRef}
       tabIndex={-1}
       className={cn(
-        "flex h-full min-h-0 flex-col border-l bg-background outline-none",
+        "flex h-full min-h-0 flex-col bg-background outline-none",
         embedded
-          ? "w-full"
-          : "relative z-10 w-[min(100%,24rem)] shrink-0 bg-muted/10 dark:bg-muted/5",
+          ? "w-full border-0"
+          : "relative z-10 w-[min(100%,24rem)] shrink-0 border-l bg-muted/10 dark:bg-muted/5",
         className,
       )}
       aria-label={copy.toolsWorksheet}

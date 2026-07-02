@@ -65,8 +65,8 @@ export function MapPanel({
   return (
     <aside
       className={cn(
-        "flex h-full min-h-0 flex-col border-l bg-background",
-        embedded ? "w-full" : "relative z-10 w-[min(100%,22rem)] shrink-0",
+        "flex h-full min-h-0 flex-col bg-background",
+        embedded ? "w-full border-0" : "relative z-10 w-[min(100%,22rem)] shrink-0 border-l",
         className,
       )}
       aria-label={copy.toolsMap}

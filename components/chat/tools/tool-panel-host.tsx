@@ -251,10 +251,10 @@ export function ToolPanelHost({
   return (
     <aside
       className={cn(
-        "flex h-full min-h-0 flex-col border-l bg-muted/10 dark:bg-muted/5",
+        "flex h-full min-h-0 flex-col",
         embedded
-          ? "w-full"
-          : "relative z-10 w-[min(100%,20rem)] shrink-0 bg-background lg:w-[min(100%,21rem)]",
+          ? "w-full border-0 bg-transparent"
+          : "relative z-10 w-[min(100%,20rem)] shrink-0 border-l bg-muted/10 dark:bg-muted/5 lg:w-[min(100%,21rem)]",
         className,
       )}
       aria-label={title}

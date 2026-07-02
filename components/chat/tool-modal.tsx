@@ -7,6 +7,8 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+export type ToolModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
+
 interface ToolModalProps {
   open: boolean;
   onClose: () => void;
@@ -15,6 +17,10 @@ interface ToolModalProps {
   className?: string;
   /** If true, clicking backdrop does not close (for complex tools) */
   disableBackdropClose?: boolean;
+  /** Size of the modal, defaults to 'lg' */
+  size?: ToolModalSize;
+  /** Additional classes for the scrollable content area (useful for heavy tools) */
+  contentClassName?: string;
 }
 
 export function ToolModal({
@@ -24,7 +30,19 @@ export function ToolModal({
   children,
   className,
   disableBackdropClose = false,
+  size = 'lg',
+  contentClassName,
 }: ToolModalProps) {
+  const sizeClasses: Record<ToolModalSize, string> = {
+    sm: 'max-w-sm',
+    md: 'max-w-2xl',
+    lg: 'max-w-4xl',
+    xl: 'max-w-6xl',
+    full: 'max-w-[95vw] w-[95vw]',
+  };
+
+  const bodyPadding = size === 'full' ? 'p-3 sm:p-4' : 'p-4 sm:p-6';
+
   // Close on Escape
   useEffect(() => {
     if (!open) return;
@@ -67,7 +85,9 @@ export function ToolModal({
             exit={{ opacity: 0, scale: 0.96, y: 20 }}
             transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
             className={cn(
-              "relative z-10 flex w-full max-w-[min(100%,_56rem)] max-h-[92vh] flex-col overflow-hidden rounded-2xl",
+              "relative z-10 flex w-full max-h-[92vh] flex-col overflow-hidden rounded-2xl",
+              sizeClasses[size],
+              size === 'full' ? 'max-h-[95vh]' : '',
               "ida-glass border border-border/40 shadow-2xl",
               "sm:rounded-3xl",
               className
@@ -92,7 +112,11 @@ export function ToolModal({
             </div>
 
             {/* Scrollable Body - tool content goes here */}
-            <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5">
+            <div className={cn(
+              "flex-1 overflow-y-auto overscroll-contain",
+              bodyPadding,
+              contentClassName
+            )}>
               {children}
             </div>
           </motion.div>
