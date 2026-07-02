@@ -138,7 +138,10 @@ export type ToolSessionCoordinator = ToolRuntimeBundle &
   ToolPanelCoordinator &
   ToolPersistenceCoordinator;
 
-/** Right panel handlers: research/web-search actions and worksheet activation. */
+/** 
+ * Tool modal handlers (replaces previous right sidebar/panel system).
+ * All "open-panel" tools now render inside ToolModal instead of right rail/sidebar.
+ */
 export type ToolPanelHandlerCoordinator = ToolRuntimeBundle &
   Pick<ToolPanelCoordinator, "openPanel" | "collapsePanel"> &
   Pick<ToolUiCoordinator, "activateWorksheet">;

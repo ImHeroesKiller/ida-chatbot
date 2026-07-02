@@ -19,17 +19,18 @@ export function useToolPanelCoordinator(entries: ToolRuntimeEntry[]) {
 
   const activePanel = useMemo(
     () => resolveActivePanel(panelControllers),
-    // Re-resolve when any tool opens or closes its panel (tool refs are stable).
+    // Re-resolve when any tool opens or closes its *modal* (previously sidebar "panel").
+    // Tool refs are stable. eslint exception intentional.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     entries.map((entry) => entry.tool.isPanelOpen),
   );
 
-  /** Close every tool sidebar panel; armed flags are unchanged. */
+  /** Close every tool modal (previously: sidebar panel); armed flags unchanged. */
   const closeAllPanels = useCallback(() => {
     closeAllPanelControllers(panelControllers);
   }, [panelControllers]);
 
-  /** Open one panel and close all others (mutual exclusion). */
+  /** Open one tool's UI as modal and close others (mutual exclusion). */
   const openPanel = useCallback(
     (panel: RightSidebarPanel) => {
       openExclusivePanel(panelControllers, panel);
@@ -37,7 +38,7 @@ export function useToolPanelCoordinator(entries: ToolRuntimeEntry[]) {
     [panelControllers],
   );
 
-  /** Toggle a panel: close if already active, otherwise open exclusively. */
+  /** Toggle tool modal: close if active, else open exclusively. */
   const togglePanel = useCallback(
     (panel: RightSidebarPanel) => {
       if (activePanel === panel) {
@@ -49,13 +50,13 @@ export function useToolPanelCoordinator(entries: ToolRuntimeEntry[]) {
     [activePanel, closeAllPanels, openPanel],
   );
 
-  /** Collapse the active sidebar panel without changing armed flags. */
+  /** Close the active tool modal without changing armed flags. */
   const collapsePanel = useCallback(() => {
     closeAllPanels();
   }, [closeAllPanels]);
 
   return {
-    activePanel,
+    activePanel, // Now represents the tool shown in modal (no more right sidebar)
     openPanel,
     togglePanel,
     collapsePanel,

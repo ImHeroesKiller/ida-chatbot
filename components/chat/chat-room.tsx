@@ -90,9 +90,9 @@ import {
   useSpeechSynthesis,
 } from "@/lib/voice/use-speech-synthesis";
 import { useVoicePrefs } from "@/lib/voice/voice-prefs";
-import { RightSidebar } from "@/components/chat/right-sidebar";
-import { DesktopToolPanel } from "@/components/chat/desktop-tool-panel";
-import { RightToolsRail } from "@/components/chat/right-tools-rail";
+import { ToolModal } from "@/components/chat/tool-modal";
+import { ToolPanelHost } from "@/components/chat/tools/tool-panel-host";
+import type { RightSidebarPanel } from "@/lib/chat-tools";
 import { useChatFontSize } from "@/lib/chat-font-prefs";
 import { cn } from "@/lib/utils";
 
@@ -132,7 +132,6 @@ function ChatRoomContent() {
 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const isMobileViewport = useIsMobileViewport();
-  const rightPanelSheetOpen = Boolean(tools.activePanel) && isMobileViewport;
 
   const {
     messages,
@@ -318,14 +317,7 @@ function ChatRoomContent() {
     return () => window.removeEventListener("keydown", handleEscape);
   }, [closeHandoff, tools]);
 
-  useEffect(() => {
-    if (!rightPanelSheetOpen) return;
 
-    const active = document.activeElement;
-    if (active instanceof HTMLElement) {
-      active.blur();
-    }
-  }, [rightPanelSheetOpen]);
 
   const { sharedToolPanelProps } = useChatToolPanelProps({
     locale,
@@ -353,6 +345,22 @@ function ChatRoomContent() {
     onDelete: deleteChat,
     onClearAll: clearAllChats,
     onNewChat: handleNewChat,
+  };
+
+  // Helper to get nice title for the tool modal (replaces old right sidebar titles)
+  const getToolTitle = (panel: RightSidebarPanel | null, copy: any): string => {
+    if (!panel) return copy.toolsMenu || "Tool";
+    const titleMap: Partial<Record<RightSidebarPanel, string>> = {
+      "web-search": copy.toolsWebSearch || "Web Search",
+      research: copy.toolsResearch || "Research",
+      map: copy.toolsMap || "Map",
+      worksheet: copy.toolsWorksheet || "Worksheet",
+      workflow: copy.toolsWorkflow || "Workflow",
+      "image-gen": copy.toolsImageGen || "Image Generation",
+      "video-gen": copy.toolsVideoGen || "Video Generation",
+      "music-gen": copy.toolsMusicGen || "Music Generation",
+    };
+    return titleMap[panel] || panel;
   };
 
   return (
@@ -515,49 +523,26 @@ function ChatRoomContent() {
             )}
           </div>
           </div>
-
-          <RightToolsRail
-            locale={locale}
-            railGroups={tools.railGroups}
-            onRailClick={tools.handleRailClick}
-            className="relative z-10 hidden shrink-0 md:flex"
-          />
-
-          {tools.activePanel ? (
-            <DesktopToolPanel className="relative z-10 hidden md:flex">
-              <RightSidebar
-                key={`${currentChat?.id}-${tools.activePanel}`}
-                {...sharedToolPanelProps}
-                panel={tools.activePanel}
-                className="h-full"
-              />
-            </DesktopToolPanel>
-          ) : null}
         </div>
       </div>
 
-      <Sheet
-        open={rightPanelSheetOpen}
-        modal
-        onOpenChange={(open) => {
-          if (!open) tools.collapsePanel();
-        }}
-      >
-        <SheetContent
-          side="right"
-          showCloseButton={false}
-          className="w-[min(100vw,26rem)] max-w-full gap-0 overflow-hidden border-l p-0 shadow-xl"
+      {/* Unified Tool Modal - replaces all previous right sidebars / rails / sheets */}
+      {tools.activePanel && (
+        <ToolModal
+          open
+          onClose={tools.collapsePanel}
+          title={getToolTitle(tools.activePanel, copy)}
+          disableBackdropClose={false}
         >
-          {tools.activePanel ? (
-            <RightSidebar
-              key={currentChat?.id}
-              {...sharedToolPanelProps}
-              panel={tools.activePanel}
-              embedded
-            />
-          ) : null}
-        </SheetContent>
-      </Sheet>
+          <ToolPanelHost
+            key={`${currentChat?.id}-${tools.activePanel}`}
+            {...sharedToolPanelProps}
+            panel={tools.activePanel}
+            className="h-full"
+            // embedded={true} // optional: some tools change UI slightly in compact/modals
+          />
+        </ToolModal>
+      )}
 
       <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
         <SheetContent

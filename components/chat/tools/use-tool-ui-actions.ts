@@ -121,17 +121,23 @@ export function useToolUiActions({
 
       const config = TOOL_UI_CONFIG[toolId];
       const kind = getToolMenuKind(toolId);
+      const panel = config.panel || config.railPanel; // support both for migration
 
       if (kind.startsWith("toggle-")) {
         toggleSetter(!entry.tool.isEnabled);
+        // For tools with UI/panel (worksheet, workflow, web-search results etc), also open the modal
+        if (panel) {
+          // After toggle, ensure the modal opens (if was off, now on + modal; if was on, still open modal)
+          openPanel(panel);
+        }
         return;
       }
 
-      if (kind === "open-panel" && config.panel) {
+      if (kind === "open-panel" && panel) {
         if (toolId === "map") {
           toggleSetter(true);
         }
-        openPanel(config.panel);
+        openPanel(panel);
       }
     },
     [entryById, openPanel, toggleSetters],
