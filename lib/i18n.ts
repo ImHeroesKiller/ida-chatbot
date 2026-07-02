@@ -197,6 +197,9 @@ export const COPY: Record<
     toolsResearch: string;
     toolsWorksheet: string;
     toolsWorkflow: string;
+    heavyToolsDesktopTitle: string;
+    heavyToolsDesktopMessage: string;
+    heavyToolsDesktopOk: string;
     workflowNew: string;
     workflowAddNode: string;
     workflowAddTrigger: string;
@@ -818,6 +821,10 @@ export const COPY: Record<
     toolsResearch: "Riset",
     toolsWorksheet: "Worksheet",
     toolsWorkflow: "Workflow",
+    heavyToolsDesktopTitle: "Tersedia di Desktop",
+    heavyToolsDesktopMessage:
+      "Fitur Worksheet dan Workflow lebih optimal di Desktop/PC/Laptop. Silakan buka IDA di komputer untuk pengalaman terbaik.",
+    heavyToolsDesktopOk: "Mengerti",
     workflowNew: "Workflow Baru",
     workflowAddNode: "Tambah Node",
     workflowAddTrigger: "Trigger",
@@ -1482,6 +1489,10 @@ export const COPY: Record<
     toolsResearch: "Research",
     toolsWorksheet: "Worksheet",
     toolsWorkflow: "Workflow",
+    heavyToolsDesktopTitle: "Available on Desktop",
+    heavyToolsDesktopMessage:
+      "Worksheet and Workflow work best on a desktop, PC, or laptop. Open IDA on a computer for the best experience.",
+    heavyToolsDesktopOk: "Got it",
     workflowNew: "New Workflow",
     workflowAddNode: "Add Node",
     workflowAddTrigger: "Trigger",
@@ -2142,6 +2153,10 @@ export const COPY: Record<
     toolsResearch: "研究",
     toolsWorksheet: "Worksheet",
     toolsWorkflow: "工作流",
+    heavyToolsDesktopTitle: "请在桌面端使用",
+    heavyToolsDesktopMessage:
+      "Worksheet 和工作流功能在桌面电脑/笔记本上体验更佳。请在电脑上打开 IDA 以获得最佳体验。",
+    heavyToolsDesktopOk: "知道了",
     workflowNew: "新工作流",
     workflowAddNode: "添加节点",
     workflowAddTrigger: "触发器",

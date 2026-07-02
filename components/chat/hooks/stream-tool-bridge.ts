@@ -45,6 +45,7 @@ export interface StreamMessageState {
 export interface StreamToolBridgeDeps {
   locale: Locale;
   isMobileViewport: boolean;
+  heavyToolsDesktop: boolean;
   tools: StreamToolCoordinator;
   persistCurrentChat: (patch: Partial<ChatSession>) => void;
   setMessages: Dispatch<SetStateAction<IdaMessage[]>>;
@@ -234,15 +235,21 @@ export function createStreamToolBridge(
     if (ctx.isActiveChat()) {
       mirrorWorksheetToPersistLayer(deps, next);
       syncWorksheetErrorDetail(deps, null);
-      deps.tools.activateWorksheet();
+      if (deps.heavyToolsDesktop) {
+        deps.tools.activateWorksheet();
+      }
       deps.setMessages(messageState.messages);
       toast.success(deps.worksheetCreatedLabel);
     }
 
     deps.persistCurrentChat({
       worksheet: persisted,
-      activeRightPanel: deps.tools.worksheet.panelId,
-      worksheetToolEnabled: true,
+      ...(deps.heavyToolsDesktop
+        ? {
+            activeRightPanel: deps.tools.worksheet.panelId,
+            worksheetToolEnabled: true,
+          }
+        : {}),
     });
   };
 
@@ -282,8 +289,10 @@ export function createStreamToolBridge(
   ) => {
     if (ctx.isActiveChat()) {
       deps.tools.workflow.syncToPersistLayer(nextWorkspace);
-      deps.tools.workflow.setEnabled(true);
-      deps.tools.openPanel(deps.tools.workflow.panelId);
+      if (deps.heavyToolsDesktop) {
+        deps.tools.workflow.setEnabled(true);
+        deps.tools.openPanel(deps.tools.workflow.panelId);
+      }
 
       if (options?.errorMessage) {
         deps.tools.workflow.setErrorDetail(options.errorMessage);
@@ -292,8 +301,12 @@ export function createStreamToolBridge(
 
     deps.persistCurrentChat({
       workflow: nextWorkspace,
-      activeRightPanel: deps.tools.workflow.panelId,
-      workflowToolEnabled: true,
+      ...(deps.heavyToolsDesktop
+        ? {
+            activeRightPanel: deps.tools.workflow.panelId,
+            workflowToolEnabled: true,
+          }
+        : {}),
     });
   };
 
@@ -364,8 +377,10 @@ export function createStreamToolBridge(
 
     if (ctx.isActiveChat()) {
       deps.tools.workflow.clearErrorDetail();
-      deps.tools.workflow.setEnabled(true);
-      deps.tools.openPanel(deps.tools.workflow.panelId);
+      if (deps.heavyToolsDesktop) {
+        deps.tools.workflow.setEnabled(true);
+        deps.tools.openPanel(deps.tools.workflow.panelId);
+      }
       deps.setMessages(messageState.messages);
       toast.success(
         mode === "edited"
@@ -378,8 +393,12 @@ export function createStreamToolBridge(
 
     deps.persistCurrentChat({
       workflow: verifiedWorkspace,
-      activeRightPanel: deps.tools.workflow.panelId,
-      workflowToolEnabled: true,
+      ...(deps.heavyToolsDesktop
+        ? {
+            activeRightPanel: deps.tools.workflow.panelId,
+            workflowToolEnabled: true,
+          }
+        : {}),
     });
   };
 
@@ -422,7 +441,7 @@ export function createStreamToolBridge(
     const code = errorCode as WorksheetErrorCode;
     const persisted = resolveWorksheetStreamError(code, null);
 
-    if (ctx.isActiveChat()) {
+    if (ctx.isActiveChat() && deps.heavyToolsDesktop) {
       mirrorWorksheetToPersistLayer(deps, persisted);
       syncWorksheetErrorDetail(deps, null);
       deps.tools.activateWorksheet();
@@ -430,8 +449,12 @@ export function createStreamToolBridge(
 
     deps.persistCurrentChat({
       worksheet: persisted,
-      activeRightPanel: deps.tools.worksheet.panelId,
-      worksheetToolEnabled: true,
+      ...(deps.heavyToolsDesktop
+        ? {
+            activeRightPanel: deps.tools.worksheet.panelId,
+            worksheetToolEnabled: true,
+          }
+        : {}),
     });
   };
 
@@ -448,7 +471,7 @@ export function createStreamToolBridge(
         errorMessage,
       );
 
-      if (ctx.isActiveChat()) {
+      if (ctx.isActiveChat() && deps.heavyToolsDesktop) {
         mirrorWorksheetToPersistLayer(deps, persisted);
         syncWorksheetErrorDetail(deps, errorMessage);
         deps.tools.activateWorksheet();
@@ -456,8 +479,12 @@ export function createStreamToolBridge(
 
       deps.persistCurrentChat({
         worksheet: persisted,
-        activeRightPanel: deps.tools.worksheet.panelId,
-        worksheetToolEnabled: true,
+        ...(deps.heavyToolsDesktop
+          ? {
+              activeRightPanel: deps.tools.worksheet.panelId,
+              worksheetToolEnabled: true,
+            }
+          : {}),
       });
     }
 
@@ -481,14 +508,20 @@ export function createStreamToolBridge(
       if (ctx.isActiveChat()) {
         deps.tools.workflow.syncToPersistLayer(persisted);
         deps.tools.workflow.setErrorDetail(errorMessage);
-        deps.tools.workflow.setEnabled(true);
-        deps.tools.openPanel(deps.tools.workflow.panelId);
+        if (deps.heavyToolsDesktop) {
+          deps.tools.workflow.setEnabled(true);
+          deps.tools.openPanel(deps.tools.workflow.panelId);
+        }
       }
 
       deps.persistCurrentChat({
         workflow: persisted,
-        activeRightPanel: deps.tools.workflow.panelId,
-        workflowToolEnabled: true,
+        ...(deps.heavyToolsDesktop
+          ? {
+              activeRightPanel: deps.tools.workflow.panelId,
+              workflowToolEnabled: true,
+            }
+          : {}),
       });
     }
   };

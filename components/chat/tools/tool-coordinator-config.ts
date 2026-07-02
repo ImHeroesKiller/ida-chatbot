@@ -25,6 +25,8 @@ export const COORDINATOR_TOOL_ORDER: ToolId[] = [
 export interface ToolRuntimeContext {
   webSearchAvailable: boolean;
   researchAvailable: boolean;
+  /** Worksheet & Workflow require desktop viewport + non-mobile UA. */
+  heavyToolsDesktop: boolean;
 }
 
 export interface ToolRuntimeBundle {
@@ -48,12 +50,14 @@ export function buildToolRuntime(
     {
       id: "worksheet",
       tool: bundle.worksheet,
-      isAvailable: () => isToolAvailable("worksheet"),
+      isAvailable: (ctx) =>
+        isToolAvailable("worksheet") && ctx.heavyToolsDesktop,
     },
     {
       id: "workflow",
       tool: bundle.workflow,
-      isAvailable: () => isToolAvailable("workflow"),
+      isAvailable: (ctx) =>
+        isToolAvailable("workflow") && ctx.heavyToolsDesktop,
     },
     {
       id: "web-search",
@@ -79,20 +83,26 @@ export function hydrateToolFromChat(
   entry: ToolRuntimeEntry,
   chat: ChatSession,
   activePanel: RightSidebarPanel | null,
+  options?: { heavyToolsDesktop?: boolean },
 ): void {
   const { id, tool } = entry;
   const panelId = tool.panelId;
-  const panelOpen = activePanel === panelId;
+  const heavyToolsDesktop = options?.heavyToolsDesktop ?? true;
+  const heavyToolBlocked =
+    !heavyToolsDesktop && (id === "worksheet" || id === "workflow");
+  const panelOpen = !heavyToolBlocked && activePanel === panelId;
 
   switch (id) {
     case "worksheet":
       (tool as WorksheetTool).hydrate({
-        enabled: resolveToolEnabled(
-          chat.worksheetToolEnabled,
-          activePanel,
-          panelId,
-          isToolAvailable("worksheet"),
-        ),
+        enabled: heavyToolBlocked
+          ? false
+          : resolveToolEnabled(
+              chat.worksheetToolEnabled,
+              activePanel,
+              panelId,
+              isToolAvailable("worksheet"),
+            ),
         panelOpen,
         workspace: chat.worksheet,
       });
@@ -100,12 +110,14 @@ export function hydrateToolFromChat(
 
     case "workflow":
       (tool as WorkflowTool).hydrate({
-        enabled: resolveToolEnabled(
-          chat.workflowToolEnabled,
-          activePanel,
-          panelId,
-          isToolAvailable("workflow"),
-        ),
+        enabled: heavyToolBlocked
+          ? false
+          : resolveToolEnabled(
+              chat.workflowToolEnabled,
+              activePanel,
+              panelId,
+              isToolAvailable("workflow"),
+            ),
         panelOpen,
         workspace: chat.workflow,
       });
@@ -190,7 +202,9 @@ export function resolveSendFlags(
 ) {
   return {
     worksheetAtSend:
-      isToolAvailable("worksheet") && bundle.worksheet.isEnabled,
+      ctx.heavyToolsDesktop &&
+      isToolAvailable("worksheet") &&
+      bundle.worksheet.isEnabled,
     webSearchAtSend:
       isToolAvailable("web-search") &&
       ctx.webSearchAvailable &&
@@ -201,6 +215,8 @@ export function resolveSendFlags(
       ctx.researchAvailable &&
       bundle.research.isEnabled,
     workflowAtSend:
-      isToolAvailable("workflow") && bundle.workflow.isEnabled,
+      ctx.heavyToolsDesktop &&
+      isToolAvailable("workflow") &&
+      bundle.workflow.isEnabled,
   };
 }

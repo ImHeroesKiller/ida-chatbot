@@ -30,6 +30,7 @@ interface UseChatSendOptions {
   autoSpeakEnabled: boolean;
   speak: (messageId: string, content: string) => void;
   isMobileViewport: boolean;
+  heavyToolsDesktop: boolean;
   copy: {
     errors: {
       rateLimit: string;
@@ -61,6 +62,7 @@ export function useChatSend({
   autoSpeakEnabled,
   speak,
   isMobileViewport,
+  heavyToolsDesktop,
   copy,
 }: UseChatSendOptions) {
   const { activeChatIdRef } = sessionRefs;
@@ -93,6 +95,7 @@ export function useChatSend({
     autoSpeakEnabled,
     speak,
     isMobileViewport,
+    heavyToolsDesktop,
   });
 
   const executeSendMessage = useCallback(
@@ -124,7 +127,9 @@ export function useChatSend({
 
       if (worksheetAtSend) {
         tools.worksheet.beginRegenerate();
-        tools.openPanel(tools.worksheet.panelId);
+        if (heavyToolsDesktop) {
+          tools.openPanel(tools.worksheet.panelId);
+        }
         if (tools.worksheet.syncToPersistLayer) {
           tools.worksheet.syncToPersistLayer();
         } else {
@@ -150,7 +155,9 @@ export function useChatSend({
 
       if (workflowAtSend) {
         tools.workflow.beginRegenerate();
-        tools.openPanel(tools.workflow.panelId);
+        if (heavyToolsDesktop) {
+          tools.openPanel(tools.workflow.panelId);
+        }
         tools.workflow.syncToPersistLayer();
         tools.workflow.clearErrorDetail();
       }
@@ -222,6 +229,7 @@ export function useChatSend({
       streamAssistantReply,
       tools,
       activeChatIdRef,
+      heavyToolsDesktop,
       isMobileViewport,
     ],
   );

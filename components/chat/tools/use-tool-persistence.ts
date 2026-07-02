@@ -14,20 +14,22 @@ import type { RightSidebarPanel } from "@/lib/chat-tools";
 interface UseToolPersistenceOptions {
   entries: ToolRuntimeEntry[];
   activePanel: RightSidebarPanel | null;
+  heavyToolsDesktop: boolean;
 }
 
 export function useToolPersistence({
   entries,
   activePanel,
+  heavyToolsDesktop,
 }: UseToolPersistenceOptions) {
   const hydrateFromChat = useCallback(
     (chat: ChatSession) => {
       const panel = chat.activeRightPanel ?? null;
       for (const entry of entries) {
-        hydrateToolFromChat(entry, chat, panel);
+        hydrateToolFromChat(entry, chat, panel, { heavyToolsDesktop });
       }
     },
-    [entries],
+    [entries, heavyToolsDesktop],
   );
 
   const resetForNewChat = useCallback(() => {

@@ -2,8 +2,11 @@
 
 import { useCallback, useMemo } from "react";
 
+import { notifyHeavyToolsDesktopOnly } from "@/components/chat/tool-rail-notify";
 import { buildRailGroups } from "@/components/chat/tools/coordinator-helpers";
 import { isToolRailPlaceholder } from "@/components/chat/tool-rail-config";
+import { isHeavyToolId } from "@/lib/client/heavy-tools-desktop";
+import type { Locale } from "@/lib/config";
 
 import {
   getToolMenuKind,
@@ -38,6 +41,7 @@ function createToggleSetter(options: {
 interface UseToolUiActionsOptions {
   entries: ToolRuntimeEntry[];
   ctx: ToolRuntimeContext;
+  locale: Locale;
   activePanel: RightSidebarPanel | null;
   openPanel: (panel: RightSidebarPanel) => void;
   togglePanel: (panel: RightSidebarPanel) => void;
@@ -46,6 +50,7 @@ interface UseToolUiActionsOptions {
 export function useToolUiActions({
   entries,
   ctx,
+  locale,
   activePanel,
   openPanel,
   togglePanel,
@@ -83,11 +88,17 @@ export function useToolUiActions({
   const activateTool = useCallback(
     (toolId: ToolId) => {
       const entry = entryById.get(toolId);
-      if (!entry?.isAvailable(ctx)) return;
+      if (!entry) return;
+      if (!entry.isAvailable(ctx)) {
+        if (!ctx.heavyToolsDesktop && isHeavyToolId(toolId)) {
+          notifyHeavyToolsDesktopOnly(locale);
+        }
+        return;
+      }
       entry.tool.setEnabled(true);
       openPanel(entry.tool.panelId);
     },
-    [ctx, entryById, openPanel],
+    [ctx, entryById, locale, openPanel],
   );
 
   const activateWorksheet = useCallback(
@@ -119,6 +130,11 @@ export function useToolUiActions({
       const toggleSetter = toggleSetters.get(toolId);
       if (!entry || !toggleSetter) return;
 
+      if (!entry.isAvailable(ctx) && !ctx.heavyToolsDesktop && isHeavyToolId(toolId)) {
+        notifyHeavyToolsDesktopOnly(locale);
+        return;
+      }
+
       const config = TOOL_UI_CONFIG[toolId];
       const kind = getToolMenuKind(toolId);
 
@@ -134,7 +150,7 @@ export function useToolUiActions({
         openPanel(config.panel);
       }
     },
-    [entryById, openPanel, toggleSetters],
+    [ctx, entryById, locale, openPanel, toggleSetters],
   );
 
   const handleRailClick = useCallback(
@@ -144,7 +160,12 @@ export function useToolUiActions({
       const entry = entryById.get(toolId);
       const toggleSetter = toggleSetters.get(toolId);
       if (!entry || !toggleSetter) return;
-      if (!entry.isAvailable(ctx)) return;
+      if (!entry.isAvailable(ctx)) {
+        if (!ctx.heavyToolsDesktop && isHeavyToolId(toolId)) {
+          notifyHeavyToolsDesktopOnly(locale);
+        }
+        return;
+      }
 
       if (!entry.tool.isEnabled) {
         toggleSetter(true);
@@ -152,7 +173,7 @@ export function useToolUiActions({
 
       togglePanel(panel);
     },
-    [ctx, entryById, togglePanel, toggleSetters],
+    [ctx, entryById, locale, togglePanel, toggleSetters],
   );
 
   const enabledFlags = entries.map((entry) => entry.tool.isEnabled);

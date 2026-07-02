@@ -5,6 +5,7 @@ import {
 } from "@/components/chat/tool-rail-config";
 import { getTool } from "@/components/chat/tools/registry";
 import type { ResearchResult } from "@/components/chat/tools/research/use-research";
+import { isHeavyToolId } from "@/lib/client/heavy-tools-desktop";
 import type { ToolId } from "@/components/chat/tools/types";
 import type { ChatSession } from "@/lib/chat-store";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
@@ -113,6 +114,8 @@ function buildRailEntry(
   const isEnabled = state?.isEnabled ?? false;
   const isExpanded = options.activePanel === panel;
   const isAvailable = state?.isAvailable ?? true;
+
+  if (isHeavyToolId(toolId) && !isAvailable) return null;
   const togglePanels: ToolId[] = [
     "web-search",
     "research",

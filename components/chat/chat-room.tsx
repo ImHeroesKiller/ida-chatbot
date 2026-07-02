@@ -73,6 +73,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { HeavyToolsDesktopDialog } from "@/components/chat/heavy-tools-desktop-dialog";
+import { useHeavyToolsDesktop } from "@/lib/client/use-heavy-tools-desktop";
 import { useIsMobileViewport } from "@/lib/client/use-media-query";
 import { useAppFeatures } from "@/lib/client/use-app-features";
 import { useChatStore } from "@/lib/chat-store";
@@ -123,6 +125,7 @@ function ChatRoomContent() {
   const { fontSize: chatFontSize } = useChatFontSize();
   const { speak } = useSpeechSynthesis();
   const appFeatures = useAppFeatures();
+  const { allowed: heavyToolsDesktop } = useHeavyToolsDesktop();
   const webSearchAvailable = Boolean(
     appFeatures?.webSearchAvailable && appFeatures?.features.webSearch,
   );
@@ -130,6 +133,8 @@ function ChatRoomContent() {
   const tools = useToolsCoordinator({
     webSearchAvailable,
     researchAvailable: webSearchAvailable,
+    locale,
+    heavyToolsDesktop,
   });
 
   const {
@@ -271,6 +276,7 @@ function ChatRoomContent() {
       appFeatures?.features.autoSpeak !== false && prefs.autoSpeak,
     speak,
     isMobileViewport,
+    heavyToolsDesktop,
     copy: {
       errors: copy.errors,
       worksheetCreated: copy.worksheetCreated,
@@ -611,6 +617,7 @@ function ChatRoomContent() {
       </Sheet>
 
       {deferredToolsReady ? <HandoffDialog /> : null}
+      <HeavyToolsDesktopDialog locale={locale} />
     </MessageReactionsProvider>
   );
 }

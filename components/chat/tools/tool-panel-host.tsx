@@ -17,6 +17,7 @@ import type { ResearchDepth } from "@/lib/research-types";
 import type { IdaWebSearchSource } from "@/lib/types";
 import type { WorksheetDocument } from "@/lib/worksheet";
 import type { WorksheetTemplate } from "@/lib/worksheet-templates";
+import { useHeavyToolsDesktop } from "@/lib/client/use-heavy-tools-desktop";
 import { COPY } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -158,6 +159,7 @@ export function ToolPanelHost({
   onResearchCreateDocumentFromCurrent,
 }: ToolPanelHostProps) {
   const copy = COPY[locale];
+  const { allowed: heavyToolsDesktop } = useHeavyToolsDesktop();
 
   if (panel === "web-search") {
     return (
@@ -209,7 +211,7 @@ export function ToolPanelHost({
     );
   }
 
-  if (panel === "workflow" && workflow) {
+  if (panel === "workflow" && workflow && heavyToolsDesktop) {
     return (
       <WorkflowPanel
         locale={locale}
@@ -222,7 +224,7 @@ export function ToolPanelHost({
     );
   }
 
-  if (panel === "worksheet") {
+  if (panel === "worksheet" && heavyToolsDesktop) {
     return (
       <WorksheetPanel
         locale={locale}

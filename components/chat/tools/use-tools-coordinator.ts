@@ -9,7 +9,10 @@ import { useToolPanelCoordinator } from "@/components/chat/tools/use-tool-panel-
 import { useToolPersistence } from "@/components/chat/tools/use-tool-persistence";
 import { useToolRuntime } from "@/components/chat/tools/use-tool-runtime";
 import { useToolUiActions } from "@/components/chat/tools/use-tool-ui-actions";
+import { notifyHeavyToolsDesktopOnly } from "@/components/chat/tool-rail-notify";
 import type { ToolId } from "@/components/chat/tools/types";
+import { isHeavyToolPanel } from "@/lib/client/heavy-tools-desktop";
+import type { Locale } from "@/lib/config";
 import type { IdaMessage } from "@/lib/types";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 
@@ -33,6 +36,8 @@ export type {
 export interface ToolsCoordinatorOptions {
   webSearchAvailable: boolean;
   researchAvailable: boolean;
+  locale: Locale;
+  heavyToolsDesktop: boolean;
 }
 
 function findEntry(
@@ -51,11 +56,21 @@ function findEntry(
 export function useToolsCoordinator(
   options: ToolsCoordinatorOptions,
 ): ToolsCoordinator {
-  const { webSearchAvailable, researchAvailable } = options;
+  const { webSearchAvailable, researchAvailable, locale, heavyToolsDesktop } =
+    options;
 
   const ctx = useMemo(
-    () => ({ webSearchAvailable, researchAvailable }),
-    [researchAvailable, webSearchAvailable],
+    () => ({ webSearchAvailable, researchAvailable, heavyToolsDesktop }),
+    [heavyToolsDesktop, researchAvailable, webSearchAvailable],
+  );
+
+  const blockHeavyToolPanel = useCallback(
+    (panel: RightSidebarPanel): boolean => {
+      if (heavyToolsDesktop || !isHeavyToolPanel(panel)) return false;
+      notifyHeavyToolsDesktopOnly(locale);
+      return true;
+    },
+    [heavyToolsDesktop, locale],
   );
 
   const { bundle, entries } = useToolRuntime();
@@ -64,6 +79,7 @@ export function useToolsCoordinator(
   const persistence = useToolPersistence({
     entries,
     activePanel: panels.activePanel,
+    heavyToolsDesktop,
   });
 
   /**
@@ -78,9 +94,10 @@ export function useToolsCoordinator(
    */
   const openPanel = useCallback(
     (panel: RightSidebarPanel) => {
+      if (blockHeavyToolPanel(panel)) return;
       panels.openPanel(panel);
     },
-    [panels],
+    [blockHeavyToolPanel, panels],
   );
 
   /**
@@ -89,14 +106,16 @@ export function useToolsCoordinator(
    */
   const togglePanel = useCallback(
     (panel: RightSidebarPanel) => {
+      if (blockHeavyToolPanel(panel)) return;
       panels.togglePanel(panel);
     },
-    [panels],
+    [blockHeavyToolPanel, panels],
   );
 
   const ui = useToolUiActions({
     entries,
     ctx,
+    locale,
     activePanel: panels.activePanel,
     openPanel,
     togglePanel,
@@ -109,7 +128,16 @@ export function useToolsCoordinator(
   const toggleTool = useCallback(
     (toolId: ToolId) => {
       const entry = findEntry(entries, toolId);
-      if (!entry?.isAvailable(ctx)) return;
+      if (!entry) return;
+      if (!entry.isAvailable(ctx)) {
+        if (
+          !heavyToolsDesktop &&
+          (toolId === "worksheet" || toolId === "workflow")
+        ) {
+          notifyHeavyToolsDesktopOnly(locale);
+        }
+        return;
+      }
 
       const { tool } = entry;
 
@@ -124,7 +152,7 @@ export function useToolsCoordinator(
       tool.setEnabled(true);
       openPanel(tool.panelId);
     },
-    [closeAllPanels, ctx, entries, openPanel, panels.activePanel],
+    [closeAllPanels, ctx, entries, heavyToolsDesktop, locale, openPanel, panels.activePanel],
   );
 
   /**

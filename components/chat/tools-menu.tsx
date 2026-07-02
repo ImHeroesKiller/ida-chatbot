@@ -22,6 +22,8 @@ import {
   TOOL_UI_CONFIG,
 } from "@/components/chat/tools";
 import type { ToolId } from "@/components/chat/tools/types";
+import { isHeavyToolId } from "@/lib/client/heavy-tools-desktop";
+import { useHeavyToolsDesktop } from "@/lib/client/use-heavy-tools-desktop";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
@@ -57,6 +59,7 @@ export function ToolsMenu({
   anchorRef: externalAnchorRef,
 }: ToolsMenuProps) {
   const copy = COPY[locale];
+  const { allowed: heavyToolsDesktop } = useHeavyToolsDesktop();
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
@@ -86,10 +89,12 @@ export function ToolsMenu({
         ...group,
         entries: group.entries.filter((entry) => {
           if (entry.comingSoon || isToolRailPlaceholder(entry.id)) return true;
-          return isToolEnabled(entry.id as ToolId);
+          const toolId = entry.id as ToolId;
+          if (!heavyToolsDesktop && isHeavyToolId(toolId)) return false;
+          return isToolEnabled(toolId);
         }),
       })).filter((group) => group.entries.length > 0),
-    [],
+    [heavyToolsDesktop],
   );
 
   const activeToolLabels = useMemo(
