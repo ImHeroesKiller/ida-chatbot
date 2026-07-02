@@ -2,6 +2,7 @@
 
 import { Download, ImageIcon as ImageIconLucide, Loader2, RefreshCw, X } from "lucide-react";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 import type { ImageGenResult, ImageGenTool } from "./use-image-gen";
 import { Button } from "@/components/ui/button";
@@ -30,8 +31,13 @@ export function ImageGenPanel({ imageGen, onClose, embedded, className }: ImageG
     return <div className="p-4 text-sm text-muted-foreground">Image tool not initialized.</div>;
   }
 
-  const handleGenerate = () => {
-    void imageGen.generate();
+  const handleGenerate = async () => {
+    try {
+      await imageGen.generate();
+    } catch (err: any) {
+      const msg = err?.message || "Image generation failed. Check your model configuration and API keys (XAI_API_KEY etc).";
+      toast.error(msg);
+    }
   };
 
   const handleUseImage = (result: ImageGenResult) => {

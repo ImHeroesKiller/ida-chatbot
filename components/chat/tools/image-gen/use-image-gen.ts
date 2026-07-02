@@ -124,9 +124,16 @@ export function useImageGen(): ImageGenTool {
 
       setLastResult(result);
       setHistory((prev) => [result, ...prev].slice(0, 10));
-    } catch (err) {
-      console.error("[image-gen] generate failed", err);
-      // Fallback to placeholder on error
+    } catch (err: any) {
+      const message = err?.message || "Image generation failed";
+      console.error("[image-gen] generate failed", message);
+
+      // For configuration errors (missing key, etc.), re-throw so UI can show clear error
+      if (message.includes("XAI_API_KEY") || message.includes("not configured") || message.includes("requires")) {
+        throw err;
+      }
+
+      // Otherwise graceful fallback to placeholder image
       const seed = finalPrompt.split("").reduce((a, c) => (a + c.charCodeAt(0)) % 100000, 0);
       const dims = aspectRatio === "16:9" ? "768/432" : aspectRatio === "9:16" ? "512/912" : "512/512";
       const fallbackUrl = `https://picsum.photos/seed/${seed}/${dims}`;
@@ -134,7 +141,7 @@ export function useImageGen(): ImageGenTool {
         id: `img-${Date.now()}`,
         prompt: finalPrompt,
         imageUrl: fallbackUrl,
-        model: "grok-imagine (fallback)",
+        model: "fallback",
         createdAt: new Date().toISOString(),
         aspectRatio,
       };

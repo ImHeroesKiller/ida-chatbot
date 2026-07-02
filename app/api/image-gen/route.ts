@@ -8,14 +8,13 @@ import { getMediaModel } from "@/lib/admin/media-models";
  * Providers supported out of box:
  * - replicate (Flux via Replicate): requires REPLICATE_API_TOKEN
  * - fal (Flux via fal.ai): requires FAL_KEY
- * 
- * For Grok Imagine / xAI: currently not in public xAI API; use Flux model or custom endpoint.
+ * - xai / grok / grok-imagine: uses XAI_API_KEY (or custom api_endpoint from the Media Model record)
  * 
  * Request body:
  * {
  *   prompt: string,
  *   aspectRatio?: "1:1" | "16:9" | "9:16",
- *   modelId?: string   // id from ida_media_models
+ *   modelId?: string   // id from ida_media_models (controls provider + model_id + endpoint)
  * }
  * 
  * Returns: { id, prompt, imageUrl, model, aspectRatio, createdAt, provider }
@@ -56,6 +55,13 @@ export async function POST(req: NextRequest) {
       effectiveProvider = "stub";
     }
 
+    // If the user has XAI_API_KEY configured, prefer real Grok Imagine
+    // even if no specific media model record was selected yet.
+    if (effectiveProvider === "stub" && process.env.XAI_API_KEY) {
+      effectiveProvider = "xai";
+      effectiveModelId = "grok-imagine";
+    }
+
     let result: GenerateResult;
 
     switch (effectiveProvider.toLowerCase()) {
@@ -72,15 +78,13 @@ export async function POST(req: NextRequest) {
       case "xai":
       case "grok":
       case "grok-imagine": {
-        // Grok Imagine not yet exposed in xAI public API (as of 2026).
-        // Fall back to a high-quality Flux model or throw informative error.
-        // For demo, we can proxy to replicate if REPLICATE key present.
-        if (process.env.REPLICATE_API_TOKEN) {
-          result = await generateWithReplicate(prompt, aspectRatio, "black-forest-labs/flux-schnell");
-          result.provider = "grok-imagine (via flux)";
-        } else {
-          throw new Error("Grok Imagine requires xAI image support or REPLICATE_API_TOKEN fallback. Configure in env.");
+        const token = process.env.XAI_API_KEY;
+        if (!token) {
+          throw new Error("XAI_API_KEY is not configured for Grok Imagine. Set it in your environment.");
         }
+        const endpoint = model?.api_endpoint || "https://api.x.ai/v1/images/generations";
+        result = await generateWithXAI(prompt, aspectRatio, effectiveModelId || "grok-imagine", endpoint);
+        result.provider = "grok-imagine";
         break;
       }
       default: {
@@ -209,6 +213,55 @@ async function generateWithFal(prompt: string, aspectRatio: string, modelId: str
   };
 }
 
+async function generateWithXAI(prompt: string, aspectRatio: string, modelId: string, endpoint: string = "https://api.x.ai/v1/images/generations"): Promise<GenerateResult> {
+  const token = process.env.XAI_API_KEY;
+  if (!token) throw new Error("XAI_API_KEY is not configured");
+
+  const size = mapAspectRatio(aspectRatio, "xai");
+
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      prompt,
+      model: modelId || "grok-imagine",  // or the model name configured in Admin > Media Models for xAI/Grok
+      n: 1,
+      size,
+      // xAI may support additional params like quality, style, etc. via default_settings in future
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(`xAI image generation failed: ${res.status} ${errText}`);
+  }
+
+  const data = await res.json();
+  const imageUrl = data.data?.[0]?.url || data.data?.[0]?.b64_json;  // support url or base64
+
+  if (!imageUrl) {
+    throw new Error("No image URL (or base64) returned from xAI");
+  }
+
+  // If base64, convert to data URL for the frontend
+  const finalImageUrl = imageUrl.startsWith("data:") || imageUrl.startsWith("http")
+    ? imageUrl
+    : `data:image/jpeg;base64,${imageUrl}`;
+
+  return {
+    id: `xai-${Date.now()}`,
+    prompt,
+    imageUrl: finalImageUrl,
+    model: modelId || "grok-imagine",
+    provider: "grok-imagine",
+    aspectRatio,
+    createdAt: new Date().toISOString(),
+  };
+}
+
 async function generateStub(prompt: string, aspectRatio: string, modelId: string): Promise<GenerateResult> {
   // Deterministic placeholder for dev / when no key configured
   await new Promise((r) => setTimeout(r, 400));
@@ -227,7 +280,7 @@ async function generateStub(prompt: string, aspectRatio: string, modelId: string
   };
 }
 
-function mapAspectRatio(aspect: string, provider: "replicate" | "fal" | "default" = "default"): string {
+function mapAspectRatio(aspect: string, provider: "replicate" | "fal" | "xai" | "default" = "default"): string {
   if (provider === "replicate" || provider === "default") {
     // replicate uses "1:1", "16:9", "9:16", "4:3", "3:2", "2:3" etc.
     const map: Record<string, string> = {
@@ -245,6 +298,15 @@ function mapAspectRatio(aspect: string, provider: "replicate" | "fal" | "default
       "9:16": "portrait_9_16",
     };
     return map[aspect] || "square";
+  }
+  if (provider === "xai") {
+    // xAI (Grok/Flux) uses OpenAI-compatible sizes
+    const map: Record<string, string> = {
+      "1:1": "1024x1024",
+      "16:9": "1792x1024",
+      "9:16": "1024x1792",
+    };
+    return map[aspect] || "1024x1024";
   }
   return aspect;
 }
