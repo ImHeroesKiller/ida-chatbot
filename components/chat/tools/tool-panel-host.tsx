@@ -1,17 +1,13 @@
 "use client";
 
-import { PanelRightClose, FileText } from "lucide-react";
+import dynamic from "next/dynamic";
+import { FileText, Loader2, PanelRightClose } from "lucide-react";
 
-import { MapPanel } from "@/components/chat/tools/map";
 import type { MapTool } from "@/components/chat/tools/map/use-map";
-import { ResearchPanel } from "@/components/chat/tools/research";
 import type { useResearch } from "@/components/chat/tools/research/use-research";
-import { WebSearchPanel } from "@/components/chat/tools/web-search";
-import type { useWebSearch } from "@/components/chat/tools/web-search/use-web-search";
 import type { WorkflowTool } from "@/components/chat/tools/use-workflow";
-import { WorkflowPanel } from "@/components/chat/tools/workflow-panel";
-import { WorksheetPanel } from "@/components/chat/tools/worksheet";
 import type { WorksheetTool } from "@/components/chat/tools/worksheet/use-worksheet";
+import type { useWebSearch } from "@/components/chat/tools/web-search/use-web-search";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
@@ -33,6 +29,55 @@ const PANEL_RENDERERS = {
   map: "map",
   worksheet: "worksheet",
 } as const;
+
+function PanelLoadingFallback({ label = "Loading panel…" }: { label?: string }) {
+  return (
+    <div className="flex h-full min-h-[14rem] flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-muted/20 p-6">
+      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      <p className="text-xs text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+const WebSearchPanel = dynamic(
+  () =>
+    import("@/components/chat/tools/web-search/web-search-panel").then(
+      (mod) => ({ default: mod.WebSearchPanel }),
+    ),
+  { loading: () => <PanelLoadingFallback label="Loading search…" /> },
+);
+
+const ResearchPanel = dynamic(
+  () =>
+    import("@/components/chat/tools/research/research-panel").then((mod) => ({
+      default: mod.ResearchPanel,
+    })),
+  { loading: () => <PanelLoadingFallback label="Loading research…" /> },
+);
+
+const MapPanel = dynamic(
+  () =>
+    import("@/components/chat/tools/map/map-panel").then((mod) => ({
+      default: mod.MapPanel,
+    })),
+  { ssr: false, loading: () => <PanelLoadingFallback label="Loading map…" /> },
+);
+
+const WorkflowPanel = dynamic(
+  () =>
+    import("@/components/chat/tools/workflow-panel").then((mod) => ({
+      default: mod.WorkflowPanel,
+    })),
+  { ssr: false, loading: () => <PanelLoadingFallback label="Loading workflow…" /> },
+);
+
+const WorksheetPanel = dynamic(
+  () =>
+    import("@/components/chat/tools/worksheet/worksheet-panel").then((mod) => ({
+      default: mod.WorksheetPanel,
+    })),
+  { ssr: false, loading: () => <PanelLoadingFallback label="Loading worksheet…" /> },
+);
 
 export interface ToolPanelHostProps {
   locale: Locale;

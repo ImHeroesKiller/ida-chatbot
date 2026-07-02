@@ -18,6 +18,13 @@ const nextConfig: NextConfig = {
       "framer-motion",
       "react-markdown",
       "react-hot-toast",
+      "reactflow",
+      "recharts",
+      "@tiptap/react",
+      "@tiptap/starter-kit",
+      "@tiptap/extension-link",
+      "@tiptap/extension-table",
+      "@tiptap/extension-text-align",
     ],
   },
   headers: async () => [

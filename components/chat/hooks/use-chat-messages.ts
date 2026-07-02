@@ -14,8 +14,9 @@ export function useChatMessages() {
     [messages],
   );
 
-  const hasUserMessages = visibleMessages.some(
-    (message) => message.role === "user",
+  const hasUserMessages = useMemo(
+    () => visibleMessages.some((message) => message.role === "user"),
+    [visibleMessages],
   );
 
   const lastAssistantMessageId = useMemo(() => {

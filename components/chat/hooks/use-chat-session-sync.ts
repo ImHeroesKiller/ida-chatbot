@@ -11,7 +11,9 @@ import {
 import { flushSync } from "react-dom";
 
 import type { WorkflowWorkspaceState } from "@/components/chat/tools/use-workflow";
+import type { WorksheetWorkspaceState } from "@/components/chat/tools/worksheet/use-worksheet";
 import type { ChatSessionRefs } from "@/components/chat/hooks/use-chat-session-refs";
+import { SESSION_SYNC_DEBOUNCE_MS } from "@/lib/client/debounce";
 import type {
   ToolPersistPatch,
   ToolSessionCoordinator,
@@ -47,6 +49,8 @@ interface UseChatSessionSyncOptions {
   hydrateWorkflowFromChat?: (chat: ChatSession) => void;
   /** Live workflow mirror — bundled into session persist for remote round-trip. */
   workflowWorkspaceRef?: MutableRefObject<WorkflowWorkspaceState>;
+  /** Live worksheet mirror — flushed before chat navigation. */
+  worksheetWorkspaceRef?: MutableRefObject<WorksheetWorkspaceState>;
   resetWorksheetForNewChat: () => void;
   resetWorkflowForNewChat?: () => void;
   onAfterSelectChat?: () => void;
@@ -73,6 +77,7 @@ export function useChatSessionSync({
   hydrateWorksheetFromChat,
   hydrateWorkflowFromChat,
   workflowWorkspaceRef,
+  worksheetWorkspaceRef,
   resetWorksheetForNewChat,
   resetWorkflowForNewChat,
   onAfterSelectChat,
@@ -119,10 +124,7 @@ export function useChatSessionSync({
     tools.hydrateFromChat,
   ]);
 
-  useEffect(() => {
-    if (!hydrated || isLoading || !currentChat) return;
-    if (!canPersistCurrentChatState()) return;
-
+  const buildSessionPersistPatch = useCallback(() => {
     const workflowSnapshot = workflowWorkspaceRef?.current;
     const workflow =
       workflowSnapshot && hasWorkflowWorkspaceContent(workflowSnapshot)
@@ -134,19 +136,56 @@ export function useChatSessionSync({
           ? createEmptyWorkflowWorkspace()
           : undefined;
 
-    persistCurrentChat({
+    const worksheetSnapshot = worksheetWorkspaceRef?.current;
+
+    return {
       messages,
       ...tools.getPersistPatch(),
+      ...(worksheetSnapshot !== undefined ? { worksheet: worksheetSnapshot } : {}),
       ...(workflow !== undefined ? { workflow } : {}),
-    });
+    };
   }, [
+    messages,
+    tools,
+    workflowWorkspaceRef,
+    worksheetWorkspaceRef,
+  ]);
+
+  const flushSessionPersist = useCallback(() => {
+    if (!hydrated || isLoading || !currentChat) return;
+    if (!canPersistCurrentChatState()) return;
+    persistCurrentChat(buildSessionPersistPatch());
+  }, [
+    buildSessionPersistPatch,
+    canPersistCurrentChatState,
     currentChat,
     hydrated,
     isLoading,
-    messages,
-    canPersistCurrentChatState,
     persistCurrentChat,
-    workflowWorkspaceRef,
+  ]);
+
+  useEffect(() => {
+    if (!hydrated || isLoading || !currentChat) return;
+    if (!canPersistCurrentChatState()) return;
+
+    const timer = window.setTimeout(() => {
+      if (!canPersistCurrentChatState()) return;
+      persistCurrentChat(buildSessionPersistPatch());
+    }, SESSION_SYNC_DEBOUNCE_MS);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (canPersistCurrentChatState()) {
+        persistCurrentChat(buildSessionPersistPatch());
+      }
+    };
+  }, [
+    buildSessionPersistPatch,
+    canPersistCurrentChatState,
+    currentChat,
+    hydrated,
+    isLoading,
+    persistCurrentChat,
     tools.activePanel,
     tools.getPersistPatch,
     tools.research.researchSessions,
@@ -157,17 +196,25 @@ export function useChatSessionSync({
     tools.map.isEnabled,
     tools.map.viewState,
     tools,
+    messages,
   ]);
 
   const handleSelectChat = useCallback(
     (chatId: string) => {
       if (!sessions.some((session) => session.id === chatId)) return;
 
+      flushSessionPersist();
       markChatSwitchPending();
       switchChat(chatId);
       onAfterSelectChat?.();
     },
-    [markChatSwitchPending, onAfterSelectChat, sessions, switchChat],
+    [
+      flushSessionPersist,
+      markChatSwitchPending,
+      onAfterSelectChat,
+      sessions,
+      switchChat,
+    ],
   );
 
   const handleNewChat = useCallback(() => {

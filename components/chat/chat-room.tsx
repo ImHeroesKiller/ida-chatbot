@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { HeaderAccountButton } from "@/components/chat/header-account-button";
 import { ChatHeader } from "@/components/chat/header";
 import { ChatHeaderMobileRedesign } from "@/components/chat/header-mobile-redesign";
@@ -249,6 +249,15 @@ function ChatRoomContent() {
     },
   });
 
+  const handleOpenWorkflowPanel = useCallback(() => {
+    tools.workflow.setEnabled(true);
+    tools.openPanel(tools.workflow.panelId);
+  }, [tools]);
+
+  const handleOpenWorksheetPanel = useCallback(() => {
+    tools.activateWorksheet();
+  }, [tools]);
+
   const { handleSelectChat, handleNewChat } = useChatSessionSync({
     hydrated,
     currentChat,
@@ -266,6 +275,7 @@ function ChatRoomContent() {
     setStreamingMessageId: chatSend.setStreamingMessageId,
     setIsLoading: chatSend.setIsLoading,
     setEditingMessageId,
+    worksheetWorkspaceRef: worksheet.worksheetWorkspaceRef,
     hydrateWorksheetFromChat: (chat) => {
       // hydrateFromChat sudah memanggil syncWorkspaceToTool (hydrateFromExternal).
       worksheet.hydrateFromChat(chat);
@@ -447,13 +457,8 @@ function ChatRoomContent() {
                       onEdit={chatSend.handleEditMessage}
                       onCancelEdit={chatSend.handleCancelEdit}
                       onSubmitEdit={chatSend.handleSubmitEdit}
-                      onOpenWorkflowPanel={() => {
-                        tools.workflow.setEnabled(true);
-                        tools.openPanel(tools.workflow.panelId);
-                      }}
-                      onOpenWorksheetPanel={() => {
-                        tools.activateWorksheet();
-                      }}
+                      onOpenWorkflowPanel={handleOpenWorkflowPanel}
+                      onOpenWorksheetPanel={handleOpenWorksheetPanel}
                     />
                   );
                 })}

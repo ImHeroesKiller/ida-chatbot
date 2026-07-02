@@ -13,6 +13,8 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
+import { SEARCH_DEBOUNCE_MS, useDebouncedValue } from "@/lib/client/debounce";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -240,6 +242,7 @@ export function KnowledgeTab() {
   const [deletingChunkId, setDeletingChunkId] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
   const [localeFilter, setLocaleFilter] = useState("");
   const [sourceTypeFilter, setSourceTypeFilter] = useState("");
   const [pageSlugFilter, setPageSlugFilter] = useState("");
@@ -269,7 +272,7 @@ export function KnowledgeTab() {
       pageSize: String(PAGE_SIZE),
     });
 
-    if (search.trim()) params.set("search", search.trim());
+    if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
     if (localeFilter) params.set("locale", localeFilter);
     if (sourceTypeFilter) params.set("sourceType", sourceTypeFilter);
     if (pageSlugFilter.trim()) params.set("pageSlug", pageSlugFilter.trim());
@@ -281,7 +284,7 @@ export function KnowledgeTab() {
     setChunks(data.chunks);
     setTotal(data.total);
     setTotalPages(data.totalPages);
-  }, [localeFilter, page, pageSlugFilter, search, sourceTypeFilter]);
+  }, [debouncedSearch, localeFilter, page, pageSlugFilter, sourceTypeFilter]);
 
   const refresh = useCallback(async () => {
     setLoading(true);

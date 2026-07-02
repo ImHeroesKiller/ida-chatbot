@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { motion } from "framer-motion";
 
 import { fadeUp } from "@/lib/ui/motion-presets";
@@ -42,7 +43,7 @@ function formatMessageTime(timestamp: number, locale: Locale): string {
   }).format(new Date(timestamp));
 }
 
-export function MessageBubble({
+function MessageBubbleComponent({
   message,
   locale,
   isStreaming,
@@ -205,3 +206,26 @@ export function MessageBubble({
     </motion.div>
   );
 }
+
+function messageBubblePropsAreEqual(
+  prev: MessageBubbleProps,
+  next: MessageBubbleProps,
+): boolean {
+  return (
+    prev.message === next.message &&
+    prev.locale === next.locale &&
+    prev.isStreaming === next.isStreaming &&
+    prev.isWelcome === next.isWelcome &&
+    prev.isLastAssistant === next.isLastAssistant &&
+    prev.isLastUser === next.isLastUser &&
+    prev.isEditing === next.isEditing &&
+    prev.onRegenerate === next.onRegenerate &&
+    prev.onEdit === next.onEdit &&
+    prev.onCancelEdit === next.onCancelEdit &&
+    prev.onSubmitEdit === next.onSubmitEdit &&
+    prev.onOpenWorkflowPanel === next.onOpenWorkflowPanel &&
+    prev.onOpenWorksheetPanel === next.onOpenWorksheetPanel
+  );
+}
+
+export const MessageBubble = memo(MessageBubbleComponent, messageBubblePropsAreEqual);

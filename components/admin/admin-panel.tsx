@@ -6,6 +6,7 @@ import {
   Database,
   LayoutDashboard,
   LineChart,
+  Loader2,
   LogOut,
   ShieldCheck,
   Palette,
@@ -13,23 +14,102 @@ import {
   Settings,
   Sparkles,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
 import { AdminLogin } from "@/components/admin/admin-login";
-import { AppearanceTab } from "@/components/admin/appearance-tab";
-import { DashboardTab } from "@/components/admin/dashboard-tab";
-import { KnowledgeTab } from "@/components/admin/knowledge-tab";
-import { LogsTab } from "@/components/admin/logs-tab";
-import { AgentModelsTab } from "@/components/admin/agent-models-tab";
-import { ModelsTab } from "@/components/admin/models-tab";
-import { SettingsTab } from "@/components/admin/settings-tab";
-import { WorkflowAnalyticsDashboard } from "@/components/admin/workflow-analytics-dashboard";
-import { WorkflowAuditTab } from "@/components/admin/workflow-audit-tab";
-import { WorkflowTriggersTab } from "@/components/admin/workflow-triggers-tab";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+function TabLoadingFallback() {
+  return (
+    <div className="mt-6 flex min-h-[12rem] items-center justify-center rounded-xl border border-dashed bg-muted/20">
+      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
+
+const DashboardTab = dynamic(
+  () =>
+    import("@/components/admin/dashboard-tab").then((mod) => ({
+      default: mod.DashboardTab,
+    })),
+  { loading: () => <TabLoadingFallback /> },
+);
+
+const ModelsTab = dynamic(
+  () =>
+    import("@/components/admin/models-tab").then((mod) => ({
+      default: mod.ModelsTab,
+    })),
+  { loading: () => <TabLoadingFallback /> },
+);
+
+const AgentModelsTab = dynamic(
+  () =>
+    import("@/components/admin/agent-models-tab").then((mod) => ({
+      default: mod.AgentModelsTab,
+    })),
+  { loading: () => <TabLoadingFallback /> },
+);
+
+const KnowledgeTab = dynamic(
+  () =>
+    import("@/components/admin/knowledge-tab").then((mod) => ({
+      default: mod.KnowledgeTab,
+    })),
+  { loading: () => <TabLoadingFallback /> },
+);
+
+const AppearanceTab = dynamic(
+  () =>
+    import("@/components/admin/appearance-tab").then((mod) => ({
+      default: mod.AppearanceTab,
+    })),
+  { loading: () => <TabLoadingFallback /> },
+);
+
+const SettingsTab = dynamic(
+  () =>
+    import("@/components/admin/settings-tab").then((mod) => ({
+      default: mod.SettingsTab,
+    })),
+  { loading: () => <TabLoadingFallback /> },
+);
+
+const LogsTab = dynamic(
+  () =>
+    import("@/components/admin/logs-tab").then((mod) => ({
+      default: mod.LogsTab,
+    })),
+  { loading: () => <TabLoadingFallback /> },
+);
+
+const WorkflowAnalyticsDashboard = dynamic(
+  () =>
+    import("@/components/admin/workflow-analytics-dashboard").then((mod) => ({
+      default: mod.WorkflowAnalyticsDashboard,
+    })),
+  { ssr: false, loading: () => <TabLoadingFallback /> },
+);
+
+const WorkflowAuditTab = dynamic(
+  () =>
+    import("@/components/admin/workflow-audit-tab").then((mod) => ({
+      default: mod.WorkflowAuditTab,
+    })),
+  { loading: () => <TabLoadingFallback /> },
+);
+
+const WorkflowTriggersTab = dynamic(
+  () =>
+    import("@/components/admin/workflow-triggers-tab").then((mod) => ({
+      default: mod.WorkflowTriggersTab,
+    })),
+  { loading: () => <TabLoadingFallback /> },
+);
 
 export function AdminPanel({
   initialAuthenticated,
@@ -130,44 +210,30 @@ export function AdminPanel({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard" className="mt-6">
-            <DashboardTab />
-          </TabsContent>
-          <TabsContent value="models" className="mt-6">
-            <ModelsTab />
-          </TabsContent>
-          <TabsContent value="agent-models" className="mt-6">
-            <AgentModelsTab />
-          </TabsContent>
-          <TabsContent value="knowledge" className="mt-6">
-            <KnowledgeTab />
-          </TabsContent>
-          <TabsContent value="appearance" className="mt-6">
-            <AppearanceTab />
-          </TabsContent>
-          <TabsContent value="settings" className="mt-6">
-            <SettingsTab />
-          </TabsContent>
-          <TabsContent value="logs" className="mt-6">
-            <LogsTab />
-          </TabsContent>
-          <TabsContent value="analytics" className="mt-6">
-            <div className="mb-4 flex justify-end">
-              <Link
-                href="/admin/analytics"
-                className="inline-flex h-8 items-center rounded-lg border px-3 text-sm hover:bg-muted"
-              >
-                Open full analytics page
-              </Link>
-            </div>
-            <WorkflowAnalyticsDashboard showBackLink={false} />
-          </TabsContent>
-          <TabsContent value="workflow-audit" className="mt-6">
-            <WorkflowAuditTab />
-          </TabsContent>
-          <TabsContent value="workflow-triggers" className="mt-6">
-            <WorkflowTriggersTab />
-          </TabsContent>
+          <div className="mt-6">
+            {tab === "dashboard" ? <DashboardTab /> : null}
+            {tab === "models" ? <ModelsTab /> : null}
+            {tab === "agent-models" ? <AgentModelsTab /> : null}
+            {tab === "knowledge" ? <KnowledgeTab /> : null}
+            {tab === "appearance" ? <AppearanceTab /> : null}
+            {tab === "settings" ? <SettingsTab /> : null}
+            {tab === "logs" ? <LogsTab /> : null}
+            {tab === "analytics" ? (
+              <>
+                <div className="mb-4 flex justify-end">
+                  <Link
+                    href="/admin/analytics"
+                    className="inline-flex h-8 items-center rounded-lg border px-3 text-sm hover:bg-muted"
+                  >
+                    Open full analytics page
+                  </Link>
+                </div>
+                <WorkflowAnalyticsDashboard showBackLink={false} />
+              </>
+            ) : null}
+            {tab === "workflow-audit" ? <WorkflowAuditTab /> : null}
+            {tab === "workflow-triggers" ? <WorkflowTriggersTab /> : null}
+          </div>
         </Tabs>
       </main>
     </div>

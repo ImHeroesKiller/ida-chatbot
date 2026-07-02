@@ -1,5 +1,5 @@
 import { AdminAnalyticsShell } from "@/components/admin/admin-analytics-shell";
-import { WorkflowAnalyticsDashboard } from "@/components/admin/workflow-analytics-dashboard";
+import { WorkflowAnalyticsDashboardLazy } from "@/components/admin/workflow-analytics-dashboard-lazy";
 import {
   isAdminAuthenticated,
   isAdminConfigured,
@@ -19,7 +19,7 @@ export default async function AdminAnalyticsPage() {
       configured={configured}
       initialAuthenticated={authenticated}
     >
-      <WorkflowAnalyticsDashboard showBackLink={false} />
+      <WorkflowAnalyticsDashboardLazy showBackLink={false} />
     </AdminAnalyticsShell>
   );
 }

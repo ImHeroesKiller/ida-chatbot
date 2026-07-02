@@ -11,6 +11,7 @@ import {
 import toast from "react-hot-toast";
 
 import type { WorksheetWorkspaceState } from "@/components/chat/tools/worksheet/use-worksheet";
+import { WORKSPACE_PERSIST_DEBOUNCE_MS } from "@/lib/client/debounce";
 import {
   createEmptyWorksheet,
   type ChatSession,
@@ -141,14 +142,25 @@ export function useWorksheetWorkspace({
     if (!hydrated || !currentChat) return;
     if (!canPersistCurrentChatState()) return;
 
-    const worksheet = hasWorksheetWorkspaceContent(worksheetWorkspace)
-      ? syncWorkspaceLegacyFields({
-          ...worksheetWorkspace,
-          updatedAt: Date.now(),
-        })
-      : createEmptyWorksheet();
+    const buildWorksheet = () =>
+      hasWorksheetWorkspaceContent(worksheetWorkspace)
+        ? syncWorkspaceLegacyFields({
+            ...worksheetWorkspace,
+            updatedAt: Date.now(),
+          })
+        : createEmptyWorksheet();
 
-    persistCurrentChat({ worksheet });
+    const timer = window.setTimeout(() => {
+      if (!canPersistCurrentChatState()) return;
+      persistCurrentChat({ worksheet: buildWorksheet() });
+    }, WORKSPACE_PERSIST_DEBOUNCE_MS);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (canPersistCurrentChatState()) {
+        persistCurrentChat({ worksheet: buildWorksheet() });
+      }
+    };
   }, [
     canPersistCurrentChatState,
     currentChat,

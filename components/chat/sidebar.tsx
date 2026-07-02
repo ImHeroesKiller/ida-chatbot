@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { SEARCH_DEBOUNCE_MS, useDebouncedValue } from "@/lib/client/debounce";
+
 import { IdaLogo } from "@/components/brand/ida-logo";
 import { ConfirmDialog } from "@/components/chat/confirm-dialog";
 import { RenameDialog } from "@/components/chat/rename-dialog";
@@ -68,6 +70,7 @@ export function ChatSidebar({
 }: ChatSidebarProps) {
   const copy = COPY[locale];
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, SEARCH_DEBOUNCE_MS);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [renameTarget, setRenameTarget] = useState<ChatSession | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -75,12 +78,12 @@ export function ChatSidebar({
   const menuRef = useRef<HTMLDivElement>(null);
 
   const filteredSessions = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
+    const query = debouncedSearchQuery.trim().toLowerCase();
     if (!query) return sessions;
     return sessions.filter((session) =>
       session.title.toLowerCase().includes(query),
     );
-  }, [sessions, searchQuery]);
+  }, [sessions, debouncedSearchQuery]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

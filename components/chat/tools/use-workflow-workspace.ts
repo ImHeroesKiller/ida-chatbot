@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import type { WorkflowWorkspaceState } from "@/components/chat/tools/use-workflow";
+import { WORKSPACE_PERSIST_DEBOUNCE_MS } from "@/lib/client/debounce";
 import type { ChatSession } from "@/lib/chat-store";
 import {
   areWorkflowWorkspaceSnapshotsEqual,
@@ -105,14 +106,25 @@ export function useWorkflowWorkspace({
     if (!hydrated || !currentChat) return;
     if (!canPersistCurrentChatState()) return;
 
-    const workflow = hasWorkflowWorkspaceContent(workflowWorkspace)
-      ? normalizeWorkflowWorkspace({
-          ...workflowWorkspace,
-          updatedAt: Date.now(),
-        })
-      : createEmptyWorkflowWorkspace();
+    const buildWorkflow = () =>
+      hasWorkflowWorkspaceContent(workflowWorkspace)
+        ? normalizeWorkflowWorkspace({
+            ...workflowWorkspace,
+            updatedAt: Date.now(),
+          })
+        : createEmptyWorkflowWorkspace();
 
-    persistCurrentChat({ workflow });
+    const timer = window.setTimeout(() => {
+      if (!canPersistCurrentChatState()) return;
+      persistCurrentChat({ workflow: buildWorkflow() });
+    }, WORKSPACE_PERSIST_DEBOUNCE_MS);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (canPersistCurrentChatState()) {
+        persistCurrentChat({ workflow: buildWorkflow() });
+      }
+    };
   }, [
     canPersistCurrentChatState,
     currentChat,
