@@ -92,17 +92,17 @@ export async function deleteMediaModel(id: string): Promise<void> {
   }
 }
 
-function normalizeMediaModel(row: any): MediaModel {
+function normalizeMediaModel(row: Record<string, unknown>): MediaModel {
   return {
-    id: row.id,
-    category: row.category,
-    name: row.name,
-    provider: row.provider,
-    model_id: row.model_id,
-    api_endpoint: row.api_endpoint,
-    is_active: row.is_active,
-    default_settings: row.default_settings || {},
-    created_at: row.created_at,
-    updated_at: row.updated_at,
+    id: row.id as string,
+    category: row.category as "image" | "video" | "music",
+    name: row.name as string,
+    provider: row.provider as string,
+    model_id: row.model_id as string,
+    api_endpoint: row.api_endpoint as string | null | undefined,
+    is_active: row.is_active as boolean,
+    default_settings: (row.default_settings as Record<string, unknown>) || {},
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string,
   };
 }

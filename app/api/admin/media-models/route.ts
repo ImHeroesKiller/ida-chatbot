@@ -25,8 +25,9 @@ export async function GET(request: NextRequest) {
 
     const models = await listMediaModels(category || undefined);
     return NextResponse.json({ models });
-  } catch (error: any) {
-    if (error.message?.includes("Unauthorized")) {
+  } catch (error: unknown) {
+    const err = error as Error;
+    if (err.message?.includes("Unauthorized")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     console.error("[admin/media-models] GET error", error);
@@ -51,14 +52,15 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ model }, { status: 201 });
-  } catch (error: any) {
-    if (error.message?.includes("Unauthorized")) {
+  } catch (error: unknown) {
+    const err = error as Error;
+    if (err.message?.includes("Unauthorized")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid input", issues: error.issues }, { status: 400 });
     }
     console.error("[admin/media-models] POST error", error);
-    return NextResponse.json({ error: error.message || "Internal error" }, { status: 500 });
+    return NextResponse.json({ error: err.message || "Internal error" }, { status: 500 });
   }
 }

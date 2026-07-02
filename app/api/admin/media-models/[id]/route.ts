@@ -25,8 +25,9 @@ export async function GET(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
     return NextResponse.json({ model });
-  } catch (error: any) {
-    if (error.message?.includes("Unauthorized")) {
+  } catch (error: unknown) {
+    const err = error as Error;
+    if (err.message?.includes("Unauthorized")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     console.error("[admin/media-models] GET [id] error", error);
@@ -53,15 +54,16 @@ export async function PUT(
       default_settings: parsed.default_settings,
     });
     return NextResponse.json({ model });
-  } catch (error: any) {
-    if (error.message?.includes("Unauthorized")) {
+  } catch (error: unknown) {
+    const err = error as Error;
+    if (err.message?.includes("Unauthorized")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid input", issues: error.issues }, { status: 400 });
     }
     console.error("[admin/media-models] PUT error", error);
-    return NextResponse.json({ error: error.message || "Internal error" }, { status: 500 });
+    return NextResponse.json({ error: err.message || "Internal error" }, { status: 500 });
   }
 }
 
@@ -74,8 +76,9 @@ export async function DELETE(
     const { id } = await params;
     await deleteMediaModel(id);
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    if (error.message?.includes("Unauthorized")) {
+  } catch (error: unknown) {
+    const err = error as Error;
+    if (err.message?.includes("Unauthorized")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     console.error("[admin/media-models] DELETE error", error);

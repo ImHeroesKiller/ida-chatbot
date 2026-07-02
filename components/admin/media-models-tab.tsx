@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageIcon, Music, Plus, Save, Trash2, Video, X } from "lucide-react";
+import { ImageIcon, Music, Plus, Save, Trash2, Video, X, type LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { MediaCategory, MediaModel } from "@/lib/admin/types";
 
-const CATEGORIES: { value: MediaCategory; label: string; icon: any }[] = [
+const CATEGORIES: { value: MediaCategory; label: string; icon: LucideIcon }[] = [
   { value: "image", label: "Image Models", icon: ImageIcon },
   { value: "video", label: "Video Models", icon: Video },
   { value: "music", label: "Music Models", icon: Music },
@@ -42,7 +42,7 @@ export function MediaModelsTab() {
       if (!res.ok) throw new Error("Failed to load");
       const data = await res.json();
       setModels(data.models || []);
-    } catch (e) {
+    } catch {
       toast.error("Failed to load media models");
     } finally {
       setLoading(false);
@@ -128,8 +128,9 @@ export function MediaModelsTab() {
       toast.success(editing ? "Model updated" : "Model created");
       closeForm();
       await loadModels(category);
-    } catch (e: any) {
-      toast.error(e.message || "Save failed");
+    } catch (error: unknown) {
+      const err = error as Error;
+      toast.error(err.message || "Save failed");
     } finally {
       setSaving(false);
     }
@@ -143,7 +144,7 @@ export function MediaModelsTab() {
       if (!res.ok) throw new Error("Delete failed");
       toast.success("Model deleted");
       await loadModels(category);
-    } catch (e) {
+    } catch {
       toast.error("Delete failed");
     }
   };
