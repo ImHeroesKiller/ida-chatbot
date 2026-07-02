@@ -124,8 +124,8 @@ export function useImageGen(): ImageGenTool {
 
       setLastResult(result);
       setHistory((prev) => [result, ...prev].slice(0, 10));
-    } catch (err: any) {
-      const message = err?.message || "Image generation failed";
+    } catch (err: unknown) {
+      const message = (err as Error)?.message || "Image generation failed";
       console.error("[image-gen] generate failed", message);
 
       // For configuration errors (missing key, etc.), re-throw so UI can show clear error
@@ -150,7 +150,7 @@ export function useImageGen(): ImageGenTool {
     } finally {
       setIsGenerating(false);
     }
-  }, [prompt, aspectRatio]);
+  }, [prompt, aspectRatio, selectedModelId]);
 
   const clearLastResult = useCallback(() => {
     setLastResult(null);

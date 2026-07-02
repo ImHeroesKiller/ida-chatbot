@@ -34,8 +34,8 @@ export function ImageGenPanel({ imageGen, onClose, embedded, className }: ImageG
   const handleGenerate = async () => {
     try {
       await imageGen.generate();
-    } catch (err: any) {
-      const msg = err?.message || "Image generation failed. Check your model configuration and API keys (XAI_API_KEY etc).";
+    } catch (err: unknown) {
+      const msg = (err as Error)?.message || "Image generation failed. Check your model configuration and API keys (XAI_API_KEY etc).";
       toast.error(msg);
     }
   };
