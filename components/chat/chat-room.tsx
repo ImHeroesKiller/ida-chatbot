@@ -47,12 +47,7 @@ const ChatComposerRedesign = dynamic(
   },
 );
 
-const ChatEmptyState = dynamic(
-  () =>
-    import("@/components/chat/chat-empty-state").then((mod) => ({
-      default: mod.ChatEmptyState,
-    })),
-);
+import { useDeferredReady } from "@/lib/client/use-deferred-ready";
 
 const HandoffDialog = dynamic(
   () =>
@@ -90,14 +85,35 @@ import {
   useSpeechSynthesis,
 } from "@/lib/voice/use-speech-synthesis";
 import { useVoicePrefs } from "@/lib/voice/voice-prefs";
-import { RightSidebar } from "@/components/chat/right-sidebar";
-import { DesktopToolPanel } from "@/components/chat/desktop-tool-panel";
-import { RightToolsRail } from "@/components/chat/right-tools-rail";
+const RightSidebar = dynamic(
+  () =>
+    import("@/components/chat/right-sidebar").then((mod) => ({
+      default: mod.RightSidebar,
+    })),
+  { ssr: false },
+);
+
+const DesktopToolPanel = dynamic(
+  () =>
+    import("@/components/chat/desktop-tool-panel").then((mod) => ({
+      default: mod.DesktopToolPanel,
+    })),
+  { ssr: false },
+);
+
+const RightToolsRail = dynamic(
+  () =>
+    import("@/components/chat/right-tools-rail").then((mod) => ({
+      default: mod.RightToolsRail,
+    })),
+  { ssr: false },
+);
 import { useChatFontSize } from "@/lib/chat-font-prefs";
 import { cn } from "@/lib/utils";
 
 
 function ChatRoomContent() {
+  const deferredToolsReady = useDeferredReady();
   const { locale, openHandoff, closeHandoff } = useChatContext();
   const { displayName, avatarUrl, isLoading: profileLoading } = useUserProfile();
   const copy = COPY[locale];
@@ -130,6 +146,8 @@ function ChatRoomContent() {
     persistCurrentChat,
   } = useChatStore(locale);
 
+
+
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const isMobileViewport = useIsMobileViewport();
   const rightPanelSheetOpen = Boolean(tools.activePanel) && isMobileViewport;
@@ -144,6 +162,18 @@ function ChatRoomContent() {
     editingMessageId,
     setEditingMessageId,
   } = useChatMessages();
+
+  useEffect(() => {
+    if (!hydrated || !hasUserMessages) {
+      delete document.documentElement.dataset.chatReady;
+      return;
+    }
+
+    document.documentElement.dataset.chatReady = "true";
+    return () => {
+      delete document.documentElement.dataset.chatReady;
+    };
+  }, [hasUserMessages, hydrated]);
 
   const sessionRefs = useChatSessionRefs(currentChat);
 
@@ -368,7 +398,7 @@ function ChatRoomContent() {
   return (
     <MessageReactionsProvider>
       <div
-        className="ida-chat-shell flex h-full min-h-0 w-full max-w-full overflow-hidden bg-background font-sans"
+        className="ida-chat-shell flex h-full min-h-0 w-full max-w-full overflow-hidden bg-transparent font-sans"
         data-chat-font-size={chatFontSize}
         data-panel-open={tools.activePanel ? "" : undefined}
         data-sidebar-collapsed={!sidebarExpanded ? "" : undefined}
@@ -433,8 +463,6 @@ function ChatRoomContent() {
                   !hasUserMessages && "min-h-full flex-1 justify-center py-8 sm:py-10",
                 )}
               >
-                {!hasUserMessages ? <ChatEmptyState locale={locale} /> : null}
-
                 {visibleMessages.map((message) => {
                   const isStreaming = message.id === chatSend.streamingMessageId;
                   const isEmptyStreaming =
@@ -521,14 +549,16 @@ function ChatRoomContent() {
           </div>
           </div>
 
-          <RightToolsRail
-            locale={locale}
-            railGroups={tools.railGroups}
-            onRailClick={tools.handleRailClick}
-            className="relative z-10 hidden shrink-0 md:flex"
-          />
+          {deferredToolsReady ? (
+            <RightToolsRail
+              locale={locale}
+              railGroups={tools.railGroups}
+              onRailClick={tools.handleRailClick}
+              className="relative z-10 hidden shrink-0 md:flex"
+            />
+          ) : null}
 
-          {tools.activePanel ? (
+          {deferredToolsReady && tools.activePanel ? (
             <DesktopToolPanel className="relative z-10 hidden md:flex">
               <RightSidebar
                 key={`${currentChat?.id}-${tools.activePanel}`}
@@ -580,7 +610,7 @@ function ChatRoomContent() {
         </SheetContent>
       </Sheet>
 
-      <HandoffDialog />
+      {deferredToolsReady ? <HandoffDialog /> : null}
     </MessageReactionsProvider>
   );
 }

@@ -25,6 +25,8 @@ const nextConfig: NextConfig = {
       "@tiptap/extension-link",
       "@tiptap/extension-table",
       "@tiptap/extension-text-align",
+      "@supabase/supabase-js",
+      "@tanstack/react-query",
     ],
   },
   headers: async () => [

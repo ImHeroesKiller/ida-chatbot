@@ -249,6 +249,15 @@ html[data-ida-animation="none"] *::after {
     max-width: 100%;
   }
 
+  html[data-chat-ready] #chat-lcp-shell {
+    display: none;
+  }
+
+  html[data-chat-ready] .ida-chat-shell {
+    background-color: var(--background);
+    backdrop-filter: none;
+  }
+
   .ida-chat-shell[data-chat-font-size="small"] {
     --ida-font-chat: 15px;
     --ida-font-chat-input: 15.5px;

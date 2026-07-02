@@ -2,9 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
 import { contrastForeground, normalizeHexColor } from "@/lib/ui-config/color";
 import { Inter } from "next/font/google";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-
+import { DeferredAnalytics } from "@/components/performance/deferred-analytics";
 import { WebVitalsReporter } from "@/components/performance/web-vitals-reporter";
 import { PreconnectLinks } from "@/components/performance/preconnect-links";
 import { StructuredData } from "@/components/seo/structured-data";
@@ -156,8 +154,7 @@ export default function RootLayout({
           <ThemeProvider>
             {children}
             <WebVitalsReporter />
-            <Analytics />
-            <SpeedInsights />
+            <DeferredAnalytics />
           </ThemeProvider>
         </GlobalUiProvider>
       </body>

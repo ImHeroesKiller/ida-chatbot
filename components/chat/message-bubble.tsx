@@ -1,9 +1,6 @@
 "use client";
 
 import { memo } from "react";
-import { motion } from "framer-motion";
-
-import { fadeUp } from "@/lib/ui/motion-presets";
 
 import { AttachmentPreview } from "@/components/chat/attachment-preview";
 import { ChatToolResultCard } from "@/components/chat/chat-tool-result-card";
@@ -78,13 +75,7 @@ function MessageBubbleComponent({
   const actionContent = displayText.trim();
 
   return (
-    <motion.div
-      initial={{
-        ...fadeUp.initial,
-        x: isUser ? 12 : -12,
-      }}
-      animate={{ ...fadeUp.animate, x: 0 }}
-      transition={fadeUp.transition}
+    <div
       className={cn(
         "group/message flex w-full",
         isUser ? "justify-end" : "justify-start",
@@ -203,7 +194,7 @@ function MessageBubbleComponent({
           ) : null}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

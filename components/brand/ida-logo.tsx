@@ -3,7 +3,12 @@ import type React from "react";
 
 import { cn } from "@/lib/utils";
 
-const LOGO_SRC = "/ida-logo.png";
+const LOGO_SRC_PNG = "/ida-logo.png";
+const LOGO_SRC_WEBP = "/ida-logo-small.webp";
+
+function resolveLogoSrc(px: number): string {
+  return px <= 80 ? LOGO_SRC_WEBP : LOGO_SRC_PNG;
+}
 
 export type IdaLogoSize =
   | number
@@ -64,7 +69,7 @@ export function IdaLogo({
       }
     >
       <Image
-        src={LOGO_SRC}
+        src={resolveLogoSrc(px)}
         alt={alt}
         width={px}
         height={px}

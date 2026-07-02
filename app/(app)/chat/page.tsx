@@ -1,10 +1,11 @@
-import { ChatProvider } from "@/components/chat/chat-provider";
-import { ChatRoomLazy } from "@/components/chat/chat-room-lazy";
+import { ChatLcpShell } from "@/components/chat/chat-lcp-shell";
+import { ChatPageClient } from "@/components/chat/chat-page-client";
 
 export default function ChatPage() {
   return (
-    <ChatProvider defaultLocale="id">
-      <ChatRoomLazy />
-    </ChatProvider>
+    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+      <ChatLcpShell />
+      <ChatPageClient />
+    </div>
   );
 }
