@@ -44,6 +44,7 @@ interface UseChatStreamOptions {
   autoSpeakEnabled: boolean;
   speak: (messageId: string, content: string) => void;
   isMobileViewport: boolean;
+  desktopSidebar: boolean;
   heavyToolsDesktop: boolean;
 }
 
@@ -63,6 +64,7 @@ export function useChatStream({
   autoSpeakEnabled,
   speak,
   isMobileViewport,
+  desktopSidebar,
   heavyToolsDesktop,
 }: UseChatStreamOptions) {
   const { activeChatIdRef } = sessionRefs;
@@ -103,6 +105,7 @@ export function useChatStream({
       const bridgeDeps: StreamToolBridgeDeps = {
         locale,
         isMobileViewport,
+        desktopSidebar,
         heavyToolsDesktop,
         tools,
         persistCurrentChat,
@@ -304,8 +307,9 @@ export function useChatStream({
       speak,
       tools,
       worksheetWorkspaceRef,
-      isMobileViewport,
+      desktopSidebar,
       heavyToolsDesktop,
+      isMobileViewport,
     ],
   );
 

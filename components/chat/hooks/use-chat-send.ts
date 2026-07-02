@@ -30,6 +30,7 @@ interface UseChatSendOptions {
   autoSpeakEnabled: boolean;
   speak: (messageId: string, content: string) => void;
   isMobileViewport: boolean;
+  desktopSidebar: boolean;
   heavyToolsDesktop: boolean;
   copy: {
     errors: {
@@ -62,6 +63,7 @@ export function useChatSend({
   autoSpeakEnabled,
   speak,
   isMobileViewport,
+  desktopSidebar,
   heavyToolsDesktop,
   copy,
 }: UseChatSendOptions) {
@@ -95,6 +97,7 @@ export function useChatSend({
     autoSpeakEnabled,
     speak,
     isMobileViewport,
+    desktopSidebar,
     heavyToolsDesktop,
   });
 
@@ -143,14 +146,16 @@ export function useChatSend({
 
       if (webSearchAtSend && text) {
         tools.webSearch.beginSearch(text);
-        if (!isMobileViewport) {
+        if (desktopSidebar) {
           tools.openPanel(tools.webSearch.panelId);
         }
       }
 
       if (researchAtSend && text) {
         tools.research.beginChatResearch();
-        tools.openPanel(tools.research.panelId);
+        if (desktopSidebar) {
+          tools.openPanel(tools.research.panelId);
+        }
       }
 
       if (workflowAtSend) {
@@ -229,6 +234,7 @@ export function useChatSend({
       streamAssistantReply,
       tools,
       activeChatIdRef,
+      desktopSidebar,
       heavyToolsDesktop,
       isMobileViewport,
     ],

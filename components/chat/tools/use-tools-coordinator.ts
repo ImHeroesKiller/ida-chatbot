@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 
 import type { ToolsCoordinator } from "@/components/chat/tools/coordinator-types";
 import { resolveSendFlags } from "@/components/chat/tools/tool-coordinator-config";
@@ -38,6 +38,7 @@ export interface ToolsCoordinatorOptions {
   researchAvailable: boolean;
   locale: Locale;
   heavyToolsDesktop: boolean;
+  desktopSidebar: boolean;
 }
 
 function findEntry(
@@ -56,12 +57,22 @@ function findEntry(
 export function useToolsCoordinator(
   options: ToolsCoordinatorOptions,
 ): ToolsCoordinator {
-  const { webSearchAvailable, researchAvailable, locale, heavyToolsDesktop } =
-    options;
+  const {
+    webSearchAvailable,
+    researchAvailable,
+    locale,
+    heavyToolsDesktop,
+    desktopSidebar,
+  } = options;
 
   const ctx = useMemo(
-    () => ({ webSearchAvailable, researchAvailable, heavyToolsDesktop }),
-    [heavyToolsDesktop, researchAvailable, webSearchAvailable],
+    () => ({
+      webSearchAvailable,
+      researchAvailable,
+      heavyToolsDesktop,
+      desktopSidebar,
+    }),
+    [desktopSidebar, heavyToolsDesktop, researchAvailable, webSearchAvailable],
   );
 
   const blockHeavyToolPanel = useCallback(
@@ -80,7 +91,14 @@ export function useToolsCoordinator(
     entries,
     activePanel: panels.activePanel,
     heavyToolsDesktop,
+    desktopSidebar,
   });
+
+  useEffect(() => {
+    if (!desktopSidebar && panels.activePanel) {
+      panels.closeAllPanels();
+    }
+  }, [desktopSidebar, panels.activePanel, panels.closeAllPanels]);
 
   /**
    * Close every sidebar panel. Does not change which tools are armed.
@@ -95,9 +113,10 @@ export function useToolsCoordinator(
   const openPanel = useCallback(
     (panel: RightSidebarPanel) => {
       if (blockHeavyToolPanel(panel)) return;
+      if (!desktopSidebar) return;
       panels.openPanel(panel);
     },
-    [blockHeavyToolPanel, panels],
+    [blockHeavyToolPanel, desktopSidebar, panels],
   );
 
   /**
@@ -107,9 +126,10 @@ export function useToolsCoordinator(
   const togglePanel = useCallback(
     (panel: RightSidebarPanel) => {
       if (blockHeavyToolPanel(panel)) return;
+      if (!desktopSidebar) return;
       panels.togglePanel(panel);
     },
-    [blockHeavyToolPanel, panels],
+    [blockHeavyToolPanel, desktopSidebar, panels],
   );
 
   const ui = useToolUiActions({

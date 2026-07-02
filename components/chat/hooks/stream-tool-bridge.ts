@@ -45,6 +45,7 @@ export interface StreamMessageState {
 export interface StreamToolBridgeDeps {
   locale: Locale;
   isMobileViewport: boolean;
+  desktopSidebar: boolean;
   heavyToolsDesktop: boolean;
   tools: StreamToolCoordinator;
   persistCurrentChat: (patch: Partial<ChatSession>) => void;
@@ -134,7 +135,7 @@ export function createStreamToolBridge(
         deps.tools.webSearch.setLastQuery(queries[queries.length - 1] ?? null);
       }
       deps.tools.webSearch.setEnabled(true);
-      if (!deps.isMobileViewport) {
+      if (deps.desktopSidebar) {
         deps.tools.openPanel(deps.tools.webSearch.panelId);
       }
     } else {
@@ -490,14 +491,16 @@ export function createStreamToolBridge(
 
     if (flags.useWebSearch && ctx.isActiveChat()) {
       deps.tools.webSearch.finishSearchError(errorMessage);
-      if (!deps.isMobileViewport) {
+      if (deps.desktopSidebar) {
         deps.tools.openPanel(deps.tools.webSearch.panelId);
       }
     }
 
     if (flags.useResearch && ctx.isActiveChat()) {
       deps.tools.research.endChatResearch();
-      deps.tools.openPanel(deps.tools.research.panelId);
+      if (deps.desktopSidebar) {
+        deps.tools.openPanel(deps.tools.research.panelId);
+      }
     }
 
     if (flags.useWorkflow) {

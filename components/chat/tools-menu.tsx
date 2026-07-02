@@ -14,6 +14,7 @@ import { createPortal } from "react-dom";
 
 import { notifyToolComingSoon } from "@/components/chat/tool-rail-notify";
 import {
+  isMobileToolsMenuGroup,
   isToolRailPlaceholder,
   TOOL_RAIL_GROUPS,
 } from "@/components/chat/tool-rail-config";
@@ -23,6 +24,7 @@ import {
 } from "@/components/chat/tools";
 import type { ToolId } from "@/components/chat/tools/types";
 import { isHeavyToolId } from "@/lib/client/heavy-tools-desktop";
+import { useDesktopSidebar } from "@/lib/client/use-desktop-sidebar";
 import { useHeavyToolsDesktop } from "@/lib/client/use-heavy-tools-desktop";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/config";
@@ -59,6 +61,7 @@ export function ToolsMenu({
   anchorRef: externalAnchorRef,
 }: ToolsMenuProps) {
   const copy = COPY[locale];
+  const desktopSidebar = useDesktopSidebar();
   const { allowed: heavyToolsDesktop } = useHeavyToolsDesktop();
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
@@ -85,16 +88,20 @@ export function ToolsMenu({
 
   const menuGroups = useMemo(
     () =>
-      TOOL_RAIL_GROUPS.map((group) => ({
-        ...group,
-        entries: group.entries.filter((entry) => {
-          if (entry.comingSoon || isToolRailPlaceholder(entry.id)) return true;
-          const toolId = entry.id as ToolId;
-          if (!heavyToolsDesktop && isHeavyToolId(toolId)) return false;
-          return isToolEnabled(toolId);
-        }),
-      })).filter((group) => group.entries.length > 0),
-    [heavyToolsDesktop],
+      TOOL_RAIL_GROUPS.filter(
+        (group) => desktopSidebar || isMobileToolsMenuGroup(group.id),
+      )
+        .map((group) => ({
+          ...group,
+          entries: group.entries.filter((entry) => {
+            if (entry.comingSoon || isToolRailPlaceholder(entry.id)) return true;
+            const toolId = entry.id as ToolId;
+            if (!heavyToolsDesktop && isHeavyToolId(toolId)) return false;
+            return isToolEnabled(toolId);
+          }),
+        }))
+        .filter((group) => group.entries.length > 0),
+    [desktopSidebar, heavyToolsDesktop],
   );
 
   const activeToolLabels = useMemo(
@@ -141,32 +148,18 @@ export function ToolsMenu({
   useEffect(() => {
     if (!open) return;
 
-    const handlePointerDown = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (
-        positioningRef.current?.contains(target) ||
-        menuRef.current?.contains(target)
-      ) {
-        return;
-      }
-      setOpen(false);
-    };
-
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
 
-    document.addEventListener("mousedown", handlePointerDown);
     document.addEventListener("keydown", handleEscape);
     return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [open]);
+  }, [open, setOpen]);
 
   const handleToolClick = (toolId: ToolId) => {
     onToolClick(toolId);
-    setOpen(false);
   };
 
   const menuContent = open ? (
@@ -209,7 +202,6 @@ export function ToolsMenu({
                   role="menuitem"
                   onClick={() => {
                     notifyToolComingSoon(locale, entry.labelKey);
-                    setOpen(false);
                   }}
                   className={cn(
                     "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs",

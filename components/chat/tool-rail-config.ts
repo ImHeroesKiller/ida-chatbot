@@ -58,6 +58,13 @@ export interface ToolRailEntryConfig {
   comingSoon?: boolean;
 }
 
+/** Tool menu groups on viewports <1024px: basic research tools + creativity. */
+export const MOBILE_TOOLS_MENU_GROUP_IDS = ["research", "creative"] as const;
+
+export function isMobileToolsMenuGroup(groupId: string): boolean {
+  return (MOBILE_TOOLS_MENU_GROUP_IDS as readonly string[]).includes(groupId);
+}
+
 export const TOOL_RAIL_GROUPS: ToolRailGroupConfig[] = [
   {
     id: "research",

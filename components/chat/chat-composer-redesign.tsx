@@ -599,10 +599,7 @@ export function ChatComposerRedesign({
           onOpenChange={setToolsMenuOpen}
           hideTrigger
           anchorRef={toolsButtonRef}
-          onToolClick={(toolId) => {
-            onToolMenuClick(toolId);
-            if (toolId !== "web-search") setToolsMenuOpen(false);
-          }}
+          onToolClick={onToolMenuClick}
         />
 
         <input

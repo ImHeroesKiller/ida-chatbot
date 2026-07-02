@@ -15,21 +15,26 @@ interface UseToolPersistenceOptions {
   entries: ToolRuntimeEntry[];
   activePanel: RightSidebarPanel | null;
   heavyToolsDesktop: boolean;
+  desktopSidebar: boolean;
 }
 
 export function useToolPersistence({
   entries,
   activePanel,
   heavyToolsDesktop,
+  desktopSidebar,
 }: UseToolPersistenceOptions) {
   const hydrateFromChat = useCallback(
     (chat: ChatSession) => {
-      const panel = chat.activeRightPanel ?? null;
+      const panel = desktopSidebar ? (chat.activeRightPanel ?? null) : null;
       for (const entry of entries) {
-        hydrateToolFromChat(entry, chat, panel, { heavyToolsDesktop });
+        hydrateToolFromChat(entry, chat, panel, {
+          heavyToolsDesktop,
+          desktopSidebar,
+        });
       }
     },
-    [entries, heavyToolsDesktop],
+    [desktopSidebar, entries, heavyToolsDesktop],
   );
 
   const resetForNewChat = useCallback(() => {
@@ -40,7 +45,7 @@ export function useToolPersistence({
 
   const getPersistPatch = useCallback(() => {
     const patch: Partial<ChatSession> = {
-      activeRightPanel: activePanel,
+      activeRightPanel: desktopSidebar ? activePanel : null,
     };
 
     for (const entry of entries) {
@@ -48,7 +53,7 @@ export function useToolPersistence({
     }
 
     return patch;
-  }, [activePanel, entries]);
+  }, [activePanel, desktopSidebar, entries]);
 
   return {
     hydrateFromChat,

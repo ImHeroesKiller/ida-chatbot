@@ -74,6 +74,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { HeavyToolsDesktopDialog } from "@/components/chat/heavy-tools-desktop-dialog";
+import { useDesktopSidebar } from "@/lib/client/use-desktop-sidebar";
 import { useHeavyToolsDesktop } from "@/lib/client/use-heavy-tools-desktop";
 import { useIsMobileViewport } from "@/lib/client/use-media-query";
 import { useAppFeatures } from "@/lib/client/use-app-features";
@@ -126,6 +127,7 @@ function ChatRoomContent() {
   const { speak } = useSpeechSynthesis();
   const appFeatures = useAppFeatures();
   const { allowed: heavyToolsDesktop } = useHeavyToolsDesktop();
+  const desktopSidebar = useDesktopSidebar();
   const webSearchAvailable = Boolean(
     appFeatures?.webSearchAvailable && appFeatures?.features.webSearch,
   );
@@ -135,6 +137,7 @@ function ChatRoomContent() {
     researchAvailable: webSearchAvailable,
     locale,
     heavyToolsDesktop,
+    desktopSidebar,
   });
 
   const {
@@ -155,7 +158,6 @@ function ChatRoomContent() {
 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const isMobileViewport = useIsMobileViewport();
-  const rightPanelSheetOpen = Boolean(tools.activePanel) && isMobileViewport;
 
   const {
     messages,
@@ -276,6 +278,7 @@ function ChatRoomContent() {
       appFeatures?.features.autoSpeak !== false && prefs.autoSpeak,
     speak,
     isMobileViewport,
+    desktopSidebar,
     heavyToolsDesktop,
     copy: {
       errors: copy.errors,
@@ -363,15 +366,6 @@ function ChatRoomContent() {
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, [closeHandoff, tools]);
-
-  useEffect(() => {
-    if (!rightPanelSheetOpen) return;
-
-    const active = document.activeElement;
-    if (active instanceof HTMLElement) {
-      active.blur();
-    }
-  }, [rightPanelSheetOpen]);
 
   const { sharedToolPanelProps } = useChatToolPanelProps({
     locale,
@@ -527,7 +521,7 @@ function ChatRoomContent() {
                 isAnyToolActive={tools.isAnyToolActive}
                 onToolMenuClick={tools.handleMenuToolClick}
                 onInternetToggle={() =>
-                  tools.toggleWebSearchInternet(!isMobileViewport)
+                  tools.toggleWebSearchInternet(desktopSidebar)
                 }
                 onInputChange={chatSend.setInput}
                 onSend={(content, options) =>
@@ -560,12 +554,12 @@ function ChatRoomContent() {
               locale={locale}
               railGroups={tools.railGroups}
               onRailClick={tools.handleRailClick}
-              className="relative z-10 hidden shrink-0 md:flex"
+              className="relative z-10 hidden shrink-0 lg:flex"
             />
           ) : null}
 
           {deferredToolsReady && tools.activePanel ? (
-            <DesktopToolPanel className="relative z-10 hidden md:flex">
+            <DesktopToolPanel className="relative z-10 hidden lg:flex">
               <RightSidebar
                 key={`${currentChat?.id}-${tools.activePanel}`}
                 {...sharedToolPanelProps}
@@ -576,29 +570,6 @@ function ChatRoomContent() {
           ) : null}
         </div>
       </div>
-
-      <Sheet
-        open={rightPanelSheetOpen}
-        modal
-        onOpenChange={(open) => {
-          if (!open) tools.collapsePanel();
-        }}
-      >
-        <SheetContent
-          side="right"
-          showCloseButton={false}
-          className="w-[min(100vw,26rem)] max-w-full gap-0 overflow-hidden border-l p-0 shadow-xl"
-        >
-          {tools.activePanel ? (
-            <RightSidebar
-              key={currentChat?.id}
-              {...sharedToolPanelProps}
-              panel={tools.activePanel}
-              embedded
-            />
-          ) : null}
-        </SheetContent>
-      </Sheet>
 
       <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
         <SheetContent

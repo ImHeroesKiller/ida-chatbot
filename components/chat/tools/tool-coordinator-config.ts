@@ -27,6 +27,8 @@ export interface ToolRuntimeContext {
   researchAvailable: boolean;
   /** Worksheet & Workflow require desktop viewport + non-mobile UA. */
   heavyToolsDesktop: boolean;
+  /** Right sidebar is visible at ≥1024px. */
+  desktopSidebar: boolean;
 }
 
 export interface ToolRuntimeBundle {
@@ -83,14 +85,16 @@ export function hydrateToolFromChat(
   entry: ToolRuntimeEntry,
   chat: ChatSession,
   activePanel: RightSidebarPanel | null,
-  options?: { heavyToolsDesktop?: boolean },
+  options?: { heavyToolsDesktop?: boolean; desktopSidebar?: boolean },
 ): void {
   const { id, tool } = entry;
   const panelId = tool.panelId;
   const heavyToolsDesktop = options?.heavyToolsDesktop ?? true;
+  const desktopSidebar = options?.desktopSidebar ?? true;
   const heavyToolBlocked =
     !heavyToolsDesktop && (id === "worksheet" || id === "workflow");
-  const panelOpen = !heavyToolBlocked && activePanel === panelId;
+  const panelOpen =
+    desktopSidebar && !heavyToolBlocked && activePanel === panelId;
 
   switch (id) {
     case "worksheet":
