@@ -73,11 +73,35 @@ export function ImageGenPanel({ imageGen, onClose, embedded, className }: ImageG
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-3 space-y-4">
-        {/* Model info */}
-        <div className="rounded-lg border bg-muted/30 p-2.5 text-xs">
-          <div className="font-medium text-primary">Grok Imagine</div>
-          <div className="text-muted-foreground mt-0.5">
-            Default model. Change in <span className="font-mono">Admin → Media Models</span>
+        {/* Model selection from Admin DB */}
+        <div className="space-y-1.5">
+          <Label className="text-xs font-medium">Model (from Admin Media Models)</Label>
+          <select
+            className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+            value={imageGen.selectedModelId || ""}
+            onChange={(e) => imageGen.setSelectedModelId(e.target.value || null)}
+            disabled={imageGen.isGenerating || imageGen.availableModels.length === 0}
+          >
+            <option value="">-- Select a model --</option>
+            {imageGen.availableModels.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name} ({m.provider})
+              </option>
+            ))}
+          </select>
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+            <span>
+              Manage in <span className="font-mono">Admin → Media Models</span>
+            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 px-2 text-[10px]" 
+              onClick={() => imageGen.loadModels()}
+              disabled={imageGen.isGenerating}
+            >
+              Refresh
+            </Button>
           </div>
         </div>
 
@@ -113,6 +137,10 @@ export function ImageGenPanel({ imageGen, onClose, embedded, className }: ImageG
             ))}
           </div>
         </div>
+
+        {!imageGen.selectedModelId && imageGen.availableModels.length > 0 && (
+          <p className="text-[11px] text-amber-600">Select a model from the list above to use a real provider (Grok/Flux). Otherwise falls back to placeholder.</p>
+        )}
 
         <Button
           onClick={handleGenerate}

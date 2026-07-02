@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   applyBaseHydration,
@@ -29,6 +29,10 @@ export interface ImageGenTool extends BaseToolState, BaseToolLifecycle {
   isGenerating: boolean;
   lastResult: ImageGenResult | null;
   history: ImageGenResult[];
+  availableModels: Array<{ id: string; name: string; provider: string; model_id: string }>;
+  selectedModelId: string | null;
+  setSelectedModelId: (id: string | null) => void;
+  loadModels: () => Promise<void>;
   generate: (customPrompt?: string) => Promise<void>;
   clearLastResult: () => void;
   useResultAsAttachment: (result: ImageGenResult) => void; // for future chat integration
@@ -51,6 +55,10 @@ export function useImageGen(): ImageGenTool {
   const [lastResult, setLastResult] = useState<ImageGenResult | null>(null);
   const [history, setHistory] = useState<ImageGenResult[]>([]);
 
+  // Media model selection from DB (Admin managed)
+  const [availableModels, setAvailableModels] = useState<Array<{ id: string; name: string; provider: string; model_id: string }>>([]);
+  const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
+
   const { setEnabled, toggleTool, openPanel, closePanel } = createBaseToolActions({
     setIsEnabled,
     setIsPanelOpen,
@@ -58,6 +66,28 @@ export function useImageGen(): ImageGenTool {
       // optional cleanup
     },
   });
+
+  const loadModels = useCallback(async () => {
+    try {
+      const res = await fetch("/api/media-models?category=image");
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableModels(data.models || []);
+        if (!selectedModelId && data.models?.length > 0) {
+          setSelectedModelId(data.models[0].id);
+        }
+      }
+    } catch (err) {
+      console.warn("[image-gen] failed to load models", err);
+    }
+  }, [selectedModelId]);
+
+  // Auto-load models when panel opens
+  useEffect(() => {
+    if (isPanelOpen && availableModels.length === 0) {
+      void loadModels();
+    }
+  }, [isPanelOpen, availableModels.length, loadModels]);
 
   const generate = useCallback(async (customPrompt?: string) => {
     const finalPrompt = (customPrompt ?? prompt).trim();
@@ -72,11 +102,14 @@ export function useImageGen(): ImageGenTool {
         body: JSON.stringify({
           prompt: finalPrompt,
           aspectRatio,
-          model: "grok-imagine", // TODO: resolveToolModel from admin config
+          modelId: selectedModelId, // from Admin Media Models DB
         }),
       });
 
-      if (!res.ok) throw new Error("Image generation request failed");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Image generation request failed");
+      }
 
       const data = await res.json();
 
@@ -84,7 +117,7 @@ export function useImageGen(): ImageGenTool {
         id: data.id || `img-${Date.now()}`,
         prompt: data.prompt || finalPrompt,
         imageUrl: data.imageUrl,
-        model: data.model || "grok-imagine",
+        model: data.model || selectedModelId || "unknown",
         createdAt: data.createdAt || new Date().toISOString(),
         aspectRatio: data.aspectRatio || aspectRatio,
       };
@@ -151,6 +184,10 @@ export function useImageGen(): ImageGenTool {
     isGenerating,
     lastResult,
     history,
+    availableModels,
+    selectedModelId,
+    setSelectedModelId,
+    loadModels,
     generate,
     clearLastResult,
     useResultAsAttachment,

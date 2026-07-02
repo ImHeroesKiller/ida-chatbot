@@ -244,3 +244,18 @@ export interface AdminStats {
   recentActivity: RequestLogRow[];
   platform: PlatformStats;
 }
+
+export type MediaCategory = "image" | "video" | "music";
+
+export interface MediaModel {
+  id: string;
+  category: MediaCategory;
+  name: string;
+  provider: string;
+  model_id: string;
+  api_endpoint?: string | null;
+  is_active: boolean;
+  default_settings: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
