@@ -50,6 +50,13 @@ export interface IdaMessage {
   researchSummary?: string;
   workflowResult?: IdaWorkflowResultCard;
   worksheetResult?: IdaWorksheetResultCard;
+  /** Map location points attached for chat cards (click opens map modal + shows dist/time). */
+  mapLocations?: Array<{
+    id?: string;
+    lat: number;
+    lng: number;
+    label?: string;
+  }>;
 }
 
 export interface IdaChatErrorResponse {

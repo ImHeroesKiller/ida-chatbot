@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useLayoutEffect, useMemo } from "react";
+import { useCallback, useLayoutEffect, useMemo, type Dispatch, type SetStateAction } from "react";
 
 import { syncWorkspaceLegacyFields } from "@/lib/worksheet-workspace";
 
@@ -10,6 +10,7 @@ import type { ToolPanelHostProps } from "@/components/chat/tools/tool-panel-host
 import type { ToolPanelHandlerCoordinator } from "@/components/chat/tools/coordinator-types";
 import type { ChatSession } from "@/lib/chat-store";
 import type { Locale } from "@/lib/config";
+import type { IdaMessage } from "@/lib/types";
 
 type WorksheetWorkspace = ReturnType<typeof useWorksheetWorkspace>;
 
@@ -25,6 +26,7 @@ interface UseChatToolPanelPropsOptions {
   apiSessionId?: string;
   worksheet: WorksheetWorkspace;
   setInput: (value: string | ((prev: string) => string)) => void;
+  setMessages?: Dispatch<SetStateAction<IdaMessage[]>>;
   persistCurrentChat: (
     patch: Partial<
       Pick<
@@ -50,6 +52,7 @@ export function useChatToolPanelProps({
   apiSessionId,
   worksheet,
   setInput,
+  setMessages,
   persistCurrentChat,
   sendMessage,
   copy,
@@ -104,6 +107,7 @@ export function useChatToolPanelProps({
     worksheetWorkspaceRef: worksheet.worksheetWorkspaceRef,
     setWorksheetWorkspace: worksheet.setWorksheetWorkspace,
     setInput,
+    setMessages,
     persistCurrentChat,
     sendMessage,
     copy,

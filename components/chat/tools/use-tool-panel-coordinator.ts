@@ -30,7 +30,11 @@ export function useToolPanelCoordinator(entries: ToolRuntimeEntry[]) {
     closeAllPanelControllers(panelControllers);
   }, [panelControllers]);
 
-  /** Open one tool's UI as modal and close others (mutual exclusion). */
+  /** Open one tool's UI as modal and close others (mutual exclusion).
+   * For Web Search / Map / Research: primary trigger is now clicking result cards
+   * (web search source, map location card, research summary card) in the chatroom.
+   * Menu toggle only flips armed state + icon color (see handleMenuToolClick).
+   */
   const openPanel = useCallback(
     (panel: RightSidebarPanel) => {
       openExclusivePanel(panelControllers, panel);
@@ -56,7 +60,7 @@ export function useToolPanelCoordinator(entries: ToolRuntimeEntry[]) {
   }, [closeAllPanels]);
 
   return {
-    activePanel, // Now represents the tool shown in modal (no more right sidebar)
+    activePanel, // Now represents the tool shown in modal (no more right sidebar). Cards in chat drive open for web/map/research.
     openPanel,
     togglePanel,
     collapsePanel,

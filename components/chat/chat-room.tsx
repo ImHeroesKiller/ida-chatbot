@@ -326,6 +326,7 @@ function ChatRoomContent() {
     apiSessionId: currentChat?.apiSessionId,
     worksheet,
     setInput: chatSend.setInput,
+    setMessages,
     persistCurrentChat,
     sendMessage: chatSend.sendMessage,
     copy: {
@@ -480,6 +481,9 @@ function ChatRoomContent() {
                       onOpenWorksheetPanel={() => {
                         tools.activateWorksheet();
                       }}
+                      onOpenWebSearchPanel={() => tools.openPanel("web-search")}
+                      onOpenResearchPanel={() => tools.openPanel("research")}
+                      onOpenMapPanel={() => tools.openPanel("map")}
                     />
                   );
                 })}

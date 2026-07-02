@@ -13,7 +13,10 @@ import type { ToolQuotaState } from "@/components/chat/tools/types";
 import {
   createDefaultMapViewState,
   createMapMarkerId,
+  estimateTravelTimeMin,
+  haversineDistanceKm,
   normalizeMapViewState,
+  type MapDistanceInfo,
   type MapMarker,
   type MapViewState,
 } from "@/lib/map-types";
@@ -47,6 +50,10 @@ export type MapTool = BaseToolState &
     centerOnMarker: (markerId: string) => void;
     syncView: (center: { lat: number; lng: number }, zoom: number) => void;
     resetView: () => void;
+    /** Distance + est. time between two markers (for chat cards & UI). */
+    getDistanceBetween: (markerId1: string, markerId2: string) => MapDistanceInfo | null;
+    /** Convenience for first pair (or null). Used by marker list + chat cards. */
+    getFirstPairDistance: () => { labels: [string, string]; info: MapDistanceInfo } | null;
   };
 
 function buildMarkerLabel(count: number, custom?: string): string {
@@ -248,6 +255,32 @@ export function useMap(): MapTool {
     resetViewState();
   }, [resetViewState]);
 
+  const getDistanceBetween = useCallback(
+    (markerId1: string, markerId2: string): MapDistanceInfo | null => {
+      const m1 = viewState.markers.find((m) => m.id === markerId1);
+      const m2 = viewState.markers.find((m) => m.id === markerId2);
+      if (!m1 || !m2) return null;
+      const distanceKm = haversineDistanceKm(m1.lat, m1.lng, m2.lat, m2.lng);
+      const estMinutes = estimateTravelTimeMin(distanceKm);
+      return { distanceKm, estMinutes };
+    },
+    [viewState.markers],
+  );
+
+  const getFirstPairDistance = useCallback((): { labels: [string, string]; info: MapDistanceInfo } | null => {
+    const ms = viewState.markers;
+    if (ms.length < 2) return null;
+    const info = getDistanceBetween(ms[0].id, ms[1].id);
+    if (!info) return null;
+    return {
+      labels: [
+        ms[0].label?.trim() || "A",
+        ms[1].label?.trim() || "B",
+      ],
+      info,
+    };
+  }, [viewState.markers, getDistanceBetween]);
+
   const quotaSnapshot = useMemo(() => ({ ...quota }), [quota]);
 
   return {
@@ -272,5 +305,7 @@ export function useMap(): MapTool {
     resetView,
     hydrate,
     resetForNewChat,
+    getDistanceBetween,
+    getFirstPairDistance,
   };
 }

@@ -125,9 +125,11 @@ export function useToolUiActions({
 
       if (kind.startsWith("toggle-")) {
         toggleSetter(!entry.tool.isEnabled);
-        // For tools with UI/panel (worksheet, workflow, web-search results etc), also open the modal
-        if (panel) {
-          // After toggle, ensure the modal opens (if was off, now on + modal; if was on, still open modal)
+        // Web Search / Map / Research: toggle ONLY arms (changes active state + icon color).
+        // Modal opens ONLY when user clicks result cards in chatroom (per product req).
+        // Worksheet / Workflow still open their panel on toggle for direct edit access.
+        const isCardDriven = toolId === "web-search" || toolId === "map" || toolId === "research";
+        if (panel && !isCardDriven) {
           openPanel(panel);
         }
         return;

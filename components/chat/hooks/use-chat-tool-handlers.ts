@@ -9,7 +9,7 @@ import { requestChatComposerFocus } from "@/lib/client/focus-chat-composer";
 import type { Locale } from "@/lib/config";
 import { formatResearchWorksheetContent } from "@/lib/research-format";
 import type { ResearchSession } from "@/lib/research-types";
-import type { IdaWebSearchSource } from "@/lib/types";
+import type { IdaMessage, IdaWebSearchSource } from "@/lib/types";
 import type { WorksheetDocument } from "@/lib/worksheet";
 import {
   addGeneratedWorksheetDocument,
@@ -25,6 +25,7 @@ interface UseChatToolHandlersOptions {
   worksheetWorkspaceRef: RefObject<WorksheetDocument>;
   setWorksheetWorkspace: Dispatch<SetStateAction<WorksheetDocument>>;
   setInput: Dispatch<SetStateAction<string>>;
+  setMessages?: Dispatch<SetStateAction<IdaMessage[]>>;
   persistCurrentChat: (
     patch: Partial<
       Pick<
@@ -69,6 +70,7 @@ export function useChatToolHandlers({
   worksheetWorkspaceRef,
   setWorksheetWorkspace,
   setInput,
+  setMessages,
   persistCurrentChat,
   sendMessage,
   copy,
@@ -179,6 +181,39 @@ export function useChatToolHandlers({
     createWorksheetFromResearch(tools.research.currentSession);
   }, [createWorksheetFromResearch, tools.research.currentSession]);
 
+  const handleMapAttachLocations = useCallback(() => {
+    const markers = tools.map.viewState.markers ?? [];
+    if (!markers.length || !setMessages) {
+      if (markers.length) {
+        // Fallback: arm + focus composer with coords text
+        tools.map.setEnabled(true);
+        const text = markers
+          .map((m) => `${m.label || "Lokasi"}: ${m.lat.toFixed(5)}, ${m.lng.toFixed(5)}`)
+          .join("\n");
+        setInput((prev) => (prev.trim() ? `${prev}\n\n${text}` : text));
+        requestChatComposerFocus();
+      }
+      return;
+    }
+    tools.map.setEnabled(true);
+    setMessages((prevMsgs) => {
+      if (prevMsgs.length === 0) return prevMsgs;
+      const idx = prevMsgs.length - 1;
+      const last = prevMsgs[idx];
+      const locs = markers.map((m) => ({
+        id: m.id,
+        lat: m.lat,
+        lng: m.lng,
+        label: m.label,
+      }));
+      const updated = { ...last, mapLocations: locs } as IdaMessage;
+      const next = [...prevMsgs];
+      next[idx] = updated;
+      return next;
+    });
+    toast.success("Lokasi dipin ke chat. Klik card di chatroom untuk buka peta + lihat jarak.");
+  }, [tools, setMessages, setInput]);
+
   const handleWorksheetRetry = useCallback(() => {
     const prompt = lastWorksheetPrompt.trim();
     if (!prompt || isLoading) return;
@@ -222,6 +257,7 @@ export function useChatToolHandlers({
       onResearchCreateDocument: handleResearchCreateDocument,
       onResearchCreateDocumentFromCurrent:
         handleResearchCreateDocumentFromCurrent,
+      onMapShareLocations: handleMapAttachLocations,
       onClose: tools.collapsePanel,
     }),
     [
@@ -231,6 +267,7 @@ export function useChatToolHandlers({
       handleResearchSaveSession,
       handleResearchStart,
       handleWebSearchUseAsContext,
+      handleMapAttachLocations,
       isLoading,
       tools,
     ],
@@ -243,6 +280,7 @@ export function useChatToolHandlers({
     handleResearchOpenSession,
     handleResearchCreateDocument,
     handleResearchCreateDocumentFromCurrent,
+    handleMapAttachLocations,
     handleWorksheetRetry,
     sharedToolPanelProps,
   };

@@ -161,7 +161,14 @@ export function ToolsMenu({
 
   const handleToolClick = (toolId: ToolId) => {
     onToolClick(toolId);
-    setOpen(false);
+    // Per req: Toggle on/off (web-search, map, research, worksheet, workflow) must NOT close the menu.
+    // Menu closes only on Tools button re-click or outside/Escape.
+    // Open-panel tools (image/video/music) + coming-soon still close after action.
+    const config = TOOL_UI_CONFIG[toolId];
+    const isToggle = !!config && config.kind.startsWith("toggle-");
+    if (!isToggle) {
+      setOpen(false);
+    }
   };
 
   const menuContent = open ? (
@@ -248,7 +255,12 @@ export function ToolsMenu({
                   itemDisabled && "cursor-not-allowed opacity-50",
                 )}
               >
-                <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <Icon
+                  className={cn(
+                    "h-4 w-4 shrink-0",
+                    active ? "text-primary" : "text-muted-foreground",
+                  )}
+                />
                 <span className="flex-1 font-medium">{label}</span>
                 {isToggle ? (
                   <span

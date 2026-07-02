@@ -65,3 +65,52 @@ export function normalizeMapViewState(
     selectedMarkerId,
   };
 }
+
+const EARTH_RADIUS_KM = 6371;
+
+/**
+ * Haversine formula: great-circle distance in kilometers between two lat/lng points.
+ * Used for map location cards and distance estimates in chat.
+ */
+export function haversineDistanceKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  if (
+    !Number.isFinite(lat1) ||
+    !Number.isFinite(lon1) ||
+    !Number.isFinite(lat2) ||
+    !Number.isFinite(lon2)
+  ) {
+    return 0;
+  }
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return EARTH_RADIUS_KM * c;
+}
+
+/**
+ * Rough travel time estimate (minutes) given distance in km.
+ * Default avg speed ~45 km/h for mixed urban driving (tunable).
+ */
+export function estimateTravelTimeMin(
+  distanceKm: number,
+  avgSpeedKmh = 45,
+): number {
+  if (!Number.isFinite(distanceKm) || distanceKm <= 0) return 0;
+  return Math.max(1, Math.round((distanceKm / avgSpeedKmh) * 60));
+}
+
+export interface MapDistanceInfo {
+  distanceKm: number;
+  estMinutes: number;
+}

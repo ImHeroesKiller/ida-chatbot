@@ -86,6 +86,7 @@ export interface ToolPanelHostProps {
   onResearchOpenSession?: (session: ResearchSession) => void;
   onResearchCreateDocument?: (session: ResearchSession) => void;
   onResearchCreateDocumentFromCurrent?: () => void;
+  onMapShareLocations?: () => void;
   // Media generation tools (passed via spread from coordinator)
   imageGen?: ImageGenTool;
   videoGen?: VideoGenTool;
@@ -121,6 +122,7 @@ export function ToolPanelHost({
   onResearchOpenSession,
   onResearchCreateDocument,
   onResearchCreateDocumentFromCurrent,
+  onMapShareLocations,
   imageGen,
   videoGen,
   musicGen,
@@ -173,6 +175,7 @@ export function ToolPanelHost({
         onClose={onClose}
         className={className}
         embedded={embedded}
+        onShareLocations={onMapShareLocations}
       />
     );
   }

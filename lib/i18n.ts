@@ -605,6 +605,9 @@ export const COPY: Record<
     mapSaveMarker: string;
     mapCancelEdit: string;
     mapCoordinatesLabel: string;
+    mapShareToChat: string;
+    mapDistance: string;
+    mapEstTime: string;
     researchPlaceholderDesc: string;
     researchPlaceholderContent: string;
     errors: {
@@ -1271,6 +1274,9 @@ export const COPY: Record<
     mapSaveMarker: "Simpan",
     mapCancelEdit: "Batal",
     mapCoordinatesLabel: "Koordinat",
+    mapShareToChat: "Pin ke chat",
+    mapDistance: "Jarak",
+    mapEstTime: "Estimasi waktu",
     researchPlaceholderDesc:
       "Hasil riset mendalam akan ditampilkan di panel ini.",
     researchPlaceholderContent:
@@ -1939,6 +1945,9 @@ export const COPY: Record<
     mapSaveMarker: "Save",
     mapCancelEdit: "Cancel",
     mapCoordinatesLabel: "Coordinates",
+    mapShareToChat: "Pin to chat",
+    mapDistance: "Distance",
+    mapEstTime: "Est. time",
     researchPlaceholderDesc:
       "Deep research results will be displayed in this panel.",
     researchPlaceholderContent:
@@ -2574,6 +2583,9 @@ export const COPY: Record<
     mapSaveMarker: "保存",
     mapCancelEdit: "取消",
     mapCoordinatesLabel: "坐标",
+    mapShareToChat: "固定到聊天",
+    mapDistance: "距离",
+    mapEstTime: "预计时间",
     researchPlaceholderDesc: "深度研究结果将显示在此面板。",
     researchPlaceholderContent:
       "## 研究摘要\n\n多来源研究结果将显示在此处。",

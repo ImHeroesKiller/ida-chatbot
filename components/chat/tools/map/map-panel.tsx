@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useState } from "react";
-import { Map, MapPin, PanelRightClose, Plus, RotateCcw } from "lucide-react";
+import { Map, MapPin, PanelRightClose, Plus, RotateCcw, Send } from "lucide-react";
 
 import { MapLocationSearch } from "@/components/chat/tools/map/map-location-search";
 import { MapMarkerList } from "@/components/chat/tools/map/map-marker-list";
@@ -34,6 +34,7 @@ interface MapPanelProps {
   onClose: () => void;
   className?: string;
   embedded?: boolean;
+  onShareLocations?: () => void;
 }
 
 export function MapPanel({
@@ -42,6 +43,7 @@ export function MapPanel({
   onClose,
   className,
   embedded = false,
+  onShareLocations,
 }: MapPanelProps) {
   const copy = COPY[locale];
   const [addMarkerOnClick, setAddMarkerOnClick] = useState(false);
@@ -130,6 +132,19 @@ export function MapPanel({
             <RotateCcw className="mr-1 h-3 w-3" />
             {copy.mapResetView}
           </Button>
+          {onShareLocations ? (
+            <Button
+              type="button"
+              variant="default"
+              size="xs"
+              className="h-7 text-[10px]"
+              onClick={onShareLocations}
+              title="Tampilkan titik lokasi sebagai card di chat (klik card buka modal peta + jarak)"
+            >
+              <Send className="mr-1 h-3 w-3" />
+              Pin ke chat
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -157,7 +172,10 @@ export function MapPanel({
           saveMarker: copy.mapSaveMarker,
           cancelEdit: copy.mapCancelEdit,
           coordinatesLabel: copy.mapCoordinatesLabel,
+          shareToChat: copy.mapShareToChat,
         }}
+        onShareMarker={onShareLocations ? (m) => { onShareLocations(); /* share single too via same */ } : undefined}
+        onShareAll={onShareLocations}
       />
     </aside>
   );

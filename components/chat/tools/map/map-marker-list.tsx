@@ -7,6 +7,7 @@ import {
   Crosshair,
   MapPin,
   Pencil,
+  Send,
   Trash2,
   X,
 } from "lucide-react";
@@ -35,13 +36,19 @@ interface MapMarkerListProps {
     saveMarker: string;
     cancelEdit: string;
     coordinatesLabel: string;
+    shareToChat?: string;
   };
+  onShareMarker?: (marker: MapMarker) => void;
+  onShareAll?: () => void;
 }
 
-export function MapMarkerList({ map, labels }: MapMarkerListProps) {
+export function MapMarkerList({ map, labels, onShareMarker, onShareAll }: MapMarkerListProps) {
   const { viewState } = map;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftLabel, setDraftLabel] = useState("");
+
+  const distSummary = map.getFirstPairDistance();
+  const shareLabel = labels.shareToChat || "Pin ke chat";
 
   useEffect(() => {
     if (
@@ -85,6 +92,36 @@ export function MapMarkerList({ map, labels }: MapMarkerListProps) {
 
   return (
     <ScrollArea className="max-h-48 shrink-0 border-t">
+      {distSummary ? (
+        <div className="border-b bg-muted/30 px-3 py-1.5 text-[10px] text-muted-foreground">
+          <span className="font-medium text-foreground/80">Jarak antar titik:</span>{" "}
+          {distSummary.info.distanceKm.toFixed(1)} km • ~{distSummary.info.estMinutes} menit
+          {onShareAll ? " · " : ""}
+          {onShareAll ? (
+            <button
+              type="button"
+              className="underline hover:text-primary"
+              onClick={onShareAll}
+            >
+              {shareLabel}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+      {onShareAll && !distSummary && viewState.markers.length >= 1 ? (
+        <div className="px-3 pt-1.5">
+          <Button
+            type="button"
+            variant="outline"
+            size="xs"
+            className="h-6 text-[10px]"
+            onClick={onShareAll}
+          >
+            <Send className="mr-1 h-3 w-3" />
+            {shareLabel}
+          </Button>
+        </div>
+      ) : null}
       <ul className="space-y-1.5 p-3">
         {viewState.markers.map((marker) => {
           const isSelected = viewState.selectedMarkerId === marker.id;
@@ -182,6 +219,18 @@ export function MapMarkerList({ map, labels }: MapMarkerListProps) {
                       <Copy className="mr-1 h-3 w-3" />
                       {labels.copyCoordinates}
                     </Button>
+                    {onShareMarker ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="xs"
+                        className="h-6 text-[10px]"
+                        onClick={() => onShareMarker(marker)}
+                      >
+                        <Send className="mr-1 h-3 w-3" />
+                        {shareLabel}
+                      </Button>
+                    ) : null}
                     <Button
                       type="button"
                       variant="ghost"
