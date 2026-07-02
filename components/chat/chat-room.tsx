@@ -82,7 +82,7 @@ import { useIsMobileViewport } from "@/lib/client/use-media-query";
 import { useAppFeatures } from "@/lib/client/use-app-features";
 import { useChatStore } from "@/lib/chat-store";
 import { IDA_CONFIG } from "@/lib/config";
-import { COPY } from "@/lib/i18n";
+import { COPY, type CopyStrings } from "@/lib/i18n";
 import { MessageReactionsProvider } from "@/lib/message-reactions";
 import { useSidebarExpanded } from "@/lib/sidebar-prefs";
 import {
@@ -348,7 +348,7 @@ function ChatRoomContent() {
   };
 
   // Helper to get nice title for the tool modal (replaces old right sidebar titles)
-  const getToolTitle = (panel: RightSidebarPanel | null, copy: any): string => {
+  const getToolTitle = (panel: RightSidebarPanel | null, copy: CopyStrings): string => {
     if (!panel) return copy.toolsMenu || "Tool";
     const titleMap: Partial<Record<RightSidebarPanel, string>> = {
       "web-search": copy.toolsWebSearch || "Web Search",
