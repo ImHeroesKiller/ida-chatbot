@@ -14,7 +14,10 @@ export type ToolModelKey =
   | "agent"
   | "coding"
   | "integration"
-  | "virtualComputer";
+  | "virtualComputer"
+  | "imageGen"
+  | "videoGen"
+  | "musicGen";
 
 export const TOOL_MODEL_KEYS: ToolModelKey[] = [
   "webSearch",
@@ -24,6 +27,9 @@ export const TOOL_MODEL_KEYS: ToolModelKey[] = [
   "coding",
   "integration",
   "virtualComputer",
+  "imageGen",
+  "videoGen",
+  "musicGen",
 ];
 
 export interface IdaAppConfig {

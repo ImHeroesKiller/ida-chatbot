@@ -8,6 +8,9 @@ export const TOOL_PANEL_IDS = {
   "web-search": "web-search",
   research: "research",
   map: "map",
+  "image-gen": "image-gen",
+  "video-gen": "video-gen",
+  "music-gen": "music-gen",
 } as const satisfies Record<ToolId, RightSidebarPanel>;
 
 export function isToggleToolPanel(
@@ -19,5 +22,6 @@ export function isToggleToolPanel(
     panel === "web-search" ||
     panel === "research" ||
     panel === "map"
+    // media gen tools (image-gen etc) use "open-panel" kind, not toggle
   );
 }

@@ -209,6 +209,9 @@ export function useToolsCoordinator(
     webSearch: bundle.webSearch,
     research: bundle.research,
     map: bundle.map,
+    imageGen: bundle.imageGen,
+    videoGen: bundle.videoGen,
+    musicGen: bundle.musicGen,
     activePanel: panels.activePanel,
     isAnyToolActive: ui.isAnyToolActive,
     ...sendFlags,
@@ -243,6 +246,9 @@ export function useToolsCoordinator(
     isResearchAvailable: persistence.isResearchAvailable,
     isMapAvailable: persistence.isMapAvailable,
     isWorkflowAvailable: persistence.isWorkflowAvailable,
+    isImageGenAvailable: true,
+    isVideoGenAvailable: true,
+    isMusicGenAvailable: true,
   };
 }
 

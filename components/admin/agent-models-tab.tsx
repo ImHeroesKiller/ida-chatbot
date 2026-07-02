@@ -30,6 +30,9 @@ const TOOL_MODEL_LABELS: Record<ToolModelKey, string> = {
   coding: "Coding (coming soon)",
   integration: "Third-party integration",
   virtualComputer: "Virtual Computer (coming soon)",
+  imageGen: "Image Generation (Grok Imagine)",
+  videoGen: "Video Generation",
+  musicGen: "Music Generation",
 };
 
 const TOOL_MODEL_HINTS: Record<ToolModelKey, string> = {
@@ -40,6 +43,9 @@ const TOOL_MODEL_HINTS: Record<ToolModelKey, string> = {
   coding: "Reserved for future code execution tools.",
   integration: "Reserved for third-party connector tools.",
   virtualComputer: "Reserved for sandbox / virtual desktop tools.",
+  imageGen: "Primary model for Image Generation tool (defaults to Grok Imagine).",
+  videoGen: "Model for Video Generation (stub / future integration).",
+  musicGen: "Model for Music / Audio Generation.",
 };
 
 function modelKey(selection: ModelSelection | null | undefined): string {

@@ -1,4 +1,4 @@
-import { FileText, GitBranch, Globe, Map, Search, type LucideIcon } from "lucide-react";
+import { FileText, GitBranch, Globe, ImageIcon, Map, Music, Search, Video, type LucideIcon } from "lucide-react";
 
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 
@@ -9,7 +9,10 @@ export type ToolLabelKey =
   | "toolsMap"
   | "toolsResearch"
   | "toolsWorksheet"
-  | "toolsWorkflow";
+  | "toolsWorkflow"
+  | "toolsImageGen"
+  | "toolsVideoGen"
+  | "toolsMusicGen";
 
 export type ToolMenuKind =
   | "toggle-web-search"
@@ -34,6 +37,9 @@ export const TOOL_DISPLAY_ORDER: ToolId[] = [
   "research",
   "worksheet",
   "workflow",
+  "image-gen",
+  "video-gen",
+  "music-gen",
 ];
 
 export const TOOL_UI_CONFIG: Record<ToolId, ToolUiConfig> = {
@@ -67,5 +73,26 @@ export const TOOL_UI_CONFIG: Record<ToolId, ToolUiConfig> = {
     labelKey: "toolsResearch",
     kind: "toggle-research",
     railPanel: "research",
+  },
+  "image-gen": {
+    icon: ImageIcon,
+    labelKey: "toolsImageGen",
+    kind: "open-panel",
+    panel: "image-gen",
+    railPanel: "image-gen",
+  },
+  "video-gen": {
+    icon: Video,
+    labelKey: "toolsVideoGen",
+    kind: "open-panel",
+    panel: "video-gen",
+    railPanel: "video-gen",
+  },
+  "music-gen": {
+    icon: Music,
+    labelKey: "toolsMusicGen",
+    kind: "open-panel",
+    panel: "music-gen",
+    railPanel: "music-gen",
   },
 };

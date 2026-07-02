@@ -12,6 +12,9 @@ import type { WorkflowTool } from "@/components/chat/tools/use-workflow";
 import { WorkflowPanel } from "@/components/chat/tools/workflow-panel";
 import { WorksheetPanel } from "@/components/chat/tools/worksheet";
 import type { WorksheetTool } from "@/components/chat/tools/worksheet/use-worksheet";
+import { ImageGenPanel } from "@/components/chat/tools/image-gen/image-gen-panel";
+import { VideoGenPanel } from "@/components/chat/tools/video-gen/video-gen-panel";
+import { MusicGenPanel } from "@/components/chat/tools/music-gen/music-gen-panel";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
@@ -80,6 +83,10 @@ export interface ToolPanelHostProps {
   onResearchOpenSession?: (session: ResearchSession) => void;
   onResearchCreateDocument?: (session: ResearchSession) => void;
   onResearchCreateDocumentFromCurrent?: () => void;
+  // Media generation tools (passed via spread from coordinator)
+  imageGen?: any;
+  videoGen?: any;
+  musicGen?: any;
 }
 
 export function ToolPanelHost({
@@ -111,6 +118,9 @@ export function ToolPanelHost({
   onResearchOpenSession,
   onResearchCreateDocument,
   onResearchCreateDocumentFromCurrent,
+  imageGen,
+  videoGen,
+  musicGen,
 }: ToolPanelHostProps) {
   const copy = COPY[locale];
 
@@ -191,6 +201,39 @@ export function ToolPanelHost({
         onRetry={onWorksheetRetry}
         onRegenerate={onWorksheetRegenerate}
         onClear={onWorksheetClear}
+        onClose={onClose}
+        className={className}
+        embedded={embedded}
+      />
+    );
+  }
+
+  if (panel === "image-gen") {
+    return (
+      <ImageGenPanel
+        imageGen={imageGen}
+        onClose={onClose}
+        className={className}
+        embedded={embedded}
+      />
+    );
+  }
+
+  if (panel === "video-gen") {
+    return (
+      <VideoGenPanel
+        videoGen={videoGen}
+        onClose={onClose}
+        className={className}
+        embedded={embedded}
+      />
+    );
+  }
+
+  if (panel === "music-gen") {
+    return (
+      <MusicGenPanel
+        musicGen={musicGen}
         onClose={onClose}
         className={className}
         embedded={embedded}

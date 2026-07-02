@@ -3,7 +3,10 @@ export type RightSidebarPanel =
   | "workflow"
   | "web-search"
   | "map"
-  | "research";
+  | "research"
+  | "image-gen"
+  | "video-gen"
+  | "music-gen";
 
 export type ChatToolId = "webSearch" | RightSidebarPanel;
 

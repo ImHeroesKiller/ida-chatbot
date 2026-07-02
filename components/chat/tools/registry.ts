@@ -1,6 +1,9 @@
 import type { Tool, ToolId } from "./types";
+import { imageGenTool } from "./image-gen/image-gen-tool";
 import { mapTool } from "./map/map-tool";
+import { musicGenTool } from "./music-gen/music-gen-tool";
 import { researchTool } from "./research/research-tool";
+import { videoGenTool } from "./video-gen/video-gen-tool";
 import { webSearchTool } from "./web-search/web-search-tool";
 import { workflowTool } from "./workflow-tool";
 import { worksheetTool } from "./worksheet/worksheet-tool";
@@ -13,6 +16,9 @@ const tools: Record<ToolId, Tool> = {
   "web-search": webSearchTool,
   map: mapTool,
   research: researchTool,
+  "image-gen": imageGenTool,
+  "video-gen": videoGenTool,
+  "music-gen": musicGenTool,
 };
 
 export function getTool(id: ToolId): Tool | undefined {

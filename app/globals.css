@@ -450,3 +450,22 @@ html[data-ida-animation="none"] *::after {
   background-color: var(--background);
   border-bottom: 1px solid var(--border);
 }
+
+/* Admin polish: glassmorphism, mobile-friendly tabs, rapi layout, dark consistency */
+.admin-glass-card {
+  background: color-mix(in oklch, var(--background) 60%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in oklch, var(--border) 40%, transparent);
+}
+
+#admin-main .tabs-list-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .admin-tab-trigger {
+    font-size: 0.75rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}

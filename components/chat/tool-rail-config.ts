@@ -16,9 +16,6 @@ import type { ToolId } from "@/components/chat/tools/types";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
 
 export type ToolRailPlaceholderId =
-  | "image"
-  | "video"
-  | "music"
   | "coding"
   | "integration"
   | "virtual-computer";
@@ -31,9 +28,9 @@ export type ToolRailLabelKey =
   | "toolsResearch"
   | "toolsWorksheet"
   | "toolsWorkflow"
-  | "toolsImage"
-  | "toolsVideo"
-  | "toolsMusic"
+  | "toolsImageGen"
+  | "toolsVideoGen"
+  | "toolsMusicGen"
   | "toolsCoding"
   | "toolsIntegration"
   | "toolsVirtualComputer";
@@ -85,9 +82,9 @@ export const TOOL_RAIL_GROUPS: ToolRailGroupConfig[] = [
     id: "creative",
     labelKey: "railCreativeTools",
     entries: [
-      { id: "image", labelKey: "toolsImage", icon: ImageIcon, comingSoon: true },
-      { id: "video", labelKey: "toolsVideo", icon: Video, comingSoon: true },
-      { id: "music", labelKey: "toolsMusic", icon: Music, comingSoon: true },
+      { id: "image-gen", labelKey: "toolsImageGen", icon: ImageIcon, panel: "image-gen" },
+      { id: "video-gen", labelKey: "toolsVideoGen", icon: Video, panel: "video-gen" },
+      { id: "music-gen", labelKey: "toolsMusicGen", icon: Music, panel: "music-gen" },
     ],
   },
   {
@@ -115,9 +112,6 @@ export function isToolRailPlaceholder(
   id: ToolRailEntryId,
 ): id is ToolRailPlaceholderId {
   return (
-    id === "image" ||
-    id === "video" ||
-    id === "music" ||
     id === "coding" ||
     id === "integration" ||
     id === "virtual-computer"

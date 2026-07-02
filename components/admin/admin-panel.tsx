@@ -4,6 +4,7 @@ import {
   Bot,
   CalendarClock,
   Database,
+  ImageIcon,
   LayoutDashboard,
   LineChart,
   LogOut,
@@ -12,6 +13,7 @@ import {
   ScrollText,
   Settings,
   Sparkles,
+  Video,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -23,6 +25,7 @@ import { DashboardTab } from "@/components/admin/dashboard-tab";
 import { KnowledgeTab } from "@/components/admin/knowledge-tab";
 import { LogsTab } from "@/components/admin/logs-tab";
 import { AgentModelsTab } from "@/components/admin/agent-models-tab";
+import { MediaModelsTab } from "@/components/admin/media-models-tab";
 import { ModelsTab } from "@/components/admin/models-tab";
 import { SettingsTab } from "@/components/admin/settings-tab";
 import { WorkflowAnalyticsDashboard } from "@/components/admin/workflow-analytics-dashboard";
@@ -67,27 +70,29 @@ export function AdminPanel({
 
   return (
     <div className="min-h-dvh overflow-y-auto bg-background">
-      <header className="sticky top-0 z-10 border-b border-border/40 ida-glass">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-2">
-            <Sparkles className="size-5" />
+      <header className="sticky top-0 z-20 border-b border-border/30 bg-background/80 backdrop-blur-xl ida-glass">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
+          <div className="flex items-center gap-3">
+            <div className="flex size-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Sparkles className="size-4.5" />
+            </div>
             <div>
-              <h1 className="text-base font-semibold">IDA Admin</h1>
-              <p className="text-xs text-muted-foreground">
-                Dashboard, models, knowledge, analytics, settings & logs
+              <h1 className="text-lg font-semibold tracking-tight">IDA Admin</h1>
+              <p className="text-[11px] text-muted-foreground -mt-0.5">
+                Control panel • models • knowledge • analytics
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={() => void handleLogout()}>
-            <LogOut className="size-4" />
-            Sign out
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => void handleLogout()}>
+            <LogOut className="size-3.5" />
+            <span className="hidden sm:inline">Sign out</span>
           </Button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+      <main id="admin-main" className="mx-auto max-w-6xl px-3 py-5 sm:px-6 sm:py-6">
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="ida-glass-subtle h-auto flex-wrap gap-1 rounded-2xl p-1.5 shadow-sm">
+          <TabsList className="ida-glass-subtle h-auto w-full flex-wrap gap-1 overflow-x-auto rounded-2xl p-1 shadow-sm sm:flex-nowrap tabs-list-scroll">
             <TabsTrigger value="dashboard">
               <LayoutDashboard className="size-4" />
               Dashboard
@@ -99,6 +104,10 @@ export function AdminPanel({
             <TabsTrigger value="agent-models">
               <Bot className="size-4" />
               Agent
+            </TabsTrigger>
+            <TabsTrigger value="media-models">
+              <ImageIcon className="size-4" />
+              Media Models
             </TabsTrigger>
             <TabsTrigger value="knowledge">
               <Database className="size-4" />
@@ -138,6 +147,9 @@ export function AdminPanel({
           </TabsContent>
           <TabsContent value="agent-models" className="mt-6">
             <AgentModelsTab />
+          </TabsContent>
+          <TabsContent value="media-models" className="mt-6">
+            <MediaModelsTab />
           </TabsContent>
           <TabsContent value="knowledge" className="mt-6">
             <KnowledgeTab />

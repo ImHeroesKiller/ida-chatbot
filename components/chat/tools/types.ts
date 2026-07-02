@@ -5,7 +5,10 @@ export type ToolId =
   | "workflow"
   | "web-search"
   | "map"
-  | "research";
+  | "research"
+  | "image-gen"
+  | "video-gen"
+  | "music-gen";
 
 export type ToolQuotaResetPeriod = "daily" | "weekly" | "monthly";
 

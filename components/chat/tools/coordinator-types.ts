@@ -42,6 +42,9 @@ export interface ToolAvailabilityFlags {
   isResearchAvailable: boolean;
   isMapAvailable: boolean;
   isWorkflowAvailable: boolean;
+  isImageGenAvailable?: boolean;
+  isVideoGenAvailable?: boolean;
+  isMusicGenAvailable?: boolean;
 }
 
 export type ToolPersistPatch = Pick<
@@ -138,4 +141,8 @@ export type ToolSessionCoordinator = ToolRuntimeBundle &
 /** Right panel handlers: research/web-search actions and worksheet activation. */
 export type ToolPanelHandlerCoordinator = ToolRuntimeBundle &
   Pick<ToolPanelCoordinator, "openPanel" | "collapsePanel"> &
-  Pick<ToolUiCoordinator, "activateWorksheet">;
+  Pick<ToolUiCoordinator, "activateWorksheet"> & {
+    imageGen?: any;
+    videoGen?: any;
+    musicGen?: any;
+  };

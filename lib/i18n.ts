@@ -351,6 +351,9 @@ export const COPY: Record<
     toolsCoding: string;
     toolsIntegration: string;
     toolsVirtualComputer: string;
+    toolsImageGen: string;
+    toolsVideoGen: string;
+    toolsMusicGen: string;
     railResearchTools: string;
     railProductivity: string;
     railCreativeTools: string;
@@ -982,6 +985,9 @@ export const COPY: Record<
     toolsCoding: "Coding",
     toolsIntegration: "Integrasi",
     toolsVirtualComputer: "Virtual Computer",
+    toolsImageGen: "Generasi Gambar",
+    toolsVideoGen: "Generasi Video",
+    toolsMusicGen: "Generasi Musik",
     railResearchTools: "Riset",
     railProductivity: "Produktivitas",
     railCreativeTools: "Kreatif",
@@ -1646,6 +1652,9 @@ export const COPY: Record<
     toolsCoding: "Coding",
     toolsIntegration: "Integration",
     toolsVirtualComputer: "Virtual Computer",
+    toolsImageGen: "Image Generation",
+    toolsVideoGen: "Video Generation",
+    toolsMusicGen: "Music Generation",
     railResearchTools: "Research",
     railProductivity: "Productivity",
     railCreativeTools: "Creative",
@@ -2299,6 +2308,9 @@ export const COPY: Record<
     toolsCoding: "编程",
     toolsIntegration: "集成",
     toolsVirtualComputer: "虚拟电脑",
+    toolsImageGen: "图像生成",
+    toolsVideoGen: "视频生成",
+    toolsMusicGen: "音乐生成",
     railResearchTools: "研究工具",
     railProductivity: "效率工具",
     railCreativeTools: "创作",

@@ -123,6 +123,10 @@ export function useChatToolPanelProps({
       onWorksheetRegenerate: handleWorksheetRetry,
       onWorksheetClear: handleWorksheetClear,
       workflowSessionId: apiSessionId,
+      // Media tools (new creative rail)
+      imageGen: (tools as any).imageGen,
+      videoGen: (tools as any).videoGen,
+      musicGen: (tools as any).musicGen,
     }),
     [
       handleWorksheetChange,
