@@ -217,8 +217,6 @@ async function generateWithXAI(prompt: string, aspectRatio: string, modelId: str
   const token = process.env.XAI_API_KEY;
   if (!token) throw new Error("XAI_API_KEY is not configured");
 
-  const size = mapAspectRatio(aspectRatio, "xai");
-
   const res = await fetch(endpoint, {
     method: "POST",
     headers: {
@@ -229,8 +227,9 @@ async function generateWithXAI(prompt: string, aspectRatio: string, modelId: str
       prompt,
       model: modelId || "grok-imagine",  // or the model name configured in Admin > Media Models for xAI/Grok
       n: 1,
-      size,
-      // xAI may support additional params like quality, style, etc. via default_settings in future
+      aspect_ratio: aspectRatio,  // xAI/Flux likely supports "1:1", "16:9", "9:16" etc. directly
+      // Note: removed "size" as it caused 400 "Argument not supported: size" on xAI API.
+      // If xAI supports other params, pass via the model's default_settings in Admin and merge here in future.
     }),
   });
 

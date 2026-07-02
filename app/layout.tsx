@@ -112,7 +112,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  interactiveWidget: "resizes-content",
+  // Removed "interactiveWidget" as it caused console error "Viewport argument key "interactive-widget" not recognized and ignored."
+  // (It was intended for mobile keyboard handling but isn't widely supported and pollutes console.)
+  // For chat keyboard handling, we rely on CSS (dvh, etc.) and JS in chat-app-height-sync.
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: BRAND.backgroundColor },
     { media: "(prefers-color-scheme: dark)", color: BRAND.themeColor },
