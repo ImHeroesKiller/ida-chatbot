@@ -13,8 +13,11 @@ import { WorkflowPanel } from "@/components/chat/tools/workflow-panel";
 import { WorksheetPanel } from "@/components/chat/tools/worksheet";
 import type { WorksheetTool } from "@/components/chat/tools/worksheet/use-worksheet";
 import { ImageGenPanel } from "@/components/chat/tools/image-gen/image-gen-panel";
-import { VideoGenPanel } from "@/components/chat/tools/video-gen/video-gen-panel";
+import type { ImageGenTool } from "@/components/chat/tools/image-gen/use-image-gen";
 import { MusicGenPanel } from "@/components/chat/tools/music-gen/music-gen-panel";
+import type { MusicGenTool } from "@/components/chat/tools/music-gen/use-music-gen";
+import { VideoGenPanel } from "@/components/chat/tools/video-gen/video-gen-panel";
+import type { VideoGenTool } from "@/components/chat/tools/video-gen/use-video-gen";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Locale } from "@/lib/config";
@@ -84,9 +87,9 @@ export interface ToolPanelHostProps {
   onResearchCreateDocument?: (session: ResearchSession) => void;
   onResearchCreateDocumentFromCurrent?: () => void;
   // Media generation tools (passed via spread from coordinator)
-  imageGen?: any;
-  videoGen?: any;
-  musicGen?: any;
+  imageGen?: ImageGenTool;
+  videoGen?: VideoGenTool;
+  musicGen?: MusicGenTool;
 }
 
 export function ToolPanelHost({

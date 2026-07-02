@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageIcon, Music, Save, Video } from "lucide-react";
+import { ImageIcon, Music, Save, Video, type LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -13,9 +13,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import type { ModelDefinition } from "@/lib/admin/models";
+import type { ModelDefinition, ModelProvider } from "@/lib/admin/models";
 import type { IdaAppConfig, ModelSelection, ToolModelKey } from "@/lib/admin/types";
-import { TOOL_MODEL_KEYS } from "@/lib/admin/types";
 
 interface ConfigResponse {
   config: IdaAppConfig;
@@ -30,7 +29,7 @@ const MEDIA_LABELS: Partial<Record<ToolModelKey, string>> = {
   musicGen: "Music Generation",
 };
 
-const MEDIA_ICONS: Partial<Record<ToolModelKey, any>> = {
+const MEDIA_ICONS: Partial<Record<ToolModelKey, LucideIcon>> = {
   imageGen: ImageIcon,
   videoGen: Video,
   musicGen: Music,
@@ -74,7 +73,7 @@ function ModelSelect({
             return;
           }
           const [provider, id] = e.target.value.split(":");
-          onChange({ provider: provider as any, id });
+          onChange({ provider: provider as ModelProvider, id });
         }}
       >
         <option value="">Inherit default chat model</option>
@@ -136,10 +135,6 @@ export function MediaModelsTab() {
   if (!data) {
     return <p className="text-sm text-muted-foreground">Loading media settings...</p>;
   }
-
-  const mediaOnly = Object.fromEntries(
-    Object.entries(draft).filter(([k]) => MEDIA_KEYS.includes(k as ToolModelKey))
-  );
 
   return (
     <div className="space-y-6">

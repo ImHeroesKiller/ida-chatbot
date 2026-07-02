@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
       aspectRatio,
       createdAt: new Date().toISOString(),
     });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message || "generation failed" }, { status: 500 });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "generation failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -8,13 +8,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 interface MusicGenPanelProps {
-  musicGen: MusicGenTool;
+  musicGen?: MusicGenTool;
   onClose: () => void;
   embedded?: boolean;
   className?: string;
 }
 
 export function MusicGenPanel({ musicGen, onClose, embedded, className }: MusicGenPanelProps) {
+  if (!musicGen) {
+    return <div className="p-4 text-sm text-muted-foreground">Music tool not initialized.</div>;
+  }
   return (
     <aside
       className={cn(

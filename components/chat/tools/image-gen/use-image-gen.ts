@@ -11,7 +11,6 @@ import {
   type ToolHydrationInput,
 } from "@/components/chat/tools/base-tool-state";
 import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
-import type { RightSidebarPanel } from "@/lib/chat-tools";
 
 export interface ImageGenResult {
   id: string;

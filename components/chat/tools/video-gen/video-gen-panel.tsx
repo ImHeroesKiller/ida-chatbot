@@ -4,18 +4,21 @@ import { Loader2, Video, X } from "lucide-react";
 
 import type { VideoGenTool } from "./use-video-gen";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 interface VideoGenPanelProps {
-  videoGen: VideoGenTool;
+  videoGen?: VideoGenTool;
   onClose: () => void;
   embedded?: boolean;
   className?: string;
 }
 
 export function VideoGenPanel({ videoGen, onClose, embedded, className }: VideoGenPanelProps) {
+  if (!videoGen) {
+    return <div className="p-4 text-sm text-muted-foreground">Video tool not initialized.</div>;
+  }
   return (
     <aside
       className={cn(

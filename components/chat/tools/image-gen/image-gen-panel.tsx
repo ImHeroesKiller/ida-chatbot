@@ -3,7 +3,7 @@
 import { Download, ImageIcon as ImageIconLucide, Loader2, RefreshCw, X } from "lucide-react";
 import { useState } from "react";
 
-import type { ImageGenTool } from "./use-image-gen";
+import type { ImageGenResult, ImageGenTool } from "./use-image-gen";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -34,7 +34,7 @@ export function ImageGenPanel({ imageGen, onClose, embedded, className }: ImageG
     void imageGen.generate();
   };
 
-  const handleUseImage = (result: any) => {
+  const handleUseImage = (result: ImageGenResult) => {
     imageGen.useResultAsAttachment(result);
     // Future: close panel or switch to composer
   };
@@ -148,6 +148,7 @@ export function ImageGenPanel({ imageGen, onClose, embedded, className }: ImageG
             </CardHeader>
             <CardContent className="space-y-2 pb-3">
               <div className="relative rounded-md overflow-hidden border bg-muted/20">
+                {/* eslint-disable-next-line @next/next/no-img-element -- dynamic generated image URL (picsum stub for demo); real prod would use optimized loader */ }
                 <img
                   src={imageGen.lastResult.imageUrl}
                   alt={imageGen.lastResult.prompt}
@@ -160,7 +161,7 @@ export function ImageGenPanel({ imageGen, onClose, embedded, className }: ImageG
                   size="sm"
                   variant="outline"
                   className="flex-1 h-8"
-                  onClick={() => handleUseImage(imageGen.lastResult)}
+                  onClick={() => handleUseImage(imageGen.lastResult!)}
                 >
                   Use in chat
                 </Button>
@@ -210,6 +211,7 @@ export function ImageGenPanel({ imageGen, onClose, embedded, className }: ImageG
                     className="block overflow-hidden rounded border hover:ring-1 ring-primary/50"
                     title={item.prompt}
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- dynamic history thumbnail */ }
                     <img src={item.imageUrl} alt="" className="w-full aspect-square object-cover" />
                   </button>
                 ))}

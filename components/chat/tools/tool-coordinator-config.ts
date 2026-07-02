@@ -1,4 +1,4 @@
-import { resolveToolEnabled } from "@/components/chat/tools/base-tool-state";
+import { resolveToolEnabled, type ToolHydrationInput } from "@/components/chat/tools/base-tool-state";
 import {
   buildResearchResultFromMessages,
   findLastWebSearchSources,
@@ -179,7 +179,7 @@ export function hydrateToolFromChat(
     case "video-gen":
     case "music-gen":
       // Media gen tools — base hydrate only for now. Extend ChatSession with *Enabled flags + migration when persistence needed.
-      (tool as any).hydrate?.({
+      (tool as { hydrate?: (state: ToolHydrationInput) => void }).hydrate?.({
         enabled: resolveToolEnabled(
           false,
           activePanel,
@@ -218,7 +218,7 @@ export function getToolPersistFields(
     case "video-gen":
     case "music-gen":
       // TODO: persist enabled + results when ChatSession schema extended
-      return { [`${id.replace(/-/g, "")}Enabled`]: tool.isEnabled } as any;
+      return { [`${id.replace(/-/g, "")}Enabled`]: tool.isEnabled } as Partial<ChatSession>;
     default:
       return {};
   }

@@ -59,7 +59,7 @@ export function useChatToolPanelProps({
 
   useLayoutEffect(() => {
     tools.worksheet.setGenerating(worksheetGeneratingFromStream);
-  }, [tools.worksheet.setGenerating, worksheetGeneratingFromStream]);
+  }, [tools.worksheet.setGenerating, worksheetGeneratingFromStream]); // eslint-disable-line react-hooks/exhaustive-deps -- tools.worksheet is stable ref from hook bundle
 
   const worksheetGenerating =
     tools.worksheet.isGenerating || worksheetGeneratingFromStream;
@@ -91,6 +91,7 @@ export function useChatToolPanelProps({
     }
     worksheet.handleWorksheetClear();
   }, [tools.worksheet, worksheet]);
+
 
   const {
     handleWorksheetRetry,
@@ -124,9 +125,9 @@ export function useChatToolPanelProps({
       onWorksheetClear: handleWorksheetClear,
       workflowSessionId: apiSessionId,
       // Media tools (new creative rail)
-      imageGen: (tools as any).imageGen,
-      videoGen: (tools as any).videoGen,
-      musicGen: (tools as any).musicGen,
+      imageGen: tools.imageGen,
+      videoGen: tools.videoGen,
+      musicGen: tools.musicGen,
     }),
     [
       handleWorksheetChange,
@@ -139,6 +140,9 @@ export function useChatToolPanelProps({
       apiSessionId,
       worksheet.lastWorksheetPrompt,
       worksheetGenerating,
+      tools.imageGen,
+      tools.videoGen,
+      tools.musicGen,
     ],
   );
 
