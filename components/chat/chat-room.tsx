@@ -6,9 +6,8 @@ import { HeaderAccountButton } from "@/components/chat/header-account-button";
 import { ChatHeader } from "@/components/chat/header";
 import { ChatHeaderMobileRedesign } from "@/components/chat/header-mobile-redesign";
 import { useUserProfile } from "@/lib/auth/use-user-profile";
-import { MessageBubble } from "@/components/chat/message-bubble";
-import { MessageSkeleton } from "@/components/chat/message-skeleton";
-import { ScrollToBottomButton } from "@/components/chat/scroll-to-bottom";
+import { ChatEmptyState } from "@/components/chat/chat-empty-state";
+import { ChatMessageList } from "@/components/chat/chat-message-list";
 import { SidebarSkeleton } from "@/components/chat/sidebar-skeleton";
 
 const ChatSidebar = dynamic(
@@ -73,7 +72,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { HeavyToolsDesktopDialog } from "@/components/chat/heavy-tools-desktop-dialog";
+
 import { useDesktopSidebar } from "@/lib/client/use-desktop-sidebar";
 import { useHeavyToolsDesktop } from "@/lib/client/use-heavy-tools-desktop";
 import { useIsMobileViewport } from "@/lib/client/use-media-query";
@@ -111,12 +110,35 @@ const RightToolsRail = dynamic(
     })),
   { ssr: false },
 );
+
+const ScrollToBottomButton = dynamic(
+  () =>
+    import("@/components/chat/scroll-to-bottom").then((mod) => ({
+      default: mod.ScrollToBottomButton,
+    })),
+  { ssr: false },
+);
+
+const HeavyToolsDesktopDialog = dynamic(
+  () =>
+    import("@/components/chat/heavy-tools-desktop-dialog").then((mod) => ({
+      default: mod.HeavyToolsDesktopDialog,
+    })),
+  { ssr: false },
+);
 import { useChatFontSize } from "@/lib/chat-font-prefs";
 import { cn } from "@/lib/utils";
 
 
 function ChatRoomContent() {
-  const deferredToolsReady = useDeferredReady();
+  const deferredToolsReady = useDeferredReady({
+    minDelay: 1800,
+    idleTimeout: 2500,
+  });
+  const deferredHeavyTools = useDeferredReady({
+    minDelay: 1200,
+    idleTimeout: 2000,
+  });
   const { locale, openHandoff, closeHandoff } = useChatContext();
   const { displayName, avatarUrl, isLoading: profileLoading } = useUserProfile();
   const copy = COPY[locale];
@@ -138,6 +160,7 @@ function ChatRoomContent() {
     locale,
     heavyToolsDesktop,
     desktopSidebar,
+    enableHeavyTools: deferredHeavyTools,
   });
 
   const {
@@ -171,7 +194,7 @@ function ChatRoomContent() {
   } = useChatMessages();
 
   useEffect(() => {
-    if (!hydrated || !hasUserMessages) {
+    if (!hydrated) {
       delete document.documentElement.dataset.chatReady;
       return;
     }
@@ -180,7 +203,7 @@ function ChatRoomContent() {
     return () => {
       delete document.documentElement.dataset.chatReady;
     };
-  }, [hasUserMessages, hydrated]);
+  }, [hydrated]);
 
   const sessionRefs = useChatSessionRefs(currentChat);
 
@@ -257,6 +280,27 @@ function ChatRoomContent() {
     tools,
     worksheet.worksheetWorkspaceRef,
   ]);
+
+  useEffect(() => {
+    if (!deferredHeavyTools || !hydrated || !currentChat) return;
+
+    tools.hydrateFromChat(currentChat);
+    worksheet.hydrateFromChat(currentChat);
+    workflowWorkspace.hydrateFromChat(currentChat);
+    tools.worksheet.hydrate({
+      enabled: tools.worksheet.isEnabled,
+      panelOpen: tools.worksheet.isPanelOpen,
+      locale,
+      isGenerating: false,
+      errorDetail: null,
+    });
+    tools.workflow.hydrate({
+      enabled: tools.workflow.isEnabled,
+      panelOpen: tools.workflow.isPanelOpen,
+      workspace: currentChat.workflow,
+      isExecuting: false,
+    });
+  }, [currentChat, deferredHeavyTools, hydrated, locale, tools, worksheet, workflowWorkspace]);
 
   const chatSend = useChatSend({
     locale,
@@ -463,42 +507,36 @@ function ChatRoomContent() {
                   !hasUserMessages && "min-h-full flex-1 justify-center py-8 sm:py-10",
                 )}
               >
-                {visibleMessages.map((message) => {
-                  const isStreaming = message.id === chatSend.streamingMessageId;
-                  const isEmptyStreaming =
-                    isStreaming && message.content.length === 0;
-
-                  if (isEmptyStreaming) {
-                    return <MessageSkeleton key={message.id} />;
+                <ChatMessageList
+                  locale={locale}
+                  messages={visibleMessages}
+                  streamingMessageId={chatSend.streamingMessageId}
+                  lastAssistantMessageId={lastAssistantMessageId}
+                  lastUserMessageId={lastUserMessageId}
+                  editingMessageId={editingMessageId}
+                  onRegenerate={chatSend.handleRegenerate}
+                  onEdit={chatSend.handleEditMessage}
+                  onCancelEdit={chatSend.handleCancelEdit}
+                  onSubmitEdit={chatSend.handleSubmitEdit}
+                  onOpenWorkflowPanel={handleOpenWorkflowPanel}
+                  onOpenWorksheetPanel={handleOpenWorksheetPanel}
+                  emptyState={
+                    !hasUserMessages ? (
+                      <ChatEmptyState locale={locale} className="py-8 sm:py-10" />
+                    ) : undefined
                   }
-
-                  return (
-                    <MessageBubble
-                      key={message.id}
-                      message={message}
-                      locale={locale}
-                      isStreaming={isStreaming}
-                      isLastAssistant={message.id === lastAssistantMessageId}
-                      isLastUser={message.id === lastUserMessageId}
-                      isEditing={editingMessageId === message.id}
-                      onRegenerate={chatSend.handleRegenerate}
-                      onEdit={chatSend.handleEditMessage}
-                      onCancelEdit={chatSend.handleCancelEdit}
-                      onSubmitEdit={chatSend.handleSubmitEdit}
-                      onOpenWorkflowPanel={handleOpenWorkflowPanel}
-                      onOpenWorksheetPanel={handleOpenWorksheetPanel}
-                    />
-                  );
-                })}
+                />
 
                 <div ref={messagesEndRef} className="h-px" aria-hidden />
               </div>
 
-            <ScrollToBottomButton
-              visible={showScrollButton}
-              locale={locale}
-              onClick={() => scrollToBottom("smooth")}
-            />
+            {deferredToolsReady ? (
+              <ScrollToBottomButton
+                visible={showScrollButton}
+                locale={locale}
+                onClick={() => scrollToBottom("smooth")}
+              />
+            ) : null}
           </div>
 
           {chatSend.error && (
@@ -588,7 +626,8 @@ function ChatRoomContent() {
       </Sheet>
 
       {deferredToolsReady ? <HandoffDialog /> : null}
-      <HeavyToolsDesktopDialog locale={locale} />
+      {deferredToolsReady ? <HeavyToolsDesktopDialog locale={locale} /> : null}
+      {tools.heavyToolBridge}
     </MessageReactionsProvider>
   );
 }

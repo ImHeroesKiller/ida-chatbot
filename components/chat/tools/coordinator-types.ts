@@ -7,6 +7,7 @@ import type { ToolRuntimeBundle } from "@/components/chat/tools/tool-coordinator
 import type { ToolId } from "@/components/chat/tools/types";
 import type { ChatSession } from "@/lib/chat-store";
 import type { RightSidebarPanel } from "@/lib/chat-tools";
+import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
 export interface ToolRailItem {
@@ -111,7 +112,10 @@ export type ToolsCoordinator = ToolRuntimeBundle &
   ToolToggleCoordinator &
   ToolUiCoordinator &
   ToolSendFlags &
-  ToolAvailabilityFlags;
+  ToolAvailabilityFlags & {
+    /** Lazy-load bridge for worksheet/workflow hooks (separate chunk). */
+    heavyToolBridge: ReactNode;
+  };
 
 /** SSE stream side-effects: activate tools and update search/research state. */
 export type StreamToolCoordinator = ToolRuntimeBundle &

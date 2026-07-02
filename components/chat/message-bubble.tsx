@@ -1,13 +1,43 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { memo } from "react";
 
 import { AttachmentPreview } from "@/components/chat/attachment-preview";
-import { ChatToolResultCard } from "@/components/chat/chat-tool-result-card";
-import { MarkdownContent } from "@/components/chat/markdown-content";
 import { MessageEditForm } from "@/components/chat/message-edit-form";
-import { WebSearchSources } from "@/components/chat/web-search-sources";
-import { MessageActions } from "@/components/chat/message-actions";
+
+const MarkdownContent = dynamic(
+  () =>
+    import("@/components/chat/markdown-content").then((mod) => ({
+      default: mod.MarkdownContent,
+    })),
+  {
+    loading: () => (
+      <div className="h-4 w-full max-w-md animate-pulse rounded bg-muted/60" />
+    ),
+  },
+);
+
+const WebSearchSources = dynamic(
+  () =>
+    import("@/components/chat/web-search-sources").then((mod) => ({
+      default: mod.WebSearchSources,
+    })),
+);
+
+const ChatToolResultCard = dynamic(
+  () =>
+    import("@/components/chat/chat-tool-result-card").then((mod) => ({
+      default: mod.ChatToolResultCard,
+    })),
+);
+
+const MessageActions = dynamic(
+  () =>
+    import("@/components/chat/message-actions").then((mod) => ({
+      default: mod.MessageActions,
+    })),
+);
 import type { Locale } from "@/lib/config";
 import { COPY } from "@/lib/i18n";
 import type { IdaMessage } from "@/lib/types";

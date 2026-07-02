@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import { contrastForeground, normalizeHexColor } from "@/lib/ui-config/color";
 import { Inter } from "next/font/google";
 import { DeferredAnalytics } from "@/components/performance/deferred-analytics";
-import { WebVitalsReporter } from "@/components/performance/web-vitals-reporter";
+import { DeferredWebVitals } from "@/components/performance/deferred-web-vitals";
 import { PreconnectLinks } from "@/components/performance/preconnect-links";
 import { StructuredData } from "@/components/seo/structured-data";
 import { GlobalUiProvider } from "@/components/global-ui-provider";
@@ -153,7 +153,7 @@ export default function RootLayout({
         <GlobalUiProvider initialConfig={uiConfig}>
           <ThemeProvider>
             {children}
-            <WebVitalsReporter />
+            <DeferredWebVitals />
             <DeferredAnalytics />
           </ThemeProvider>
         </GlobalUiProvider>

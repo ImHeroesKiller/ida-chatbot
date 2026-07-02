@@ -39,6 +39,8 @@ export interface ToolsCoordinatorOptions {
   locale: Locale;
   heavyToolsDesktop: boolean;
   desktopSidebar: boolean;
+  /** Defer loading worksheet/workflow hooks until after first paint. */
+  enableHeavyTools?: boolean;
 }
 
 function findEntry(
@@ -63,6 +65,7 @@ export function useToolsCoordinator(
     locale,
     heavyToolsDesktop,
     desktopSidebar,
+    enableHeavyTools = true,
   } = options;
 
   const ctx = useMemo(
@@ -84,7 +87,9 @@ export function useToolsCoordinator(
     [heavyToolsDesktop, locale],
   );
 
-  const { bundle, entries } = useToolRuntime();
+  const { bundle, entries, heavyToolBridge } = useToolRuntime({
+    enableHeavyTools,
+  });
 
   const panels = useToolPanelCoordinator(entries);
   const persistence = useToolPersistence({
@@ -291,6 +296,7 @@ export function useToolsCoordinator(
     isResearchAvailable: persistence.isResearchAvailable,
     isMapAvailable: persistence.isMapAvailable,
     isWorkflowAvailable: persistence.isWorkflowAvailable,
+    heavyToolBridge,
   };
 }
 
