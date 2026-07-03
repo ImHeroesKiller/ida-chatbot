@@ -7,6 +7,7 @@ import { fadeUp } from "@/lib/ui/motion-presets";
 
 import { AttachmentPreview } from "@/components/chat/attachment-preview";
 import { ChatToolResultCard } from "@/components/chat/chat-tool-result-card";
+import { MediaGenResultCard } from "@/components/chat/media-gen-result-card";
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { MessageEditForm } from "@/components/chat/message-edit-form";
 import { WebSearchSources } from "@/components/chat/web-search-sources";
@@ -36,6 +37,9 @@ interface MessageBubbleProps {
   onOpenWebSearchPanel?: () => void;
   onOpenResearchPanel?: () => void;
   onOpenMapPanel?: () => void;
+  onOpenImageGenPanel?: () => void;
+  onOpenVideoGenPanel?: () => void;
+  onOpenMusicGenPanel?: () => void;
 }
 
 function formatMessageTime(timestamp: number, locale: Locale): string {
@@ -66,6 +70,9 @@ export function MessageBubble({
   onOpenWebSearchPanel,
   onOpenResearchPanel,
   onOpenMapPanel,
+  onOpenImageGenPanel,
+  onOpenVideoGenPanel,
+  onOpenMusicGenPanel,
 }: MessageBubbleProps) {
   const copy = COPY[locale];
   const isUser = message.role === "user";
@@ -254,13 +261,38 @@ export function MessageBubble({
                     </p>
                   );
                 })() : null}
-                <p className="mt-0.5 text-[10px] text-muted-foreground">Klik card untuk buka modal peta</p>
+                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  Klik card untuk buka modal peta
+                </p>
               </div>
               {onOpenMapPanel ? (
                 <ExternalLink className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
               ) : null}
             </div>
+            {onOpenMapPanel ? (
+              <div className="mt-2 flex gap-2">
+                <span className="inline-flex h-7 items-center rounded-md border border-primary/30 bg-primary/5 px-2.5 text-[10px] font-medium text-primary">
+                  Buka peta
+                </span>
+              </div>
+            ) : null}
           </button>
+        ) : null}
+
+        {!isUser &&
+        !isEditing &&
+        (message.imageGenResult ||
+          message.videoGenResult ||
+          message.musicGenResult) ? (
+          <MediaGenResultCard
+            locale={locale}
+            imageResult={message.imageGenResult}
+            videoResult={message.videoGenResult}
+            musicResult={message.musicGenResult}
+            onOpenImageGenPanel={onOpenImageGenPanel}
+            onOpenVideoGenPanel={onOpenVideoGenPanel}
+            onOpenMusicGenPanel={onOpenMusicGenPanel}
+          />
         ) : null}
 
         {!isUser &&

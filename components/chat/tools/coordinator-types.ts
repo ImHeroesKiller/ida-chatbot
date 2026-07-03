@@ -32,6 +32,7 @@ export interface ToolSendFlags {
   webSearchAtSend: boolean;
   researchAtSend: boolean;
   workflowAtSend: boolean;
+  mapAtSend: boolean;
 }
 
 export interface ToolAvailabilityFlags {

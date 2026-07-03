@@ -9,7 +9,14 @@ import { requestChatComposerFocus } from "@/lib/client/focus-chat-composer";
 import type { Locale } from "@/lib/config";
 import { formatResearchWorksheetContent } from "@/lib/research-format";
 import type { ResearchSession } from "@/lib/research-types";
-import type { IdaMessage, IdaWebSearchSource } from "@/lib/types";
+import type { ImageGenResult } from "@/components/chat/tools/image-gen/use-image-gen";
+import type {
+  IdaImageGenResultCard,
+  IdaMessage,
+  IdaMusicGenResultCard,
+  IdaVideoGenResultCard,
+  IdaWebSearchSource,
+} from "@/lib/types";
 import type { WorksheetDocument } from "@/lib/worksheet";
 import {
   addGeneratedWorksheetDocument,
@@ -181,6 +188,71 @@ export function useChatToolHandlers({
     createWorksheetFromResearch(tools.research.currentSession);
   }, [createWorksheetFromResearch, tools.research.currentSession]);
 
+  const appendAssistantMediaCard = useCallback(
+    (
+      patch: Partial<
+        Pick<
+          IdaMessage,
+          "imageGenResult" | "videoGenResult" | "musicGenResult"
+        >
+      >,
+    ) => {
+      if (!setMessages) return;
+
+      setMessages((prevMsgs) => {
+        const last = prevMsgs[prevMsgs.length - 1];
+        if (last?.role === "assistant") {
+          const next = [...prevMsgs];
+          next[next.length - 1] = { ...last, ...patch };
+          return next;
+        }
+
+        return [
+          ...prevMsgs,
+          {
+            id: `media-${Date.now()}`,
+            role: "assistant" as const,
+            content: "",
+            createdAt: Date.now(),
+            ...patch,
+          },
+        ];
+      });
+    },
+    [setMessages],
+  );
+
+  const handleImageGenSendToChat = useCallback(
+    (result: ImageGenResult) => {
+      const card: IdaImageGenResultCard = {
+        id: result.id,
+        prompt: result.prompt,
+        imageUrl: result.imageUrl,
+        aspectRatio: result.aspectRatio,
+        model: result.model,
+      };
+      appendAssistantMediaCard({ imageGenResult: card });
+      toast.success("Gambar dikirim ke chatroom.");
+    },
+    [appendAssistantMediaCard],
+  );
+
+  const handleVideoGenSendToChat = useCallback(
+    (result: IdaVideoGenResultCard) => {
+      appendAssistantMediaCard({ videoGenResult: result });
+      toast.success("Video dikirim ke chatroom.");
+    },
+    [appendAssistantMediaCard],
+  );
+
+  const handleMusicGenSendToChat = useCallback(
+    (result: IdaMusicGenResultCard) => {
+      appendAssistantMediaCard({ musicGenResult: result });
+      toast.success("Musik dikirim ke chatroom.");
+    },
+    [appendAssistantMediaCard],
+  );
+
   const handleMapAttachLocations = useCallback(() => {
     const markers = tools.map.viewState.markers ?? [];
     if (!markers.length || !setMessages) {
@@ -258,6 +330,9 @@ export function useChatToolHandlers({
       onResearchCreateDocumentFromCurrent:
         handleResearchCreateDocumentFromCurrent,
       onMapShareLocations: handleMapAttachLocations,
+      onImageGenSendToChat: handleImageGenSendToChat,
+      onVideoGenSendToChat: handleVideoGenSendToChat,
+      onMusicGenSendToChat: handleMusicGenSendToChat,
       onClose: tools.collapsePanel,
     }),
     [
@@ -268,6 +343,9 @@ export function useChatToolHandlers({
       handleResearchStart,
       handleWebSearchUseAsContext,
       handleMapAttachLocations,
+      handleImageGenSendToChat,
+      handleVideoGenSendToChat,
+      handleMusicGenSendToChat,
       isLoading,
       tools,
     ],
@@ -281,6 +359,9 @@ export function useChatToolHandlers({
     handleResearchCreateDocument,
     handleResearchCreateDocumentFromCurrent,
     handleMapAttachLocations,
+    handleImageGenSendToChat,
+    handleVideoGenSendToChat,
+    handleMusicGenSendToChat,
     handleWorksheetRetry,
     sharedToolPanelProps,
   };

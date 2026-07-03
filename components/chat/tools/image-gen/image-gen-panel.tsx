@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 interface ImageGenPanelProps {
   imageGen?: ImageGenTool;
   onClose: () => void;
+  onSendToChat?: (result: ImageGenResult) => void;
   embedded?: boolean;
   className?: string;
 }
@@ -24,7 +25,7 @@ const ASPECT_OPTIONS = [
   { value: "9:16", label: "Portrait (9:16)", w: 512, h: 912 },
 ];
 
-export function ImageGenPanel({ imageGen, onClose, embedded, className }: ImageGenPanelProps) {
+export function ImageGenPanel({ imageGen, onClose, onSendToChat, embedded, className }: ImageGenPanelProps) {
   const [showHistory, setShowHistory] = useState(false);
 
   if (!imageGen) {
@@ -33,7 +34,10 @@ export function ImageGenPanel({ imageGen, onClose, embedded, className }: ImageG
 
   const handleGenerate = async () => {
     try {
-      await imageGen.generate();
+      const result = await imageGen.generate();
+      if (result && onSendToChat) {
+        onSendToChat(result);
+      }
     } catch (err: unknown) {
       const msg = (err as Error)?.message || "Image generation failed. Check your model configuration and API keys (XAI_API_KEY etc).";
       toast.error(msg);
@@ -41,8 +45,8 @@ export function ImageGenPanel({ imageGen, onClose, embedded, className }: ImageG
   };
 
   const handleUseImage = (result: ImageGenResult) => {
+    onSendToChat?.(result);
     imageGen.useResultAsAttachment(result);
-    // Future: close panel or switch to composer
   };
 
   const handleDownload = (url: string, prompt: string) => {

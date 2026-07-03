@@ -246,5 +246,6 @@ export function resolveSendFlags(
       bundle.research.isEnabled,
     workflowAtSend:
       isToolAvailable("workflow") && bundle.workflow.isEnabled,
+    mapAtSend: isToolAvailable("map") && bundle.map.isEnabled,
   };
 }

@@ -370,16 +370,35 @@ function ChatRoomContent() {
     switch (panel) {
       case 'worksheet':
       case 'workflow':
-        return 'xl'; // heavy editors/canvas need more space
+        return 'xl';
       case 'image-gen':
       case 'video-gen':
       case 'music-gen':
       case 'research':
       case 'map':
-        return 'xl'; // creative/research tools benefit from larger view
+        return 'xl';
       default:
         return 'lg';
     }
+  };
+
+  const getToolModalContentClassName = (
+    panel: RightSidebarPanel | null,
+  ): string => {
+    if (!panel) return 'p-0';
+    if (panel === 'worksheet' || panel === 'workflow') {
+      return 'flex min-h-0 flex-1 flex-col overflow-hidden p-0 h-[calc(92vh-3.25rem)]';
+    }
+    return 'p-0';
+  };
+
+  const getToolModalShellClassName = (
+    panel: RightSidebarPanel | null,
+  ): string | undefined => {
+    if (panel === 'worksheet' || panel === 'workflow') {
+      return 'h-[92vh] max-h-[92vh]';
+    }
+    return undefined;
   };
 
   return (
@@ -484,6 +503,9 @@ function ChatRoomContent() {
                       onOpenWebSearchPanel={() => tools.openPanel("web-search")}
                       onOpenResearchPanel={() => tools.openPanel("research")}
                       onOpenMapPanel={() => tools.openPanel("map")}
+                      onOpenImageGenPanel={() => tools.openPanel("image-gen")}
+                      onOpenVideoGenPanel={() => tools.openPanel("video-gen")}
+                      onOpenMusicGenPanel={() => tools.openPanel("music-gen")}
                     />
                   );
                 })}
@@ -555,8 +577,9 @@ function ChatRoomContent() {
           onClose={tools.collapsePanel}
           title={getToolTitle(tools.activePanel, copy)}
           size={getToolModalSize(tools.activePanel)}
+          className={getToolModalShellClassName(tools.activePanel)}
           disableBackdropClose={false}
-          contentClassName="p-0" // let individual tool panels control their internal padding when embedded
+          contentClassName={getToolModalContentClassName(tools.activePanel)}
         >
           <ToolPanelHost
             key={`${currentChat?.id}-${tools.activePanel}`}

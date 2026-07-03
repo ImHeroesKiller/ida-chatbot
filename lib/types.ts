@@ -36,6 +36,28 @@ export interface IdaWorksheetResultCard {
   documentId?: string;
 }
 
+export interface IdaImageGenResultCard {
+  id: string;
+  prompt: string;
+  imageUrl: string;
+  aspectRatio?: string;
+  model?: string;
+}
+
+export interface IdaVideoGenResultCard {
+  id: string;
+  prompt: string;
+  thumbnailUrl: string;
+  aspectRatio?: string;
+}
+
+export interface IdaMusicGenResultCard {
+  id: string;
+  prompt: string;
+  audioUrl: string;
+  durationSec?: number;
+}
+
 export interface IdaMessage {
   id: string;
   role: "user" | "assistant";
@@ -57,6 +79,9 @@ export interface IdaMessage {
     lng: number;
     label?: string;
   }>;
+  imageGenResult?: IdaImageGenResultCard;
+  videoGenResult?: IdaVideoGenResultCard;
+  musicGenResult?: IdaMusicGenResultCard;
 }
 
 export interface IdaChatErrorResponse {

@@ -500,34 +500,36 @@ function WorkflowPanelInner({
 
       {activeTab === "canvas" ? (
         <>
-      <div className="shrink-0 space-y-1.5 border-b px-2.5 py-1.5 lg:px-3">
-        <div className="flex flex-wrap gap-1">
+      <div className="shrink-0 space-y-1 border-b px-1.5 py-1 lg:px-2">
+        <div className="flex flex-wrap items-center gap-0.5">
           <Button
             type="button"
             variant="outline"
-            size="xs"
-            className="h-7 text-[10px]"
+            size="icon-sm"
+            className="h-7 w-7"
             onClick={handleNewWorkflow}
+            title={copy.workflowNew}
+            aria-label={copy.workflowNew}
           >
-            <Plus className="mr-1 h-3 w-3" />
-            {copy.workflowNew}
+            <Plus className="h-3.5 w-3.5" />
           </Button>
           <Button
             type="button"
             variant="outline"
-            size="xs"
-            className="h-7 text-[10px]"
+            size="icon-sm"
+            className="h-7 w-7"
             onClick={handleSave}
             disabled={!activeWorkflow}
+            title={copy.workflowSave}
+            aria-label={copy.workflowSave}
           >
-            <Save className="mr-1 h-3 w-3" />
-            {copy.workflowSave}
+            <Save className="h-3.5 w-3.5" />
           </Button>
           <Button
             type="button"
             variant="default"
-            size="xs"
-            className="h-7 text-[10px]"
+            size="icon-sm"
+            className="h-7 w-7"
             onClick={() => void handleExecute()}
             disabled={
               !activeWorkflow ||
@@ -537,48 +539,50 @@ function WorkflowPanelInner({
                   activeExecutionId !== activeWorkflow?.id,
               )
             }
+            title={copy.workflowExecute}
+            aria-label={copy.workflowExecute}
           >
             {isExecuting ? (
-              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Play className="mr-1 h-3 w-3" />
+              <Play className="h-3.5 w-3.5" />
             )}
-            {copy.workflowExecute}
           </Button>
           <Button
             type="button"
             variant="outline"
-            size="xs"
-            className="h-7 text-[10px] text-destructive hover:text-destructive"
+            size="icon-sm"
+            className="h-7 w-7 text-destructive hover:text-destructive"
             onClick={() => setDeleteDialogOpen(true)}
             disabled={!activeWorkflow}
+            title={copy.workflowDelete}
+            aria-label={copy.workflowDelete}
           >
-            <Trash2 className="mr-1 h-3 w-3" />
-            {copy.workflowDelete}
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
           <Button
             type="button"
             variant="outline"
-            size="xs"
-            className="h-7 text-[10px]"
+            size="icon-sm"
+            className="h-7 w-7"
             onClick={openSecurityPanel}
             disabled={!activeWorkflow}
             title={copy.workflowSecurityTitle}
+            aria-label={copy.workflowSecurityTitle}
           >
-            <Shield className="mr-1 h-3 w-3" />
-            {copy.workflowSecurityTitle}
+            <Shield className="h-3.5 w-3.5" />
           </Button>
           <Button
             type="button"
             variant="outline"
-            size="xs"
-            className="h-7 text-[10px]"
+            size="icon-sm"
+            className="h-7 w-7"
             onClick={openSchedulePanel}
             disabled={!activeWorkflow || !triggerNode}
             title={copy.workflowScheduleTitle}
+            aria-label={copy.workflowScheduleTitle}
           >
-            <CalendarClock className="mr-1 h-3 w-3" />
-            {copy.workflowScheduleTitle}
+            <CalendarClock className="h-3.5 w-3.5" />
           </Button>
         </div>
 
@@ -623,7 +627,7 @@ function WorkflowPanelInner({
       </div>
 
       <div className="relative flex min-h-0 flex-1 flex-col">
-        <div className="min-h-0 flex-1 p-1 sm:p-1.5 lg:p-2">
+        <div className="min-h-0 flex-1 p-0.5 sm:p-1">
           {activeWorkflow ? (
             <WorkflowCanvas
               key={activeWorkflow.id}

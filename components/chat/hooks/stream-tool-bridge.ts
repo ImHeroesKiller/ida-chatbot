@@ -11,6 +11,8 @@ import {
   type WorkflowStreamPayload,
 } from "@/lib/workflow-chat";
 import { COPY } from "@/lib/i18n";
+import { resolveMapLocationsFromChat } from "@/lib/map-chat-locations";
+import { createMapMarkerId } from "@/lib/map-types";
 import type { IdaMessage } from "@/lib/types";
 import {
   type WorksheetDocument,
@@ -28,6 +30,7 @@ export interface StreamSendFlags {
   useResearch: boolean;
   useWorksheet: boolean;
   useWorkflow: boolean;
+  useMap: boolean;
 }
 
 export interface StreamToolContext {
@@ -133,14 +136,10 @@ export function createStreamToolBridge(
         deps.tools.webSearch.setLastQuery(queries[queries.length - 1] ?? null);
       }
       deps.tools.webSearch.setEnabled(true);
-      if (!deps.isMobileViewport) {
-        deps.tools.openPanel(deps.tools.webSearch.panelId);
-      }
     } else {
       deps.persistCurrentChat({
         messages: messageState.messages,
         webSearchEnabled: true,
-        activeRightPanel: deps.tools.webSearch.panelId,
       });
     }
   };
@@ -170,12 +169,55 @@ export function createStreamToolBridge(
         sources: sources ?? [],
         queries: queries ?? [],
       });
-      deps.tools.activateResearch();
+      deps.tools.research.setEnabled(true);
     } else {
       deps.persistCurrentChat({
         messages: messageState.messages,
         researchEnabled: true,
-        activeRightPanel: deps.tools.research.panelId,
+      });
+    }
+  };
+
+  const onMapLocationsFromChat = async (userMessage: string) => {
+    const locations = await resolveMapLocationsFromChat(userMessage);
+    if (!locations.length) return;
+
+    patchStreamMessage(messageState, streamId, { mapLocations: locations });
+
+    if (ctx.isActiveChat()) {
+      deps.setMessages(messageState.messages);
+      deps.tools.map.setEnabled(true);
+
+      const markers = locations.map((loc) => ({
+        id: loc.id ?? createMapMarkerId(),
+        lat: loc.lat,
+        lng: loc.lng,
+        label: loc.label,
+      }));
+
+      const first = markers[0];
+      deps.tools.map.setViewState({
+        ...deps.tools.map.viewState,
+        markers: [
+          ...deps.tools.map.viewState.markers.filter(
+            (existing) =>
+              !markers.some(
+                (marker) =>
+                  Math.abs(existing.lat - marker.lat) < 0.0001 &&
+                  Math.abs(existing.lng - marker.lng) < 0.0001,
+              ),
+          ),
+          ...markers,
+        ],
+        center: { lat: first.lat, lng: first.lng },
+        zoom: Math.max(deps.tools.map.viewState.zoom, 12),
+        selectedMarkerId: first.id,
+      });
+    } else {
+      deps.persistCurrentChat({
+        messages: messageState.messages,
+        mapEnabled: true,
+        mapViewState: deps.tools.map.viewState,
       });
     }
   };
@@ -463,14 +505,10 @@ export function createStreamToolBridge(
 
     if (flags.useWebSearch && ctx.isActiveChat()) {
       deps.tools.webSearch.finishSearchError(errorMessage);
-      if (!deps.isMobileViewport) {
-        deps.tools.openPanel(deps.tools.webSearch.panelId);
-      }
     }
 
     if (flags.useResearch && ctx.isActiveChat()) {
       deps.tools.research.endChatResearch();
-      deps.tools.openPanel(deps.tools.research.panelId);
     }
 
     if (flags.useWorkflow) {
@@ -496,6 +534,7 @@ export function createStreamToolBridge(
   return {
     onWebSearchMeta,
     onResearchMeta,
+    onMapLocationsFromChat,
     onWorksheetDone,
     onWorkflowDone,
     onWorkflowDiscovery,

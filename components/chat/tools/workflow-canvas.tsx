@@ -16,7 +16,6 @@ import ReactFlow, {
   BackgroundVariant,
   Controls,
   Handle,
-  MiniMap,
   Position,
   ReactFlowProvider,
   addEdge,
@@ -233,19 +232,6 @@ const EDGE_TYPES = {} as const;
 const FIT_VIEW_OPTIONS = { padding: 0.2, duration: 200 } as const;
 
 const PRO_OPTIONS = { hideAttribution: true } as const;
-
-const MINIMAP_NODE_COLORS: Record<WorkflowNodeKind, string> = {
-  trigger: "#10b981",
-  action: "#3b82f6",
-  condition: "#f59e0b",
-  output: "#8b5cf6",
-  approval: "#f43f5e",
-};
-
-function getMiniMapNodeColor(node: Node): string {
-  const kind = (node.data as WorkflowNodeData | undefined)?.kind;
-  return kind ? MINIMAP_NODE_COLORS[kind] : "#94a3b8";
-}
 
 /** React Flow emits select/dimensions on mount — ignore to avoid parent update loops. */
 function isPropagatableNodeChange(change: NodeChange): boolean {
@@ -473,7 +459,7 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
     <div
       className={cn(
         "h-full w-full",
-        isMobile ? "min-h-[38vh]" : "min-h-[12rem]",
+        isMobile ? "min-h-[42vh]" : "min-h-[28rem]",
         className,
       )}
     >
@@ -497,7 +483,7 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
           maxZoom={1.5}
           onlyRenderVisibleElements={flowNodes.length > 12}
           proOptions={PRO_OPTIONS}
-          className="workflow-canvas-flow touch-pan-y rounded-xl border border-border/40 bg-muted/15 shadow-inner dark:bg-muted/8 lg:ida-glass-subtle"
+          className="workflow-canvas-flow touch-pan-y rounded-lg border border-border/30 bg-muted/10 dark:bg-muted/6"
         >
           <FitViewOnce workflowId={workflowId} nodeCount={flowNodes.length} />
           <Background
@@ -509,18 +495,10 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
           <Controls
             showInteractive={false}
             className={cn(
-              "!rounded-lg !border !border-border !bg-background/90 !shadow-sm [&>button]:!border-border [&>button]:!bg-background [&>button]:hover:!bg-muted",
+              "!rounded-md !border !border-border/60 !bg-background/95 !shadow-sm [&>button]:!h-7 [&>button]:!w-7 [&>button]:!border-border/60 [&>button]:!bg-background [&>button]:hover:!bg-muted",
               isMobile && "scale-90",
             )}
           />
-          {!isMobile ? (
-            <MiniMap
-              zoomable
-              pannable
-              nodeColor={getMiniMapNodeColor}
-              className="!rounded-lg !border !border-border !bg-background/80"
-            />
-          ) : null}
         </ReactFlow>
       </WorkflowExecutionStatusContext.Provider>
     </div>

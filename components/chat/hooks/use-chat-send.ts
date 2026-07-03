@@ -136,16 +136,14 @@ export function useChatSend({
         setWorksheetErrorDetail(null);
       }
 
+      const mapAtSend = tools.mapAtSend;
+
       if (webSearchAtSend && text) {
         tools.webSearch.beginSearch(text);
-        if (!isMobileViewport) {
-          tools.openPanel(tools.webSearch.panelId);
-        }
       }
 
       if (researchAtSend && text) {
         tools.research.beginChatResearch();
-        tools.openPanel(tools.research.panelId);
       }
 
       if (workflowAtSend) {
@@ -194,6 +192,7 @@ export function useChatSend({
           researchAtSend,
           worksheetAtSend,
           workflowAtSend,
+          mapAtSend,
           text,
         );
       } finally {
@@ -284,6 +283,7 @@ export function useChatSend({
           tools.researchAtSend,
           tools.worksheetAtSend,
           tools.workflowAtSend,
+          tools.mapAtSend,
           lastMessage.content,
         );
       } finally {
@@ -366,6 +366,7 @@ export function useChatSend({
           tools.researchAtSend,
           tools.worksheetAtSend,
           tools.workflowAtSend,
+          tools.mapAtSend,
           text,
         );
       } finally {

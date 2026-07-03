@@ -2,7 +2,7 @@
 
 import { Loader2, Music, X } from "lucide-react";
 
-import type { MusicGenTool } from "./use-music-gen";
+import type { MusicGenResult, MusicGenTool } from "./use-music-gen";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -10,11 +10,12 @@ import { cn } from "@/lib/utils";
 interface MusicGenPanelProps {
   musicGen?: MusicGenTool;
   onClose: () => void;
+  onSendToChat?: (result: MusicGenResult) => void;
   embedded?: boolean;
   className?: string;
 }
 
-export function MusicGenPanel({ musicGen, onClose, embedded, className }: MusicGenPanelProps) {
+export function MusicGenPanel({ musicGen, onClose, onSendToChat, embedded, className }: MusicGenPanelProps) {
   if (!musicGen) {
     return <div className="p-4 text-sm text-muted-foreground">Music tool not initialized.</div>;
   }
@@ -46,7 +47,16 @@ export function MusicGenPanel({ musicGen, onClose, embedded, className }: MusicG
           className="min-h-20"
         />
 
-        <Button onClick={() => void musicGen.generate()} disabled={!musicGen.prompt.trim() || musicGen.isGenerating} className="w-full">
+        <Button
+          onClick={() => {
+            void (async () => {
+              const result = await musicGen.generate();
+              if (result && onSendToChat) onSendToChat(result);
+            })();
+          }}
+          disabled={!musicGen.prompt.trim() || musicGen.isGenerating}
+          className="w-full"
+        >
           {musicGen.isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</> : "Generate Music (stub)"}
         </Button>
 

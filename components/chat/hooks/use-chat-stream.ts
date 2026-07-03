@@ -76,6 +76,7 @@ export function useChatStream({
       useResearch: boolean,
       useWorksheet: boolean,
       useWorkflow: boolean,
+      useMap: boolean,
       researchTopic?: string,
     ) => {
       const streamingPlaceholder: IdaMessage = {
@@ -94,6 +95,7 @@ export function useChatStream({
         useResearch,
         useWorksheet,
         useWorkflow,
+        useMap,
       };
 
       const isActiveChat = () => activeChatIdRef.current === chatIdAtSend;
@@ -259,6 +261,15 @@ export function useChatStream({
                 } else if (clientParsed.error) {
                   bridge.onWorkflowError(clientParsed.error);
                 }
+              }
+            }
+
+            if (useMap) {
+              const lastUserMessage = [...contextMessages]
+                .reverse()
+                .find((message) => message.role === "user");
+              if (lastUserMessage?.content.trim()) {
+                void bridge.onMapLocationsFromChat(lastUserMessage.content);
               }
             }
           },

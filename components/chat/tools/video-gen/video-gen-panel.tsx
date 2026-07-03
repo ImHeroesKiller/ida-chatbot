@@ -2,7 +2,7 @@
 
 import { Loader2, Video, X } from "lucide-react";
 
-import type { VideoGenTool } from "./use-video-gen";
+import type { VideoGenResult, VideoGenTool } from "./use-video-gen";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,11 +11,12 @@ import { cn } from "@/lib/utils";
 interface VideoGenPanelProps {
   videoGen?: VideoGenTool;
   onClose: () => void;
+  onSendToChat?: (result: VideoGenResult) => void;
   embedded?: boolean;
   className?: string;
 }
 
-export function VideoGenPanel({ videoGen, onClose, embedded, className }: VideoGenPanelProps) {
+export function VideoGenPanel({ videoGen, onClose, onSendToChat, embedded, className }: VideoGenPanelProps) {
   if (!videoGen) {
     return <div className="p-4 text-sm text-muted-foreground">Video tool not initialized.</div>;
   }
@@ -47,7 +48,16 @@ export function VideoGenPanel({ videoGen, onClose, embedded, className }: VideoG
           className="min-h-20"
         />
 
-        <Button onClick={() => void videoGen.generate()} disabled={!videoGen.prompt.trim() || videoGen.isGenerating} className="w-full">
+        <Button
+          onClick={() => {
+            void (async () => {
+              const result = await videoGen.generate();
+              if (result && onSendToChat) onSendToChat(result);
+            })();
+          }}
+          disabled={!videoGen.prompt.trim() || videoGen.isGenerating}
+          className="w-full"
+        >
           {videoGen.isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</> : "Generate Video (stub)"}
         </Button>
 

@@ -154,7 +154,7 @@ export function useToolsCoordinator(
    * Research toggle — arms/disarms without disabling sibling tools.
    */
   const toggleResearchTool = useCallback(
-    (openPanelOnEnable = true) => {
+    (openPanelOnEnable = false) => {
       if (!ctx.researchAvailable) return;
 
       const { research } = bundle;
@@ -177,7 +177,7 @@ export function useToolsCoordinator(
    * Map toggle — arms/disarms without disabling sibling tools.
    */
   const toggleMapTool = useCallback(
-    (openPanelOnEnable = true) => {
+    (openPanelOnEnable = false) => {
       const { map } = bundle;
       const isActive = map.isEnabled || panels.activePanel === map.panelId;
       const next = !isActive;

@@ -12,11 +12,19 @@ import {
 } from "@/components/chat/tools/base-tool-state";
 import { TOOL_PANEL_IDS } from "@/components/chat/tools/tool-panel-ids";
 
+export interface VideoGenResult {
+  id: string;
+  prompt: string;
+  thumbnailUrl: string;
+  aspectRatio?: string;
+}
+
 export interface VideoGenTool extends BaseToolState, BaseToolLifecycle {
   prompt: string;
   setPrompt: (v: string) => void;
   isGenerating: boolean;
-  generate: () => Promise<void>;
+  generate: () => Promise<VideoGenResult | null>;
+  lastResult: VideoGenResult | null;
   lastResultUrl: string | null;
 }
 
@@ -27,20 +35,31 @@ export function useVideoGen(): VideoGenTool {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [lastResultUrl, setLastResultUrl] = useState<string | null>(null);
+  const [lastResult, setLastResult] = useState<VideoGenResult | null>(null);
 
   const { setEnabled, toggleTool, openPanel, closePanel } = createBaseToolActions({
     setIsEnabled,
     setIsPanelOpen,
   });
 
-  const generate = useCallback(async () => {
-    if (!prompt.trim()) return;
+  const generate = useCallback(async (): Promise<VideoGenResult | null> => {
+    const finalPrompt = prompt.trim();
+    if (!finalPrompt) return null;
+
     setIsGenerating(true);
-    // STUB implementation
-    await new Promise((r) => setTimeout(r, 1200));
-    setLastResultUrl("https://picsum.photos/seed/video-demo/640/360"); // placeholder video thumb
-    setIsGenerating(false);
+    try {
+      await new Promise((r) => setTimeout(r, 1200));
+      const result: VideoGenResult = {
+        id: `video-${Date.now()}`,
+        prompt: finalPrompt,
+        thumbnailUrl: "https://picsum.photos/seed/video-demo/640/360",
+        aspectRatio: "16:9",
+      };
+      setLastResult(result);
+      return result;
+    } finally {
+      setIsGenerating(false);
+    }
   }, [prompt]);
 
   const hydrate = useCallback((state: ToolHydrationInput) => {
@@ -50,7 +69,7 @@ export function useVideoGen(): VideoGenTool {
   const resetForNewChat = useCallback(() => {
     resetBaseToolState({ setIsEnabled, setIsPanelOpen });
     setPrompt("");
-    setLastResultUrl(null);
+    setLastResult(null);
   }, []);
 
   return {
@@ -65,7 +84,8 @@ export function useVideoGen(): VideoGenTool {
     setPrompt,
     isGenerating,
     generate,
-    lastResultUrl,
+    lastResult,
+    lastResultUrl: lastResult?.thumbnailUrl ?? null,
     hydrate,
     resetForNewChat,
   };

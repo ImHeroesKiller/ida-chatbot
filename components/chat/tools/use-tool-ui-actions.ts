@@ -16,20 +16,30 @@ import type { RightSidebarPanel } from "@/lib/chat-tools";
 
 type ToggleSetter = (enabled: boolean) => void;
 
+/** Tools whose modal opens only from chat result cards, not menu toggle. */
+const CARD_DRIVEN_TOOL_IDS = new Set<ToolId>([
+  "web-search",
+  "map",
+  "research",
+]);
+
 function createToggleSetter(options: {
   isAvailable: () => boolean;
   setEnabled: (enabled: boolean) => void;
   panelId: RightSidebarPanel;
+  toolId: ToolId;
   activePanel: RightSidebarPanel | null;
   openPanel: (panel: RightSidebarPanel) => void;
   closePanel: () => void;
 }): ToggleSetter {
+  const openPanelOnEnable = !CARD_DRIVEN_TOOL_IDS.has(options.toolId);
+
   return (enabled: boolean) => {
     if (!options.isAvailable()) return;
     options.setEnabled(enabled);
-    if (enabled) {
+    if (enabled && openPanelOnEnable) {
       options.openPanel(options.panelId);
-    } else if (options.activePanel === options.panelId) {
+    } else if (!enabled && options.activePanel === options.panelId) {
       options.closePanel();
     }
   };
@@ -65,6 +75,7 @@ export function useToolUiActions({
           isAvailable: () => entry.isAvailable(ctx),
           setEnabled: entry.tool.setEnabled,
           panelId: entry.tool.panelId,
+          toolId: entry.id,
           activePanel,
           openPanel,
           closePanel: entry.tool.closePanel,
@@ -124,14 +135,9 @@ export function useToolUiActions({
       const panel = config.panel || config.railPanel; // support both for migration
 
       if (kind.startsWith("toggle-")) {
+        // Card-driven tools: toggleSetter only flips armed state (no modal).
+        // Worksheet / Workflow: toggleSetter also opens modal for direct edit access.
         toggleSetter(!entry.tool.isEnabled);
-        // Web Search / Map / Research: toggle ONLY arms (changes active state + icon color).
-        // Modal opens ONLY when user clicks result cards in chatroom (per product req).
-        // Worksheet / Workflow still open their panel on toggle for direct edit access.
-        const isCardDriven = toolId === "web-search" || toolId === "map" || toolId === "research";
-        if (panel && !isCardDriven) {
-          openPanel(panel);
-        }
         return;
       }
 

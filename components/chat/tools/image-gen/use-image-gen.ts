@@ -33,7 +33,7 @@ export interface ImageGenTool extends BaseToolState, BaseToolLifecycle {
   selectedModelId: string | null;
   setSelectedModelId: (id: string | null) => void;
   loadModels: () => Promise<void>;
-  generate: (customPrompt?: string) => Promise<void>;
+  generate: (customPrompt?: string) => Promise<ImageGenResult | null>;
   clearLastResult: () => void;
   useResultAsAttachment: (result: ImageGenResult) => void; // for future chat integration
 }
@@ -89,11 +89,12 @@ export function useImageGen(): ImageGenTool {
     }
   }, [isPanelOpen, availableModels.length, loadModels]);
 
-  const generate = useCallback(async (customPrompt?: string) => {
+  const generate = useCallback(async (customPrompt?: string): Promise<ImageGenResult | null> => {
     const finalPrompt = (customPrompt ?? prompt).trim();
-    if (!finalPrompt) return;
+    if (!finalPrompt) return null;
 
     setIsGenerating(true);
+    let generated: ImageGenResult | null = null;
 
     try {
       const res = await fetch("/api/image-gen", {
@@ -122,6 +123,7 @@ export function useImageGen(): ImageGenTool {
         aspectRatio: data.aspectRatio || aspectRatio,
       };
 
+      generated = result;
       setLastResult(result);
       setHistory((prev) => [result, ...prev].slice(0, 10));
     } catch (err: unknown) {
@@ -145,22 +147,22 @@ export function useImageGen(): ImageGenTool {
         createdAt: new Date().toISOString(),
         aspectRatio,
       };
+      generated = result;
       setLastResult(result);
       setHistory((prev) => [result, ...prev].slice(0, 10));
     } finally {
       setIsGenerating(false);
     }
+
+    return generated;
   }, [prompt, aspectRatio, selectedModelId]);
 
   const clearLastResult = useCallback(() => {
     setLastResult(null);
   }, []);
 
-  const useResultAsAttachment = useCallback((result: ImageGenResult) => {
-    // Placeholder: in future, this can emit an attachment or set in composer via context.
-    // For now log + could call a global event.
-    console.log("[image-gen] use as attachment", result);
-    // Example future: requestChatComposerFocus or dispatch attachment
+  const useResultAsAttachment = useCallback((_result: ImageGenResult) => {
+    // Legacy hook — chat cards are sent via onSendToChat from the panel.
   }, []);
 
   const hydrate = useCallback((state: ToolHydrationInput) => {
