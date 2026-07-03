@@ -21,6 +21,8 @@ import ReactFlow, {
   addEdge,
   applyEdgeChanges,
   applyNodeChanges,
+  useEdgesState,
+  useNodesState,
   useReactFlow,
   type Connection,
   type Edge,
@@ -171,10 +173,7 @@ const WorkflowFlowNode = memo(
 
     return (
       <motion.div
-        layout
-        initial={{ opacity: 0, scale: 0.92, y: 6 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ type: "spring", stiffness: 420, damping: 30 }}
+        initial={false}
         className={cn(
           "relative min-w-[8rem] max-w-[11rem] rounded-xl border px-3 py-2 backdrop-blur-sm transition-shadow duration-300 sm:min-w-[9.5rem] sm:max-w-[12.5rem] sm:px-3.5 sm:py-2.5",
           styles.border,
@@ -235,7 +234,10 @@ const PRO_OPTIONS = { hideAttribution: true } as const;
 
 /** React Flow emits select/dimensions on mount — ignore to avoid parent update loops. */
 function isPropagatableNodeChange(change: NodeChange): boolean {
-  return change.type !== "select" && change.type !== "dimensions";
+  if (change.type === "select" || change.type === "dimensions") return false;
+  // Defer position commits until drag ends — prevents nodes vanishing mid-drag.
+  if (change.type === "position" && change.dragging) return false;
+  return true;
 }
 
 function isPropagatableEdgeChange(change: EdgeChange): boolean {
@@ -357,6 +359,27 @@ function areCanvasPropsEqual(
   );
 }
 
+function mapToFlowNodes(source: Node<WorkflowNodeData>[]): Node<WorkflowNodeData>[] {
+  return source.map((node) => ({
+    id: node.id,
+    type: node.type ?? "workflow",
+    position: node.position,
+    data: node.data,
+    selected: node.selected,
+    dragging: node.dragging,
+    width: node.width,
+    height: node.height,
+  }));
+}
+
+function mapToFlowEdges(source: Edge[]): Edge[] {
+  return source.map((edge) => ({
+    ...edge,
+    animated: false,
+    style: { strokeWidth: 1.5 },
+  }));
+}
+
 const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
   nodes,
   edges,
@@ -369,81 +392,99 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
   workflowId,
 }: WorkflowCanvasProps) {
   const isMobile = useIsMobileViewport();
-  const nodesRef = useRef(nodes);
-  const edgesRef = useRef(edges);
   const onNodesChangeRef = useRef(onNodesChange);
   const onEdgesChangeRef = useRef(onEdgesChange);
   const onSelectNodeRef = useRef(onSelectNode);
   const selectedNodeIdRef = useRef(selectedNodeId);
+  const internalNodesRef = useRef<Node<WorkflowNodeData>[]>([]);
 
-  nodesRef.current = nodes;
-  edgesRef.current = edges;
   onNodesChangeRef.current = onNodesChange;
   onEdgesChangeRef.current = onEdgesChange;
   onSelectNodeRef.current = onSelectNode;
   selectedNodeIdRef.current = selectedNodeId;
 
-  const flowNodes = useMemo(
+  const [internalNodes, setInternalNodes] = useNodesState<WorkflowNodeData>([]);
+  const [internalEdges, setInternalEdges] = useEdgesState([]);
+
+  internalNodesRef.current = internalNodes;
+
+  const structureSignature = useMemo(
     () =>
-      nodes.map((node) => ({
-        id: node.id,
-        type: node.type ?? "workflow",
-        position: node.position,
-        data: node.data,
-        selected: node.selected,
-        dragging: node.dragging,
-        width: node.width,
-        height: node.height,
-      })),
-    [nodes],
+      [
+        workflowId ?? "",
+        nodes.map((n) => `${n.id}:${n.data.label}:${n.data.kind}`).join("|"),
+        edges.map((e) => `${e.id}:${e.source}:${e.target}`).join("|"),
+      ].join("#"),
+    [workflowId, nodes, edges],
   );
 
-  const flowEdges = useMemo(
-    () =>
-      edges.map((edge) => ({
-        ...edge,
-        animated: true,
-        style: { strokeWidth: 2 },
-      })),
-    [edges],
-  );
+  const lastStructureRef = useRef("");
+  useEffect(() => {
+    if (lastStructureRef.current === structureSignature) return;
+    lastStructureRef.current = structureSignature;
+    setInternalNodes(mapToFlowNodes(nodes));
+    setInternalEdges(mapToFlowEdges(edges));
+  }, [structureSignature, nodes, edges, setInternalNodes, setInternalEdges]);
 
   const executionStatusValue = nodeExecutionStatus ?? EMPTY_EXECUTION_STATUS;
 
-  const handleNodesChange: OnNodesChange = useCallback((changes) => {
-    const meaningful = changes.filter(isPropagatableNodeChange);
-    if (meaningful.length === 0) return;
+  const handleNodesChange: OnNodesChange = useCallback(
+    (changes) => {
+      setInternalNodes((current) => {
+        const next = applyNodeChanges(changes, current) as Node<WorkflowNodeData>[];
+        if (next.length === 0 && current.length > 0) return current;
 
-    const nextNodes = applyNodeChanges(
-      meaningful,
-      nodesRef.current,
-    ) as Node<WorkflowNodeData>[];
+        const commitChanges = changes.filter(isPropagatableNodeChange);
+        if (commitChanges.length > 0) {
+          const committed = applyNodeChanges(
+            commitChanges,
+            current,
+          ) as Node<WorkflowNodeData>[];
+          onNodesChangeRef.current(committed);
+        }
 
-    if (nextNodes.length === 0 && nodesRef.current.length > 0) {
-      return;
-    }
+        return next;
+      });
+    },
+    [setInternalNodes],
+  );
 
-    onNodesChangeRef.current(nextNodes);
+  const handleNodeDragStop = useCallback(() => {
+    onNodesChangeRef.current(internalNodesRef.current);
   }, []);
 
-  const handleEdgesChange: OnEdgesChange = useCallback((changes) => {
-    const meaningful = changes.filter(isPropagatableEdgeChange);
-    if (meaningful.length === 0) return;
+  const handleEdgesChange: OnEdgesChange = useCallback(
+    (changes) => {
+      setInternalEdges((current) => {
+        const next = applyEdgeChanges(changes, current);
+        const meaningful = changes.filter(isPropagatableEdgeChange);
+        if (meaningful.length > 0) {
+          onEdgesChangeRef.current(
+            applyEdgeChanges(meaningful, current),
+          );
+        }
+        return next;
+      });
+    },
+    [setInternalEdges],
+  );
 
-    onEdgesChangeRef.current(applyEdgeChanges(meaningful, edgesRef.current));
-  }, []);
-
-  const handleConnect: OnConnect = useCallback((connection: Connection) => {
-    onEdgesChangeRef.current(
-      addEdge(
-        {
-          ...connection,
-          id: `edge-${connection.source}-${connection.target}-${Date.now()}`,
-        },
-        edgesRef.current,
-      ),
-    );
-  }, []);
+  const handleConnect: OnConnect = useCallback(
+    (connection: Connection) => {
+      setInternalEdges((current) => {
+        const next = addEdge(
+          {
+            ...connection,
+            id: `edge-${connection.source}-${connection.target}-${Date.now()}`,
+          },
+          current,
+        );
+        onEdgesChangeRef.current(next);
+        return next;
+      });
+    },
+    [setInternalEdges],
+  );
 
   const handleSelectionChange = useCallback(
     ({ nodes: selectedNodes }: { nodes: Node[] }) => {
@@ -466,14 +507,17 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
       <WorkflowExecutionStatusContext.Provider value={executionStatusValue}>
         <ReactFlow
           key={workflowId ?? "workflow-canvas"}
-          nodes={flowNodes}
-          edges={flowEdges}
+          nodes={internalNodes}
+          edges={internalEdges}
           nodeTypes={NODE_TYPES}
           edgeTypes={EDGE_TYPES}
           onNodesChange={handleNodesChange}
+          onNodeDragStop={handleNodeDragStop}
           onEdgesChange={handleEdgesChange}
           onConnect={handleConnect}
           onSelectionChange={handleSelectionChange}
+          elevateNodesOnSelect={false}
+          autoPanOnNodeDrag={false}
           nodesDraggable
           nodesConnectable
           elementsSelectable
@@ -481,11 +525,11 @@ const WorkflowCanvasInner = memo(function WorkflowCanvasInner({
           zoomOnPinch={isMobile}
           minZoom={isMobile ? 0.25 : 0.35}
           maxZoom={1.5}
-          onlyRenderVisibleElements={flowNodes.length > 12}
+          onlyRenderVisibleElements={internalNodes.length > 16}
           proOptions={PRO_OPTIONS}
           className="workflow-canvas-flow touch-pan-y rounded-lg border border-border/30 bg-muted/10 dark:bg-muted/6"
         >
-          <FitViewOnce workflowId={workflowId} nodeCount={flowNodes.length} />
+          <FitViewOnce workflowId={workflowId} nodeCount={internalNodes.length} />
           <Background
             variant={BackgroundVariant.Dots}
             gap={isMobile ? 14 : 18}

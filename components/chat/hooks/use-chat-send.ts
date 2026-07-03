@@ -124,7 +124,6 @@ export function useChatSend({
 
       if (worksheetAtSend) {
         tools.worksheet.beginRegenerate();
-        tools.openPanel(tools.worksheet.panelId);
         if (tools.worksheet.syncToPersistLayer) {
           tools.worksheet.syncToPersistLayer();
         } else {
@@ -148,7 +147,6 @@ export function useChatSend({
 
       if (workflowAtSend) {
         tools.workflow.beginRegenerate();
-        tools.openPanel(tools.workflow.panelId);
         tools.workflow.syncToPersistLayer();
         tools.workflow.clearErrorDetail();
       }

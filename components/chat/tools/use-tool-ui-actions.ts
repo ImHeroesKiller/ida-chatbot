@@ -21,6 +21,8 @@ const CARD_DRIVEN_TOOL_IDS = new Set<ToolId>([
   "web-search",
   "map",
   "research",
+  "worksheet",
+  "workflow",
 ]);
 
 function createToggleSetter(options: {

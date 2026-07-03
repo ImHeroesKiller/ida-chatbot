@@ -8,6 +8,7 @@ import {
   Download,
   GitBranch,
   LayoutTemplate,
+  List,
   Loader2,
   PanelRightClose,
   Play,
@@ -44,8 +45,11 @@ import { resolveWorkflowErrorMessage, resolveWorkflowExecutionToast } from "@/li
 import { inspectWorkflowResponse } from "@/lib/workflow-chat";
 import type { WorkflowScheduleConfig } from "@/lib/workflow-scheduler";
 import { type WorkflowNodeData, type WorkflowNodeKind } from "@/lib/workflow";
+import { WORKFLOW_SECURITY_GUARDS_DISABLED } from "@/lib/workflow-security";
 import { cn } from "@/lib/utils";
 import type { Edge, Node } from "reactflow";
+
+type WorkflowPanelTab = "list" | "canvas" | "templates";
 
 const WorkflowCanvas = dynamic(
   () =>
@@ -158,11 +162,17 @@ function WorkflowPanelInner({
   updateWorkflowRef.current = workflowTool.updateWorkflow;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showRawResponse, setShowRawResponse] = useState(false);
-  const [activeTab, setActiveTab] = useState<"canvas" | "templates">("canvas");
+  const [activeTab, setActiveTab] = useState<WorkflowPanelTab>("list");
   const [floatingPanel, setFloatingPanel] = useState<
     "properties" | "security" | "schedule" | null
   >(null);
   const logPanelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (workflowTool.isPanelOpen) {
+      setActiveTab(workflowTool.preferredPanelTab);
+    }
+  }, [workflowTool.isPanelOpen, workflowTool.preferredPanelTab]);
 
   useEffect(() => {
     setSelectedNodeId(null);
@@ -243,13 +253,13 @@ function WorkflowPanelInner({
   const handleNodesChange = useCallback((nodes: Node<WorkflowNodeData>[]) => {
     const workflow = activeWorkflowRef.current;
     if (!workflow) return;
-    updateWorkflowRef.current(workflow.id, { nodes, edges: workflow.edges });
+    updateWorkflowRef.current(workflow.id, { nodes });
   }, []);
 
   const handleEdgesChange = useCallback((edges: Edge[]) => {
     const workflow = activeWorkflowRef.current;
     if (!workflow) return;
-    updateWorkflowRef.current(workflow.id, { nodes: workflow.nodes, edges });
+    updateWorkflowRef.current(workflow.id, { edges });
   }, []);
 
   const handleSelectNode = useCallback((nodeId: string | null) => {
@@ -455,7 +465,17 @@ function WorkflowPanelInner({
         <h2 className="min-w-0 truncate text-sm font-semibold lg:max-w-[8rem] xl:max-w-none">
           {copy.toolsWorkflow}
         </h2>
-        <div className="ml-auto flex min-w-0 flex-1 justify-end gap-0.5 rounded-md bg-muted/40 p-0.5 lg:max-w-[14rem]">
+        <div className="ml-auto flex min-w-0 flex-1 justify-end gap-0.5 rounded-md bg-muted/40 p-0.5 lg:max-w-[16rem]">
+          <Button
+            type="button"
+            size="xs"
+            variant={activeTab === "list" ? "default" : "ghost"}
+            className="h-6 min-w-0 flex-1 px-2 text-[10px]"
+            onClick={() => setActiveTab("list")}
+          >
+            <List className="mr-1 h-3 w-3 shrink-0" />
+            <span className="truncate">{copy.workflowTabList}</span>
+          </Button>
           <Button
             type="button"
             size="xs"
@@ -465,16 +485,6 @@ function WorkflowPanelInner({
           >
             <GitBranch className="mr-1 h-3 w-3 shrink-0" />
             <span className="truncate">{copy.workflowTabCanvas}</span>
-          </Button>
-          <Button
-            type="button"
-            size="xs"
-            variant={activeTab === "templates" ? "default" : "ghost"}
-            className="h-6 min-w-0 flex-1 px-2 text-[10px]"
-            onClick={() => setActiveTab("templates")}
-          >
-            <LayoutTemplate className="mr-1 h-3 w-3 shrink-0" />
-            <span className="truncate">{copy.workflowTabTemplates}</span>
           </Button>
         </div>
         <Button
@@ -489,6 +499,69 @@ function WorkflowPanelInner({
           <PanelRightClose className="h-4 w-4" />
         </Button>
       </div>
+
+      {activeTab === "list" ? (
+        <div className="min-h-0 flex-1 overflow-y-auto p-2 sm:p-3">
+          <div className="mb-2 flex flex-wrap gap-1">
+            <Button type="button" size="sm" className="h-8 text-xs" onClick={handleNewWorkflow}>
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              {copy.workflowNew}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs"
+              onClick={() => setActiveTab("templates")}
+            >
+              <LayoutTemplate className="mr-1.5 h-3.5 w-3.5" />
+              {copy.workflowTabTemplates}
+            </Button>
+          </div>
+
+          {workflows.length === 0 ? (
+            <div className="flex min-h-[14rem] flex-col items-center justify-center rounded-xl border border-dashed bg-muted/10 px-4 text-center">
+              <GitBranch className="mb-2 h-7 w-7 text-muted-foreground/70" />
+              <p className="text-sm font-medium">{copy.workflowEmptyTitle}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{copy.workflowEmptyHint}</p>
+            </div>
+          ) : (
+            <ul className="space-y-1.5">
+              {workflows.map((workflow) => (
+                <li key={workflow.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      workflowTool.selectWorkflow(workflow.id);
+                      setActiveTab("canvas");
+                    }}
+                    className={cn(
+                      "flex w-full items-start gap-3 rounded-xl border bg-card/80 p-3 text-left transition-colors hover:border-primary/40 hover:bg-muted/30",
+                      workflow.id === activeWorkflow?.id && "border-primary/40 ring-1 ring-primary/20",
+                    )}
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <GitBranch className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{workflow.name}</p>
+                      {workflow.description ? (
+                        <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                          {workflow.description}
+                        </p>
+                      ) : null}
+                      <p className="mt-1 text-[10px] text-muted-foreground">
+                        {workflow.nodes.length} {copy.workflowResultNodes} ·{" "}
+                        {workflow.edges.length} {copy.workflowResultEdges}
+                      </p>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : null}
 
       {activeTab === "templates" ? (
         <WorkflowTemplateGallery
@@ -560,18 +633,20 @@ function WorkflowPanelInner({
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon-sm"
-            className="h-7 w-7"
-            onClick={openSecurityPanel}
-            disabled={!activeWorkflow}
-            title={copy.workflowSecurityTitle}
-            aria-label={copy.workflowSecurityTitle}
-          >
-            <Shield className="h-3.5 w-3.5" />
-          </Button>
+          {!WORKFLOW_SECURITY_GUARDS_DISABLED ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              className="h-7 w-7"
+              onClick={openSecurityPanel}
+              disabled={!activeWorkflow}
+              title={copy.workflowSecurityTitle}
+              aria-label={copy.workflowSecurityTitle}
+            >
+              <Shield className="h-3.5 w-3.5" />
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="outline"
@@ -701,7 +776,9 @@ function WorkflowPanelInner({
           </WorkflowFloatingPanel>
         ) : null}
 
-        {activeWorkflow && floatingPanel === "security" ? (
+        {activeWorkflow &&
+        floatingPanel === "security" &&
+        !WORKFLOW_SECURITY_GUARDS_DISABLED ? (
           <WorkflowFloatingPanel
             open
             onClose={() => setFloatingPanel(null)}

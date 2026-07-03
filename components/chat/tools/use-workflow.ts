@@ -214,7 +214,12 @@ export type WorkflowTool = BaseToolState &
       options?: { mode?: WorkflowTemplateApplyMode },
     ) => WorkflowTemplateApplyResult;
     resetWorkspace: () => void;
+    /** Tab to show when modal opens (consumed by WorkflowPanel on panel open). */
+    preferredPanelTab: "list" | "canvas" | "templates";
+    setPreferredPanelTab: (tab: "list" | "canvas" | "templates") => void;
   };
+
+export type WorkflowPanelTab = "list" | "canvas" | "templates";
 
 function applyWorkspacePatch(
   prev: WorkflowWorkspaceState,
@@ -251,6 +256,8 @@ export function useWorkflow(): WorkflowTool {
   const executionTokenRef = useRef(0);
   const executionAbortRef = useRef<AbortController | null>(null);
   const [errorDetail, setErrorDetailState] = useState<string | null>(null);
+  const [preferredPanelTab, setPreferredPanelTab] =
+    useState<WorkflowPanelTab>("list");
   const errorDetailRef = useRef<string | null>(null);
   const persistSyncRef = useRef<PersistLayerSync | null>(null);
   const toolCoordinatorBridgeRef = useRef<WorkflowToolCoordinatorBridge | null>(
@@ -1472,6 +1479,8 @@ export function useWorkflow(): WorkflowTool {
     exportActiveWorkflowJson,
     importWorkflowJson,
     resetWorkspace,
+    preferredPanelTab,
+    setPreferredPanelTab,
     setEnabled,
     toggleTool,
     openPanel,

@@ -19,6 +19,7 @@ export {
   getWorkflowSecurity,
   normalizeWorkflowSecurity,
   resolveUserWorkflowRole,
+  WORKFLOW_SECURITY_GUARDS_DISABLED,
   type WorkflowAccessAction,
 } from "./permissions";
 export {

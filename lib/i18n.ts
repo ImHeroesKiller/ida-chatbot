@@ -254,6 +254,7 @@ export const COPY: Record<
     workflowMultiAgentActivity: string;
     workflowDeleteConfirmDescription: string;
     workflowTabCanvas: string;
+    workflowTabList: string;
     workflowTabTemplates: string;
     workflowTemplatesTitle: string;
     workflowTemplatesDescription: string;
@@ -886,6 +887,7 @@ export const COPY: Record<
     workflowDeleteConfirmDescription:
       "Workflow aktif dan semua node-nya akan dihapus dari chat ini.",
     workflowTabCanvas: "Kanvas",
+    workflowTabList: "Daftar",
     workflowTabTemplates: "Template",
     workflowTemplatesTitle: "Galeri Template Workflow",
     workflowTemplatesDescription:
@@ -1556,6 +1558,7 @@ export const COPY: Record<
     workflowDeleteConfirmDescription:
       "The active workflow and all of its nodes will be removed from this chat.",
     workflowTabCanvas: "Canvas",
+    workflowTabList: "List",
     workflowTabTemplates: "Templates",
     workflowTemplatesTitle: "Workflow Template Gallery",
     workflowTemplatesDescription:
@@ -2218,6 +2221,7 @@ export const COPY: Record<
     workflowMultiAgentActivity: "智能体活动",
     workflowDeleteConfirmDescription: "当前工作流及其所有节点将从本对话中删除。",
     workflowTabCanvas: "画布",
+    workflowTabList: "列表",
     workflowTabTemplates: "模板",
     workflowTemplatesTitle: "工作流模板库",
     workflowTemplatesDescription:

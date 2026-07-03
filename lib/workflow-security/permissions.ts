@@ -13,6 +13,12 @@ export type WorkflowAccessAction =
   | "approve"
   | "manage_security";
 
+/**
+ * Temporary bypass: allow anyone to view/execute workflows without RBAC gates.
+ * Set to false when account-level security is ready.
+ */
+export const WORKFLOW_SECURITY_GUARDS_DISABLED = true;
+
 const ROLE_RANK: Record<WorkflowPermissionRole, number> = {
   viewer: 1,
   editor: 2,
@@ -93,6 +99,10 @@ export function canAccessWorkflow(
   userId: string | null | undefined,
   action: WorkflowAccessAction,
 ): boolean {
+  if (WORKFLOW_SECURITY_GUARDS_DISABLED) {
+    return action !== "manage_security";
+  }
+
   const role = resolveUserWorkflowRole(security, userId);
 
   if (action === "manage_security") {

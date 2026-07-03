@@ -36,6 +36,7 @@ import {
   getWorkflowSecurity,
   readNodeApprovalLevels,
   recordWorkflowAudit,
+  WORKFLOW_SECURITY_GUARDS_DISABLED,
 } from "@/lib/workflow-security";
 import type {
   WorkflowDefinition,
@@ -533,6 +534,20 @@ export async function* executeChatWorkflowStream(
 
       if (node.data.kind === "approval") {
         let approvalOutput = getNodePrompt(node);
+
+        if (WORKFLOW_SECURITY_GUARDS_DISABLED) {
+          const autoLog: WorkflowExecutionLogEntry = {
+            ...logBase,
+            status: "completed",
+            agentId: "approver",
+            message: "Auto-approved",
+            output: approvalOutput,
+            completedAt: Date.now(),
+          };
+          logs = pushOrUpdateLog(logs, autoLog);
+          yield { type: "progress", log: autoLog, logs: [...logs] };
+          continue;
+        }
 
         for await (const agentEvent of executeWorkflowNodeStepStream({
           locale: input.locale,

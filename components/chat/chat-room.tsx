@@ -494,11 +494,24 @@ function ChatRoomContent() {
                       onCancelEdit={chatSend.handleCancelEdit}
                       onSubmitEdit={chatSend.handleSubmitEdit}
                       onOpenWorkflowPanel={() => {
+                        const workflowId = message.workflowResult?.workflowId;
+                        if (
+                          workflowId &&
+                          workflowId !== "discovery" &&
+                          tools.workflow.workflows.some(
+                            (wf) => wf.id === workflowId,
+                          )
+                        ) {
+                          tools.workflow.selectWorkflow(workflowId);
+                        }
+                        tools.workflow.setPreferredPanelTab("canvas");
                         tools.workflow.setEnabled(true);
                         tools.openPanel(tools.workflow.panelId);
                       }}
                       onOpenWorksheetPanel={() => {
-                        tools.activateWorksheet();
+                        tools.worksheet.setActiveDocumentId(null);
+                        tools.worksheet.setEnabled(true);
+                        tools.openPanel(tools.worksheet.panelId);
                       }}
                       onOpenWebSearchPanel={() => tools.openPanel("web-search")}
                       onOpenResearchPanel={() => tools.openPanel("research")}
