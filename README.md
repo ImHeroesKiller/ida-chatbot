@@ -1,6 +1,8 @@
-![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
+
 
 ![Logo](public/ida-logo.png)
+
+![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
 
 # IDA Chatbot
 
