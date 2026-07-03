@@ -1,5 +1,3 @@
-
-
 ![Logo](public/ida-logo.png)
 
 ![Build Status](https://github.com/ImHeroesKiller/ida-chatbot/actions/workflows/ci.yml/badge.svg) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/ImHeroesKiller/ida-chatbot) ![codecov](https://img.shields.io/codecov/c/gh/ImHeroesKiller/ida-chatbot) ![Dependabot alerts](https://img.shields.io/github/dependabot/alerts/ImHeroesKiller/ida-chatbot) ![Snyk Vulnerabilities](https://img.shields.io/snyk/vulnerabilities/github/ImHeroesKiller/ida-chatbot) ![Issues](https://img.shields.io/github/issues/ImHeroesKiller/ida-chatbot) ![PRs](https://img.shields.io/github/issues-pr/ImHeroesKiller/ida-chatbot) ![Docs](https://img.shields.io/badge/docs-online-brightgreen) ![TypeScript](https://img.shields.io/badge/language-TypeScript-blue) ![Next.js](https://img.shields.io/badge/framework-Next.js-black) ![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
