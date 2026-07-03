@@ -2,7 +2,7 @@
 
 ![Logo](public/ida-logo.png)
 
-![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
+![Build Status](https://github.com/ImHeroesKiller/ida-chatbot/actions/workflows/ci.yml/badge.svg) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/ImHeroesKiller/ida-chatbot) ![codecov](https://img.shields.io/codecov/c/gh/ImHeroesKiller/ida-chatbot) ![Dependabot alerts](https://img.shields.io/github/dependabot/alerts/ImHeroesKiller/ida-chatbot) ![Snyk Vulnerabilities](https://img.shields.io/snyk/vulnerabilities/github/ImHeroesKiller/ida-chatbot) ![Issues](https://img.shields.io/github/issues/ImHeroesKiller/ida-chatbot) ![PRs](https://img.shields.io/github/issues-pr/ImHeroesKiller/ida-chatbot) ![Docs](https://img.shields.io/badge/docs-online-brightgreen) ![TypeScript](https://img.shields.io/badge/language-TypeScript-blue) ![Next.js](https://img.shields.io/badge/framework-Next.js-black) ![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
 
 # IDA Chatbot
 
@@ -10,7 +10,7 @@ IDA Chatbot adalah aplikasi chatbot AI canggih dan modular yang dibangun menggun
 
 ## Lisensi
 
-Proyek ini dilisensikan di bawah Apache License 2.0. Anda dapat menggunakan, memodifikasi, dan mengkomersialkan perangkat lunak ini sesuai ketentuan Apache-2.0. Untuk detail hukum, lihat file LICENSE dan NOTICE.
+Proyek ini dilisensikan di bawah Apache License 2.0. Anda dapat menggunakan, memodifikasi, dan mengkomersialkan perangkat lunak ini sesuai ketentuan Apache-2.0. Untuk detail hukum, lihat file LICE[...]
 
 ## Fitur Utama
 
@@ -67,7 +67,7 @@ Untuk menjalankan proyek ini secara lokal, ikuti langkah-langkah berikut:
     ```
 
 3.  **Konfigurasi Environment Variables:**
-    Buat file `.env.local` di root proyek dan tambahkan variabel lingkungan yang diperlukan, seperti `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `TAVILY_API_KEY`, dll. Lihat `docs/SETUP.md` untuk daftar lengkap.
+    Buat file `.env.local` di root proyek dan tambahkan variabel lingkungan yang diperlukan, seperti `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `TAVILY_API_KEY`, dll. Lihat `docs[...]
 
 4.  **Jalankan server pengembangan:**
     ```bash
