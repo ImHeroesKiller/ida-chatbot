@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: |-
+          npm run build
+
+      - name: Lint (allow failures)
+        run: |
+          npm run lint || true
+
+      - name: License check (production)
+        run: |
+          npx --yes license-checker --production --json > license-check.json || true
+
+      - name: NPM audit (output JSON)
+        run: |
+          npm audit --json > npm-audit.json || true
+
+      - name: Secret scan (gitleaks)
+        uses: zricethezav/gitleaks-action@v2.8.0
+        with:
+          args: --report-path=gitleaks-report.json --redact
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-artifacts
+          path: |
+            license-check.json
+            npm-audit.json
+            gitleaks-report.json
