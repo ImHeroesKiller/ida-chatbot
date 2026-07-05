@@ -47,12 +47,9 @@ export async function LandingPageStatic() {
       </header>
 
       <main className="flex-1">
-        {/* 1. HERO - Enterprise Positioning */}
+        {/* HERO */}
         <section className="relative overflow-hidden border-b px-4 py-20 sm:px-6 sm:py-24">
-          <div
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background"
-            aria-hidden
-          />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" aria-hidden />
 
           <div className="relative mx-auto max-w-5xl text-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-card/70 px-4 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur-sm sm:text-sm">
@@ -60,55 +57,46 @@ export async function LandingPageStatic() {
             </div>
 
             <h1 className="text-balance text-4xl font-bold tracking-tighter sm:text-5xl lg:text-6xl">
-              The operating system for
-              <br className="hidden sm:block" />
-              enterprise decisions.
+              The operating system for enterprise decisions.
             </h1>
 
             <p className="mx-auto mt-6 max-w-3xl text-balance text-lg leading-relaxed text-muted-foreground sm:text-xl">
-              IDA connects enterprise knowledge, decisions, workflows, and digital workers into one intelligent operating system.
-              Built for organizations that need clarity, governance, and scalable execution.
+              IDA connects enterprise knowledge, decisions, workflows, and digital workers into one intelligent operating system — built for organizations that require clarity, governance, and scalable execution.
             </p>
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link
-                href="/auth/login"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.985]"
-              >
+              <Link href="/auth/login" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.985]">
                 Book Enterprise Demo
               </Link>
-              <Link
-                href="#platform"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border bg-card/60 px-8 text-base font-medium text-foreground transition-colors hover:bg-muted"
-              >
+              <Link href="#platform" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border bg-card/60 px-8 text-base font-medium text-foreground transition-colors hover:bg-muted">
                 Explore Platform
                 <ArrowRight className="size-4" />
               </Link>
             </div>
 
             <p className="mt-6 text-sm text-muted-foreground">
-              Trusted by enterprise teams for mission-critical decisions.
+              Designed for enterprise leaders who need precision at scale.
             </p>
           </div>
         </section>
 
-        {/* 2. ENTERPRISE PROBLEM */}
+        {/* WHY SHOULD I CARE? */}
         <section className="border-b px-4 py-20 sm:px-6">
           <div className="mx-auto max-w-5xl">
-            <div className="mx-auto max-w-2xl text-center">
+            <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Modern organizations are drowning in complexity.
+                Modern organizations face a quiet crisis.
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Knowledge is scattered. Decisions are disconnected. Approvals move slowly. Workflows are fragmented across dozens of tools.
+                They have more data, more tools, and more people than ever — yet decision-making remains slow, fragmented, and difficult to govern.
               </p>
             </div>
 
             <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {[ 
-                { icon: Target, title: "Decisions lack context", desc: "Critical decisions are made without full visibility into knowledge, history, or impact." },
-                { icon: Clock, title: "Execution is slow", desc: "From decision to action, organizations lose days or weeks in handoffs, approvals, and coordination." },
-                { icon: Users, title: "Human potential is wasted", desc: "Highly skilled people spend too much time on repetitive coordination instead of high-value work." },
+              {[
+                { icon: Target, title: "Decisions lack context", desc: "Critical choices are often made without complete visibility into knowledge, history, or downstream impact." },
+                { icon: Clock, title: "Execution is fragmented", desc: "From decision to action, organizations lose significant time in handoffs, approvals, and coordination across systems." },
+                { icon: Users, title: "Human judgment is underutilized", desc: "Skilled professionals spend too much time on repetitive coordination instead of high-value strategic work." },
               ].map((item, index) => {
                 const Icon = item.icon;
                 return (
@@ -125,46 +113,77 @@ export async function LandingPageStatic() {
           </div>
         </section>
 
-        {/* 3. WHY IDA EXISTS */}
+        {/* WHAT PROBLEM DO EXISTING SYSTEMS CREATE? */}
         <section className="px-4 py-20 sm:px-6">
           <div className="mx-auto max-w-4xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Technology should amplify people, not replace judgment.
+              Existing enterprise systems digitize work.<br />They rarely orchestrate intelligence.
             </h2>
-            <div className="mt-8 space-y-6 text-lg leading-relaxed text-muted-foreground">
+            <div className="mt-8 space-y-5 text-lg leading-relaxed text-muted-foreground">
               <p>
-                In every organization, there are two types of work: high-value human judgment and repetitive operational execution.
+                ERP, CRM, and workflow tools have transformed how organizations record and process transactions. However, they were not designed to connect knowledge across systems, govern complex decisions, or coordinate human and digital work at scale.
               </p>
               <p>
-                IDA exists to give humans the clarity and context they need to make excellent decisions — while digital workers handle the execution at scale.
-              </p>
-              <p>
-                We connect knowledge, governance, and action into one operating system so organizations can think and execute with precision.
+                The result is a growing gap: organizations have more information than ever, but less clarity on what to do with it.
               </p>
             </div>
           </div>
         </section>
 
-        {/* 4. ENTERPRISE PLATFORM */}
+        {/* WHY AI ALONE IS NOT ENOUGH */}
+        <section className="border-y bg-muted/30 px-4 py-20 sm:px-6">
+          <div className="mx-auto max-w-4xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              AI without enterprise context remains a tool, not a system.
+            </h2>
+            <div className="mt-8 space-y-5 text-lg leading-relaxed text-muted-foreground">
+              <p>
+                Generative AI can produce impressive outputs in isolation. However, without deep integration into organizational knowledge, governance frameworks, decision history, and existing workflows, it cannot reliably support mission-critical enterprise operations.
+              </p>
+              <p>
+                True enterprise transformation requires more than intelligence — it requires memory, accountability, and coordinated execution.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* WHY IDA EXISTS */}
+        <section className="px-4 py-20 sm:px-6">
+          <div className="mx-auto max-w-4xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              Technology should amplify human judgment, not replace it.
+            </h2>
+            <div className="mt-8 space-y-5 text-lg leading-relaxed text-muted-foreground">
+              <p>
+                In every organization, there are two essential types of work: high-value human judgment and repetitive operational execution.
+              </p>
+              <p>
+                IDA exists to give leaders and teams the clarity and context they need to make excellent decisions — while digital workers handle defined operational work at scale, always under human governance.
+              </p>
+              <p>
+                We connect knowledge, governance, workflows, decisions, and execution into one coherent operating system.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* WHAT IS IDA? */}
         <section id="platform" className="scroll-mt-20 border-y bg-muted/30 px-4 py-20 sm:px-6">
           <div className="mx-auto max-w-6xl">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                One platform. Complete decision lifecycle.
+                One integrated platform for enterprise decisions and digital work.
               </h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                IDA orchestrates the full journey from information to outcome.
-              </p>
             </div>
 
             <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[
-                { icon: Brain, title: "Enterprise Knowledge", desc: "Unified memory across documents, systems, and conversations — always contextual and searchable." },
-                { icon: Target, title: "Decision Engine", desc: "Structured decision records with AI analysis, human oversight, and full auditability." },
-                { icon: Bot, title: "Digital Workforce", desc: "Specialized digital workers that execute research, document generation, approvals, and workflows." },
-                { icon: GitBranch, title: "Workflow Orchestration", desc: "Connect decisions to actions across your existing tools with governance built in." },
-                { icon: ShieldCheck, title: "Governance & Compliance", desc: "Approval workflows, role-based access, decision history, and explainability by design." },
-                { icon: TrendingUp, title: "Organizational Intelligence", desc: "See patterns across decisions, identify bottlenecks, and continuously improve how your organization operates." },
+                { icon: Brain, title: "Enterprise Knowledge", desc: "A unified, contextual memory layer across documents, systems, conversations, and historical decisions." },
+                { icon: Target, title: "Decision Engine", desc: "Structured decision records with AI-supported analysis, human oversight, and complete auditability." },
+                { icon: Bot, title: "Digital Workforce", desc: "Specialized digital workers that execute research, document preparation, coordination, and routine operational tasks." },
+                { icon: GitBranch, title: "Workflow Orchestration", desc: "Seamless connection of decisions to actions across existing enterprise systems with governance embedded." },
+                { icon: ShieldCheck, title: "Governance & Compliance", desc: "Built-in approval workflows, role-based access, decision history, and explainability by design." },
+                { icon: TrendingUp, title: "Organizational Intelligence", desc: "Visibility into patterns across decisions, bottlenecks, and opportunities to improve how the organization operates." },
               ].map((pillar, index) => {
                 const Icon = pillar.icon;
                 return (
@@ -181,16 +200,16 @@ export async function LandingPageStatic() {
           </div>
         </section>
 
-        {/* 5. DIGITAL WORKFORCE */}
+        {/* DIGITAL WORKFORCE */}
         <section className="px-4 py-20 sm:px-6">
           <div className="mx-auto max-w-5xl">
             <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
               <div>
                 <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                  Your organization will work with both human and digital employees.
+                  Organizations will increasingly work with both human and digital employees.
                 </h2>
                 <p className="mt-6 text-lg text-muted-foreground">
-                  Digital workers are specialized agents that execute defined operational work — research, document preparation, initial analysis, and routine coordination — under human governance.
+                  Digital workers are specialized agents designed to execute defined operational work — research, document generation, initial analysis, and routine coordination — always under clear human governance and accountability.
                 </p>
               </div>
 
@@ -211,21 +230,21 @@ export async function LandingPageStatic() {
           </div>
         </section>
 
-        {/* 6. GOVERNANCE */}
+        {/* GOVERNANCE */}
         <section className="border-y bg-muted/30 px-4 py-20 sm:px-6">
           <div className="mx-auto max-w-5xl">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Enterprise trust is built into every decision.
+                Trust and accountability are built into the platform.
               </h2>
             </div>
 
             <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {[
-                { icon: ShieldCheck, title: "Approval Workflows", desc: "Multi-stage human approval with clear accountability." },
-                { icon: Target, title: "Full Audit Trail", desc: "Every decision, change, and approval is recorded and explainable." },
-                { icon: Users, title: "Human-in-the-Loop", desc: "AI proposes. Humans decide. Governance is non-negotiable." },
-                { icon: Award, title: "Organizational Memory", desc: "Learn from past decisions to improve future outcomes." },
+                { icon: ShieldCheck, title: "Approval Workflows", desc: "Multi-stage human approval processes with clear ownership and accountability." },
+                { icon: Target, title: "Complete Audit Trail", desc: "Every decision, change, and approval is recorded with full traceability and explainability." },
+                { icon: Users, title: "Human-in-the-Loop", desc: "AI supports analysis and recommendations. Humans retain final authority and responsibility." },
+                { icon: Award, title: "Enterprise Memory", desc: "Organizations learn from past decisions to improve future judgment and reduce repeated mistakes." },
               ].map((item, index) => {
                 const Icon = item.icon;
                 return (
@@ -242,18 +261,18 @@ export async function LandingPageStatic() {
           </div>
         </section>
 
-        {/* 7. BUSINESS OUTCOMES */}
+        {/* BUSINESS OUTCOMES */}
         <section className="px-4 py-20 sm:px-6">
           <div className="mx-auto max-w-5xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Better decisions. Faster execution. Scalable operations.
+              What organizations achieve with IDA.
             </h2>
 
             <div className="mt-14 grid gap-6 md:grid-cols-3">
               {[
-                { title: "Faster, higher-quality decisions", desc: "Leaders make decisions with complete context, clear recommendations, and governance built in." },
-                { title: "Operational efficiency at scale", desc: "Digital workers handle repetitive work so human teams can focus on judgment and strategy." },
-                { title: "Organizational intelligence", desc: "See patterns across decisions, reduce risk, and continuously improve how your organization operates." },
+                { title: "Faster, higher-quality decisions", desc: "Leaders make decisions with complete context, clear recommendations, and governance built into the process." },
+                { title: "Scalable, governed execution", desc: "Digital workers handle repetitive operational work reliably, allowing human teams to focus on judgment and strategy." },
+                { title: "Organizational intelligence", desc: "Visibility into decision patterns, bottlenecks, and opportunities to continuously improve how the organization operates." },
               ].map((outcome, index) => (
                 <div key={index} className="rounded-2xl border bg-card/50 p-8 text-left">
                   <h3 className="text-xl font-semibold tracking-tight">{outcome.title}</h3>
@@ -264,56 +283,47 @@ export async function LandingPageStatic() {
           </div>
         </section>
 
-        {/* 8. ACCESS TO TECHNOLOGY (Chat for Testing) - Placed lower */}
+        {/* ACCESS TO TECHNOLOGY */}
         <section className="border-y bg-muted/20 px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-4xl text-center">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1 text-xs font-medium text-muted-foreground">
-              For Technology Evaluation
+              For Technical Evaluation
             </div>
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              Want to experience the core technology?
+              Experience the core technology.
             </h2>
             <p className="mt-4 text-muted-foreground">
-              You can access the Chat interface to test IDA's underlying capabilities directly.
+              You can access the interface directly to explore IDA's underlying capabilities for evaluation purposes.
             </p>
 
             <div className="mt-8">
-              <Link
-                href="/chat"
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border bg-background px-6 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-              >
-                Access Chat Interface
+              <Link href="/chat" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border bg-background px-6 text-sm font-medium text-foreground transition-colors hover:bg-muted">
+                Access Technology Interface
                 <ArrowRight className="size-4" />
               </Link>
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
-              Recommended for technical evaluation and testing.
+              Recommended for technical teams and proof-of-concept work.
             </p>
           </div>
         </section>
 
-        {/* 9. FINAL CTA */}
+        {/* FINAL CTA */}
         <section className="px-4 py-20 sm:px-6">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Ready to run your organization with clarity and precision?
+              Ready to lead with clarity and precision?
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              See how IDA helps enterprise teams make better decisions and execute at scale.
+              See how IDA helps enterprise organizations make better decisions and execute at scale.
             </p>
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link
-                href="/auth/login"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-10 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90"
-              >
+              <Link href="/auth/login" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-10 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90">
                 Book Enterprise Demo
               </Link>
-              <Link
-                href="/contact"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border bg-card/60 px-8 text-base font-medium text-foreground transition-colors hover:bg-muted"
-              >
-                Contact Sales
+              <Link href="/contact" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border bg-card/60 px-8 text-base font-medium text-foreground transition-colors hover:bg-muted">
+                Talk to Our Team
               </Link>
             </div>
           </div>
