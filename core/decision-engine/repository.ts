@@ -399,4 +399,4 @@ export class SupabaseDecisionRepository implements IDecisionRepository {
   }
 }
 
-export { IDecisionRepository as DecisionRepository };
+export type { IDecisionRepository as DecisionRepository };
