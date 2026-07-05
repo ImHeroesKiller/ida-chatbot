@@ -38,15 +38,15 @@ export class DecisionEngineService {
    * Create a new decision in DRAFT status
    * DECISION-CENTRIC: Creates a complete, traceable decision object
    */
-  async createDecision<T = Record<string, unknown>>(
-    input: CreateDecisionInput<T>,
+  async createDecision(
+    input: CreateDecisionInput<Record<string, unknown>>,
     userId: string,
     aiAnalysis: AIAnalysisResult,
     actionPlan: ActionPlan
-  ): Promise<Decision<T>> {
+  ): Promise<Decision> {
     const decisionId = this.generateDecisionId();
 
-    const decision: Decision<T> = {
+    const decision: Decision = {
       id: decisionId,
       title: input.title,
       description: input.description,
