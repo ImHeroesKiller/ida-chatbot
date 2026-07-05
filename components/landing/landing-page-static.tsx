@@ -1,35 +1,26 @@
-import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
-import { LandingLegalConsent } from "@/components/landing/landing-legal-consent";
 import {
   ArrowRight,
-  CheckCircle2,
   Users,
   ShieldCheck,
-  Zap,
   Target,
   Clock,
   TrendingUp,
   Brain,
-  FileText,
+  Bot,
   GitBranch,
   Award,
-  Bot,
 } from "lucide-react";
 
 import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 import { LandingFooter } from "@/components/landing/footer";
 import { LandingHeaderActionsLazy } from "@/components/landing/landing-header-actions-lazy";
 import { LandingLcpLogo } from "@/components/landing/landing-lcp-logo";
-import { LandingLoginLazy } from "@/components/landing/landing-login-lazy";
 import { Link } from "@/i18n/navigation";
 import { IDA_CONFIG } from "@/lib/config";
-import { cn } from "@/lib/utils";
 
 export async function LandingPageStatic() {
-  const t = await getTranslations("Landing");
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
