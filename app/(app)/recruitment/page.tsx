@@ -184,7 +184,7 @@ export default function RecruitmentDashboard() {
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value as DecisionStatus | 'all')}
-            className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg_white"
+            className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
           >
             <option value="all">All Statuses</option>
             <option value={DecisionStatus.DRAFT}>Draft</option>
