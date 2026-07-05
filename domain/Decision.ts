@@ -1,13 +1,14 @@
-// Decision - Pilihan penting yang memerlukan human judgment
+// Decision - Representasi keputusan dalam organisasi
 export interface Decision {
   id: string;
-  workItemId: string;
   title: string;
-  status: 'proposed' | 'approved' | 'rejected';
-  outcome?: string;
-}
-
-export interface DecisionOutcome {
-  decisionId: string;
-  result: string;
+  description?: string;
+  status: 'Draft' | 'Pending' | 'Decided' | 'Cancelled';
+  requestedBy: string;
+  decisionMaker?: string;
+  createdAt: string;
+  decidedAt?: string;
+  workItemId?: string;
+  initiativeId?: string;
+  contextId?: string;
 }
