@@ -1,25 +1,31 @@
+'use client';
+
 /**
- * Decisions API Routes
+ * Updated Decisions API Routes with Supabase Persistence
  * 
  * Endpoints:
  * - GET /api/decisions - List decisions with filtering
  * - POST /api/decisions - Create new decision
- * - GET /api/decisions/:id - Get single decision
- * - PATCH /api/decisions/:id - Update decision
- * - POST /api/decisions/:id/approve - Record approval
- * - POST /api/decisions/:id/execute - Execute decision
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { DecisionEngineService } from '@/core/decision-engine/service';
-import { InMemoryDecisionRepository } from '@/core/decision-engine/repository';
+import { SupabaseDecisionRepository } from '@/core/decision-engine/repository';
 import { DecisionStatus } from '@/core/decision-engine/types';
 import { AuditLog, AuditEventType } from '@/core/governance/audit';
+import { getSupabaseServerClient } from '@/lib/supabase/client';
 
-// Initialize services (would use Supabase in production)
-const repository = new InMemoryDecisionRepository();
-const service = new DecisionEngineService(repository);
-const auditLog = new AuditLog();
+/**
+ * Initialize Supabase repository and service
+ */
+function initializeServices() {
+  const supabase = getSupabaseServerClient();
+  const repository = new SupabaseDecisionRepository(supabase);
+  const service = new DecisionEngineService(repository);
+  const auditLog = new AuditLog();
+
+  return { service, repository, auditLog, supabase };
+}
 
 /**
  * GET /api/decisions
@@ -27,17 +33,20 @@ const auditLog = new AuditLog();
  */
 export async function GET(request: NextRequest) {
   try {
+    const { service } = initializeServices();
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status');
     const contextType = searchParams.get('contextType');
     const search = searchParams.get('search');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const offset = parseInt(searchParams.get('offset') || '0');
 
     const query = {
       status: status ? (status as DecisionStatus) : undefined,
       contextType: contextType || undefined,
       search: search || undefined,
-      limit: 20,
-      offset: 0,
+      limit,
+      offset,
     };
 
     const result = await service.queryDecisions(query);
@@ -46,11 +55,14 @@ export async function GET(request: NextRequest) {
       success: true,
       data: result.decisions,
       total: result.total,
+      limit,
+      offset,
     });
   } catch (error) {
     console.error('Error fetching decisions:', error);
+    const message = error instanceof Error ? error.message : 'Failed to fetch decisions';
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch decisions' },
+      { success: false, error: message },
       { status: 500 }
     );
   }
@@ -62,8 +74,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const { service, repository, auditLog } = initializeServices();
     const body = await request.json();
     const userId = request.headers.get('x-user-id') || 'system';
+    const userAgent = request.headers.get('user-agent') || undefined;
 
     const {
       title,
@@ -74,7 +88,20 @@ export async function POST(request: NextRequest) {
       requiredApprovers,
       aiAnalysis,
       actionPlan,
+      tags,
+      externalId,
     } = body;
+
+    // Validate required fields
+    if (!title || !description || !contextType || !aiAnalysis || !actionPlan) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Missing required fields: title, description, contextType, aiAnalysis, actionPlan',
+        },
+        { status: 400 }
+      );
+    }
 
     // Create decision
     const decision = await service.createDecision(
@@ -85,6 +112,8 @@ export async function POST(request: NextRequest) {
         contextData,
         priority,
         requiredApprovers,
+        tags,
+        externalId,
       },
       userId,
       aiAnalysis,
@@ -92,17 +121,20 @@ export async function POST(request: NextRequest) {
     );
 
     // Log audit event
-    auditLog.recordEvent(
-      AuditEventType.DECISION_CREATED,
-      decision.id,
-      userId,
-      `Created decision: ${title}`,
-      {
-        title,
-        contextType,
-        priority,
-      }
-    );
+    if (repository instanceof SupabaseDecisionRepository) {
+      await repository.addAuditLog(
+        decision.id,
+        AuditEventType.DECISION_CREATED,
+        userId,
+        `Created decision: ${title}`,
+        {
+          title,
+          contextType,
+          priority,
+        },
+        { userAgent }
+      );
+    }
 
     return NextResponse.json(
       {
@@ -113,8 +145,9 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Error creating decision:', error);
+    const message = error instanceof Error ? error.message : 'Failed to create decision';
     return NextResponse.json(
-      { success: false, error: 'Failed to create decision' },
+      { success: false, error: message },
       { status: 500 }
     );
   }

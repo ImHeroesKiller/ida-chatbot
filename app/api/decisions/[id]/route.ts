@@ -1,21 +1,29 @@
+'use client';
+
 /**
- * Decision Detail API Routes
+ * Updated Decision Detail API Routes with Supabase Persistence
  * 
  * - GET /api/decisions/:id
- * - PATCH /api/decisions/:id
  * - POST /api/decisions/:id/approve
  * - POST /api/decisions/:id/execute
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { DecisionEngineService } from '@/core/decision-engine/service';
-import { InMemoryDecisionRepository } from '@/core/decision-engine/repository';
-import { DecisionId } from '@/core/decision-engine/types';
-import { AuditLog, AuditEventType } from '@/core/governance/audit';
+import { SupabaseDecisionRepository } from '@/core/decision-engine/repository';
+import { DecisionId, DecisionStatus } from '@/core/decision-engine/types';
+import { AuditEventType } from '@/core/governance/audit';
+import { getSupabaseServerClient } from '@/lib/supabase/client';
 
-const repository = new InMemoryDecisionRepository();
-const service = new DecisionEngineService(repository);
-const auditLog = new AuditLog();
+/**
+ * Initialize services
+ */
+function initializeServices() {
+  const supabase = getSupabaseServerClient();
+  const repository = new SupabaseDecisionRepository(supabase);
+  const service = new DecisionEngineService(repository);
+  return { service, repository };
+}
 
 /**
  * GET /api/decisions/:id
@@ -25,6 +33,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { service } = initializeServices();
     const decision = await service.getDecision(params.id as DecisionId);
 
     if (!decision) {
@@ -40,27 +49,41 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching decision:', error);
+    const message = error instanceof Error ? error.message : 'Failed to fetch decision';
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch decision' },
+      { success: false, error: message },
       { status: 500 }
     );
   }
 }
 
 /**
- * POST /api/decisions/:id/approve
+ * POST /api/decisions/:id
+ * Handle approve and execute actions
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const { service, repository } = initializeServices();
     const body = await request.json();
     const userId = request.headers.get('x-user-id') || 'system';
     const action = request.nextUrl.searchParams.get('action');
+    const userAgent = request.headers.get('user-agent') || undefined;
 
     if (action === 'approve') {
       const { actorId, actorName, actorRole, approved, comment } = body;
+
+      if (!actorId || !actorName || !actorRole) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Missing required fields: actorId, actorName, actorRole',
+          },
+          { status: 400 }
+        );
+      }
 
       const decision = await service.recordApproval(
         params.id as DecisionId,
@@ -72,18 +95,25 @@ export async function POST(
       );
 
       // Log audit event
-      auditLog.recordEvent(
-        approved ? AuditEventType.APPROVAL_RECORDED : AuditEventType.DECISION_REJECTED,
-        decision.id,
-        userId,
-        `${approved ? 'Approved' : 'Rejected'} by ${actorName}`,
-        {
-          actorName,
-          actorRole,
-          approved,
-          comment,
-        }
-      );
+      if (repository instanceof SupabaseDecisionRepository) {
+        const eventType = approved
+          ? AuditEventType.APPROVAL_RECORDED
+          : AuditEventType.DECISION_REJECTED;
+        await repository.addAuditLog(
+          decision.id,
+          eventType,
+          userId,
+          `${approved ? 'Approved' : 'Rejected'} by ${actorName}`,
+          {
+            actorId,
+            actorName,
+            actorRole,
+            approved,
+            comment,
+          },
+          { userAgent }
+        );
+      }
 
       return NextResponse.json({
         success: true,
@@ -94,13 +124,16 @@ export async function POST(
     if (action === 'execute') {
       const decision = await service.markForExecution(params.id as DecisionId);
 
-      auditLog.recordEvent(
-        AuditEventType.EXECUTION_STARTED,
-        decision.id,
-        userId,
-        'Execution started',
-        {}
-      );
+      if (repository instanceof SupabaseDecisionRepository) {
+        await repository.addAuditLog(
+          decision.id,
+          AuditEventType.EXECUTION_STARTED,
+          userId,
+          'Execution started',
+          {},
+          { userAgent }
+        );
+      }
 
       return NextResponse.json({
         success: true,
@@ -114,8 +147,9 @@ export async function POST(
     );
   } catch (error) {
     console.error('Error updating decision:', error);
+    const message = error instanceof Error ? error.message : 'Failed to update decision';
     return NextResponse.json(
-      { success: false, error: 'Failed to update decision' },
+      { success: false, error: message },
       { status: 500 }
     );
   }

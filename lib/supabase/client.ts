@@ -1,38 +1,46 @@
-"use client";
+/**
+ * Supabase Client Configuration
+ * 
+ * Centralized Supabase client initialization for use across the application.
+ */
 
-import { createBrowserClient } from "@supabase/ssr";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-import {
-  getSupabasePublicConfig,
-  isSupabasePublicConfigured,
-} from "@/lib/supabase/env";
-
-let browserClient: SupabaseClient | null = null;
-let browserClientKey: string | null = null;
-
-export function isSupabaseBrowserConfigured(): boolean {
-  return isSupabasePublicConfigured();
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL');
 }
 
-/** Browser Supabase client with persisted auth session (singleton). */
-export function getSupabaseBrowser(): SupabaseClient {
-  const config = getSupabasePublicConfig();
+if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY');
+}
 
-  if (!config) {
-    throw new Error(
-      "Supabase browser client is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+let supabaseClient: SupabaseClient | null = null;
+
+/**
+ * Get or create Supabase client (singleton)
+ */
+export function getSupabaseClient(): SupabaseClient {
+  if (!supabaseClient) {
+    supabaseClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
   }
+  return supabaseClient;
+}
 
-  const nextKey = `${config.url}::${config.anonKey}`;
+/**
+ * Get Supabase client for server-side operations (with service role if available)
+ */
+export function getSupabaseServerClient(): SupabaseClient {
+  // Use service role key for server operations if available
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
-  if (!browserClient || browserClientKey !== nextKey) {
-    browserClient = createBrowserClient(config.url, config.anonKey, {
-      isSingleton: false,
-    });
-    browserClientKey = nextKey;
+  if (serviceRoleKey) {
+    return createClient(url, serviceRoleKey);
   }
 
-  return browserClient;
+  // Fallback to anon key
+  return getSupabaseClient();
 }
