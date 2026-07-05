@@ -49,6 +49,14 @@ Core modules reuse existing IDA chat tools:
 
 No modifications to existing chat/landing page code.
 
+## Recruitment Workspace Integration
+
+The recruitment workspace (`app/(app)/recruitment/`) integrates all core modules:
+
+- **Dashboard** (`page.tsx`) - Decision listing, pipeline overview, quick create
+- **Decision Detail** (`[decisionId]/page.tsx`) - Full decision lifecycle management
+- **API Routes** (`app/api/decisions/`) - REST endpoints for CRUD, approvals, execution
+
 ## Quick Start
 
 ```typescript
@@ -82,9 +90,10 @@ if (decision.metadata.status === DecisionStatus.APPROVED) {
 ## Next Steps
 
 1. **Database Schema**: Create Supabase tables for decisions, approvals, audit logs
-2. **API Routes**: `/api/decisions/create`, `/api/decisions/:id/approve`, `/api/decisions/:id/execute`
-3. **UI Components**: Decision dashboard, approval inbox, execution monitor
+2. **API Routes**: Connect to real database instead of in-memory
+3. **UI Components**: Complete decision dashboard, approval inbox, execution monitor
 4. **Testing**: Unit tests for decision state transitions, approval workflows
+5. **Audit Dashboard**: Admin view of all decisions and compliance logs
 
 ## File Structure
 
@@ -102,4 +111,15 @@ core/
 │   ├── audit.ts
 │   └── approval.ts
 └── README.md
+
+app/(app)/recruitment/
+├── layout.tsx
+├── page.tsx
+└── [decisionId]/
+    └── page.tsx
+
+app/api/decisions/
+├── route.ts
+└── [id]/
+    └── route.ts
 ```
