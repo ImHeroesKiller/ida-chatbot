@@ -5,7 +5,7 @@
  * Aligned with HUMAN-AMPLIFICATION: agents augment human decision-making.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import { generateAgentId, generateTaskId } from '../shared/id';
 
 /**
  * Agent Role - specialized roles in the digital workforce
@@ -71,7 +71,7 @@ export class AgentRegistry {
   registerAgent(metadata: Omit<AgentMetadata, 'id' | 'createdAt'>): AgentMetadata {
     const agent: AgentMetadata = {
       ...metadata,
-      id: `agent_${uuidv4()}`,
+      id: generateAgentId(),
       createdAt: new Date(),
     };
     this.agents.set(agent.id, agent);
@@ -113,7 +113,7 @@ export class AgentRegistry {
     }
 
     const task: AgentTask = {
-      taskId: `task_${uuidv4()}`,
+      taskId: generateTaskId(),
       agentId,
       decisionId,
       status: 'pending',
