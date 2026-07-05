@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export async function GET() {
-  const supabase = createClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.from('decisions').select('*');
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -10,7 +10,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = createClient();
+  const supabase = await createSupabaseServerClient();
   const body = await request.json();
 
   const { data, error } = await supabase.from('decisions').insert(body).select().single();
