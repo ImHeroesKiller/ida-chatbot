@@ -1,5 +1,9 @@
 // Capability Contracts - Architecture Blueprint Part 2
 
+import { Context } from '../Context';
+import { Actor } from '../Actor';
+import { EnterpriseMemory } from '../EnterpriseMemory';
+
 export interface OutcomeContinuity {
   maintainOutcome(initiativeId: string, newOutcome: string): Promise<void>;
   getCurrentOutcome(initiativeId: string): Promise<string | null>;
