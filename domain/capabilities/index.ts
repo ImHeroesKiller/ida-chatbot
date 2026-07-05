@@ -1,10 +1,11 @@
 // Capability Contracts - Architecture Blueprint Part 2
 
-import { Context } from '../Context';
-import { Actor } from '../Actor';
-import { EnterpriseMemory } from '../EnterpriseMemory';
-import { MemoryQuery } from '../EnterpriseMemory.types';
-import { CapabilityGrowth } from '../Learning.types';
+import { Context } from '../../Context';
+import { Actor } from '../../Actor';
+import { EnterpriseMemory } from '../../EnterpriseMemory';
+import { MemoryQuery } from '../../EnterpriseMemory.types';
+import { CapabilityGrowth } from '../../Learning.types';
+import { AlignmentStatus } from './AlignmentPreservation.types';
 
 // Temporary placeholder until ActionLog is properly defined
 export interface ActionLog {
