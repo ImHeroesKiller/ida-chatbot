@@ -53,7 +53,7 @@ export async function LandingPageStatic() {
 
           <div className="relative mx-auto max-w-5xl text-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-card/70 px-4 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur-sm sm:text-sm">
-              Enterprise Decision & Digital Workforce Operating System
+              Enterprise Decision &amp; Digital Workforce Operating System
             </div>
 
             <h1 className="text-balance text-4xl font-bold tracking-tighter sm:text-5xl lg:text-6xl">
@@ -182,7 +182,7 @@ export async function LandingPageStatic() {
                 { icon: Target, title: "Decision Engine", desc: "Structured decision records with AI-supported analysis, human oversight, and complete auditability." },
                 { icon: Bot, title: "Digital Workforce", desc: "Specialized digital workers that execute research, document preparation, coordination, and routine operational tasks." },
                 { icon: GitBranch, title: "Workflow Orchestration", desc: "Seamless connection of decisions to actions across existing enterprise systems with governance embedded." },
-                { icon: ShieldCheck, title: "Governance & Compliance", desc: "Built-in approval workflows, role-based access, decision history, and explainability by design." },
+                { icon: ShieldCheck, title: "Governance &amp; Compliance", desc: "Built-in approval workflows, role-based access, decision history, and explainability by design." },
                 { icon: TrendingUp, title: "Organizational Intelligence", desc: "Visibility into patterns across decisions, bottlenecks, and opportunities to improve how the organization operates." },
               ].map((pillar, index) => {
                 const Icon = pillar.icon;
@@ -293,7 +293,7 @@ export async function LandingPageStatic() {
               Experience the core technology.
             </h2>
             <p className="mt-4 text-muted-foreground">
-              You can access the interface directly to explore IDA's underlying capabilities for evaluation purposes.
+              You can access the interface directly to explore IDA&apos;s underlying capabilities for evaluation purposes.
             </p>
 
             <div className="mt-8">
