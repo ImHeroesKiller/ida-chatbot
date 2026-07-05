@@ -221,7 +221,6 @@ export interface UpdateDecisionInput {
 /**
  * Zod schemas for validation
  */
-
 export const ApprovalActorSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -233,14 +232,14 @@ export const ApprovalActorSchema = z.object({
 export const ConfidenceScoreSchema = z.object({
   score: z.number().min(0).max(1),
   rationale: z.string(),
-  factors: z.record(z.number()).optional(),
+  factors: z.record(z.string(), z.number()).optional(),
 });
 
 export const AIAnalysisResultSchema = z.object({
   summary: z.string(),
   recommendation: z.string(),
   confidence: ConfidenceScoreSchema,
-  details: z.record(z.unknown()),
+  details: z.record(z.string(), z.unknown()),
   sources: z.string().array().optional(),
   timestamp: z.date(),
 });
@@ -250,8 +249,8 @@ export const ExecutionStepSchema = z.object({
   title: z.string(),
   description: z.string(),
   tool: z.enum(['worksheet', 'workflow', 'research', 'custom']),
-  toolInput: z.record(z.unknown()),
-  expectedOutput: z.record(z.unknown()),
+  toolInput: z.record(z.string(), z.unknown()),
+  expectedOutput: z.record(z.string(), z.unknown()),
   requiresHumanReview: z.boolean(),
 });
 
