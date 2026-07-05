@@ -17,7 +17,6 @@ import {
   ActionPlan,
 } from './types';
 import { DecisionRepository } from './repository';
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Decision Engine Service - Core service for decision management
@@ -344,9 +343,9 @@ export class DecisionEngineService {
   }
 
   /**
-   * Generate unique decision ID
+   * Generate unique decision ID using native crypto (no extra dependency)
    */
   private generateDecisionId(): DecisionId {
-    return (`dec_${uuidv4()}` as unknown) as DecisionId;
+    return (`dec_${crypto.randomUUID()}` as unknown) as DecisionId;
   }
 }
