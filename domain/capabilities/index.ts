@@ -3,6 +3,7 @@
 import { Context } from '../Context';
 import { Actor } from '../Actor';
 import { EnterpriseMemory } from '../EnterpriseMemory';
+import { MemoryQuery } from '../EnterpriseMemory.types';
 
 // Temporary placeholder until ActionLog is properly defined
 export interface ActionLog {
