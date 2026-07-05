@@ -340,7 +340,7 @@ function NewDecisionModal({ onClose, onCreateDecision }: { onClose: () => void; 
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+              className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover-bg-slate-50 transition-colors font-medium"
             >
               Cancel
             </button>
