@@ -17,9 +17,16 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
 let supabaseClient: SupabaseClient | null = null;
 
 /**
- * Get or create Supabase client (singleton)
+ * Check if Supabase is properly configured for browser usage
  */
-export function getSupabaseClient(): SupabaseClient {
+export function isSupabaseBrowserConfigured(): boolean {
+  return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
+/**
+ * Get Supabase client for browser-side operations
+ */
+export function getSupabaseBrowser(): SupabaseClient {
   if (!supabaseClient) {
     supabaseClient = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,6 +34,13 @@ export function getSupabaseClient(): SupabaseClient {
     );
   }
   return supabaseClient;
+}
+
+/**
+ * Get or create Supabase client (singleton) - alias for getSupabaseBrowser
+ */
+export function getSupabaseClient(): SupabaseClient {
+  return getSupabaseBrowser();
 }
 
 /**
