@@ -15,6 +15,8 @@ import Link from 'next/link';
 import { Plus, Search, TrendingUp, AlertCircle } from 'lucide-react';
 import { DecisionStatus, DecisionPriority } from '@/core/decision-engine/types';
 
+type SeniorityLevel = 'junior' | 'mid' | 'senior' | 'lead';
+
 interface Decision {
   id: string;
   title: string;
@@ -264,11 +266,16 @@ export default function RecruitmentDashboard() {
 }
 
 function NewDecisionModal({ onClose, onCreateDecision }: { onClose: () => void; onCreateDecision: () => void }) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    candidateName: string;
+    positionTitle: string;
+    department: string;
+    seniority: SeniorityLevel;
+  }>({
     candidateName: '',
     positionTitle: '',
     department: '',
-    seniority: 'mid' as const,
+    seniority: 'mid',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -295,7 +302,7 @@ function NewDecisionModal({ onClose, onCreateDecision }: { onClose: () => void; 
               onChange={(e) => setFormData({ ...formData, candidateName: e.target.value })}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., Jane Smith"
-            />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Position</label>
@@ -306,7 +313,7 @@ function NewDecisionModal({ onClose, onCreateDecision }: { onClose: () => void; 
               onChange={(e) => setFormData({ ...formData, positionTitle: e.target.value })}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., Senior Engineer"
-            />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Department</label>
@@ -317,14 +324,14 @@ function NewDecisionModal({ onClose, onCreateDecision }: { onClose: () => void; 
               onChange={(e) => setFormData({ ...formData, department: e.target.value })}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., Engineering"
-            />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Seniority Level</label>
             <select
               value={formData.seniority}
-              onChange={(e) => setFormData({ ...formData, seniority: e.target.value as 'junior' | 'mid' | 'senior' | 'lead' })}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              onChange={(e) => setFormData({ ...formData, seniority: e.target.value as SeniorityLevel })}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg_white"
             >
               <option value="junior">Junior</option>
               <option value="mid">Mid-Level</option>
