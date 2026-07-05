@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Updated Decisions API Routes with Supabase Persistence
  * 
@@ -11,7 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DecisionEngineService } from '@/core/decision-engine/service';
 import { SupabaseDecisionRepository } from '@/core/decision-engine/repository';
-import { DecisionStatus } from '@/core/decision-engine/types';
+import { DecisionStatus, DecisionContextType } from '@/core/decision-engine/types';
 import { AuditLog, AuditEventType } from '@/core/governance/audit';
 import { getSupabaseServerClient } from '@/lib/supabase/client';
 
@@ -43,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     const query = {
       status: status ? (status as DecisionStatus) : undefined,
-      contextType: contextType || undefined,
+      contextType: contextType ? (contextType as DecisionContextType) : undefined,
       search: search || undefined,
       limit,
       offset,
