@@ -1,158 +1,46 @@
-/**
- * Updated Decision Detail API Routes with Supabase Persistence
- * 
- * - GET /api/decisions/:id
- * - POST /api/decisions/:id/approve
- * - POST /api/decisions/:id/execute
- */
-
 import { NextRequest, NextResponse } from 'next/server';
-import { DecisionEngineService } from '@/core/decision-engine/service';
-import { SupabaseDecisionRepository } from '@/core/decision-engine/repository';
-import { DecisionId, DecisionStatus } from '@/core/decision-engine/types';
-import { AuditEventType } from '@/core/governance/audit';
-import { getSupabaseServerClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 
-/**
- * Initialize services
- */
-function initializeServices() {
-  const supabase = getSupabaseServerClient();
-  const repository = new SupabaseDecisionRepository(supabase);
-  const service = new DecisionEngineService(repository);
-  return { service, repository };
-}
-
-/**
- * GET /api/decisions/:id
- */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('decisions')
+    .select('*')
+    .eq('id', params.id)
+    .single();
 
-  try {
-    const { service } = initializeServices();
-    const decision = await service.getDecision(id as DecisionId);
-
-    if (!decision) {
-      return NextResponse.json(
-        { success: false, error: 'Decision not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: decision,
-    });
-  } catch (error) {
-    console.error('Error fetching decision:', error);
-    const message = error instanceof Error ? error.message : 'Failed to fetch decision';
-    return NextResponse.json(
-      { success: false, error: message },
-      { status: 500 }
-    );
-  }
+  if (error) return NextResponse.json({ error: error.message }, { status: 404 });
+  return NextResponse.json(data);
 }
 
-/**
- * POST /api/decisions/:id
- * Handle approve and execute actions
- */
-export async function POST(
+export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
+  const supabase = createClient();
+  const body = await request.json();
 
-  try {
-    const { service, repository } = initializeServices();
-    const body = await request.json();
-    const userId = request.headers.get('x-user-id') || 'system';
-    const action = request.nextUrl.searchParams.get('action');
-    const userAgent = request.headers.get('user-agent') || undefined;
+  const { data, error } = await supabase
+    .from('decisions')
+    .update(body)
+    .eq('id', params.id)
+    .select()
+    .single();
 
-    if (action === 'approve') {
-      const { actorId, actorName, actorRole, approved, comment } = body;
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data);
+}
 
-      if (!actorId || !actorName || !actorRole) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Missing required fields: actorId, actorName, actorRole',
-          },
-          { status: 400 }
-        );
-      }
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const supabase = createClient();
+  const { error } = await supabase.from('decisions').delete().eq('id', params.id);
 
-      const decision = await service.recordApproval(
-        id as DecisionId,
-        actorId,
-        actorName,
-        actorRole,
-        approved,
-        comment
-      );
-
-      // Log audit event
-      if (repository instanceof SupabaseDecisionRepository) {
-        const eventType = approved
-          ? AuditEventType.APPROVAL_RECORDED
-          : AuditEventType.DECISION_REJECTED;
-        await repository.addAuditLog(
-          decision.id,
-          eventType,
-          userId,
-          `${approved ? 'Approved' : 'Rejected'} by ${actorName}`,
-          {
-            actorId,
-            actorName,
-            actorRole,
-            approved,
-            comment,
-          },
-          { userAgent }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        data: decision,
-      });
-    }
-
-    if (action === 'execute') {
-      const decision = await service.markForExecution(id as DecisionId);
-
-      if (repository instanceof SupabaseDecisionRepository) {
-        await repository.addAuditLog(
-          decision.id,
-          AuditEventType.EXECUTION_STARTED,
-          userId,
-          'Execution started',
-          {},
-          { userAgent }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        data: decision,
-      });
-    }
-
-    return NextResponse.json(
-      { success: false, error: 'Unknown action' },
-      { status: 400 }
-    );
-  } catch (error) {
-    console.error('Error updating decision:', error);
-    const message = error instanceof Error ? error.message : 'Failed to update decision';
-    return NextResponse.json(
-      { success: false, error: message },
-      { status: 500 }
-    );
-  }
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
 }
