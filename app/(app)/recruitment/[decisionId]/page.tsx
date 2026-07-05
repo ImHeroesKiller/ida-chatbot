@@ -34,7 +34,7 @@ interface DecisionDetail {
     summary: string;
     recommendation: string;
     confidence: { score: number; rationale: string };
-    details: Record<string, any>;
+    details: Record<string, unknown>;
   };
   actionPlan?: {
     steps: Array<{ sequence: number; title: string; description: string; status?: string }>;
