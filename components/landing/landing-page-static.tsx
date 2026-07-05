@@ -11,6 +11,11 @@ import {
   Target,
   Clock,
   TrendingUp,
+  Brain,
+  FileText,
+  GitBranch,
+  Award,
+  Bot,
 } from "lucide-react";
 
 import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
@@ -163,18 +168,24 @@ export async function LandingPageStatic() {
 
             <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[
-                { title: "Enterprise Knowledge", desc: "Unified memory across documents, systems, and conversations — always contextual and searchable." },
-                { title: "Decision Engine", desc: "Structured decision records with AI analysis, human oversight, and full auditability." },
-                { title: "Digital Workforce", desc: "Specialized digital workers that execute research, document generation, approvals, and workflows." },
-                { title: "Workflow Orchestration", desc: "Connect decisions to actions across your existing tools with governance built in." },
-                { title: "Governance & Compliance", desc: "Approval workflows, role-based access, decision history, and explainability by design." },
-                { title: "Organizational Intelligence", desc: "See patterns across decisions, identify bottlenecks, and continuously improve how your organization operates." },
-              ].map((pillar, index) => (
-                <div key={index} className="rounded-2xl border bg-background p-8">
-                  <h3 className="text-xl font-semibold tracking-tight">{pillar.title}</h3>
-                  <p className="mt-4 text-muted-foreground leading-relaxed">{pillar.desc}</p>
-                </div>
-              ))}
+                { icon: Brain, title: "Enterprise Knowledge", desc: "Unified memory across documents, systems, and conversations — always contextual and searchable." },
+                { icon: Target, title: "Decision Engine", desc: "Structured decision records with AI analysis, human oversight, and full auditability." },
+                { icon: Bot, title: "Digital Workforce", desc: "Specialized digital workers that execute research, document generation, approvals, and workflows." },
+                { icon: GitBranch, title: "Workflow Orchestration", desc: "Connect decisions to actions across your existing tools with governance built in." },
+                { icon: ShieldCheck, title: "Governance & Compliance", desc: "Approval workflows, role-based access, decision history, and explainability by design." },
+                { icon: TrendingUp, title: "Organizational Intelligence", desc: "See patterns across decisions, identify bottlenecks, and continuously improve how your organization operates." },
+              ].map((pillar, index) => {
+                const Icon = pillar.icon;
+                return (
+                  <div key={index} className="rounded-2xl border bg-background p-8">
+                    <div className="mb-4 flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <Icon className="size-5" />
+                    </div>
+                    <h3 className="text-xl font-semibold tracking-tight">{pillar.title}</h3>
+                    <p className="mt-4 text-muted-foreground leading-relaxed">{pillar.desc}</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -223,7 +234,7 @@ export async function LandingPageStatic() {
                 { icon: ShieldCheck, title: "Approval Workflows", desc: "Multi-stage human approval with clear accountability." },
                 { icon: Target, title: "Full Audit Trail", desc: "Every decision, change, and approval is recorded and explainable." },
                 { icon: Users, title: "Human-in-the-Loop", desc: "AI proposes. Humans decide. Governance is non-negotiable." },
-                { icon: TrendingUp, title: "Organizational Memory", desc: "Learn from past decisions to improve future outcomes." },
+                { icon: Award, title: "Organizational Memory", desc: "Learn from past decisions to improve future outcomes." },
               ].map((item, index) => {
                 const Icon = item.icon;
                 return (
@@ -262,8 +273,36 @@ export async function LandingPageStatic() {
           </div>
         </section>
 
-        {/* 8. FINAL CTA */}
-        <section className="border-t bg-gradient-to-b from-primary/[0.06] to-background px-4 py-20 sm:px-6">
+        {/* 8. ACCESS TO TECHNOLOGY (Chat for Testing) - Placed lower */}
+        <section className="border-y bg-muted/20 px-4 py-16 sm:px-6">
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1 text-xs font-medium text-muted-foreground">
+              For Technology Evaluation
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              Want to experience the core technology?
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              You can access the Chat interface to test IDA's underlying capabilities directly.
+            </p>
+
+            <div className="mt-8">
+              <Link
+                href="/chat"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border bg-background px-6 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                Access Chat Interface
+                <ArrowRight className="size-4" />
+              </Link>
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Recommended for technical evaluation and testing.
+            </p>
+          </div>
+        </section>
+
+        {/* 9. FINAL CTA */}
+        <section className="px-4 py-20 sm:px-6">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
               Ready to run your organization with clarity and precision?
