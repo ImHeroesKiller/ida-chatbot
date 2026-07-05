@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Updated Decision Detail API Routes with Supabase Persistence
  * 
@@ -30,11 +28,13 @@ function initializeServices() {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+
   try {
     const { service } = initializeServices();
-    const decision = await service.getDecision(params.id as DecisionId);
+    const decision = await service.getDecision(id as DecisionId);
 
     if (!decision) {
       return NextResponse.json(
@@ -63,8 +63,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+
   try {
     const { service, repository } = initializeServices();
     const body = await request.json();
@@ -86,7 +88,7 @@ export async function POST(
       }
 
       const decision = await service.recordApproval(
-        params.id as DecisionId,
+        id as DecisionId,
         actorId,
         actorName,
         actorRole,
@@ -122,7 +124,7 @@ export async function POST(
     }
 
     if (action === 'execute') {
-      const decision = await service.markForExecution(params.id as DecisionId);
+      const decision = await service.markForExecution(id as DecisionId);
 
       if (repository instanceof SupabaseDecisionRepository) {
         await repository.addAuditLog(
