@@ -5,8 +5,3 @@ export interface EnterpriseMemory {
   context: string;
   createdAt: string;
 }
-
-export interface MemoryQuery {
-  context?: string;
-  keyword?: string;
-}
