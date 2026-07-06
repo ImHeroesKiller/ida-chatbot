@@ -37,10 +37,10 @@ export function EnterpriseDashboardHeader({
 
         <div className="flex items-center gap-4 sm:gap-6">
           <Link
-            href="/chat"
+            href="/"
             className="text-[13px] font-medium text-muted-foreground transition-colors duration-200 hover:text-foreground"
           >
-            ← Back to Chat
+            ← Back to Homepage
           </Link>
           <Button
             size="sm"

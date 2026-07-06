@@ -17,6 +17,8 @@ import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 import { LandingFooter } from "@/components/landing/footer";
 import { LandingHeaderActionsLazy } from "@/components/landing/landing-header-actions-lazy";
 import { LandingLcpLogo } from "@/components/landing/landing-lcp-logo";
+import NextLink from "next/link";
+
 import { Link } from "@/i18n/navigation";
 import { IDA_CONFIG } from "@/lib/config";
 
@@ -65,9 +67,12 @@ export async function LandingPageStatic() {
             </p>
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link href="/auth/login" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.985]">
-                Book Enterprise Demo
-              </Link>
+              <NextLink
+                href="/demo"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.985]"
+              >
+                Launch Investor Demo
+              </NextLink>
               <Link href="#platform" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border bg-card/60 px-8 text-base font-medium text-foreground transition-colors hover:bg-muted">
                 Explore Platform
                 <ArrowRight className="size-4" />
@@ -296,9 +301,16 @@ export async function LandingPageStatic() {
               You can access the interface directly to explore IDA&apos;s underlying capabilities for evaluation purposes.
             </p>
 
-            <div className="mt-8">
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <NextLink
+                href="/demo"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                Launch Investor Demo
+                <ArrowRight className="size-4" />
+              </NextLink>
               <Link href="/chat" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border bg-background px-6 text-sm font-medium text-foreground transition-colors hover:bg-muted">
-                Access Technology Interface
+                Access Chat Interface
                 <ArrowRight className="size-4" />
               </Link>
             </div>
@@ -319,9 +331,12 @@ export async function LandingPageStatic() {
             </p>
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link href="/auth/login" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-10 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90">
-                Book Enterprise Demo
-              </Link>
+              <NextLink
+                href="/demo"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-10 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90"
+              >
+                Launch Investor Demo
+              </NextLink>
               <Link href="/contact" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border bg-card/60 px-8 text-base font-medium text-foreground transition-colors hover:bg-muted">
                 Talk to Our Team
               </Link>
