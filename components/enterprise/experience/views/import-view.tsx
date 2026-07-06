@@ -6,14 +6,16 @@ import { ArrowRight, X } from "lucide-react";
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
 import { FadeIn } from "@/components/enterprise/enterprise-motion";
 
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
+
 import { AskIdaPanel } from "../ask-ida-panel";
 import { useEnterprise } from "../enterprise-context";
-import { IDA_CORE_MESSAGE } from "../narrative";
 import { RealityConnectPanel } from "../reality-connect-panel";
 import { PageHeader } from "../page-header";
 
 export function ImportView() {
   const { navigate, gmailNotice, clearGmailNotice } = useEnterprise();
+  const { t } = useEnterpriseLocale();
 
   return (
     <div className="space-y-8">
@@ -51,9 +53,9 @@ export function ImportView() {
       ) : null}
 
       <PageHeader
-        eyebrow="Reality First"
-        title="Connect your organization"
-        description={`${IDA_CORE_MESSAGE} Start by importing real emails and documents — the dashboard updates in under 2 minutes.`}
+        eyebrow={t("enterprise", "import.eyebrow")}
+        title={t("enterprise", "import.title")}
+        description={`${t("enterprise", "slogan.core")} ${t("enterprise", "import.description")}`}
       />
 
       <RealityConnectPanel />
@@ -61,23 +63,21 @@ export function ImportView() {
 
       <FadeIn delay={0.1}>
         <EnterpriseGlassCard padding="md" className="flex flex-wrap items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            After import → check Executive Brief and Timeline for live updates.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("enterprise", "import.afterImport")}</p>
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={() => navigate({ view: "executive-brief" })}
               className="enterprise-text-link inline-flex items-center gap-2 text-sm font-medium"
             >
-              Executive Brief <ArrowRight className="size-4" />
+              {t("enterprise", "import.links.brief")} <ArrowRight className="size-4" />
             </button>
             <button
               type="button"
               onClick={() => navigate({ view: "timeline" })}
               className="enterprise-text-link inline-flex items-center gap-2 text-sm font-medium"
             >
-              Timeline <ArrowRight className="size-4" />
+              {t("enterprise", "import.links.timeline")} <ArrowRight className="size-4" />
             </button>
           </div>
         </EnterpriseGlassCard>

@@ -1,0 +1,18 @@
+{
+  "noAccount": "I don't have imported data for that account yet. Connect Gmail or upload a PDF/DOCX to build organizational knowledge.",
+  "orgHeader": "Here's what IDA knows about {organization} from your imported data:",
+  "communications": "• {count} communications indexed",
+  "meetingsCommercial": "• {meetings} meetings, {invoices} commercial records",
+  "highPriority": "• {count} items flagged high priority",
+  "latest": "• Latest: \"{subject}\"",
+  "noAttention": "No attention items yet. Import emails or documents to populate your executive brief.",
+  "attentionHeader": "Items requiring attention from imported data:",
+  "attentionItem": "{index}. {title}{org}{priority}",
+  "highPriorityTag": " — high priority",
+  "indexedSummary": "IDA has indexed {communications} communications, {artifacts} business signals, and {organizations} organizations from your imports.",
+  "topItem": "Based on imported data, the top item is \"{title}\"{org}. Ask about a specific account like PLN, Mayora, or Telkom for more detail.",
+  "importFirst": "Import Gmail emails or upload PDF/DOCX files first — then I can answer from your organization's real data.",
+  "noDataYet": "No imported data yet. Connect Gmail or upload a PDF/DOCX — then Ask IDA will answer from your organization's real records.",
+  "questionRequired": "Question is required",
+  "askFailed": "Ask IDA failed"
+}

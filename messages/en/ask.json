@@ -1,0 +1,12 @@
+{
+  "title": "Ask IDA",
+  "liveData": "Live data",
+  "placeholder": "Ask about imported emails and documents…",
+  "suggestions": [
+    "What needs attention today?",
+    "What does IDA know about PLN?",
+    "How many records are indexed?"
+  ],
+  "errorNetwork": "Could not reach Ask IDA. Try again.",
+  "noResponse": "No response"
+}

@@ -1,0 +1,120 @@
+{
+  "slogan": "Organisasi Anda. Tenaga Kerja Digital Anda. Satu Kecerdasan.",
+  "intro": "Manusia dan Tenaga Kerja Digital berbagi Pengetahuan Organisasi yang sama. Ganti sudut pandang — lihat apa yang dibutuhkan setiap peran. Satu kecerdasan, banyak lensa.",
+  "playDemo": "Putar demo 60 detik",
+  "demoRunning": "Demo berjalan…",
+  "reset": "Atur ulang",
+  "demoFlowTitle": "Alur demo — Analis Proposal → Pengetahuan → Wawasan CEO",
+  "demoComplete": "Demo selesai — Analis Proposal bekerja, Pengetahuan Organisasi diperbarui, CEO melihat wawasan baru. Memori sama, sudut pandang berbeda.",
+  "perspectiveEyebrow": "Sudut pandang {role}",
+  "focusTitle": "{title} — fokus hari ini",
+  "workersTitle": "Tenaga Kerja Digital — aktif untuk {role}",
+  "memoryBannerTitle": "Catatan baru di Pengetahuan Organisasi",
+  "memoryBannerDesc": "Output Analis Proposal terindeks — terlihat di setiap sudut pandang dan Ringkasan Eksekutif CEO.",
+  "viewKnowledge": "Lihat di Pengetahuan",
+  "footerReady": "Buka Ringkasan Eksekutif sebagai CEO untuk melihat wawasan dari tenaga kerja digital.",
+  "footerIdle": "Jalankan demo — saksikan Analis Proposal bekerja, lalu lihat pembaruan ringkasan CEO.",
+  "links": {
+    "brief": "Ringkasan Eksekutif",
+    "memory": "Pengetahuan Organisasi"
+  },
+  "status": {
+    "working": "Bekerja",
+    "done": "Selesai",
+    "idle": "Siaga"
+  },
+  "workers": {
+    "proposal-analyst": {
+      "name": "Analis Proposal",
+      "specialty": "Proposal komersial & posisi kompetitif",
+      "description": "Membaca proposal, RFP, dan dokumen tender — mengangkat peluang, celah, dan risiko kompetitif ke Pengetahuan Organisasi.",
+      "workingTask": "Menganalisis PLN SCADA Fase II vs penawaran modul gardu Siemens…"
+    },
+    "contract-reviewer": {
+      "name": "Peninjau Kontrak",
+      "specialty": "Klausul, tanggung jawab & komersial",
+      "description": "Meninjau kontrak dan MSA — menandai syarat pembayaran, eksposur liabilitas, dan klausul perpanjangan untuk keuangan dan legal."
+    },
+    "relationship-analyst": {
+      "name": "Analis Relasi",
+      "specialty": "Kesehatan & keterlibatan pemangku kepentingan",
+      "description": "Memantau pola komunikasi di seluruh akun — mendeteksi penurunan relasi, perubahan champion, dan penurunan keterlibatan."
+    },
+    "delivery-monitor": {
+      "name": "Pemantau Pengiriman",
+      "specialty": "Milestone, hambatan & risiko pengiriman",
+      "description": "Melacak progres inisiatif terhadap komitmen — mengeskalasi milestone yang tertahan dan konflik sumber daya ke pemimpin program."
+    },
+    "commercial-analyst": {
+      "name": "Analis Komersial",
+      "specialty": "Invoice, pembayaran & risiko pendapatan",
+      "description": "Memantau catatan komersial — memprediksi keterlambatan pembayaran, menandai invoice tertunggak, dan memodelkan eksposur arus kas."
+    }
+  },
+  "demoSteps": {
+    "1": { "label": "Sudut pandang Penjualan", "detail": "Analis Proposal menerima proposal PLN SCADA" },
+    "2": { "label": "Tenaga Kerja Digital bekerja", "detail": "Menganalisis posisi kompetitif vs penawaran Siemens" },
+    "3": { "label": "Pengetahuan Organisasi", "detail": "Hasil terindeks — memori yang sama untuk manusia dan agen" },
+    "4": { "label": "Sudut pandang CEO", "detail": "Wawasan strategis baru muncul di Ringkasan Eksekutif" }
+  },
+  "perspectives": {
+    "ceo": {
+      "title": "Komando Eksekutif",
+      "greeting": "Selamat pagi, Ary",
+      "description": "Tampilan strategis lintas akun, inisiatif, dan wawasan Tenaga Kerja Digital — satu kecerdasan untuk setiap keputusan."
+    },
+    "cfo": {
+      "title": "Kontrol Komersial",
+      "greeting": "Selamat pagi, Keuangan",
+      "description": "Pipeline pendapatan, invoice tertunggak, dan risiko pembayaran — dengan Analis Komersial memantau setiap catatan."
+    },
+    "sales": {
+      "title": "Intelijen Pipeline",
+      "greeting": "Selamat pagi, Penjualan",
+      "description": "Proposal aktif, momentum akun, dan sinyal kompetitif — Analis Proposal bekerja bersama tim Anda."
+    },
+    "project": {
+      "title": "Komando Pengiriman",
+      "greeting": "Selamat pagi, Program",
+      "description": "Kesehatan inisiatif, pelacakan milestone, dan eskalasi hambatan — Pemantau Pengiriman menjaga program tetap on track."
+    },
+    "hr": {
+      "title": "Intelijen Talenta",
+      "greeting": "Selamat pagi, SDM",
+      "description": "Keterlibatan pemangku kepentingan, kesehatan relasi, dan konektivitas organisasi — Analis Relasi mendeteksi penurunan lebih awal."
+    }
+  },
+  "metrics": {
+    "activeAccounts": "Akun aktif",
+    "pipeline": "Pipeline",
+    "criticalItems": "Isu kritis",
+    "workforceInsights": "Wawasan tenaga kerja",
+    "pipelineValue": "Nilai pipeline",
+    "outstanding": "Tertunggak",
+    "poExecuted": "PO dieksekusi",
+    "paymentRisk": "Risiko pembayaran",
+    "activePipeline": "Pipeline aktif",
+    "proposalsInReview": "Proposal ditinjau",
+    "winRate": "Tingkat menang",
+    "workforceTasks": "Tugas tenaga kerja",
+    "onTrack": "On track",
+    "atRisk": "Berisiko",
+    "stalled": "Terhenti",
+    "blockedDeliverables": "Deliverable terblokir",
+    "activeStakeholders": "Pemangku kepentingan aktif",
+    "engagementScore": "Skor keterlibatan",
+    "atRiskRelationships": "Relasi berisiko",
+    "championChanges": "Perubahan champion"
+  },
+  "workforceOutput": {
+    "memoryTitle": "Analisis Proposal — PLN SCADA Fase II",
+    "memorySubtitle": "Tenaga Kerja Digital · Analis Proposal · Penawaran Siemens 12% lebih rendah pada modul gardu — respons value-engineering disarankan",
+    "ceoInsightTitle": "Wawasan Tenaga Kerja Digital — posisi kompetitif PLN",
+    "ceoInsightDesc": "Analis Proposal menandai Siemens 12% lebih rendah pada modul gardu. Disarankan respons value-engineering sebelum pengajuan dewan 11 Juli — melindungi pipeline Rp 4,2 M.",
+    "timelineTitle": "Analis Proposal menyelesaikan analisis kompetitif PLN SCADA",
+    "timelineSummary": "Output Tenaga Kerja Digital terindeks ke Pengetahuan Organisasi. Ringkasan Eksekutif CEO diperbarui dengan wawasan posisi kompetitif.",
+    "justNow": "Baru saja",
+    "fromWorkforce": "Dari Tenaga Kerja Digital",
+    "analystWorking": "Analis Proposal bekerja…"
+  }
+}

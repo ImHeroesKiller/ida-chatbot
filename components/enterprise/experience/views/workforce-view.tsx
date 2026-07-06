@@ -18,7 +18,8 @@ import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-ca
 import { FadeIn, Stagger, StaggerItem } from "@/components/enterprise/enterprise-motion";
 import { cn } from "@/lib/utils";
 
-import { DEMO_STEPS, WORKFORCE_SLOGAN } from "../digital-workforce-data";
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
+
 import { useEnterprise } from "../enterprise-context";
 import { EntityLink } from "../entity-link";
 import { PageHeader } from "../page-header";
@@ -50,8 +51,15 @@ export function WorkforceView() {
     workforceDemoPhase,
     perspective,
   } = useEnterprise();
+  const { t, tv } = useEnterpriseLocale();
   const { perspectiveConfig, workers, workforceInsightReady, workforceMemoryAdded } =
     useWorkforceData();
+
+  const demoSteps = ([1, 2, 3, 4] as const).map((id) => ({
+    id,
+    label: t("workforce", `demoSteps.${id}.label`),
+    detail: t("workforce", `demoSteps.${id}.detail`),
+  }));
 
   const demoStep =
     workforceDemoPhase === "idle"
@@ -73,14 +81,13 @@ export function WorkforceView() {
           <div>
             <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
               <Sparkles className="size-3.5" />
-              Digital Workforce
+              {tv("digitalWorkforce")}
             </p>
             <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
-              {WORKFORCE_SLOGAN}
+              {t("workforce", "slogan")}
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              Humans and Digital Workforce share the same Organization Memory. Switch perspective —
-              see what each role needs. One intelligence, many lenses.
+              {t("workforce", "intro")}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -95,7 +102,7 @@ export function WorkforceView() {
               ) : (
                 <Play className="size-4" />
               )}
-              {workforceDemoRunning ? "Demo running…" : "Play 60s demo"}
+              {workforceDemoRunning ? t("workforce", "demoRunning") : t("workforce", "playDemo")}
             </button>
             {workforceDemoPhase === "complete" ? (
               <button
@@ -104,7 +111,7 @@ export function WorkforceView() {
                 className="inline-flex h-10 items-center gap-2 rounded-xl border px-4 text-sm font-medium transition-colors hover:bg-muted/50"
               >
                 <RotateCcw className="size-4" />
-                Reset
+                {t("workforce", "reset")}
               </button>
             ) : null}
           </div>
@@ -121,10 +128,10 @@ export function WorkforceView() {
           >
             <EnterpriseGlassCard padding="md" className="space-y-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Demo flow — Proposal Analyst → Memory → CEO insight
+                {t("workforce", "demoFlowTitle")}
               </p>
               <div className="grid gap-3 sm:grid-cols-4">
-                {DEMO_STEPS.map((step, i) => {
+                {demoSteps.map((step, i) => {
                   const active = demoStep === step.id;
                   const done = demoStep > step.id;
                   return (
@@ -160,8 +167,7 @@ export function WorkforceView() {
               </div>
               {workforceDemoPhase === "complete" ? (
                 <p className="rounded-lg bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-800">
-                  Demo complete — Proposal Analyst worked, Organization Memory updated, CEO sees new
-                  insight. Same memory, different perspectives.
+                  {t("workforce", "demoComplete")}
                 </p>
               ) : null}
             </EnterpriseGlassCard>
@@ -170,7 +176,7 @@ export function WorkforceView() {
       </AnimatePresence>
 
       <PageHeader
-        eyebrow={`${perspectiveConfig.label} perspective`}
+        eyebrow={t("workforce", "perspectiveEyebrow", { role: perspectiveConfig.label })}
         title={perspectiveConfig.greeting}
         description={perspectiveConfig.description}
         action={<PerspectiveSelector />}
@@ -204,7 +210,7 @@ export function WorkforceView() {
           <div className="flex items-center gap-2">
             <LayoutDashboard className="size-4 text-primary" />
             <h2 className="text-sm font-semibold">
-              {perspectiveConfig.title} — focus today
+              {t("workforce", "focusTitle", { title: perspectiveConfig.title })}
             </h2>
           </div>
           <ul className="space-y-3">
@@ -240,13 +246,13 @@ export function WorkforceView() {
                 {card.id === "ceo-workforce" ? (
                   <p className="mt-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-violet-600">
                     <Bot className="size-3" />
-                    From Digital Workforce
+                    {t("workforce", "workforceOutput.fromWorkforce")}
                   </p>
                 ) : null}
                 {card.id === "sales-pln" && perspective === "sales" && workforceDemoPhase === "analyst_working" ? (
                   <p className="mt-2 flex items-center gap-1.5 text-[10px] font-semibold text-primary">
                     <Loader2 className="size-3 animate-spin" />
-                    Proposal Analyst working…
+                    {t("workforce", "workforceOutput.analystWorking")}
                   </p>
                 ) : null}
               </li>
@@ -257,7 +263,9 @@ export function WorkforceView() {
         <EnterpriseGlassCard padding="lg" className="space-y-4">
           <div className="flex items-center gap-2">
             <Bot className="size-4 text-primary" />
-            <h2 className="text-sm font-semibold">Digital Workforce — active for {perspectiveConfig.label}</h2>
+            <h2 className="text-sm font-semibold">
+              {t("workforce", "workersTitle", { role: perspectiveConfig.label })}
+            </h2>
           </div>
           <ul className="space-y-3">
             {workers
@@ -286,12 +294,12 @@ export function WorkforceView() {
                         {worker.status === "working" ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
                             <Loader2 className="size-2.5 animate-spin" />
-                            Working
+                            {t("workforce", "status.working")}
                           </span>
                         ) : null}
                         {worker.status === "completed" ? (
                           <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                            Done
+                            {t("workforce", "status.done")}
                           </span>
                         ) : null}
                       </div>
@@ -301,7 +309,7 @@ export function WorkforceView() {
                       </p>
                       {worker.id === "proposal-analyst" && worker.status === "working" ? (
                         <p className="mt-2 text-xs font-medium text-primary">
-                          Analyzing PLN SCADA Phase II vs Siemens substation bid…
+                          {t("workforce", "workers.proposal-analyst.workingTask")}
                         </p>
                       ) : null}
                     </div>
@@ -322,10 +330,10 @@ export function WorkforceView() {
               <Brain className="size-5 text-emerald-600" />
               <div>
                 <p className="text-sm font-semibold text-emerald-900">
-                  New record in Organization Memory
+                  {t("workforce", "memoryBannerTitle")}
                 </p>
                 <p className="text-xs text-emerald-800/80">
-                  Proposal Analyst output indexed — visible to every perspective and the CEO brief.
+                  {t("workforce", "memoryBannerDesc")}
                 </p>
               </div>
             </div>
@@ -334,7 +342,7 @@ export function WorkforceView() {
               onClick={() => navigate({ view: "memory", memoryTab: "decisions" })}
               className="inline-flex items-center gap-2 text-sm font-medium text-emerald-800 hover:underline"
             >
-              View in Knowledge <ArrowRight className="size-4" />
+              {t("workforce", "viewKnowledge")} <ArrowRight className="size-4" />
             </button>
           </EnterpriseGlassCard>
         </FadeIn>
@@ -346,8 +354,8 @@ export function WorkforceView() {
             <Zap className="size-4 text-primary" />
             <p className="text-sm text-muted-foreground">
               {workforceInsightReady
-                ? "Switch to Executive Brief as CEO to see the workforce-generated insight."
-                : "Run the demo — watch Proposal Analyst work, then see the CEO brief update."}
+                ? t("workforce", "footerReady")
+                : t("workforce", "footerIdle")}
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -356,14 +364,14 @@ export function WorkforceView() {
               onClick={() => navigate({ view: "executive-brief" })}
               className="enterprise-text-link inline-flex items-center gap-2 text-sm font-medium"
             >
-              Executive Brief <ArrowRight className="size-4" />
+              {t("workforce", "links.brief")} <ArrowRight className="size-4" />
             </button>
             <button
               type="button"
               onClick={() => navigate({ view: "memory", memoryTab: "decisions" })}
               className="enterprise-text-link inline-flex items-center gap-2 text-sm font-medium"
             >
-              Organization Memory <ArrowRight className="size-4" />
+              {t("workforce", "links.memory")} <ArrowRight className="size-4" />
             </button>
           </div>
         </EnterpriseGlassCard>

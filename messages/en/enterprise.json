@@ -1,0 +1,111 @@
+{
+  "slogan": {
+    "core": "IDA shows leaders their entire organization — so they can decide with confidence.",
+    "workforce": "Your Organization. Your Digital Workforce. One Intelligence."
+  },
+  "modes": {
+    "presentation": "Presentation",
+    "internal": "Internal",
+    "presentationHint": "English · Investor demo",
+    "internalHint": "Bahasa Indonesia · Tim internal"
+  },
+  "nav": {
+    "workforce": "Digital Workforce",
+    "import": "Import Data",
+    "whyIda": "Why IDA?",
+    "executiveBrief": "Executive Brief",
+    "organization": "Organization",
+    "accounts": "Accounts",
+    "stakeholders": "Stakeholders",
+    "initiatives": "Initiatives",
+    "timeline": "Timeline",
+    "knowledge": "Knowledge",
+    "roadmap": "Roadmap",
+    "search": "Search",
+    "developer": "Debug Dashboard",
+    "platform": "Platform",
+    "developerSection": "Developer"
+  },
+  "topbar": {
+    "title": "IDA Enterprise",
+    "subtitle": "Organizational intelligence for leaders",
+    "ready": "Ready",
+    "searchPlaceholder": "Search accounts, knowledge, initiatives…",
+    "searchShort": "Search",
+    "homepage": "Homepage",
+    "contact": "Contact"
+  },
+  "perspective": {
+    "label": "Perspective",
+    "ceo": "CEO",
+    "cfo": "CFO",
+    "sales": "Sales",
+    "project": "Project",
+    "hr": "HR"
+  },
+  "brief": {
+    "eyebrow": "Executive Brief",
+    "eyebrowRole": "{role} Brief",
+    "descriptionCeo": "Here is what needs your attention today.",
+    "statusLive": "Live imported data",
+    "statusPreview": "Preview",
+    "itemsAttention": "{count} items require attention",
+    "workforceInsight": "1 workforce insight",
+    "synced": "synced {time}",
+    "sections": {
+      "critical": "Critical Issues",
+      "opportunity": "Opportunities",
+      "health": "Customer Health",
+      "risk": "Risks",
+      "action": "Recommended Actions"
+    },
+    "workforceBadge": "Digital Workforce",
+    "openEntity": "Open {entity} →",
+    "emptyCategory": "No items in this category",
+    "emptyCategoryDesc": "Organizational knowledge is current — nothing flagged here today.",
+    "footerStory": "The demo story — Brief → PLN account → Knowledge → Organization map.",
+    "links": {
+      "workforce": "Digital Workforce",
+      "whyIda": "Why IDA?",
+      "pln": "PLN Indonesia Power",
+      "organization": "Organization map",
+      "knowledge": "Organizational knowledge"
+    }
+  },
+  "memory": {
+    "eyebrow": "Knowledge",
+    "title": "What your organization knows",
+    "description": "Every email, meeting, and decision — indexed and linked to accounts and initiatives.",
+    "tabs": {
+      "communications": "Communications",
+      "meetings": "Meetings",
+      "projects": "Projects",
+      "commercial": "Commercial",
+      "decisions": "Decisions",
+      "notes": "Notes"
+    },
+    "workforceBadge": "Workforce",
+    "emptyTitle": "No knowledge records in this category",
+    "emptyDesc": "Communications, meetings, and decisions captured by your organization will appear here — indexed and cross-linked automatically."
+  },
+  "empty": {
+    "inlineTitle": "No items in this category",
+    "inlineDesc": "Organizational knowledge is current — nothing flagged here today."
+  },
+  "import": {
+    "eyebrow": "Reality First",
+    "title": "Connect your organization",
+    "description": "Start by importing real emails and documents — the dashboard updates in under 2 minutes.",
+    "afterImport": "After import → check Executive Brief and Timeline for live updates.",
+    "links": {
+      "brief": "Executive Brief",
+      "timeline": "Timeline"
+    }
+  },
+  "people": {
+    "lastActivity": "Last activity"
+  },
+  "sidebar": {
+    "footer": "Your Organization. Your Digital Workforce. One Intelligence."
+  }
+}

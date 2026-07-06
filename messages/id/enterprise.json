@@ -1,0 +1,111 @@
+{
+  "slogan": {
+    "core": "IDA memberi pemimpin gambaran utuh organisasi mereka — agar keputusan dibuat dengan keyakinan.",
+    "workforce": "Organisasi Anda. Tenaga Kerja Digital Anda. Satu Kecerdasan."
+  },
+  "modes": {
+    "presentation": "Presentasi",
+    "internal": "Internal",
+    "presentationHint": "English · Demo investor",
+    "internalHint": "Bahasa Indonesia · Tim internal"
+  },
+  "nav": {
+    "workforce": "Tenaga Kerja Digital",
+    "import": "Impor Data",
+    "whyIda": "Mengapa IDA?",
+    "executiveBrief": "Ringkasan Eksekutif",
+    "organization": "Organisasi",
+    "accounts": "Akun",
+    "stakeholders": "Pemangku Kepentingan",
+    "initiatives": "Inisiatif",
+    "timeline": "Linimasa",
+    "knowledge": "Pengetahuan",
+    "roadmap": "Peta Jalan",
+    "search": "Cari",
+    "developer": "Dasbor Debug",
+    "platform": "Platform",
+    "developerSection": "Pengembang"
+  },
+  "topbar": {
+    "title": "IDA Enterprise",
+    "subtitle": "Kecerdasan organisasi untuk pemimpin",
+    "ready": "Siap",
+    "searchPlaceholder": "Cari akun, pengetahuan, inisiatif…",
+    "searchShort": "Cari",
+    "homepage": "Beranda",
+    "contact": "Hubungi"
+  },
+  "perspective": {
+    "label": "Sudut pandang",
+    "ceo": "CEO",
+    "cfo": "CFO",
+    "sales": "Penjualan",
+    "project": "Proyek",
+    "hr": "SDM"
+  },
+  "brief": {
+    "eyebrow": "Ringkasan Eksekutif",
+    "eyebrowRole": "Ringkasan {role}",
+    "descriptionCeo": "Berikut yang perlu perhatian Anda hari ini.",
+    "statusLive": "Data impor aktual",
+    "statusPreview": "Pratinjau",
+    "itemsAttention": "{count} butuh perhatian",
+    "workforceInsight": "1 wawasan tenaga kerja digital",
+    "synced": "disinkronkan {time}",
+    "sections": {
+      "critical": "Isu Kritis",
+      "opportunity": "Peluang",
+      "health": "Kesehatan Akun",
+      "risk": "Risiko",
+      "action": "Tindakan Disarankan"
+    },
+    "workforceBadge": "Tenaga Kerja Digital",
+    "openEntity": "Buka {entity} →",
+    "emptyCategory": "Tidak ada item dalam kategori ini",
+    "emptyCategoryDesc": "Pengetahuan organisasi sudah mutakhir — tidak ada yang ditandai hari ini.",
+    "footerStory": "Alur demo — Ringkasan → Akun PLN → Pengetahuan → Peta organisasi.",
+    "links": {
+      "workforce": "Tenaga Kerja Digital",
+      "whyIda": "Mengapa IDA?",
+      "pln": "PLN Indonesia Power",
+      "organization": "Peta organisasi",
+      "knowledge": "Pengetahuan organisasi"
+    }
+  },
+  "memory": {
+    "eyebrow": "Pengetahuan",
+    "title": "Yang diketahui organisasi Anda",
+    "description": "Setiap email, rapat, dan keputusan — terindeks dan terhubung ke akun serta inisiatif.",
+    "tabs": {
+      "communications": "Komunikasi",
+      "meetings": "Rapat",
+      "projects": "Proyek",
+      "commercial": "Komersial",
+      "decisions": "Keputusan",
+      "notes": "Catatan"
+    },
+    "workforceBadge": "Tenaga Kerja",
+    "emptyTitle": "Belum ada catatan pengetahuan",
+    "emptyDesc": "Komunikasi, rapat, dan keputusan yang tercatat akan muncul di sini — terindeks dan saling terhubung secara otomatis."
+  },
+  "empty": {
+    "inlineTitle": "Tidak ada item dalam kategori ini",
+    "inlineDesc": "Pengetahuan organisasi sudah mutakhir — tidak ada yang ditandai hari ini."
+  },
+  "import": {
+    "eyebrow": "Data Nyata",
+    "title": "Hubungkan organisasi Anda",
+    "description": "Mulai dengan mengimpor email dan dokumen — dasbor diperbarui dalam kurang dari 2 menit.",
+    "afterImport": "Setelah impor → buka Ringkasan Eksekutif dan Linimasa untuk pembaruan langsung.",
+    "links": {
+      "brief": "Ringkasan Eksekutif",
+      "timeline": "Linimasa"
+    }
+  },
+  "people": {
+    "lastActivity": "Aktivitas terakhir"
+  },
+  "sidebar": {
+    "footer": "Organisasi Anda. Tenaga Kerja Digital Anda. Satu Kecerdasan."
+  }
+}

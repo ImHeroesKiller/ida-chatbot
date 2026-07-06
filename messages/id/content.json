@@ -1,0 +1,58 @@
+{
+  "relativeTime": {
+    "justNow": "Baru saja",
+    "minutesAgo": "{count} menit lalu",
+    "hoursAgo": "{count} jam lalu",
+    "hourAgo": "1 jam lalu",
+    "yesterday": "Kemarin",
+    "today": "Hari ini",
+    "daysAgo": "{count} hari lalu"
+  },
+  "briefCards": {
+    "c1": {
+      "title": "Integrasi Segmen 7 terhenti — 11 hari tanpa pembaruan milestone",
+      "description": "Komite steering PT Hutama Karya belum menetapkan pemilik keputusan. UAT sign-off dan serah terima API gateway terblokir."
+    },
+    "c2": {
+      "title": "Invoice INV-203 jatuh tempo 7 Juli 2026",
+      "description": "PT Hutama Karya — Rp 127 juta untuk milestone 3 Segmen 7. Konfirmasi pembayaran diperlukan dari Direktur Keuangan."
+    },
+    "o1": {
+      "title": "PLN Indonesia Power SCADA Fase II bergerak maju",
+      "description": "Volume thread komersial naik 41% minggu ini. Pengadaan selaras pada lampiran teknis — jendela pengajuan dewan terbuka."
+    },
+    "o2": {
+      "title": "Mayora PO-8821 dieksekusi — Rp 850 juta",
+      "description": "Platform Analitik Distribusi Nasional disetujui. Disarankan percepat kickoff sebelum siklus perencanaan Kuartal III."
+    },
+    "h1": {
+      "title": "PT PLN Indonesia Power — kesehatan relasi kuat",
+      "description": "14 pemangku kepentingan aktif, 6 rapat kuartal ini, tren perpanjangan positif. NPS 8,7 dari tinjauan eksekutif terakhir."
+    },
+    "h2": {
+      "title": "Skor kecerdasan organisasi",
+      "description": "147 relasi terindeks, 31 pembaruan pengetahuan hari ini di komunikasi, keputusan, dan catatan komersial."
+    },
+    "r1": {
+      "title": "Keterlambatan pembayaran Hutama Karya dapat berdampak ke Segmen 7",
+      "description": "INV-203 tertunggak dapat menunda mobilisasi subkontraktor dan mendorong go-live Kuartal III melewati jendela komitmen."
+    },
+    "r2": {
+      "title": "Konflik kapasitas pengiriman Kuartal III — Telkom vs PLN",
+      "description": "Perpanjangan Enterprise Network Audit bertabrakan dengan minggu komite steering PLN 14 Juli. Lead pengiriman bersama ditandai."
+    },
+    "a1": {
+      "title": "Konfirmasi pengajuan dewan SCADA Fase II dengan Budi Santoso",
+      "description": "Kunci lampiran komersial dan ringkasan eksekutif sebelum tinjauan dewan PLN Indonesia Power 11 Juli."
+    },
+    "a2": {
+      "title": "Eskalasi keputusan komite steering Segmen 7",
+      "description": "Minta pemilik keputusan untuk UAT sign-off dan serah terima API gateway dalam 48 jam."
+    }
+  },
+  "metrics": {
+    "dueIn24h": "Jatuh tempo 24 jam",
+    "health94": "Kesehatan 94",
+    "exposure450m": "Eksposur Rp 450 juta"
+  }
+}

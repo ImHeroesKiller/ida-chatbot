@@ -1,0 +1,120 @@
+{
+  "slogan": "Your Organization. Your Digital Workforce. One Intelligence.",
+  "intro": "Humans and Digital Workforce share the same Organization Memory. Switch perspective — see what each role needs. One intelligence, many lenses.",
+  "playDemo": "Play 60s demo",
+  "demoRunning": "Demo running…",
+  "reset": "Reset",
+  "demoFlowTitle": "Demo flow — Proposal Analyst → Memory → CEO insight",
+  "demoComplete": "Demo complete — Proposal Analyst worked, Organization Memory updated, CEO sees new insight. Same memory, different perspectives.",
+  "perspectiveEyebrow": "{role} perspective",
+  "focusTitle": "{title} — focus today",
+  "workersTitle": "Digital Workforce — active for {role}",
+  "memoryBannerTitle": "New record in Organization Memory",
+  "memoryBannerDesc": "Proposal Analyst output indexed — visible to every perspective and the CEO brief.",
+  "viewKnowledge": "View in Knowledge",
+  "footerReady": "Switch to Executive Brief as CEO to see the workforce-generated insight.",
+  "footerIdle": "Run the demo — watch Proposal Analyst work, then see the CEO brief update.",
+  "links": {
+    "brief": "Executive Brief",
+    "memory": "Organization Memory"
+  },
+  "status": {
+    "working": "Working",
+    "done": "Done",
+    "idle": "Idle"
+  },
+  "workers": {
+    "proposal-analyst": {
+      "name": "Proposal Analyst",
+      "specialty": "Commercial proposals & competitive positioning",
+      "description": "Reads proposals, RFPs, and bid documents — surfaces opportunities, gaps, and competitive risks into Organization Memory.",
+      "workingTask": "Analyzing PLN SCADA Phase II vs Siemens substation bid…"
+    },
+    "contract-reviewer": {
+      "name": "Contract Reviewer",
+      "specialty": "Terms, liability & commercial clauses",
+      "description": "Reviews contracts and MSAs — flags payment terms, liability exposure, and renewal clauses for finance and legal."
+    },
+    "relationship-analyst": {
+      "name": "Relationship Analyst",
+      "specialty": "Stakeholder health & engagement",
+      "description": "Monitors communication patterns across accounts — detects relationship drift, champion changes, and engagement drops."
+    },
+    "delivery-monitor": {
+      "name": "Delivery Monitor",
+      "specialty": "Milestones, blockers & delivery risk",
+      "description": "Tracks initiative progress against commitments — escalates stalled milestones and resource conflicts to program leads."
+    },
+    "commercial-analyst": {
+      "name": "Commercial Analyst",
+      "specialty": "Invoices, payments & revenue risk",
+      "description": "Watches commercial records — predicts payment delays, flags outstanding invoices, and models cash-flow exposure."
+    }
+  },
+  "demoSteps": {
+    "1": { "label": "Sales perspective", "detail": "Proposal Analyst receives PLN SCADA proposal" },
+    "2": { "label": "Digital Workforce works", "detail": "Analyzes competitive positioning vs Siemens bid" },
+    "3": { "label": "Organization Memory", "detail": "Result indexed — same memory humans and agents share" },
+    "4": { "label": "CEO perspective", "detail": "New strategic insight appears on Executive Brief" }
+  },
+  "perspectives": {
+    "ceo": {
+      "title": "Executive Command",
+      "greeting": "Good morning, Ary",
+      "description": "Strategic view across accounts, initiatives, and Digital Workforce insights — one intelligence for every decision."
+    },
+    "cfo": {
+      "title": "Commercial Control",
+      "greeting": "Good morning, Finance",
+      "description": "Revenue pipeline, outstanding invoices, and payment risk — with Commercial Analyst watching every record."
+    },
+    "sales": {
+      "title": "Pipeline Intelligence",
+      "greeting": "Good morning, Sales",
+      "description": "Active proposals, account momentum, and competitive signals — Proposal Analyst works alongside your team."
+    },
+    "project": {
+      "title": "Delivery Command",
+      "greeting": "Good morning, Programs",
+      "description": "Initiative health, milestone tracking, and blocker escalation — Delivery Monitor keeps programs on track."
+    },
+    "hr": {
+      "title": "People Intelligence",
+      "greeting": "Good morning, People Ops",
+      "description": "Stakeholder engagement, relationship health, and organizational connectivity — Relationship Analyst surfaces drift early."
+    }
+  },
+  "metrics": {
+    "activeAccounts": "Active accounts",
+    "pipeline": "Pipeline",
+    "criticalItems": "Critical items",
+    "workforceInsights": "Workforce insights",
+    "pipelineValue": "Pipeline value",
+    "outstanding": "Outstanding",
+    "poExecuted": "PO executed",
+    "paymentRisk": "Payment risk",
+    "activePipeline": "Active pipeline",
+    "proposalsInReview": "Proposals in review",
+    "winRate": "Win rate",
+    "workforceTasks": "Workforce tasks",
+    "onTrack": "On track",
+    "atRisk": "At risk",
+    "stalled": "Stalled",
+    "blockedDeliverables": "Blocked deliverables",
+    "activeStakeholders": "Active stakeholders",
+    "engagementScore": "Engagement score",
+    "atRiskRelationships": "At-risk relationships",
+    "championChanges": "Champion changes"
+  },
+  "workforceOutput": {
+    "memoryTitle": "Proposal Analysis — PLN SCADA Phase II",
+    "memorySubtitle": "Digital Workforce · Proposal Analyst · Siemens bid 12% lower on substation module — value-engineering response recommended",
+    "ceoInsightTitle": "Digital Workforce insight — PLN competitive positioning",
+    "ceoInsightDesc": "Proposal Analyst flagged Siemens 12% lower on substation module. Recommend value-engineering response before 11 July board submission — protects Rp 4.2B pipeline.",
+    "timelineTitle": "Proposal Analyst completed PLN SCADA competitive analysis",
+    "timelineSummary": "Digital Workforce output indexed to Organization Memory. CEO Executive Brief updated with competitive positioning insight.",
+    "justNow": "Just now",
+    "fromWorkforce": "From Digital Workforce",
+    "analystWorking": "Proposal Analyst working…"
+  }
+}

@@ -6,49 +6,51 @@ import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-ca
 import { FadeIn, Stagger, StaggerItem } from "@/components/enterprise/enterprise-motion";
 import { cn } from "@/lib/utils";
 
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
+
 import { useEnterprise } from "../enterprise-context";
 import { EmptyState } from "../empty-state";
-import { IDA_CORE_MESSAGE } from "../narrative";
 import { useEnterpriseData } from "../use-enterprise-data";
 import { PageHeader } from "../page-header";
 import type { MemoryTab } from "../types";
 
-const TABS: Array<{ id: MemoryTab; label: string }> = [
-  { id: "communications", label: "Communications" },
-  { id: "meetings", label: "Meetings" },
-  { id: "projects", label: "Projects" },
-  { id: "commercial", label: "Commercial" },
-  { id: "decisions", label: "Decisions" },
-  { id: "notes", label: "Notes" },
+const TABS: MemoryTab[] = [
+  "communications",
+  "meetings",
+  "projects",
+  "commercial",
+  "decisions",
+  "notes",
 ];
 
 export function MemoryView() {
   const { memoryTab, navigate, navigateToEntity } = useEnterprise();
   const { memoryItems } = useEnterpriseData();
+  const { t } = useEnterpriseLocale();
   const items = memoryItems.filter((m) => m.tab === memoryTab);
 
   return (
     <div>
       <PageHeader
-        eyebrow="Knowledge"
-        title="What your organization knows"
-        description={`${IDA_CORE_MESSAGE} Every email, meeting, and decision — indexed and linked to accounts and initiatives.`}
+        eyebrow={t("enterprise", "memory.eyebrow")}
+        title={t("enterprise", "memory.title")}
+        description={t("enterprise", "memory.description")}
       />
 
       <FadeIn className="mb-6 flex flex-wrap gap-2">
         {TABS.map((tab) => (
           <button
-            key={tab.id}
+            key={tab}
             type="button"
-            onClick={() => navigate({ view: "memory", memoryTab: tab.id })}
+            onClick={() => navigate({ view: "memory", memoryTab: tab })}
             className={cn(
               "rounded-full px-4 py-2 text-xs font-medium transition-all duration-200",
-              memoryTab === tab.id
+              memoryTab === tab
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "border border-border/50 bg-background/50 text-muted-foreground hover:border-border hover:bg-muted/30 hover:text-foreground",
             )}
           >
-            {tab.label}
+            {t("enterprise", `memory.tabs.${tab}`)}
           </button>
         ))}
       </FadeIn>
@@ -56,8 +58,8 @@ export function MemoryView() {
       {items.length === 0 ? (
         <EmptyState
           icon={Brain}
-          title="No knowledge records in this category"
-          description="Communications, meetings, and decisions captured by your organization will appear here — indexed and cross-linked automatically."
+          title={t("enterprise", "memory.emptyTitle")}
+          description={t("enterprise", "memory.emptyDesc")}
         />
       ) : (
         <Stagger className="grid gap-3 sm:grid-cols-2">
@@ -87,7 +89,7 @@ export function MemoryView() {
                     {item.workforce ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-700">
                         <Bot className="size-2.5" />
-                        Workforce
+                        {t("enterprise", "memory.workforceBadge")}
                       </span>
                     ) : null}
                   </div>

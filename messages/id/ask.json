@@ -1,0 +1,12 @@
+{
+  "title": "Tanya IDA",
+  "liveData": "Data aktual",
+  "placeholder": "Tanyakan tentang email dan dokumen yang diimpor…",
+  "suggestions": [
+    "Apa yang perlu perhatian hari ini?",
+    "Apa yang IDA ketahui tentang PLN?",
+    "Berapa banyak catatan yang terindeks?"
+  ],
+  "errorNetwork": "Tidak dapat menghubungi Tanya IDA. Coba lagi.",
+  "noResponse": "Tidak ada respons"
+}

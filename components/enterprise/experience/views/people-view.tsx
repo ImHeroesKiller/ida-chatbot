@@ -5,6 +5,8 @@ import { Users } from "lucide-react";
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
 import { Stagger, StaggerItem } from "@/components/enterprise/enterprise-motion";
 
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
+
 import { useEnterprise } from "../enterprise-context";
 import { EmptyState } from "../empty-state";
 import { EntityLink } from "../entity-link";
@@ -15,6 +17,7 @@ import { PageHeader } from "../page-header";
 export function PeopleView() {
   const { entityId, navigateToEntity } = useEnterprise();
   const { people, getPerson, getCompany } = useEnterpriseData();
+  const { t, format } = useEnterpriseLocale();
   const selected = entityId ? getPerson(entityId) : null;
 
   if (entityId && !selected) {
@@ -53,7 +56,7 @@ export function PeopleView() {
                 )}
               </dd>
             </div>
-            <div><dt className="text-xs text-muted-foreground">Last activity</dt><dd className="font-medium">{selected.lastActive}</dd></div>
+            <div><dt className="text-xs text-muted-foreground">{t("enterprise", "people.lastActivity")}</dt><dd className="font-medium">{format.relative(selected.lastActive)}</dd></div>
             <div><dt className="text-xs text-muted-foreground">Engagements indexed</dt><dd className="font-medium">{selected.engagements}</dd></div>
           </dl>
         </EnterpriseGlassCard>

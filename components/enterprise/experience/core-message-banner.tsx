@@ -1,13 +1,16 @@
 "use client";
 
-import { WORKFORCE_SLOGAN } from "./digital-workforce-data";
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
+
 import { useEnterprise } from "./enterprise-context";
-import { IDA_CORE_MESSAGE } from "./narrative";
 
 export function CoreMessageBanner() {
   const { view } = useEnterprise();
+  const { t } = useEnterpriseLocale();
   const message =
-    view === "workforce" || view === "executive-brief" ? WORKFORCE_SLOGAN : IDA_CORE_MESSAGE;
+    view === "workforce" || view === "executive-brief"
+      ? t("enterprise", "slogan.workforce")
+      : t("enterprise", "slogan.core");
 
   return (
     <div className="mb-6 rounded-xl border border-primary/10 bg-primary/[0.04] px-4 py-3">

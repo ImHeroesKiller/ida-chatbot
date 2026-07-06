@@ -4,20 +4,18 @@ import { useState } from "react";
 import { Loader2, MessageCircle, Send } from "lucide-react";
 
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
 
 import { useEnterpriseData } from "./use-enterprise-data";
 
-const SUGGESTIONS = [
-  "What needs attention today?",
-  "What does IDA know about PLN?",
-  "How many records are indexed?",
-];
-
 export function AskIdaPanel({ compact = false }: { compact?: boolean }) {
   const { live } = useEnterpriseData();
+  const { locale, t, messages } = useEnterpriseLocale();
   const [q, setQ] = useState("");
   const [answer, setAnswer] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const prompts = (messages.ask.suggestions as string[]) ?? [];
 
   async function ask(question: string) {
     if (!question.trim()) return;
@@ -27,12 +25,12 @@ export function AskIdaPanel({ compact = false }: { compact?: boolean }) {
       const res = await fetch("/api/reality/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ q: question }),
+        body: JSON.stringify({ q: question, locale }),
       });
       const data = await res.json();
-      setAnswer(data.answer ?? data.error ?? "No response");
+      setAnswer(data.answer ?? data.error ?? t("ask", "noResponse"));
     } catch {
-      setAnswer("Could not reach Ask IDA. Try again.");
+      setAnswer(t("ask", "errorNetwork"));
     } finally {
       setLoading(false);
     }
@@ -42,10 +40,10 @@ export function AskIdaPanel({ compact = false }: { compact?: boolean }) {
     <EnterpriseGlassCard padding={compact ? "md" : "lg"}>
       <div className="mb-4 flex items-center gap-2">
         <MessageCircle className="size-4 text-primary" />
-        <h2 className="text-sm font-semibold">Ask IDA</h2>
+        <h2 className="text-sm font-semibold">{t("ask", "title")}</h2>
         {live ? (
           <span className="ml-auto rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
-            Live data
+            {t("ask", "liveData")}
           </span>
         ) : null}
       </div>
@@ -55,7 +53,7 @@ export function AskIdaPanel({ compact = false }: { compact?: boolean }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && ask(q)}
-          placeholder="Ask about imported emails and documents…"
+          placeholder={t("ask", "placeholder")}
           className="flex-1 rounded-xl border border-border/50 bg-background/50 px-3 py-2 text-sm outline-none focus:border-primary/50"
         />
         <button
@@ -70,7 +68,7 @@ export function AskIdaPanel({ compact = false }: { compact?: boolean }) {
 
       {!compact ? (
         <div className="mt-3 flex flex-wrap gap-2">
-          {SUGGESTIONS.map((s) => (
+          {prompts.map((s) => (
             <button
               key={s}
               type="button"

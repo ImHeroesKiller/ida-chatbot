@@ -1,0 +1,58 @@
+{
+  "relativeTime": {
+    "justNow": "Just now",
+    "minutesAgo": "{count} min ago",
+    "hoursAgo": "{count} hours ago",
+    "hourAgo": "1 hour ago",
+    "yesterday": "Yesterday",
+    "today": "Today",
+    "daysAgo": "{count} days ago"
+  },
+  "briefCards": {
+    "c1": {
+      "title": "Segment 7 integration stalled — 11 days without milestone update",
+      "description": "PT Hutama Karya steering committee has not assigned decision owner. UAT sign-off and API gateway handover blocked."
+    },
+    "c2": {
+      "title": "Invoice INV-203 due 7 July 2026",
+      "description": "PT Hutama Karya — Rp 127M for Segment 7 milestone 3. Payment confirmation required from Finance Director."
+    },
+    "o1": {
+      "title": "PLN Indonesia Power SCADA Phase II advancing",
+      "description": "Commercial thread volume up 41% this week. Procurement aligned on technical annex — board submission window open."
+    },
+    "o2": {
+      "title": "Mayora PO-8821 executed — Rp 850M",
+      "description": "National Distribution Analytics Platform approved. Fast-track kickoff recommended before Q3 planning cycle."
+    },
+    "h1": {
+      "title": "PT PLN Indonesia Power — relationship health strong",
+      "description": "14 active stakeholders, 6 meetings this quarter, renewal trajectory positive. NPS 8.7 from last executive review."
+    },
+    "h2": {
+      "title": "Organization intelligence score",
+      "description": "147 indexed relationships, 31 knowledge updates today across communications, decisions, and commercial records."
+    },
+    "r1": {
+      "title": "Hutama Karya payment delay may cascade to Segment 7",
+      "description": "Outstanding INV-203 could delay subcontractor mobilization and push Q3 go-live past committed window."
+    },
+    "r2": {
+      "title": "Q3 delivery capacity conflict — Telkom vs PLN",
+      "description": "Enterprise Network Audit renewal overlaps PLN steering committee week of 14 July. Shared delivery lead flagged."
+    },
+    "a1": {
+      "title": "Confirm SCADA Phase II board submission with Budi Santoso",
+      "description": "Lock commercial annex and executive summary before PLN Indonesia Power board review on 11 July."
+    },
+    "a2": {
+      "title": "Escalate Segment 7 steering committee decision",
+      "description": "Request named owner for UAT sign-off and API gateway handover within 48 hours."
+    }
+  },
+  "metrics": {
+    "dueIn24h": "Due in 24h",
+    "health94": "Health 94",
+    "exposure450m": "Rp 450M exposure"
+  }
+}

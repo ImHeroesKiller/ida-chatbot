@@ -1,12 +1,13 @@
 "use client";
 
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
+import { localizeBriefCards } from "@/lib/enterprise/i18n/content";
+
 import {
-  DIGITAL_WORKERS,
+  getLocalizedWorkers,
   getPerspectiveConfig,
   getWorkerStatus,
-  WORKFORCE_CEO_INSIGHT,
-  WORKFORCE_MEMORY_ENTRY,
-  WORKFORCE_TIMELINE_ENTRY,
+  getWorkforceOutputs,
 } from "./digital-workforce-data";
 import { useEnterprise } from "./enterprise-context";
 import { BRIEF_CARDS, MEMORY_ITEMS, TIMELINE } from "./mock-data";
@@ -18,29 +19,38 @@ export function useWorkforceData() {
     workforceMemoryAdded,
     activeWorkerId,
   } = useEnterprise();
+  const { messages } = useEnterpriseLocale();
 
   const workforceInsightReady =
     workforceMemoryAdded &&
     (workforceDemoPhase === "ceo_ready" || workforceDemoPhase === "complete");
 
-  const perspectiveConfig = getPerspectiveConfig(perspective, workforceInsightReady);
+  const perspectiveConfig = getPerspectiveConfig(
+    perspective,
+    messages,
+    workforceInsightReady,
+  );
 
-  const workers = DIGITAL_WORKERS.map((worker) => ({
+  const outputs = getWorkforceOutputs(messages);
+  const allWorkers = getLocalizedWorkers(messages);
+
+  const workers = allWorkers.map((worker) => ({
     ...worker,
     status: getWorkerStatus(worker.id, workforceDemoPhase, activeWorkerId),
     visible: perspectiveConfig.activeWorkers.includes(worker.id),
   }));
 
+  const localizedBase = localizeBriefCards(BRIEF_CARDS, messages);
   const briefCards = workforceInsightReady
-    ? [WORKFORCE_CEO_INSIGHT, ...BRIEF_CARDS]
-    : BRIEF_CARDS;
+    ? [outputs.ceoInsight, ...localizedBase]
+    : localizedBase;
 
   const memoryItems = workforceMemoryAdded
-    ? [WORKFORCE_MEMORY_ENTRY, ...MEMORY_ITEMS]
+    ? [outputs.memoryEntry, ...MEMORY_ITEMS]
     : MEMORY_ITEMS;
 
   const timeline = workforceMemoryAdded
-    ? [WORKFORCE_TIMELINE_ENTRY, ...TIMELINE]
+    ? [outputs.timelineEntry, ...TIMELINE]
     : TIMELINE;
 
   return {
@@ -52,5 +62,6 @@ export function useWorkforceData() {
     workforceInsightReady,
     workforceMemoryAdded,
     workforceDemoPhase,
+    messages,
   };
 }

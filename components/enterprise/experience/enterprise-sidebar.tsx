@@ -18,22 +18,24 @@ import {
 
 import { cn } from "@/lib/utils";
 
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
+
 import { useEnterprise } from "./enterprise-context";
 import type { EnterpriseView } from "./types";
 
-const NAV: Array<{ id: EnterpriseView; label: string; icon: typeof LayoutDashboard }> = [
-  { id: "workforce", label: "Digital Workforce", icon: Bot },
-  { id: "import", label: "Import Data", icon: Import },
-  { id: "why-ida", label: "Why IDA?", icon: Lightbulb },
-  { id: "executive-brief", label: "Executive Brief", icon: LayoutDashboard },
-  { id: "organization", label: "Organization", icon: Network },
-  { id: "companies", label: "Accounts", icon: Building2 },
-  { id: "people", label: "Stakeholders", icon: Users },
-  { id: "projects", label: "Initiatives", icon: FolderKanban },
-  { id: "timeline", label: "Timeline", icon: Calendar },
-  { id: "memory", label: "Knowledge", icon: Brain },
-  { id: "roadmap", label: "Roadmap", icon: Map },
-  { id: "search", label: "Search", icon: Search },
+const NAV: Array<{ id: EnterpriseView; labelKey: string; icon: typeof LayoutDashboard }> = [
+  { id: "workforce", labelKey: "nav.workforce", icon: Bot },
+  { id: "import", labelKey: "nav.import", icon: Import },
+  { id: "why-ida", labelKey: "nav.whyIda", icon: Lightbulb },
+  { id: "executive-brief", labelKey: "nav.executiveBrief", icon: LayoutDashboard },
+  { id: "organization", labelKey: "nav.organization", icon: Network },
+  { id: "companies", labelKey: "nav.accounts", icon: Building2 },
+  { id: "people", labelKey: "nav.stakeholders", icon: Users },
+  { id: "projects", labelKey: "nav.initiatives", icon: FolderKanban },
+  { id: "timeline", labelKey: "nav.timeline", icon: Calendar },
+  { id: "memory", labelKey: "nav.knowledge", icon: Brain },
+  { id: "roadmap", labelKey: "nav.roadmap", icon: Map },
+  { id: "search", labelKey: "nav.search", icon: Search },
 ];
 
 type EnterpriseSidebarProps = {
@@ -46,6 +48,7 @@ export function EnterpriseSidebar({
   onNavigate,
 }: EnterpriseSidebarProps) {
   const { view, navigate, openSearch } = useEnterprise();
+  const { t } = useEnterpriseLocale();
 
   function handleNav(viewId: EnterpriseView) {
     if (viewId === "search") {
@@ -65,7 +68,7 @@ export function EnterpriseSidebar({
     >
       <nav className="enterprise-demo-scroll flex flex-1 flex-col gap-1 p-4">
         <p className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-          Platform
+          {t("enterprise", "nav.platform")}
         </p>
         {NAV.map((item) => {
           const Icon = item.icon;
@@ -83,12 +86,12 @@ export function EnterpriseSidebar({
               )}
             >
               <Icon className="size-4 shrink-0" strokeWidth={1.75} />
-              {item.label}
+              {t("enterprise", item.labelKey)}
             </button>
           );
         })}
         <p className="mb-3 mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-          Developer
+          {t("enterprise", "nav.developerSection")}
         </p>
         <button
           type="button"
@@ -101,12 +104,12 @@ export function EnterpriseSidebar({
           )}
         >
           <Settings2 className="size-4 shrink-0" strokeWidth={1.75} />
-          Debug Dashboard
+          {t("enterprise", "nav.developer")}
         </button>
       </nav>
       <div className="border-t border-border/40 p-4">
         <p className="text-[10px] leading-relaxed text-muted-foreground">
-          Your Organization. Your Digital Workforce. One Intelligence.
+          {t("enterprise", "sidebar.footer")}
         </p>
       </div>
     </aside>
