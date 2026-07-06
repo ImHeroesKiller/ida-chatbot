@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDA • Choose Your Role</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .persona-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .persona-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .persona-card.active {
+            border-color: #0A66C2;
+            box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-white">
+    <div class="max-w-5xl mx-auto px-8 py-16">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <div class="flex items-center justify-center gap-x-3 mb-4">
+                <div class="w-10 h-10 bg-[#0A66C2] rounded-2xl flex items-center justify-center">
+                    <span class="text-white font-bold text-3xl tracking-tighter">I</span>
+                </div>
+                <span class="font-semibold text-4xl tracking-tighter">IDA</span>
+            </div>
+            <h1 class="text-5xl font-semibold tracking-tighter mb-3">Welcome to IDA</h1>
+            <p class="text-xl text-slate-400">Choose your role to see how IDA works for you</p>
+        </div>
+
+        <!-- Persona Selector -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-12">
+            
+            <!-- CEO -->
+            <div onclick="selectPersona('ceo')" class="persona-card cursor-pointer bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-3xl p-6">
+                <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-user-tie text-2xl"></i>
+                </div>
+                <div class="font-semibold text-xl mb-1">CEO</div>
+                <div class="text-sm text-slate-400">Strategic overview, risk, cash, key decisions</div>
+            </div>
+
+            <!-- COO -->
+            <div onclick="selectPersona('coo')" class="persona-card cursor-pointer bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-3xl p-6">
+                <div class="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-2xl flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-cogs text-2xl"></i>
+                </div>
+                <div class="font-semibold text-xl mb-1">COO</div>
+                <div class="text-sm text-slate-400">Operations, SLA, team performance, risks</div>
+            </div>
+
+            <!-- CFO -->
+            <div onclick="selectPersona('cfo')" class="persona-card cursor-pointer bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-3xl p-6">
+                <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-chart-line text-2xl"></i>
+                </div>
+                <div class="font-semibold text-xl mb-1">CFO</div>
+                <div class="text-sm text-slate-400">Cash, revenue, invoices, financial risk</div>
+            </div>
+
+            <!-- Sales Director -->
+            <div onclick="selectPersona('sales')" class="persona-card cursor-pointer bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-3xl p-6">
+                <div class="w-12 h-12 bg-purple-500/10 text-purple-400 rounded-2xl flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-handshake text-2xl"></i>
+                </div>
+                <div class="font-semibold text-xl mb-1">Sales Director</div>
+                <div class="text-sm text-slate-400">Pipeline, proposals, customer risk, follow-up</div>
+            </div>
+
+            <!-- Project Manager -->
+            <div onclick="selectPersona('pm')" class="persona-card cursor-pointer bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-3xl p-6">
+                <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-2xl flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-tasks text-2xl"></i>
+                </div>
+                <div class="font-semibold text-xl mb-1">Project Manager</div>
+                <div class="text-sm text-slate-400">Delayed tasks, SLA, timeline, team risks</div>
+            </div>
+        </div>
+
+        <div class="text-center text-xs text-slate-500">
+            One engine. Multiple personas. One source of truth.
+        </div>
+    </div>
+
+    <script>
+        function selectPersona(role) {
+            const messages = {
+                ceo: "CEO Dashboard: Issues Need Attention • Cash Position • Revenue Trend • Key Customer Signals • Strategic Risks",
+                coo: "COO Dashboard: Operational Risks • SLA Performance • Team Workload • Delayed Processes • Resource Allocation",
+                cfo: "CFO Dashboard: Cash Flow • Outstanding Invoices • Revenue Recognition • Financial Risks • Payment Delays",
+                sales: "Sales Dashboard: Active Pipeline • Open Proposals • Customer Risk • Upcoming Meetings • Follow-up Tasks",
+                pm: "Project Dashboard: Delayed Tasks • SLA Breaches • Timeline Risks • Team Capacity • Blocked Items"
+            };
+
+            alert(`[Demo] Switching to ${role.toUpperCase()} view:\n\n${messages[role]}\n\n(In real product, the entire dashboard would reconfigure instantly based on the selected persona.)`);
+            
+            setTimeout(() => {
+                window.location.href = 'ExecutiveDashboard-Live.html';
+            }, 800);
+        }
+    </script>
+</body>
+</html>
