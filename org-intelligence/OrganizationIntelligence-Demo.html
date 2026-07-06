@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDA • Organization Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .insight-card {
+            transition: all 0.2s ease;
+        }
+        .context-panel {
+            background: #0f172a;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-white">
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            
+            <!-- Top Bar -->
+            <div class="h-14 border-b border-slate-800 bg-slate-900 px-6 flex items-center justify-between">
+                <div class="flex items-center gap-x-4">
+                    <div class="flex items-center gap-x-3">
+                        <div class="w-8 h-8 bg-[#0A66C2] rounded-2xl flex items-center justify-center">
+                            <span class="font-bold">I</span>
+                        </div>
+                        <span class="font-semibold text-xl tracking-tighter">IDA</span>
+                    </div>
+                    <div class="text-xs px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-3xl">Organization Intelligence</div>
+                </div>
+                
+                <!-- Global Search -->
+                <div class="w-96">
+                    <input id="globalSearch" type="text" placeholder="Search organization... (try PLN or Ary)" 
+                           class="w-full bg-slate-800 border border-slate-700 rounded-3xl px-5 py-2 text-sm focus:outline-none focus:border-slate-500"
+                           onkeyup="if (event.key === 'Enter') handleGlobalSearch()">
+                </div>
+                
+                <div class="flex items-center gap-x-3 text-sm">
+                    <div class="flex items-center gap-x-2 px-4 py-1.5 bg-slate-800 rounded-3xl text-xs">
+                        <i class="fa-solid fa-circle text-emerald-400"></i>
+                        <span>Connected • Live</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 flex overflow-hidden">
+                
+                <!-- Main Area -->
+                <div class="flex-1 p-8 overflow-auto">
+                    
+                    <div class="max-w-5xl">
+                        <!-- Header -->
+                        <div class="flex items-end justify-between mb-8">
+                            <div>
+                                <h1 class="font-semibold text-4xl tracking-tighter">Organization Overview</h1>
+                                <p class="text-slate-400">Last 7 days • All channels • 142 entities</p>
+                            </div>
+                            <div class="text-xs px-4 py-2 bg-slate-900 rounded-3xl border border-slate-700">Updated 2 minutes ago</div>
+                        </div>
+
+                        <!-- Insight Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+                            
+                            <div class="insight-card bg-slate-900 border border-slate-800 rounded-3xl p-5">
+                                <div class="flex items-center gap-x-2 text-emerald-400 mb-3">
+                                    <i class="fa-solid fa-arrow-trend-up"></i>
+                                    <span class="text-xs font-medium">ORGANIZATION SIGNAL</span>
+                                </div>
+                                <div class="font-semibold">Communication with PLN increased 35%</div>
+                                <div class="text-xs text-slate-400 mt-2">Strong engagement this week</div>
+                            </div>
+                            
+                            <div class="insight-card bg-slate-900 border border-amber-900/50 rounded-3xl p-5">
+                                <div class="flex items-center gap-x-2 text-amber-400 mb-3">
+                                    <i class="fa-solid fa-exclamation-triangle"></i>
+                                    <span class="text-xs font-medium">CRITICAL COMMITMENT</span>
+                                </div>
+                                <div class="font-semibold">Invoice #INV-203 due tomorrow</div>
+                                <div class="text-xs text-amber-400 mt-2">Rp 1.2M • PLN</div>
+                            </div>
+                            
+                            <div class="insight-card bg-slate-900 border border-red-900/50 rounded-3xl p-5">
+                                <div class="flex items-center gap-x-2 text-red-400 mb-3">
+                                    <i class="fa-solid fa-clock"></i>
+                                    <span class="text-xs font-medium">EMERGING RISK</span>
+                                </div>
+                                <div class="font-semibold">Project Alpha has no update for 9 days</div>
+                                <div class="text-xs text-red-400 mt-2">Owner: Sales team</div>
+                            </div>
+                            
+                            <div class="insight-card bg-slate-900 border border-slate-800 rounded-3xl p-5">
+                                <div class="flex items-center gap-x-2 text-emerald-400 mb-3">
+                                    <i class="fa-solid fa-heart"></i>
+                                    <span class="text-xs font-medium">RELATIONSHIP</span>
+                                </div>
+                                <div class="font-semibold">Mayora engagement decreasing</div>
+                                <div class="text-xs text-slate-400 mt-2">Last response: 6 days ago</div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Context -->
+                        <div>
+                            <div class="section-header mb-3">QUICK ACCESS</div>
+                            <div class="flex flex-wrap gap-3">
+                                <div onclick="switchContext('PLN')" class="cursor-pointer px-5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-3xl text-sm flex items-center gap-x-2">
+                                    <i class="fa-solid fa-building text-blue-400"></i>
+                                    <span>PLN</span>
+                                </div>
+                                <div onclick="switchContext('Mayora')" class="cursor-pointer px-5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-3xl text-sm flex items-center gap-x-2">
+                                    <i class="fa-solid fa-building text-purple-400"></i>
+                                    <span>Mayora</span>
+                                </div>
+                                <div onclick="switchContext('Ary')" class="cursor-pointer px-5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-3xl text-sm flex items-center gap-x-2">
+                                    <i class="fa-solid fa-user text-emerald-400"></i>
+                                    <span>Ary Wibowo</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Context Panel (Right) -->
+                <div class="w-80 border-l border-slate-800 bg-slate-900 p-6 overflow-auto" id="context-panel">
+                    <div class="mb-6">
+                        <div class="text-xs text-slate-400 mb-1">CURRENT CONTEXT</div>
+                        <div id="context-company" class="font-semibold text-2xl">Organization Overview</div>
+                    </div>
+
+                    <div class="space-y-6 text-sm">
+                        <div>
+                            <div class="text-xs text-slate-400 mb-2">HEALTH</div>
+                            <div id="context-health" class="font-medium">Healthy • 87/100</div>
+                        </div>
+                        
+                        <div>
+                            <div class="text-xs text-slate-400 mb-2">OPEN COMMITMENTS</div>
+                            <div id="context-commitments" class="font-medium">3 active</div>
+                        </div>
+                        
+                        <div>
+                            <div class="text-xs text-slate-400 mb-2">ACTIVE PROJECTS</div>
+                            <div id="context-projects" class="font-medium">2</div>
+                        </div>
+                        
+                        <div>
+                            <div class="text-xs text-slate-400 mb-2">KEY PEOPLE</div>
+                            <div id="context-people" class="font-medium">8 connected</div>
+                        </div>
+                        
+                        <div>
+                            <div class="text-xs text-slate-400 mb-2">RECENT CHANGES</div>
+                            <div id="context-changes" class="font-medium">5 this week</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-700">
+                        <div class="text-xs text-slate-400 mb-3">RELATED</div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center gap-x-2 text-slate-300"><i class="fa-solid fa-file-invoice w-4"></i> <span>Invoices (3)</span></div>
+                            <div class="flex items-center gap-x-2 text-slate-300"><i class="fa-solid fa-calendar w-4"></i> <span>Meetings (2)</span></div>
+                            <div class="flex items-center gap-x-2 text-slate-300"><i class="fa-solid fa-envelope w-4"></i> <span>Communications (47)</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Ask IDA -->
+                    <div class="mt-8">
+                        <div class="text-xs text-slate-400 mb-2">ASK IDA (Context-aware)</div>
+                        <input id="contextChatInput" type="text" placeholder="What should I know?" 
+                               class="w-full bg-slate-800 border border-slate-700 rounded-3xl px-4 py-2 text-sm mb-2"
+                               onkeyup="if (event.key === 'Enter') askContextAware()">
+                        <button onclick="askContextAware()" 
+                                class="w-full py-2 bg-white text-slate-900 rounded-3xl text-sm font-medium">Ask</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentContext = 'Organization';
+
+        function updateContextPanel(context) {
+            const panel = document.getElementById('context-panel');
+            const companyEl = document.getElementById('context-company');
+            
+            if (context === 'PLN') {
+                companyEl.innerHTML = `PLN <span class="text-xs text-emerald-400">(Company)</span>`;
+                document.getElementById('context-health').innerHTML = `Healthy • 87/100`;
+                document.getElementById('context-commitments').innerHTML = `3 active`;
+                document.getElementById('context-projects').innerHTML = `2`;
+                document.getElementById('context-people').innerHTML = `8 connected`;
+                document.getElementById('context-changes').innerHTML = `5 this week`;
+            } else if (context === 'Ary') {
+                companyEl.innerHTML = `Ary Wibowo <span class="text-xs text-emerald-400">(Person)</span>`;
+                document.getElementById('context-health').innerHTML = `Active • High engagement`;
+                document.getElementById('context-commitments').innerHTML = `5 open`;
+                document.getElementById('context-projects').innerHTML = `4`;
+                document.getElementById('context-people').innerHTML = `23 interactions`;
+                document.getElementById('context-changes').innerHTML = `12 this week`;
+            } else {
+                companyEl.innerHTML = `Organization Overview`;
+                document.getElementById('context-health').innerHTML = `Healthy • 82/100`;
+                document.getElementById('context-commitments').innerHTML = `12 active`;
+                document.getElementById('context-projects').innerHTML = `7`;
+                document.getElementById('context-people').innerHTML = `142 connected`;
+                document.getElementById('context-changes').innerHTML = `31 this week`;
+            }
+            
+            currentContext = context;
+        }
+
+        function switchContext(context) {
+            updateContextPanel(context);
+            
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-6 right-6 bg-slate-800 border border-slate-700 px-5 py-3 rounded-3xl text-sm flex items-center gap-x-3`;
+            toast.innerHTML = `Context switched to <strong>${context}</strong>. All views updated.`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.transition = 'all 0.3s ease';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 1800);
+        }
+
+        function askContextAware() {
+            const input = document.getElementById('contextChatInput');
+            const question = input.value.trim();
+            if (!question) return;
+
+            let answer = '';
+            
+            if (currentContext === 'PLN') {
+                answer = `PLN saat ini memiliki 3 invoice outstanding, 2 meeting minggu ini, dan communication naik 35%. Risiko terbesar adalah Invoice #INV-203 yang jatuh tempo besok.`;
+            } else if (currentContext === 'Ary') {
+                answer = `Ary sedang aktif di 5 proyek. Ada 3 follow-up yang belum selesai minggu ini. Communication dengan tim tinggi.`;
+            } else {
+                answer = `Organisasi secara keseluruhan sehat. Ada 12 komitmen terbuka dan 7 proyek aktif. Perlu perhatian pada 2 risiko emerging.`;
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-20 right-6 max-w-xs bg-slate-800 border border-slate-700 p-4 rounded-3xl text-sm`;
+            toast.innerHTML = `<strong>IDA:</strong> ${answer}`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.transition = 'all 0.4s ease';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 4500);
+            
+            input.value = '';
+        }
+
+        function handleGlobalSearch() {
+            const query = document.getElementById('globalSearch').value.trim().toLowerCase();
+            
+            if (query.includes('pln')) {
+                switchContext('PLN');
+            } else if (query.includes('ary')) {
+                switchContext('Ary');
+            } else {
+                alert(`Search results for "${query}":\n\n• Companies\n• People\n• Projects\n• Meetings\n• Invoices\n• Signals`);
+            }
+            
+            document.getElementById('globalSearch').value = '';
+        }
+
+        function init() {
+            updateContextPanel('Organization');
+            
+            setTimeout(() => {
+                const toast = document.createElement('div');
+                toast.className = `fixed bottom-6 right-6 bg-slate-800 border border-slate-700 px-5 py-3 rounded-3xl text-sm`;
+                toast.innerHTML = `Welcome. You are viewing the live Organization Intelligence layer.`;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2800);
+            }, 1200);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
