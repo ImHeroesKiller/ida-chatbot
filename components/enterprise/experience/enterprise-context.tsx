@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { GMAIL_ERRORS, mapGmailQueryError } from "@/lib/api/errors";
 import type { RealityViewModel } from "@/lib/enterprise/reality-adapter";
 
 import type {
@@ -36,6 +37,13 @@ type EnterpriseContextValue = {
   setSearchQuery: (query: string) => void;
   navigateToEntity: (type: EntityType, id: string) => void;
   refreshReality: () => Promise<void>;
+  gmailNotice: {
+    message: string;
+    suggestion: string;
+    requestId?: string;
+    tone: "error" | "success";
+  } | null;
+  clearGmailNotice: () => void;
 };
 
 const EnterpriseContext = createContext<EnterpriseContextValue | null>(null);
@@ -49,6 +57,12 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
   const [faqOpen, setFaqOpen] = useState(false);
   const [reality, setReality] = useState<RealityViewModel | null>(null);
   const [realityLoading, setRealityLoading] = useState(true);
+  const [gmailNotice, setGmailNotice] = useState<{
+    message: string;
+    suggestion: string;
+    requestId?: string;
+    tone: "error" | "success";
+  } | null>(null);
 
   const refreshReality = useCallback(async () => {
     setRealityLoading(true);
@@ -67,15 +81,55 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
     refreshReality();
   }, [refreshReality]);
 
+  const clearGmailNotice = useCallback(() => setGmailNotice(null), []);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const gmailError = params.get("gmail_error");
+    const requestId = params.get("requestId") ?? undefined;
+
+    if (gmailError) {
+      const code = mapGmailQueryError(gmailError);
+      const spec = GMAIL_ERRORS[code];
+      setGmailNotice({
+        tone: "error",
+        message: spec.message,
+        suggestion: spec.suggestion,
+        requestId,
+      });
+      window.history.replaceState({}, "", "/demo");
+      return;
+    }
+
     if (params.get("gmail_connected") === "1") {
+      setGmailNotice({
+        tone: "success",
+        message: "Gmail connected successfully. Syncing emails…",
+        suggestion: "Your dashboard will update in a few seconds.",
+        requestId,
+      });
       fetch("/api/reality/gmail-sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: "{}",
       })
         .then(() => refreshReality())
+        .then(() => {
+          setGmailNotice({
+            tone: "success",
+            message: "Gmail emails imported.",
+            suggestion: "Open Executive Brief or Timeline to see live updates.",
+            requestId,
+          });
+        })
+        .catch(() => {
+          setGmailNotice({
+            tone: "error",
+            message: "Gmail connected but sync failed.",
+            suggestion: "Try Load demo emails or check Debug Dashboard.",
+            requestId,
+          });
+        })
         .finally(() => {
           window.history.replaceState({}, "", "/demo");
         });
@@ -134,6 +188,8 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
       setSearchQuery,
       navigateToEntity,
       refreshReality,
+      gmailNotice,
+      clearGmailNotice,
     }),
     [
       view,
@@ -151,6 +207,8 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
       closeFaq,
       navigateToEntity,
       refreshReality,
+      gmailNotice,
+      clearGmailNotice,
     ],
   );
 

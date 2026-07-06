@@ -1,21 +1,30 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import { CheckCircle2, FileUp, Loader2, Mail, Upload } from "lucide-react";
 
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
+import { formatApiError, parseApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
 import { useEnterprise } from "./enterprise-context";
 
 type SyncStatus = "idle" | "syncing" | "success" | "error";
 
+type StatusMessage = {
+  text: string;
+  suggestion?: string;
+  requestId?: string;
+  tone: "success" | "error";
+};
+
 export function RealityConnectPanel() {
   const { refreshReality, reality } = useEnterprise();
   const fileRef = useRef<HTMLInputElement>(null);
   const [gmailStatus, setGmailStatus] = useState<SyncStatus>("idle");
   const [uploadStatus, setUploadStatus] = useState<SyncStatus>("idle");
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<StatusMessage | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
   const syncGmail = useCallback(
@@ -29,17 +38,32 @@ export function RealityConnectPanel() {
           body: JSON.stringify({ useDemo }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Sync failed");
+        if (!res.ok || !data.success) {
+          const err = parseApiError(data, "Gmail sync failed");
+          throw Object.assign(new Error(formatApiError(err)), { parsed: err });
+        }
         setGmailStatus("success");
-        setMessage(
-          data.source === "gmail"
-            ? `Imported ${data.emailCount} emails from Gmail.`
-            : data.message ?? `Imported ${data.pipeline?.processed ?? 0} demo emails.`,
-        );
+        setMessage({
+          tone: "success",
+          text:
+            data.source === "gmail"
+              ? `Imported ${data.emailCount} emails from Gmail.`
+              : data.message ?? `Imported ${data.pipeline?.processed ?? 0} demo emails.`,
+          requestId: data.requestId,
+        });
         await refreshReality();
       } catch (e) {
         setGmailStatus("error");
-        setMessage(e instanceof Error ? e.message : "Gmail sync failed");
+        const parsed =
+          e && typeof e === "object" && "parsed" in e
+            ? (e as { parsed: ReturnType<typeof parseApiError> }).parsed
+            : parseApiError(null, e instanceof Error ? e.message : "Gmail sync failed");
+        setMessage({
+          tone: "error",
+          text: parsed.message,
+          suggestion: parsed.suggestion,
+          requestId: parsed.requestId,
+        });
       }
     },
     [refreshReality],
@@ -58,13 +82,29 @@ export function RealityConnectPanel() {
       try {
         const res = await fetch("/api/reality/upload", { method: "POST", body: form });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Upload failed");
+        if (!res.ok || !data.success) {
+          const err = parseApiError(data, "Upload failed");
+          throw Object.assign(new Error(formatApiError(err)), { parsed: err });
+        }
         setUploadStatus("success");
-        setMessage(`Extracted and indexed ${data.uploaded} document${data.uploaded > 1 ? "s" : ""}.`);
+        setMessage({
+          tone: "success",
+          text: `Extracted and indexed ${data.uploaded} document${data.uploaded > 1 ? "s" : ""}.`,
+          requestId: data.requestId,
+        });
         await refreshReality();
       } catch (e) {
         setUploadStatus("error");
-        setMessage(e instanceof Error ? e.message : "Upload failed");
+        const parsed =
+          e && typeof e === "object" && "parsed" in e
+            ? (e as { parsed: ReturnType<typeof parseApiError> }).parsed
+            : parseApiError(null, e instanceof Error ? e.message : "Upload failed");
+        setMessage({
+          tone: "error",
+          text: parsed.message,
+          suggestion: parsed.suggestion,
+          requestId: parsed.requestId,
+        });
       }
     },
     [refreshReality],
@@ -114,6 +154,12 @@ export function RealityConnectPanel() {
               Load demo emails
             </button>
           </div>
+          <p className="mt-3 text-[11px] text-muted-foreground">
+            OAuth setup:{" "}
+            <Link href="/docs/setup/gmail" className="text-primary hover:underline">
+              Gmail wizard
+            </Link>
+          </p>
         </div>
 
         <div
@@ -160,20 +206,27 @@ export function RealityConnectPanel() {
             )}
             Upload files
           </button>
+          <p className="mt-3 text-[11px] text-muted-foreground">Max 4 MB per file</p>
         </div>
       </div>
 
       {message ? (
-        <p
+        <div
           className={cn(
-            "rounded-lg px-3 py-2 text-xs",
-            gmailStatus === "error" || uploadStatus === "error"
-              ? "bg-red-500/10 text-red-700"
-              : "bg-emerald-500/10 text-emerald-700",
+            "space-y-1 rounded-lg px-3 py-2 text-xs",
+            message.tone === "error"
+              ? "bg-red-500/10 text-red-800"
+              : "bg-emerald-500/10 text-emerald-800",
           )}
         >
-          {message}
-        </p>
+          <p className="font-medium">{message.text}</p>
+          {message.suggestion ? (
+            <p className="opacity-90">{message.suggestion}</p>
+          ) : null}
+          {message.requestId && message.requestId !== "unknown" ? (
+            <p className="font-mono opacity-75">Ref: {message.requestId}</p>
+          ) : null}
+        </div>
       ) : null}
     </EnterpriseGlassCard>
   );

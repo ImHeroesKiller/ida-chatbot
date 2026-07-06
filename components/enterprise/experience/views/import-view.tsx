@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, X } from "lucide-react";
 
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
 import { FadeIn } from "@/components/enterprise/enterprise-motion";
@@ -12,10 +13,43 @@ import { RealityConnectPanel } from "../reality-connect-panel";
 import { PageHeader } from "../page-header";
 
 export function ImportView() {
-  const { navigate } = useEnterprise();
+  const { navigate, gmailNotice, clearGmailNotice } = useEnterprise();
 
   return (
     <div className="space-y-8">
+      {gmailNotice ? (
+        <div
+          className={
+            gmailNotice.tone === "error"
+              ? "rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm"
+              : "rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm"
+          }
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <p className="font-medium">{gmailNotice.message}</p>
+              <p className="text-xs opacity-90">{gmailNotice.suggestion}</p>
+              {gmailNotice.requestId ? (
+                <p className="font-mono text-[11px] opacity-75">Ref: {gmailNotice.requestId}</p>
+              ) : null}
+              {gmailNotice.tone === "error" ? (
+                <Link href="/docs/setup/gmail" className="text-xs font-medium text-primary hover:underline">
+                  Open Gmail setup wizard →
+                </Link>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              onClick={clearGmailNotice}
+              className="shrink-0 rounded-lg p-1 opacity-60 transition-opacity hover:opacity-100"
+              aria-label="Dismiss"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <PageHeader
         eyebrow="Reality First"
         title="Connect your organization"

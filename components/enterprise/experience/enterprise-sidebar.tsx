@@ -11,6 +11,7 @@ import {
   Network,
   Map,
   Search,
+  Settings2,
   Users,
 } from "lucide-react";
 
@@ -84,6 +85,22 @@ export function EnterpriseSidebar({
             </button>
           );
         })}
+        <p className="mb-3 mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          Developer
+        </p>
+        <button
+          type="button"
+          onClick={() => handleNav("developer")}
+          className={cn(
+            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium transition-all duration-200",
+            view === "developer"
+              ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/15"
+              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:translate-x-0.5",
+          )}
+        >
+          <Settings2 className="size-4 shrink-0" strokeWidth={1.75} />
+          Debug Dashboard
+        </button>
       </nav>
       <div className="border-t border-border/40 p-4">
         <p className="text-[10px] leading-relaxed text-muted-foreground">

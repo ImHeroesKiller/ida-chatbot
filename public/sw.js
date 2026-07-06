@@ -7,9 +7,11 @@ const PRECACHE_URLS = [
   "/offline",
   "/manifest.webmanifest",
   "/manifest.json",
+  "/favicon.ico",
+  "/icon.png",
+  "/icon-192.png",
+  "/icon-512.png",
   "/ida-logo.png",
-  "/ida-icon-192.png",
-  "/ida-icon-512.png",
 ];
 
 self.addEventListener("install", (event) => {

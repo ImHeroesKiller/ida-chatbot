@@ -9,7 +9,8 @@ export type EnterpriseView =
   | "timeline"
   | "memory"
   | "roadmap"
-  | "search";
+  | "search"
+  | "developer";
 
 export type EntityType = "company" | "person" | "project";
 

@@ -21,6 +21,8 @@ import { RoadmapView } from "./views/roadmap-view";
 import { CoreMessageBanner } from "./core-message-banner";
 import { InvestorFaqModal } from "./investor-faq-modal";
 import { TrustSignals } from "./trust-signals";
+import { DebugDashboardView } from "./views/debug-dashboard-view";
+import { EnterpriseErrorBoundary } from "./enterprise-error-boundary";
 
 function ActiveView() {
   const { view } = useEnterprise();
@@ -50,6 +52,8 @@ function ActiveView() {
         return <RoadmapView />;
       case "search":
         return <ExecutiveBriefView />;
+      case "developer":
+        return <DebugDashboardView />;
       default:
         return <ExecutiveBriefView />;
     }
@@ -64,7 +68,11 @@ function ActiveView() {
         exit={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
       >
-        {loading ? <ViewSkeleton view={view} /> : content}
+        {loading ? (
+          <ViewSkeleton view={view} />
+        ) : (
+          <EnterpriseErrorBoundary>{content}</EnterpriseErrorBoundary>
+        )}
       </motion.div>
     </AnimatePresence>
   );
