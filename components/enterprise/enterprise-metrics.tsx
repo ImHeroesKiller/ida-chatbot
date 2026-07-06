@@ -1,4 +1,7 @@
+"use client";
+
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
+import { Stagger, StaggerItem } from "@/components/enterprise/enterprise-motion";
 import type { MetricItem } from "@/components/enterprise/types";
 import { cn } from "@/lib/utils";
 
@@ -14,24 +17,24 @@ type EnterpriseMetricsProps = {
 
 export function EnterpriseMetrics({ items }: EnterpriseMetricsProps) {
   return (
-    <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+    <Stagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
       {items.map((item) => (
-        <EnterpriseGlassCard
-          key={item.id}
-          padding="lg"
-          className="ida-hover-lift"
-        >
-          <div
-            className={cn(
-              "text-3xl font-semibold tracking-tight sm:text-4xl",
-              valueTone[item.tone],
-            )}
-          >
-            {item.value}
-          </div>
-          <p className="mt-2 text-sm text-muted-foreground">{item.label}</p>
-        </EnterpriseGlassCard>
+        <StaggerItem key={item.id}>
+          <EnterpriseGlassCard padding="lg" interactive className="group">
+            <div
+              className={cn(
+                "text-[2rem] font-semibold leading-none tracking-[-0.03em] transition-transform duration-300 group-hover:scale-[1.02] sm:text-4xl",
+                valueTone[item.tone],
+              )}
+            >
+              {item.value}
+            </div>
+            <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+              {item.label}
+            </p>
+          </EnterpriseGlassCard>
+        </StaggerItem>
       ))}
-    </section>
+    </Stagger>
   );
 }

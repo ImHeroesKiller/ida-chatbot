@@ -15,6 +15,7 @@ import {
 import { EnterpriseDashboardHeader } from "@/components/enterprise/enterprise-dashboard-header";
 import { EnterpriseMetrics } from "@/components/enterprise/enterprise-metrics";
 import { EnterpriseSectionDivider } from "@/components/enterprise/enterprise-glass-card";
+import { FadeIn } from "@/components/enterprise/enterprise-motion";
 import { LivingOrganizationMap } from "@/components/enterprise/living-organization-map";
 import type { OrganizationNode } from "@/components/enterprise/types";
 
@@ -36,52 +37,59 @@ export function EnterpriseDashboard() {
   const greetingDate = useMemo(() => getGreetingDate(), []);
 
   return (
-    <div className="min-h-dvh overflow-y-auto bg-background text-foreground">
+    <div className="enterprise-demo enterprise-demo-bg min-h-dvh overflow-y-auto overscroll-y-contain font-sans text-foreground">
       <EnterpriseDashboardHeader />
 
-      <main className="mx-auto w-full max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-10 lg:px-8 lg:pb-20 lg:pt-12">
-        <section className="mb-10 flex flex-col gap-6 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl space-y-2">
-            <p className="text-sm text-muted-foreground">{greetingDate}</p>
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-              Good morning, Ary
-            </h1>
-            <p className="text-base text-muted-foreground sm:text-lg lg:text-xl">
-              Here are 3 things that need your attention today.
-            </p>
-          </div>
-          <div className="ida-glass-subtle shrink-0 self-start rounded-full border border-border/40 px-4 py-2 text-xs text-muted-foreground lg:self-auto">
-            Last updated • just now
-          </div>
-        </section>
+      <main className="mx-auto w-full max-w-7xl px-5 pb-16 pt-10 sm:px-8 sm:pb-20 sm:pt-12 lg:px-10 lg:pb-24 lg:pt-14">
+        <FadeIn>
+          <section className="mb-12 flex flex-col gap-8 lg:mb-16 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl space-y-3">
+              <p className="text-[13px] font-medium tracking-wide text-muted-foreground/90">
+                {greetingDate}
+              </p>
+              <h1 className="text-[2rem] font-semibold leading-[1.1] tracking-[-0.03em] sm:text-[2.5rem] lg:text-[3rem]">
+                Good morning, Ary
+              </h1>
+              <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+                Here are 3 things that need your attention today.
+              </p>
+            </div>
+            <div className="enterprise-card-premium shrink-0 self-start rounded-full px-5 py-2.5 text-[11px] font-medium tracking-wide text-muted-foreground lg:self-auto">
+              <span className="mr-2 inline-block size-1.5 animate-pulse rounded-full bg-emerald-500" />
+              Last updated • just now
+            </div>
+          </section>
+        </FadeIn>
 
-        <EnterpriseSectionDivider className="mb-10 lg:mb-12" />
+        <EnterpriseSectionDivider className="mb-12 lg:mb-14" />
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-8 xl:gap-10">
-          <div className="min-w-0 lg:col-span-4">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-10 xl:gap-12">
+          <FadeIn className="min-w-0 lg:col-span-4" delay={0.08}>
             <AttentionPanel
               items={PRIORITY_ITEMS}
               quickActions={QUICK_ACTIONS}
             />
-          </div>
+          </FadeIn>
 
-          <div className="min-w-0 lg:col-span-5">
+          <FadeIn className="min-w-0 lg:col-span-5" delay={0.14}>
             <LivingOrganizationMap
               nodes={MAP_NODES}
               selectedNodeId={selectedNode.id}
               onSelectNode={setSelectedNode}
               onReset={() => setSelectedNode(ORGANIZATION_OVERVIEW)}
             />
-          </div>
+          </FadeIn>
 
-          <div className="min-w-0 lg:col-span-3">
+          <FadeIn className="min-w-0 lg:col-span-3" delay={0.2}>
             <CurrentContextPanel node={selectedNode} />
-          </div>
+          </FadeIn>
         </div>
 
-        <EnterpriseSectionDivider className="my-10 lg:my-14" />
+        <EnterpriseSectionDivider className="my-12 lg:my-16" />
 
-        <EnterpriseMetrics items={METRICS} />
+        <FadeIn delay={0.26}>
+          <EnterpriseMetrics items={METRICS} />
+        </FadeIn>
       </main>
     </div>
   );

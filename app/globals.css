@@ -308,6 +308,70 @@ html[data-ida-animation="none"] *::after {
     box-shadow: 0 8px 24px color-mix(in oklch, var(--foreground) 8%, transparent);
   }
 
+  /* Enterprise investor demo — premium shell (Linear / Notion / Stripe tone) */
+  .enterprise-demo {
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .enterprise-demo-bg {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        ellipse 90% 60% at 50% -30%,
+        color-mix(in oklch, var(--primary) 9%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 50% 40% at 100% 0%,
+        color-mix(in oklch, var(--primary) 5%, transparent),
+        transparent 65%
+      ),
+      radial-gradient(
+        ellipse 40% 30% at 0% 100%,
+        color-mix(in oklch, var(--muted-foreground) 4%, transparent),
+        transparent 60%
+      );
+  }
+
+  .enterprise-card-premium {
+    background: color-mix(in oklch, var(--background) 78%, transparent);
+    backdrop-filter: blur(20px) saturate(1.12);
+    -webkit-backdrop-filter: blur(20px) saturate(1.12);
+    border: 1px solid color-mix(in oklch, var(--border) 55%, transparent);
+    box-shadow:
+      0 1px 2px color-mix(in oklch, var(--foreground) 3%, transparent),
+      0 8px 32px color-mix(in oklch, var(--foreground) 5%, transparent);
+    transition:
+      transform 0.28s cubic-bezier(0.23, 1, 0.32, 1),
+      box-shadow 0.28s cubic-bezier(0.23, 1, 0.32, 1),
+      border-color 0.28s ease,
+      background 0.28s ease;
+  }
+
+  .enterprise-card-premium:hover {
+    border-color: color-mix(in oklch, var(--border) 80%, transparent);
+    box-shadow:
+      0 2px 4px color-mix(in oklch, var(--foreground) 4%, transparent),
+      0 16px 48px color-mix(in oklch, var(--foreground) 8%, transparent);
+  }
+
+  .enterprise-node-pulse {
+    animation: enterprise-node-pulse 2.8s ease-in-out infinite;
+  }
+
+  @keyframes enterprise-node-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 0%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 6px color-mix(in oklch, var(--primary) 12%, transparent);
+    }
+  }
+
   .workflow-canvas-flow .react-flow__edge-path {
     stroke: color-mix(in oklch, var(--primary) 42%, var(--muted-foreground));
     stroke-width: 2;

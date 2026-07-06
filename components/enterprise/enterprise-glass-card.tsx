@@ -6,25 +6,28 @@ type EnterpriseGlassCardProps = {
   children: ReactNode;
   className?: string;
   padding?: "none" | "sm" | "md" | "lg";
+  interactive?: boolean;
 };
 
 const paddingClass = {
   none: "",
-  sm: "p-4 sm:p-5",
-  md: "p-5 sm:p-6",
-  lg: "p-6 sm:p-8",
+  sm: "p-5 sm:p-6",
+  md: "p-6 sm:p-7",
+  lg: "p-7 sm:p-9",
 };
 
 export function EnterpriseGlassCard({
   children,
   className,
   padding = "md",
+  interactive = false,
 }: EnterpriseGlassCardProps) {
   return (
     <div
       className={cn(
-        "ida-glass-subtle rounded-2xl border border-border/40 shadow-sm",
+        "enterprise-card-premium rounded-2xl",
         paddingClass[padding],
+        interactive && "ida-hover-lift cursor-pointer",
         className,
       )}
     >
@@ -37,7 +40,10 @@ export function EnterpriseSectionDivider({ className }: { className?: string }) 
   return (
     <div
       role="separator"
-      className={cn("h-px w-full bg-border/50", className)}
+      className={cn(
+        "h-px w-full bg-gradient-to-r from-transparent via-border/60 to-transparent",
+        className,
+      )}
     />
   );
 }

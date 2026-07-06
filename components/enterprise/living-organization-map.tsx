@@ -19,7 +19,7 @@ type LivingOrganizationMapProps = {
 
 const positionClass: Record<string, string> = {
   center:
-    "left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 px-6 py-5 sm:px-8 sm:py-6",
+    "left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 px-7 py-6 sm:px-9 sm:py-7",
   "left-top": "left-[8%] top-[10%] sm:left-[12%]",
   "right-top": "right-[8%] top-[10%] sm:right-[12%]",
   bottom: "bottom-[10%] left-1/2 -translate-x-1/2",
@@ -36,29 +36,63 @@ export function LivingOrganizationMap({
 }: LivingOrganizationMapProps) {
   return (
     <EnterpriseGlassCard padding="lg" className="flex h-full min-h-0 flex-col">
-      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
+      <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1.5">
+          <h2 className="text-xl font-semibold tracking-[-0.02em] sm:text-2xl">
             Living Organization
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-[13px] leading-relaxed text-muted-foreground">
             One system. Many connections.
           </p>
         </div>
         <button
           type="button"
           onClick={onReset}
-          className="self-start rounded-full border border-border/50 px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-border hover:text-foreground sm:self-auto"
+          className="self-start rounded-full border border-border/50 bg-background/50 px-5 py-2 text-[13px] font-medium text-muted-foreground transition-all duration-200 hover:border-border hover:bg-muted/30 hover:text-foreground sm:self-auto"
         >
           Reset View
         </button>
       </div>
 
-      <div className="relative min-h-[320px] flex-1 sm:min-h-[380px] lg:min-h-[420px]">
+      <div className="relative min-h-[340px] flex-1 sm:min-h-[400px] lg:min-h-[440px]">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-6 rounded-3xl border border-dashed border-border/30 bg-muted/20"
+          className="pointer-events-none absolute inset-8 rounded-[1.75rem] border border-dashed border-border/25 bg-gradient-to-br from-muted/15 via-transparent to-muted/10"
         />
+
+        {/* Subtle connection lines */}
+        <svg
+          aria-hidden
+          className="pointer-events-none absolute inset-0 size-full opacity-30"
+        >
+          <line
+            x1="50%"
+            y1="50%"
+            x2="20%"
+            y2="18%"
+            stroke="currentColor"
+            strokeWidth="1"
+            className="text-border"
+          />
+          <line
+            x1="50%"
+            y1="50%"
+            x2="80%"
+            y2="18%"
+            stroke="currentColor"
+            strokeWidth="1"
+            className="text-border"
+          />
+          <line
+            x1="50%"
+            y1="50%"
+            x2="50%"
+            y2="82%"
+            stroke="currentColor"
+            strokeWidth="1"
+            className="text-border"
+          />
+        </svg>
 
         {nodes.map((node) => {
           const isSelected = node.id === selectedNodeId;
@@ -70,18 +104,23 @@ export function LivingOrganizationMap({
               type="button"
               onClick={() => onSelectNode(node)}
               className={cn(
-                "ida-glass-subtle absolute cursor-pointer rounded-2xl border bg-background/90 text-center shadow-sm transition-all hover:scale-[1.03] hover:shadow-md",
+                "enterprise-card-premium absolute cursor-pointer rounded-2xl border text-center transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg",
                 positionClass[node.position],
                 node.accent,
-                node.compact ? "px-4 py-2.5 text-sm" : "px-5 py-4",
-                isCenter && "border-2 shadow-lg",
-                isSelected && "ring-2 ring-primary/25",
+                node.compact ? "px-4 py-3 text-sm" : "px-5 py-4",
+                isCenter && "border-2 shadow-lg shadow-primary/10",
+                isSelected && "ring-2 ring-primary/30 enterprise-node-pulse",
               )}
             >
-              <div className={cn("font-medium", isCenter && "text-lg sm:text-xl")}>
+              <div
+                className={cn(
+                  "font-medium tracking-[-0.01em]",
+                  isCenter && "text-lg sm:text-xl",
+                )}
+              >
                 {node.name}
               </div>
-              <div className="mt-0.5 text-xs opacity-75">
+              <div className="mt-1 text-[11px] leading-snug opacity-80">
                 {node.role}
                 {node.health && !node.compact ? ` • ${node.health}` : ""}
               </div>
