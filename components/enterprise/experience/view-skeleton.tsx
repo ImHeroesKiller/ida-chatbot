@@ -110,6 +110,7 @@ type ViewSkeletonProps = {
 
 export function ViewSkeleton({ view }: ViewSkeletonProps) {
   switch (view) {
+    case "why-ida":
     case "executive-brief":
       return <BriefSkeleton />;
     case "organization":

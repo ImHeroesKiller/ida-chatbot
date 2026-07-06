@@ -114,6 +114,13 @@ export function ExecutiveBriefView() {
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
+              onClick={() => navigate({ view: "why-ida" })}
+              className="enterprise-text-link inline-flex items-center gap-2 text-sm font-medium"
+            >
+              Why IDA? <ArrowRight className="size-4" />
+            </button>
+            <button
+              type="button"
               onClick={() => navigateToEntity("company", "pln")}
               className="enterprise-text-link inline-flex items-center gap-2 text-sm font-medium"
             >

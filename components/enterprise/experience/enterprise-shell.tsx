@@ -8,6 +8,7 @@ import { ViewSkeleton } from "./view-skeleton";
 import { EnterpriseSidebar } from "./enterprise-sidebar";
 import { EnterpriseTopbar } from "./enterprise-topbar";
 import { GlobalSearch } from "./global-search";
+import { WhyIdaView } from "./views/why-ida-view";
 import { ExecutiveBriefView } from "./views/executive-brief-view";
 import { OrganizationView } from "./views/organization-view";
 import { CompaniesView } from "./views/companies-view";
@@ -22,6 +23,8 @@ function ActiveView() {
 
   const content = (() => {
     switch (view) {
+      case "why-ida":
+        return <WhyIdaView />;
       case "executive-brief":
         return <ExecutiveBriefView />;
       case "organization":

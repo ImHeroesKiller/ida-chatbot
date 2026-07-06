@@ -67,12 +67,18 @@ export async function LandingPageStatic() {
               IDA unifies organizational knowledge, executive intelligence, and governed execution — so leaders understand what matters in seconds, not weeks.
             </p>
 
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
-              <span><strong className="font-semibold text-foreground">147</strong> indexed relationships</span>
-              <span className="hidden sm:inline text-border">|</span>
-              <span><strong className="font-semibold text-foreground">91%</strong> org intelligence score</span>
-              <span className="hidden sm:inline text-border">|</span>
-              <span>Built for energy, telecom &amp; infrastructure</span>
+            <div className="mt-8 grid max-w-3xl grid-cols-2 gap-4 sm:mx-auto sm:grid-cols-4">
+              {[
+                { value: "2.4M+", label: "Knowledge records" },
+                { value: "Rp 6.5B", label: "Pipeline managed" },
+                { value: "147", label: "Relationships" },
+                { value: "91%", label: "Org intelligence" },
+              ].map((metric) => (
+                <div key={metric.label} className="rounded-xl border border-border/50 bg-card/40 px-3 py-3 backdrop-blur-sm">
+                  <div className="text-lg font-bold tracking-tight sm:text-xl">{metric.value}</div>
+                  <div className="text-[11px] text-muted-foreground">{metric.label}</div>
+                </div>
+              ))}
             </div>
 
             <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -92,6 +98,82 @@ export async function LandingPageStatic() {
             <p className="mt-5 text-xs text-muted-foreground sm:text-sm">
               Understand the product in under 60 seconds — no setup required.
             </p>
+          </div>
+        </section>
+
+        {/* WHY IDA — 30 second positioning */}
+        <section className="border-b bg-muted/20 px-4 py-16 sm:px-6 sm:py-20">
+          <div className="mx-auto max-w-6xl">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary">Why IDA?</p>
+              <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+                Not another chatbot.<br />An organizational intelligence system.
+              </h2>
+              <p className="mt-4 text-muted-foreground">
+                Copilot assists individuals. IDA understands your entire organization — with memory, context, and governed decisions.
+              </p>
+            </div>
+
+            <div className="mt-12 grid gap-6 lg:grid-cols-3">
+              <div className="rounded-2xl border bg-background p-6 lg:col-span-1">
+                <h3 className="font-semibold">Traditional AI</h3>
+                <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                  <li>· Forgets after each session</li>
+                  <li>· No account or stakeholder context</li>
+                  <li>· No decision governance</li>
+                </ul>
+              </div>
+              <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6 lg:col-span-2">
+                <h3 className="font-semibold text-primary">IDA Enterprise</h3>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {[
+                    "Organization Memory — persistent knowledge layer",
+                    "Full Context — accounts, people, projects linked",
+                    "Cross-linked Insights — risks, opportunities, commitments",
+                    "Governed Decisions — executive briefs with audit trail",
+                  ].map((item) => (
+                    <div key={item} className="flex items-start gap-2 text-sm">
+                      <span className="mt-1 size-1.5 shrink-0 rounded-full bg-emerald-500" />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-center">
+              <NextLink
+                href="/demo"
+                className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90"
+              >
+                See Why IDA in the platform
+                <ArrowRight className="size-4" />
+              </NextLink>
+            </div>
+          </div>
+        </section>
+
+        {/* ENTERPRISE SCALE */}
+        <section className="border-b px-4 py-14 sm:px-6">
+          <div className="mx-auto max-w-5xl">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Enterprise scale</h2>
+              <p className="mt-2 text-muted-foreground">Realistic operating metrics from a live organizational intelligence environment.</p>
+            </div>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { value: "2.4M+", label: "Knowledge records indexed", sub: "Emails, meetings, decisions" },
+                { value: "Rp 6.5B", label: "Pipeline under management", sub: "4 enterprise accounts" },
+                { value: "147", label: "Indexed relationships", sub: "Stakeholders & counterparties" },
+                { value: "91%", label: "Organization intelligence", sub: "Real-time health score" },
+              ].map((m) => (
+                <div key={m.label} className="rounded-2xl border bg-card/50 p-6 text-center">
+                  <div className="text-2xl font-bold tracking-tight text-primary sm:text-3xl">{m.value}</div>
+                  <div className="mt-1 text-sm font-medium">{m.label}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{m.sub}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 

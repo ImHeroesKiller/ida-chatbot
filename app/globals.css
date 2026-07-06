@@ -391,6 +391,16 @@ html[data-ida-animation="none"] *::after {
     text-decoration: underline;
   }
 
+  .enterprise-connection-flow {
+    animation: enterprise-connection-flow 2.8s linear infinite;
+  }
+
+  @keyframes enterprise-connection-flow {
+    to {
+      stroke-dashoffset: -28;
+    }
+  }
+
   .enterprise-node-pulse {
     animation: enterprise-node-pulse 2.8s ease-in-out infinite;
   }

@@ -32,7 +32,7 @@ type EnterpriseContextValue = {
 const EnterpriseContext = createContext<EnterpriseContextValue | null>(null);
 
 export function EnterpriseProvider({ children }: { children: ReactNode }) {
-  const [view, setView] = useState<EnterpriseView>("executive-brief");
+  const [view, setView] = useState<EnterpriseView>("why-ida");
   const [entityId, setEntityId] = useState<string | null>(null);
   const [memoryTab, setMemoryTab] = useState<MemoryTab>("communications");
   const [searchOpen, setSearchOpen] = useState(false);

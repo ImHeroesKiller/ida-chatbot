@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useEnterprise } from "../enterprise-context";
 import { EmptyState } from "../empty-state";
 import { EntityLink } from "../entity-link";
+import { OrganizationMemoryWow } from "../positioning/organization-memory-wow";
 import { COMPANIES, getCompany, PROJECTS, PEOPLE } from "../mock-data";
 import { PageHeader } from "../page-header";
 
@@ -97,6 +98,7 @@ export function CompaniesView() {
             )}
           </EnterpriseGlassCard>
         </FadeIn>
+        {selected.id === "pln" ? <OrganizationMemoryWow /> : null}
       </div>
     );
   }

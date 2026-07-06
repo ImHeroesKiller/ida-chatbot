@@ -1,4 +1,5 @@
 export type EnterpriseView =
+  | "why-ida"
   | "executive-brief"
   | "organization"
   | "companies"
