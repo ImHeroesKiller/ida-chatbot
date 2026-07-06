@@ -20,7 +20,9 @@ export function OrganizationView() {
   function handleSelect(node: OrganizationNode) {
     setSelectedNode(node);
     if (node.id === "pln") navigateToEntity("company", "pln");
-    if (node.id === "alpha") navigateToEntity("project", "alpha");
+    if (node.id === "segment-7") navigateToEntity("project", "segment-7");
+    if (node.id === "mayora") navigateToEntity("company", "mayora");
+    if (node.id === "telkom") navigateToEntity("company", "telkom");
     if (node.id === "ary") navigateToEntity("person", "ary");
   }
 
@@ -28,8 +30,8 @@ export function OrganizationView() {
     <div>
       <PageHeader
         eyebrow="Organization"
-        title="Living Organization"
-        description="One system. Many connections. Click a node to navigate across the platform."
+        title="Organizational intelligence map"
+        description="Relationships, commercial exposure, and delivery risk — built from communications, meetings, projects, and decisions across your enterprise."
       />
       <LivingOrganizationMap
         nodes={MAP_NODES}

@@ -7,6 +7,7 @@ import { FadeIn, Stagger, StaggerItem } from "@/components/enterprise/enterprise
 import { cn } from "@/lib/utils";
 
 import { useEnterprise } from "../enterprise-context";
+import { EmptyStateInline } from "../empty-state";
 import { EntityLink } from "../entity-link";
 import { PageHeader } from "../page-header";
 import { BRIEF_CARDS } from "../mock-data";
@@ -25,19 +26,26 @@ const SECTIONS: Array<{
   { tone: "action", title: "Recommended Actions", icon: Zap, color: "text-violet-600 bg-violet-500/10" },
 ];
 
+const ENTITY_LABEL: Record<string, string> = {
+  company: "account",
+  person: "stakeholder",
+  project: "initiative",
+};
+
 export function ExecutiveBriefView() {
   const { navigateToEntity, navigate } = useEnterprise();
+  const criticalCount = BRIEF_CARDS.filter((c) => c.tone === "critical").length;
 
   return (
     <div>
       <PageHeader
         eyebrow="Executive Brief"
         title="Good morning, Ary"
-        description="Your organization at a glance — critical issues, opportunities, and recommended actions in under 30 seconds."
+        description="Synthesized from organizational knowledge — critical issues, commercial exposure, and recommended actions for today's leadership decisions."
         action={
           <div className="enterprise-card-premium rounded-full px-4 py-2 text-[11px] font-medium text-muted-foreground">
             <span className="mr-2 inline-block size-1.5 animate-pulse rounded-full bg-emerald-500" />
-            Live • 3 items need attention
+            Live intelligence • {criticalCount} items require attention
           </div>
         }
       />
@@ -56,35 +64,42 @@ export function ExecutiveBriefView() {
                   <h2 className="text-[15px] font-semibold tracking-tight">{section.title}</h2>
                   <span className="ml-auto text-xs text-muted-foreground">{items.length}</span>
                 </div>
-                <ul className="space-y-3">
-                  {items.map((item) => (
-                    <li
-                      key={item.id}
-                      className="group rounded-xl border border-border/30 p-4 transition-all duration-200 hover:border-border/60 hover:bg-muted/20"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium leading-snug">{item.title}</p>
-                          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                            {item.description}
-                          </p>
-                          {item.entityType && item.entityId ? (
-                            <div className="mt-2">
-                              <EntityLink type={item.entityType} id={item.entityId}>
-                                View {item.entityType} →
-                              </EntityLink>
-                            </div>
+                {items.length === 0 ? (
+                  <EmptyStateInline
+                    title="No items in this category"
+                    description="Organizational knowledge is current — nothing flagged here today."
+                  />
+                ) : (
+                  <ul className="space-y-3">
+                    {items.map((item) => (
+                      <li
+                        key={item.id}
+                        className="enterprise-list-item group rounded-xl border border-border/30 p-4"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium leading-snug">{item.title}</p>
+                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                              {item.description}
+                            </p>
+                            {item.entityType && item.entityId ? (
+                              <div className="mt-2">
+                                <EntityLink type={item.entityType} id={item.entityId}>
+                                  Open {ENTITY_LABEL[item.entityType] ?? item.entityType} →
+                                </EntityLink>
+                              </div>
+                            ) : null}
+                          </div>
+                          {item.metric ? (
+                            <span className="shrink-0 rounded-md bg-muted/40 px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                              {item.metric}
+                            </span>
                           ) : null}
                         </div>
-                        {item.metric ? (
-                          <span className="shrink-0 text-xs font-semibold text-muted-foreground">
-                            {item.metric}
-                          </span>
-                        ) : null}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </EnterpriseGlassCard>
             </StaggerItem>
           );
@@ -94,29 +109,29 @@ export function ExecutiveBriefView() {
       <FadeIn delay={0.2} className="mt-8">
         <EnterpriseGlassCard padding="md" className="flex flex-wrap items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            Demo story (~3 min): Brief → Organization → PLN → Memory → Timeline
+            Priority pathways — navigate from intelligence to account, knowledge, and timeline.
           </p>
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={() => navigateToEntity("company", "pln")}
-              className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+              className="enterprise-text-link inline-flex items-center gap-2 text-sm font-medium"
             >
-              PLN <ArrowRight className="size-4" />
+              PLN Indonesia Power <ArrowRight className="size-4" />
             </button>
             <button
               type="button"
               onClick={() => navigate({ view: "organization" })}
-              className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+              className="enterprise-text-link inline-flex items-center gap-2 text-sm font-medium"
             >
               Organization map <ArrowRight className="size-4" />
             </button>
             <button
               type="button"
               onClick={() => navigate({ view: "memory", memoryTab: "communications" })}
-              className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+              className="enterprise-text-link inline-flex items-center gap-2 text-sm font-medium"
             >
-              Memory <ArrowRight className="size-4" />
+              Organizational knowledge <ArrowRight className="size-4" />
             </button>
           </div>
         </EnterpriseGlassCard>

@@ -39,10 +39,10 @@ export function LivingOrganizationMap({
       <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1.5">
           <h2 className="text-xl font-semibold tracking-[-0.02em] sm:text-2xl">
-            Living Organization
+            Relationship intelligence map
           </h2>
           <p className="text-[13px] leading-relaxed text-muted-foreground">
-            One system. Many connections.
+            Built from organizational knowledge across accounts, initiatives, and functions.
           </p>
         </div>
         <button

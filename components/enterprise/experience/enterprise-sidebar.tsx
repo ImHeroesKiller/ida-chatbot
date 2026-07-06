@@ -19,11 +19,11 @@ import type { EnterpriseView } from "./types";
 const NAV: Array<{ id: EnterpriseView; label: string; icon: typeof LayoutDashboard }> = [
   { id: "executive-brief", label: "Executive Brief", icon: LayoutDashboard },
   { id: "organization", label: "Organization", icon: Network },
-  { id: "companies", label: "Companies", icon: Building2 },
-  { id: "people", label: "People", icon: Users },
-  { id: "projects", label: "Projects", icon: FolderKanban },
+  { id: "companies", label: "Accounts", icon: Building2 },
+  { id: "people", label: "Stakeholders", icon: Users },
+  { id: "projects", label: "Initiatives", icon: FolderKanban },
   { id: "timeline", label: "Timeline", icon: Calendar },
-  { id: "memory", label: "Memory", icon: Brain },
+  { id: "memory", label: "Knowledge", icon: Brain },
   { id: "search", label: "Search", icon: Search },
 ];
 
@@ -69,8 +69,8 @@ export function EnterpriseSidebar({
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium transition-all duration-200",
                 active
-                  ? "bg-primary/10 text-primary shadow-sm"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                  ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/15"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:translate-x-0.5",
               )}
             >
               <Icon className="size-4 shrink-0" strokeWidth={1.75} />
@@ -80,7 +80,7 @@ export function EnterpriseSidebar({
         })}
       </nav>
       <div className="border-t border-border/40 p-4">
-        <p className="text-[10px] text-muted-foreground">Sprint 2 • Investor Demo</p>
+        <p className="text-[10px] text-muted-foreground">IDA Enterprise · Live environment</p>
       </div>
     </aside>
   );

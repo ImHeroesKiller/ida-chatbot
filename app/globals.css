@@ -364,6 +364,33 @@ html[data-ida-animation="none"] *::after {
       0 16px 48px color-mix(in oklch, var(--foreground) 8%, transparent);
   }
 
+  .enterprise-list-item {
+    transition:
+      border-color 0.22s ease,
+      background-color 0.22s ease,
+      transform 0.22s cubic-bezier(0.23, 1, 0.32, 1),
+      box-shadow 0.22s ease;
+  }
+
+  .enterprise-list-item:hover {
+    border-color: color-mix(in oklch, var(--border) 70%, transparent);
+    background-color: color-mix(in oklch, var(--muted) 22%, transparent);
+    transform: translateY(-1px);
+  }
+
+  .enterprise-text-link {
+    color: var(--primary);
+    text-underline-offset: 4px;
+    transition:
+      color 0.18s ease,
+      opacity 0.18s ease;
+  }
+
+  .enterprise-text-link:hover {
+    color: color-mix(in oklch, var(--primary) 82%, var(--foreground));
+    text-decoration: underline;
+  }
+
   .enterprise-node-pulse {
     animation: enterprise-node-pulse 2.8s ease-in-out infinite;
   }

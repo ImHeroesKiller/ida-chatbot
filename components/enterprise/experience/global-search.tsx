@@ -94,7 +94,7 @@ export function GlobalSearch() {
                 autoFocus
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search companies, people, projects, memory…"
+                placeholder="Search accounts, stakeholders, initiatives, knowledge…"
                 className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               />
               <button
@@ -107,9 +107,13 @@ export function GlobalSearch() {
             </div>
             <div className="enterprise-demo-scroll max-h-[50vh] p-2">
               {grouped.length === 0 ? (
-                <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-                  No results for &ldquo;{searchQuery}&rdquo;
-                </p>
+                <div className="px-6 py-10 text-center">
+                  <p className="text-sm font-medium">No matching records</p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    No accounts, stakeholders, initiatives, or knowledge records match &ldquo;{searchQuery}&rdquo;.
+                    Try a company name, project title, or stakeholder email.
+                  </p>
+                </div>
               ) : (
                 grouped.map(({ group, items }) => {
                   const Icon = groupIcon[group];

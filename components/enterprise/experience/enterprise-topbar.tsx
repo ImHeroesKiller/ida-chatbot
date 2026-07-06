@@ -30,10 +30,11 @@ export function EnterpriseTopbar() {
           </div>
           <div className="leading-tight">
             <div className="text-sm font-semibold tracking-tight">IDA Enterprise</div>
-            <div className="text-[10px] text-muted-foreground">Decision & Workforce OS</div>
+            <div className="text-[10px] text-muted-foreground">Decision &amp; Workforce OS</div>
           </div>
           <span className="hidden rounded-full border border-emerald-500/20 bg-emerald-500/8 px-2.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 sm:inline">
-            Investor Demo
+            <span className="mr-1.5 inline-block size-1.5 rounded-full bg-emerald-500" />
+            Production
           </span>
         </div>
 
@@ -44,7 +45,7 @@ export function EnterpriseTopbar() {
             className="flex h-9 min-w-[140px] items-center gap-2 rounded-xl border border-border/50 bg-muted/30 px-3 text-xs text-muted-foreground transition-colors hover:border-border hover:bg-muted/50 sm:min-w-[220px]"
           >
             <Search className="size-3.5" />
-            <span className="hidden sm:inline">Search organization…</span>
+            <span className="hidden sm:inline">Search accounts, knowledge, initiatives…</span>
             <span className="sm:hidden">Search</span>
             <kbd className="ml-auto hidden rounded border border-border/60 bg-background px-1.5 py-0.5 text-[10px] sm:inline">
               ⌘K

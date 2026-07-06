@@ -3,6 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 
 import { useEnterprise } from "./enterprise-context";
+import { useViewLoading } from "./use-view-loading";
+import { ViewSkeleton } from "./view-skeleton";
 import { EnterpriseSidebar } from "./enterprise-sidebar";
 import { EnterpriseTopbar } from "./enterprise-topbar";
 import { GlobalSearch } from "./global-search";
@@ -16,6 +18,7 @@ import { MemoryView } from "./views/memory-view";
 
 function ActiveView() {
   const { view } = useEnterprise();
+  const loading = useViewLoading();
 
   const content = (() => {
     switch (view) {
@@ -43,13 +46,13 @@ function ActiveView() {
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={view}
+        key={`${view}-${loading ? "loading" : "ready"}`}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
       >
-        {content}
+        {loading ? <ViewSkeleton view={view} /> : content}
       </motion.div>
     </AnimatePresence>
   );

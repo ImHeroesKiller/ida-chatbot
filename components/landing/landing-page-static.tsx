@@ -50,37 +50,47 @@ export async function LandingPageStatic() {
 
       <main className="flex-1">
         {/* HERO */}
-        <section className="relative overflow-hidden border-b px-4 py-20 sm:px-6 sm:py-24">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" aria-hidden />
+        <section className="relative overflow-hidden border-b px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/12 via-background to-background" aria-hidden />
 
           <div className="relative mx-auto max-w-5xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-card/70 px-4 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur-sm sm:text-sm">
-              Enterprise Decision &amp; Digital Workforce Operating System
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-4 py-1.5 text-xs font-medium text-foreground backdrop-blur-sm sm:text-sm">
+              <span className="size-1.5 rounded-full bg-emerald-500" />
+              Enterprise Decision &amp; Digital Workforce OS
             </div>
 
-            <h1 className="text-balance text-4xl font-bold tracking-tighter sm:text-5xl lg:text-6xl">
-              The operating system for enterprise decisions.
+            <h1 className="text-balance text-4xl font-bold tracking-tighter sm:text-5xl lg:text-[3.4rem] lg:leading-[1.05]">
+              See your entire organization.<br className="hidden sm:block" /> Decide with confidence.
             </h1>
 
-            <p className="mx-auto mt-6 max-w-3xl text-balance text-lg leading-relaxed text-muted-foreground sm:text-xl">
-              IDA connects enterprise knowledge, decisions, workflows, and digital workers into one intelligent operating system — built for organizations that require clarity, governance, and scalable execution.
+            <p className="mx-auto mt-5 max-w-2xl text-balance text-lg leading-relaxed text-muted-foreground sm:text-xl">
+              IDA unifies organizational knowledge, executive intelligence, and governed execution — so leaders understand what matters in seconds, not weeks.
             </p>
 
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
+              <span><strong className="font-semibold text-foreground">147</strong> indexed relationships</span>
+              <span className="hidden sm:inline text-border">|</span>
+              <span><strong className="font-semibold text-foreground">91%</strong> org intelligence score</span>
+              <span className="hidden sm:inline text-border">|</span>
+              <span>Built for energy, telecom &amp; infrastructure</span>
+            </div>
+
+            <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <NextLink
                 href="/demo"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.985]"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/25 active:scale-[0.985]"
               >
-                Launch Investor Demo
+                Enter Enterprise Platform
+                <ArrowRight className="size-4" />
               </NextLink>
-              <Link href="#platform" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border bg-card/60 px-8 text-base font-medium text-foreground transition-colors hover:bg-muted">
-                Explore Platform
+              <Link href="#platform" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border bg-card/60 px-8 text-base font-medium text-foreground transition-all hover:border-border hover:bg-muted">
+                Platform capabilities
                 <ArrowRight className="size-4" />
               </Link>
             </div>
 
-            <p className="mt-6 text-sm text-muted-foreground">
-              Designed for enterprise leaders who need precision at scale.
+            <p className="mt-5 text-xs text-muted-foreground sm:text-sm">
+              Understand the product in under 60 seconds — no setup required.
             </p>
           </div>
         </section>
@@ -183,7 +193,7 @@ export async function LandingPageStatic() {
 
             <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[
-                { icon: Brain, title: "Enterprise Knowledge", desc: "A unified, contextual memory layer across documents, systems, conversations, and historical decisions." },
+                { icon: Brain, title: "Organizational Knowledge", desc: "A unified memory layer built from communications, meetings, commercial records, and decisions — cross-linked across your enterprise." },
                 { icon: Target, title: "Decision Engine", desc: "Structured decision records with AI-supported analysis, human oversight, and complete auditability." },
                 { icon: Bot, title: "Digital Workforce", desc: "Specialized digital workers that execute research, document preparation, coordination, and routine operational tasks." },
                 { icon: GitBranch, title: "Workflow Orchestration", desc: "Seamless connection of decisions to actions across existing enterprise systems with governance embedded." },
@@ -306,11 +316,11 @@ export async function LandingPageStatic() {
                 href="/demo"
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
               >
-                Launch Investor Demo
+                Enter Enterprise Platform
                 <ArrowRight className="size-4" />
               </NextLink>
               <Link href="/chat" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border bg-background px-6 text-sm font-medium text-foreground transition-colors hover:bg-muted">
-                Access Chat Interface
+                Technical evaluation
                 <ArrowRight className="size-4" />
               </Link>
             </div>
@@ -335,10 +345,10 @@ export async function LandingPageStatic() {
                 href="/demo"
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-10 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90"
               >
-                Launch Investor Demo
+                Enter Enterprise Platform
               </NextLink>
               <Link href="/contact" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border bg-card/60 px-8 text-base font-medium text-foreground transition-colors hover:bg-muted">
-                Talk to Our Team
+                Speak with our team
               </Link>
             </div>
           </div>
