@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDA Executive Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+        
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .font-display { font-family: 'Space Grotesk', 'Inter', sans-serif; font-weight: 600; }
+        .dashboard-card { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0.0, 0.2, 1); }
+        .dashboard-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05); }
+        .section-header { font-size: 13px; letter-spacing: -.5px; font-weight: 600; color: #64748b; }
+        .nav-item { transition: all 0.1s ease; }
+        .nav-item:hover { background-color: #f8fafc; }
+        .nav-item.active { background-color: #f1f5f9; color: #0f172a; font-weight: 600; }
+        .metric-value { font-size: 28px; line-height: 1; font-weight: 700; font-family: 'Space Grotesk', system_ui, sans-serif; }
+        .signal-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .timeline-item { position: relative; }
+        .timeline-item:not(:last-child):before { content: ''; position: absolute; left: 11px; top: 28px; bottom: -12px; width: 2px; background: #e2e8f0; }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white border-r border-slate-200 flex flex-col">
+            <div class="px-6 py-5 border-b border-slate-100">
+                <div class="flex items-center gap-x-3">
+                    <div class="w-9 h-9 bg-[#0A66C2] rounded-2xl flex items-center justify-center">
+                        <span class="text-white font-bold text-2xl tracking-tighter">I</span>
+                    </div>
+                    <div>
+                        <span class="font-display text-2xl font-semibold tracking-tighter text-slate-900">IDA</span>
+                    </div>
+                </div>
+                <div class="text-[10px] text-slate-500 mt-0.5 pl-1">Enterprise Decision OS</div>
+            </div>
+
+            <div class="px-3 py-4 flex-1">
+                <div class="space-y-1">
+                    <a href="#" onclick="showSection('overview')" class="nav-item active flex items-center gap-x-3 px-4 py-2.5 text-sm rounded-3xl text-slate-700">
+                        <i class="fa-solid fa-chart-line w-4"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="#" onclick="showSection('communications')" class="nav-item flex items-center gap-x-3 px-4 py-2.5 text-sm rounded-3xl text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-envelope w-4"></i>
+                        <span>Communications</span>
+                    </a>
+                    <a href="#" onclick="showSection('projects')" class="nav-item flex items-center gap-x-3 px-4 py-2.5 text-sm rounded-3xl text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-tasks w-4"></i>
+                        <span>Projects</span>
+                    </a>
+                    <a href="#" onclick="showSection('commercial')" class="nav-item flex items-center gap-x-3 px-4 py-2.5 text-sm rounded-3xl text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-handshake w-4"></i>
+                        <span>Commercial</span>
+                    </a>
+                    <a href="#" onclick="showSection('memory')" class="nav-item flex items-center gap-x-3 px-4 py-2.5 text-sm rounded-3xl text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-brain w-4"></i>
+                        <span>Memory</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-slate-100">
+                <div class="flex items-center gap-x-3">
+                    <div class="w-8 h-8 bg-slate-200 rounded-2xl overflow-hidden">
+                        <img src="https://i.pravatar.cc/32?img=68" alt="Ary Wibowo">
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-medium text-slate-900">Ary Wibowo</div>
+                        <div class="text-xs text-slate-500">Founder &amp; CEO</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <div class="h-14 border-b border-slate-200 bg-white px-8 flex items-center justify-between">
+                <div>
+                    <span class="text-sm text-slate-500">Good morning,</span>
+                    <span class="font-semibold text-slate-900 ml-1">Ary</span>
+                </div>
+                
+                <div class="flex items-center gap-x-3">
+                    <div class="relative w-72">
+                        <input type="text" id="globalSearch" class="w-full bg-slate-100 border-none rounded-3xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300" placeholder="Ask anything... (e.g. Ada apa dari PLN?)" onkeyup="if (event.key === 'Enter') handleGlobalSearch()">
+                        <i class="fa-solid fa-search absolute left-4 top-3 text-slate-400 text-sm"></i>
+                    </div>
+                    
+                    <button onclick="simulateImport()" class="flex items-center gap-x-2 px-5 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-sm font-medium rounded-3xl transition-colors">
+                        <i class="fa-solid fa-sync text-xs"></i>
+                        <span>Sync Data</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-auto p-8" id="mainContent">
+                <div id="section-overview">
+                    <div class="max-w-[1100px]">
+                        <div class="flex items-end justify-between mb-8">
+                            <div>
+                                <h1 class="font-display text-4xl tracking-tighter font-semibold text-slate-900">Today Overview</h1>
+                                <p class="text-slate-500 mt-1">Monday, 6 July 2026 • Jakarta</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="inline-flex items-center gap-x-2 bg-emerald-100 text-emerald-700 px-3.5 py-1 rounded-3xl text-xs font-medium">
+                                    <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                                    <span>System healthy</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-8">
+                            <div class="flex items-center gap-x-2 mb-3 px-1">
+                                <i class="fa-solid fa-exclamation-triangle text-amber-500"></i>
+                                <span class="section-header">2 ISSUES NEED ATTENTION</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="dashboard-card bg-white border border-amber-200 rounded-3xl p-5">
+                                    <div class="flex gap-x-4">
+                                        <div class="w-9 h-9 bg-amber-100 text-amber-600 rounded-2xl flex-shrink-0 flex items-center justify-center">
+                                            <i class="fa-solid fa-file-invoice-dollar text-lg"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="font-semibold">PLN Invoice jatuh tempo besok</div>
+                                            <div class="text-sm text-slate-600 mt-0.5">Rp 450.000 • Due: 7 July 2026</div>
+                                            <div class="mt-3 flex items-center gap-x-2">
+                                                <button onclick="showPLNDetail()" class="text-xs px-4 py-1.5 bg-amber-600 hover:bg-amber-700 transition-colors text-white rounded-3xl font-medium">Review &amp; Pay</button>
+                                                <button class="text-xs px-4 py-1.5 border border-slate-300 hover:bg-slate-50 rounded-3xl font-medium">Snooze</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="dashboard-card bg-white border border-red-200 rounded-3xl p-5">
+                                    <div class="flex gap-x-4">
+                                        <div class="w-9 h-9 bg-red-100 text-red-600 rounded-2xl flex-shrink-0 flex items-center justify-center">
+                                            <i class="fa-solid fa-file-contract text-lg"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="font-semibold">Proposal Mayora belum dibalas 5 hari</div>
+                                            <div class="text-sm text-slate-600 mt-0.5">Sent to procurement@mayora.co.id</div>
+                                            <div class="mt-3">
+                                                <button onclick="showMayoraDetail()" class="text-xs px-4 py-1.5 bg-red-600 hover:bg-red-700 transition-colors text-white rounded-3xl font-medium">Follow up now</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-8">
+                            <div class="flex items-center justify-between mb-3 px-1">
+                                <span class="section-header">TODAY'S ACTIVITIES</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div class="dashboard-card bg-white border border-slate-200 rounded-3xl p-5">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="text-3xl font-semibold tracking-tighter">12</div>
+                                            <div class="text-sm text-slate-600">Emails</div>
+                                        </div>
+                                        <i class="fa-solid fa-envelope text-3xl text-slate-300"></i>
+                                    </div>
+                                </div>
+                                <div class="dashboard-card bg-white border border-slate-200 rounded-3xl p-5">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="text-3xl font-semibold tracking-tighter">2</div>
+                                            <div class="text-sm text-slate-600">Proposals</div>
+                                        </div>
+                                        <i class="fa-solid fa-file-contract text-3xl text-slate-300"></i>
+                                    </div>
+                                </div>
+                                <div class="dashboard-card bg-white border border-slate-200 rounded-3xl p-5">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="text-3xl font-semibold tracking-tighter">3</div>
+                                            <div class="text-sm text-slate-600">Meetings</div>
+                                        </div>
+                                        <i class="fa-solid fa-calendar text-3xl text-slate-300"></i>
+                                    </div>
+                                </div>
+                                <div class="dashboard-card bg-white border border-slate-200 rounded-3xl p-5">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="text-3xl font-semibold tracking-tighter">1</div>
+                                            <div class="text-sm text-slate-600">Invoice</div>
+                                        </div>
+                                        <i class="fa-solid fa-file-invoice text-3xl text-slate-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-3 px-1">
+                                <span class="section-header">ORGANIZATION SIGNALS</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="dashboard-card bg-white border border-slate-200 rounded-3xl p-5 flex items-start gap-x-4">
+                                    <div class="mt-1"><div class="signal-dot bg-yellow-500"></div></div>
+                                    <div>
+                                        <div class="font-medium">PLN communication increased</div>
+                                        <div class="text-xs text-slate-500 mt-1">+340% vs last week</div>
+                                    </div>
+                                </div>
+                                <div class="dashboard-card bg-white border border-slate-200 rounded-3xl p-5 flex items-start gap-x-4">
+                                    <div class="mt-1"><div class="signal-dot bg-red-500"></div></div>
+                                    <div>
+                                        <div class="font-medium">Customer complaint detected</div>
+                                        <div class="text-xs text-slate-500 mt-1">From Mayora procurement</div>
+                                    </div>
+                                </div>
+                                <div class="dashboard-card bg-white border border-slate-200 rounded-3xl p-5 flex items-start gap-x-4">
+                                    <div class="mt-1"><div class="signal-dot bg-emerald-500"></div></div>
+                                    <div>
+                                        <div class="font-medium">Proposal approved</div>
+                                        <div class="text-xs text-slate-500 mt-1">Internal project • Q3</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="section-pln" class="hidden max-w-[900px]">
+                    <div class="mb-6">
+                        <button onclick="showSection('overview')" class="text-sm flex items-center gap-x-2 text-slate-500 hover:text-slate-700">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>Back to Overview</span>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center gap-x-4 mb-8">
+                        <div class="w-14 h-14 bg-blue-100 rounded-3xl flex items-center justify-center">
+                            <i class="fa-solid fa-bolt text-blue-600 text-3xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="font-display text-4xl tracking-tighter font-semibold">PLN</h1>
+                            <div class="text-slate-500">Perusahaan Listrik Negara • 12 communications this month</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-10">
+                        <div class="section-header mb-4 px-1">COMMUNICATION TIMELINE</div>
+                        
+                        <div class="space-y-6">
+                            <div class="timeline-item flex gap-x-4">
+                                <div class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-2xl flex-shrink-0 flex items-center justify-center mt-0.5">
+                                    <i class="fa-solid fa-file-invoice text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between">
+                                        <div class="font-medium">Invoice #INV-PLN-0726</div>
+                                        <div class="text-xs text-slate-500">5 Jul 2026</div>
+                                    </div>
+                                    <div class="text-sm text-slate-600">Tagihan listrik Juli • Rp 450.000 • Due 25 Jul</div>
+                                </div>
+                            </div>
+                            
+                            <div class="timeline-item flex gap-x-4">
+                                <div class="w-6 h-6 bg-blue-100 text-blue-600 rounded-2xl flex-shrink-0 flex items-center justify-center mt-0.5">
+                                    <i class="fa-solid fa-handshake text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between">
+                                        <div class="font-medium">Meeting Q3 Planning</div>
+                                        <div class="text-xs text-slate-500">6 Jul 2026</div>
+                                    </div>
+                                    <div class="text-sm text-slate-600">Discussion about new connection capacity</div>
+                                </div>
+                            </div>
+                            
+                            <div class="timeline-item flex gap-x-4">
+                                <div class="w-6 h-6 bg-amber-100 text-amber-600 rounded-2xl flex-shrink-0 flex items-center justify-center mt-0.5">
+                                    <i class="fa-solid fa-bell text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between">
+                                        <div class="font-medium">Payment Reminder</div>
+                                        <div class="text-xs text-slate-500">7 Jul 2026</div>
+                                    </div>
+                                    <div class="text-sm text-slate-600">Auto-generated reminder for invoice</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <div class="section-header mb-3 px-1">PEOPLE</div>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-x-3 bg-white border border-slate-200 rounded-3xl p-3">
+                                    <div class="w-8 h-8 bg-slate-200 rounded-2xl overflow-hidden"><img src="https://i.pravatar.cc/32?img=28"></div>
+                                    <div>
+                                        <div class="text-sm font-medium">Ary Wibowo</div>
+                                        <div class="text-xs text-slate-500">You • Decision Maker</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-x-3 bg-white border border-slate-200 rounded-3xl p-3">
+                                    <div class="w-8 h-8 bg-slate-200 rounded-2xl overflow-hidden"><img src="https://i.pravatar.cc/32?img=47"></div>
+                                    <div>
+                                        <div class="text-sm font-medium">Pak Budi Santoso</div>
+                                        <div class="text-xs text-slate-500">Manager PLN • Jakarta</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="section-header mb-3 px-1">ARTIFACTS</div>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex items-center justify-between bg-white border border-slate-200 px-4 py-3 rounded-3xl">
+                                    <div><i class="fa-solid fa-file-invoice mr-2 text-slate-400"></i> Invoice #INV-PLN-0726</div>
+                                    <span class="text-emerald-600 text-xs font-medium">PAID</span>
+                                </div>
+                                <div class="flex items-center justify-between bg-white border border-slate-200 px-4 py-3 rounded-3xl">
+                                    <div><i class="fa-solid fa-envelope mr-2 text-slate-400"></i> Email 5 Jul</div>
+                                </div>
+                                <div class="flex items-center justify-between bg-white border border-slate-200 px-4 py-3 rounded-3xl">
+                                    <div><i class="fa-solid fa-file-alt mr-2 text-slate-400"></i> Meeting Notes</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-80 border-l border-slate-200 bg-white flex flex-col">
+            <div class="px-5 py-4 border-b border-slate-100">
+                <div class="flex items-center justify-between">
+                    <div class="font-semibold text-sm flex items-center gap-x-2">
+                        <i class="fa-solid fa-comments text-[#0A66C2]"></i>
+                        <span>Chat with IDA</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex-1 p-4 overflow-auto text-sm space-y-4" id="chatMessages"></div>
+            
+            <div class="p-4 border-t border-slate-100">
+                <div class="flex gap-x-2">
+                    <input id="chatInput" type="text" class="flex-1 border border-slate-300 rounded-3xl px-4 py-2.5 text-sm focus:outline-none focus:border-slate-400" placeholder="Ask IDA anything..." onkeyup="if (event.key === 'Enter') sendChatMessage()">
+                    <button onclick="sendChatMessage()" class="px-5 bg-[#0A66C2] text-white rounded-3xl text-sm font-medium">Send</button>
+                </div>
+                <div class="text-[10px] text-center text-slate-400 mt-2">Powered by IDA Representation Layer</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function initializeTailwind() { /* Tailwind initialized via CDN */ }
+        
+        function showSection(section) {
+            document.querySelectorAll('[id^="section-"]').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById('section-' + section);
+            if (target) target.classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        }
+        
+        function showPLNDetail() {
+            document.querySelectorAll('[id^="section-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById('section-pln').classList.remove('hidden');
+        }
+        
+        function showMayoraDetail() {
+            alert("Mayora detail view will be implemented in next sprint.");
+        }
+        
+        function simulateImport() {
+            alert("Syncing data... (demo)");
+            setTimeout(() => {
+                const toast = document.createElement('div');
+                toast.className = `fixed bottom-6 right-6 bg-emerald-600 text-white px-5 py-3 rounded-3xl text-sm flex items-center gap-x-3 shadow-xl`;
+                toast.innerHTML = `<i class="fa-solid fa-check-double"></i> <span>12 new representations synced</span>`;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2500);
+            }, 1200);
+        }
+        
+        function handleGlobalSearch() {
+            const query = document.getElementById('globalSearch').value.trim();
+            if (!query) return;
+            if (query.toLowerCase().includes('pln')) {
+                showPLNDetail();
+            } else {
+                document.getElementById('chatInput').value = query;
+                sendChatMessage();
+            }
+            document.getElementById('globalSearch').value = '';
+        }
+        
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            const chatContainer = document.getElementById('chatMessages');
+            
+            const userMsg = document.createElement('div');
+            userMsg.className = 'flex justify-end';
+            userMsg.innerHTML = `<div class="max-w-[75%] bg-[#0A66C2] text-white px-4 py-2.5 rounded-3xl rounded-br-none text-sm">${message}</div>`;
+            chatContainer.appendChild(userMsg);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            input.value = '';
+            
+            setTimeout(() => {
+                let response = '';
+                if (message.toLowerCase().includes('pln')) {
+                    response = `Dalam 7 hari terakhir dari PLN:<br><br>• <strong>1 Invoice</strong> — Rp450.000 jatuh tempo besok<br>• <strong>1 Meeting</strong> — Q3 Planning (6 Jul)<br>• <strong>1 Reminder</strong> — Payment follow-up`;
+                } else {
+                    response = `Saya sudah mencatat pertanyaan Anda. Fokus saat ini pada PLN dan Mayora.`;
+                }
+                
+                const idaMsg = document.createElement('div');
+                idaMsg.className = 'flex';
+                idaMsg.innerHTML = `<div class="max-w-[80%] bg-slate-100 px-4 py-2.5 rounded-3xl rounded-bl-none text-sm text-slate-800">${response}</div>`;
+                chatContainer.appendChild(idaMsg);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 650);
+        }
+        
+        window.onload = function() {
+            initializeTailwind();
+            setTimeout(() => {
+                const chatContainer = document.getElementById('chatMessages');
+                const welcome = document.createElement('div');
+                welcome.className = 'flex';
+                welcome.innerHTML = `<div class="max-w-[80%] bg-slate-100 px-4 py-2.5 rounded-3xl rounded-bl-none text-sm text-slate-700">Good morning. Saya sudah menganalisis komunikasi 7 hari terakhir. Ada 2 hal yang perlu perhatian Anda.</div>`;
+                chatContainer.appendChild(welcome);
+            }, 800);
+            document.getElementById('section-overview').classList.remove('hidden');
+        };
+    </script>
+</body>
+</html>
