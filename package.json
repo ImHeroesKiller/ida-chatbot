@@ -33,7 +33,8 @@
     "test:workflow-security": "node scripts/test-workflow-security.mjs",
     "test:workflow-scheduler": "node scripts/test-workflow-scheduler.mjs",
     "test:workflow-feedback": "node scripts/test-workflow-feedback.mjs",
-    "test:workflow-all": "node scripts/test-workflow-all.mjs"
+    "test:workflow-all": "node scripts/test-workflow-all.mjs",
+    "test:esl": "npx tsx scripts/test-esl-pipeline.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -61,6 +62,7 @@
     "clsx": "^2.1.1",
     "docx": "^9.7.1",
     "framer-motion": "^12.42.0",
+    "googleapis": "^148.0.0",
     "jspdf": "^4.2.1",
     "langchain": "^1.5.2",
     "leaflet": "^1.9.4",
@@ -97,6 +99,7 @@
     "eslint": "^9",
     "eslint-config-next": "^15.5.19",
     "tailwindcss": "^4",
+    "tsx": "^4.19.4",
     "typescript": "^5"
   }
 }

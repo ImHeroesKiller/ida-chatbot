@@ -25,6 +25,30 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@ida/representation": [
+        "./packages/representation"
+      ],
+      "@ida/observation": [
+        "./packages/observation"
+      ],
+      "@ida/esl": [
+        "./packages/esl"
+      ],
+      "@ida/esl/*": [
+        "./packages/esl/*"
+      ],
+      "@ida/identity": [
+        "./packages/identity"
+      ],
+      "@ida/graph": [
+        "./packages/graph"
+      ],
+      "@ida/graph/*": [
+        "./packages/graph/*"
+      ],
+      "@ida/query": [
+        "./packages/query"
       ]
     }
   },
