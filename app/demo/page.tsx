@@ -12,7 +12,7 @@ export default function DemoPage() {
   });
 
   const updateContext = (newContext: Record<string, unknown>) => {
-    setContext(newContext as any);
+    setContext(newContext as typeof context);
   };
 
   return (
