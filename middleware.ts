@@ -24,6 +24,7 @@ function isAuthProtectedPath(pathname: string): boolean {
     pathname.startsWith("/chat") ||
     pathname.startsWith("/agent") ||
     pathname.startsWith("/account") ||
+    pathname.startsWith("/enterprise") ||
     pathname === "/auth/callback"
   );
 }
@@ -51,6 +52,7 @@ export const config = {
     "/chat/:path*",
     "/agent/:path*",
     "/account/:path*",
+    "/enterprise/:path*",
     "/auth/callback",
   ],
 };
