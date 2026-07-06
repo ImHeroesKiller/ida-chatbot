@@ -36,3 +36,29 @@ export function createEmailRepresentation(input: GmailEmailInput): Representatio
     },
   };
 }
+
+export type DocumentInput = {
+  filename: string;
+  text: string;
+  docKind: "pdf" | "docx";
+};
+
+export function createDocumentRepresentation(input: DocumentInput): Representation {
+  const title = input.filename.replace(/\.(pdf|docx)$/i, "").replace(/[-_]/g, " ");
+
+  return {
+    id: generateId("rep"),
+    sourceType: "document",
+    sourceId: input.filename,
+    title,
+    content: input.text,
+    participants: [],
+    timestamp: new Date(),
+    rawPayload: { filename: input.filename },
+    metadata: {
+      channel: "document",
+      docKind: input.docKind,
+      filename: input.filename,
+    },
+  };
+}

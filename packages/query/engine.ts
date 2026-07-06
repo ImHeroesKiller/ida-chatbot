@@ -39,7 +39,12 @@ export class QueryEngine {
     const organization = snapshot.organizations.find(
       (org) =>
         org.name.toUpperCase() === orgName ||
-        org.aliases.some((alias) => alias.toUpperCase() === orgName),
+        org.name.toUpperCase().includes(orgName) ||
+        orgName.includes(org.name.toUpperCase()) ||
+        org.aliases.some(
+          (alias) =>
+            alias.toUpperCase() === orgName || alias.toUpperCase().includes(orgName),
+        ),
     );
 
     if (!organization) {
@@ -147,8 +152,8 @@ export class QueryEngine {
   queryText(text: string) {
     const normalized = text.toLowerCase();
 
-    if (normalized.includes("pln")) {
-      return this.organizationActivity({ organization: "PLN" });
+    if (normalized.includes("pln") || normalized.includes("indonesia power")) {
+      return this.organizationActivity({ organization: "PT PLN Indonesia Power" });
     }
 
     if (normalized.includes("mayora")) {

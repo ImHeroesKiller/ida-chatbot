@@ -6,6 +6,7 @@ import {
   Calendar,
   FolderKanban,
   LayoutDashboard,
+  Import,
   Lightbulb,
   Network,
   Map,
@@ -19,6 +20,7 @@ import { useEnterprise } from "./enterprise-context";
 import type { EnterpriseView } from "./types";
 
 const NAV: Array<{ id: EnterpriseView; label: string; icon: typeof LayoutDashboard }> = [
+  { id: "import", label: "Import Data", icon: Import },
   { id: "why-ida", label: "Why IDA?", icon: Lightbulb },
   { id: "executive-brief", label: "Executive Brief", icon: LayoutDashboard },
   { id: "organization", label: "Organization", icon: Network },

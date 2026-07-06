@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { useEnterprise } from "../enterprise-context";
 import { EmptyState } from "../empty-state";
 import { IDA_CORE_MESSAGE } from "../narrative";
-import { MEMORY_ITEMS } from "../mock-data";
+import { useEnterpriseData } from "../use-enterprise-data";
 import { PageHeader } from "../page-header";
 import type { MemoryTab } from "../types";
 
@@ -24,7 +24,8 @@ const TABS: Array<{ id: MemoryTab; label: string }> = [
 
 export function MemoryView() {
   const { memoryTab, navigate, navigateToEntity } = useEnterprise();
-  const items = MEMORY_ITEMS.filter((m) => m.tab === memoryTab);
+  const { memoryItems } = useEnterpriseData();
+  const items = memoryItems.filter((m) => m.tab === memoryTab);
 
   return (
     <div>

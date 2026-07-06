@@ -18,6 +18,7 @@ export interface CanonicalPerson {
 export interface CanonicalOrganization {
   id: string;
   name: string;
+  accountId?: string;
   aliases: string[];
   createdAt: string;
   updatedAt: string;
@@ -40,11 +41,15 @@ export interface CanonicalArtifact {
   id: string;
   communicationId: string;
   organizationId?: string;
+  companyId?: string;
   type: BusinessArtifactType;
   summary: string;
   amount?: number;
   date?: string;
+  deadline?: string;
+  stakeholder?: string;
   priority?: PriorityLevel;
+  sourceType?: string;
   createdAt: string;
 }
 

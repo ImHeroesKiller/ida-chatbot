@@ -1,5 +1,6 @@
 import { generateId } from "@/core/shared/id";
 import type { Observation } from "@ida/observation";
+import { ACCOUNT_DIRECTORY } from "@ida/observation";
 
 import type { ESLIngestResult } from "./entities";
 
@@ -13,17 +14,26 @@ export class ESLMapper {
     const person = {
       id: generateId("person"),
       email: from?.email ?? "unknown@unknown.local",
-      name: from?.name,
+      name: from?.name ?? extraction.stakeholder,
       organizationIds: [] as string[],
       createdAt: now,
       updatedAt: now,
     };
 
+    const accountMeta = extraction.companyId
+      ? ACCOUNT_DIRECTORY.find((a) => a.id === extraction.companyId)
+      : undefined;
+
     const organization = extraction.company
       ? {
           id: generateId("org"),
           name: extraction.company,
-          aliases: [extraction.company],
+          accountId: extraction.companyId ?? accountMeta?.id,
+          aliases: [
+            extraction.company,
+            ...(accountMeta?.keywords ?? []),
+            ...(accountMeta?.id ? [accountMeta.id.toUpperCase()] : []),
+          ],
           createdAt: now,
           updatedAt: now,
         }
@@ -38,7 +48,7 @@ export class ESLMapper {
       representationId: rep.id,
       sourceId: rep.sourceId,
       subject: rep.title,
-      snippet: rep.content,
+      snippet: rep.content.slice(0, 500),
       timestamp: rep.timestamp.toISOString(),
       fromPersonId: person.id,
       organizationId: organization?.id,
@@ -50,11 +60,15 @@ export class ESLMapper {
       id: generateId("artifact"),
       communicationId: communication.id,
       organizationId: organization?.id,
+      companyId: extraction.companyId,
       type: extraction.type,
       summary: extraction.summary,
       amount: extraction.amount,
       date: extraction.date,
+      deadline: extraction.deadline,
+      stakeholder: extraction.stakeholder,
       priority: extraction.priority,
+      sourceType: rep.sourceType,
       createdAt: now,
     };
 

@@ -4,10 +4,13 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+
+import type { RealityViewModel } from "@/lib/enterprise/reality-adapter";
 
 import type {
   EnterpriseView,
@@ -23,6 +26,8 @@ type EnterpriseContextValue = {
   searchOpen: boolean;
   searchQuery: string;
   faqOpen: boolean;
+  reality: RealityViewModel | null;
+  realityLoading: boolean;
   navigate: (target: NavigationTarget) => void;
   openSearch: (query?: string) => void;
   closeSearch: () => void;
@@ -30,17 +35,52 @@ type EnterpriseContextValue = {
   closeFaq: () => void;
   setSearchQuery: (query: string) => void;
   navigateToEntity: (type: EntityType, id: string) => void;
+  refreshReality: () => Promise<void>;
 };
 
 const EnterpriseContext = createContext<EnterpriseContextValue | null>(null);
 
 export function EnterpriseProvider({ children }: { children: ReactNode }) {
-  const [view, setView] = useState<EnterpriseView>("why-ida");
+  const [view, setView] = useState<EnterpriseView>("import");
   const [entityId, setEntityId] = useState<string | null>(null);
   const [memoryTab, setMemoryTab] = useState<MemoryTab>("communications");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [faqOpen, setFaqOpen] = useState(false);
+  const [reality, setReality] = useState<RealityViewModel | null>(null);
+  const [realityLoading, setRealityLoading] = useState(true);
+
+  const refreshReality = useCallback(async () => {
+    setRealityLoading(true);
+    try {
+      const res = await fetch("/api/reality/state");
+      const data = await res.json();
+      if (data.success) {
+        setReality(data as RealityViewModel);
+      }
+    } finally {
+      setRealityLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshReality();
+  }, [refreshReality]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("gmail_connected") === "1") {
+      fetch("/api/reality/gmail-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      })
+        .then(() => refreshReality())
+        .finally(() => {
+          window.history.replaceState({}, "", "/demo");
+        });
+    }
+  }, [refreshReality]);
 
   const navigate = useCallback((target: NavigationTarget) => {
     setView(target.view);
@@ -84,6 +124,8 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
       searchOpen,
       searchQuery,
       faqOpen,
+      reality,
+      realityLoading,
       navigate,
       openSearch,
       closeSearch,
@@ -91,6 +133,7 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
       closeFaq,
       setSearchQuery,
       navigateToEntity,
+      refreshReality,
     }),
     [
       view,
@@ -99,12 +142,15 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
       searchOpen,
       searchQuery,
       faqOpen,
+      reality,
+      realityLoading,
       navigate,
       openSearch,
       closeSearch,
       openFaq,
       closeFaq,
       navigateToEntity,
+      refreshReality,
     ],
   );
 

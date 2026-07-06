@@ -8,11 +8,12 @@ import { Stagger, StaggerItem } from "@/components/enterprise/enterprise-motion"
 import { useEnterprise } from "../enterprise-context";
 import { EmptyState } from "../empty-state";
 import { IDA_CORE_MESSAGE } from "../narrative";
-import { TIMELINE } from "../mock-data";
+import { useEnterpriseData } from "../use-enterprise-data";
 import { PageHeader } from "../page-header";
 
 export function TimelineView() {
   const { navigateToEntity } = useEnterprise();
+  const { timeline } = useEnterpriseData();
 
   return (
     <div>
@@ -21,7 +22,7 @@ export function TimelineView() {
         title="Organizational activity stream"
         description={`${IDA_CORE_MESSAGE} Recent activity across your organization — in order.`}
       />
-      {TIMELINE.length === 0 ? (
+      {timeline.length === 0 ? (
         <EmptyState
           icon={Calendar}
           title="No activity recorded yet"
@@ -29,12 +30,12 @@ export function TimelineView() {
         />
       ) : (
         <Stagger className="relative space-y-0">
-          {TIMELINE.map((event, index) => (
+          {timeline.map((event, index) => (
             <StaggerItem key={event.id}>
               <div className="flex gap-4 pb-8">
                 <div className="flex flex-col items-center">
                   <div className="size-2.5 rounded-full bg-primary ring-4 ring-primary/15 transition-all duration-300" />
-                  {index < TIMELINE.length - 1 ? (
+                  {index < timeline.length - 1 ? (
                     <div className="mt-1 w-px flex-1 bg-border/50" />
                   ) : null}
                 </div>

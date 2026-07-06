@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import {
-  resetESLPipeline,
-  runESLPipelineFromEmails,
-} from "@ida/esl/pipeline";
+import { hydrateESLStore } from "@ida/esl/persistence";
+import { runESLPipelineFromEmails } from "@ida/esl/pipeline";
 import { DEMO_GMAIL_EMAILS } from "@ida/representation";
 import { fetchRecentEmails, isGmailConfigured } from "@/lib/integrations/gmail";
 
@@ -15,12 +13,12 @@ export async function POST(request: NextRequest) {
       reset?: boolean;
     };
 
-    if (body.reset ?? true) {
-      resetESLPipeline();
-    }
+    await hydrateESLStore();
 
     if (body.mode === "demo" || !body.access_token) {
-      const result = runESLPipelineFromEmails(DEMO_GMAIL_EMAILS, "demo");
+      const result = await runESLPipelineFromEmails(DEMO_GMAIL_EMAILS, "demo", {
+        reset: body.reset ?? false,
+      });
       return NextResponse.json({
         success: true,
         source: "demo",
@@ -41,7 +39,9 @@ export async function POST(request: NextRequest) {
     }
 
     const emails = await fetchRecentEmails(body.access_token, 30);
-    const result = runESLPipelineFromEmails(emails, "gmail");
+    const result = await runESLPipelineFromEmails(emails, "gmail", {
+      reset: body.reset ?? false,
+    });
 
     return NextResponse.json({
       success: true,

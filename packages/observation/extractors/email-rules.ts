@@ -1,81 +1,64 @@
 import type { Representation } from "@ida/representation";
 
 import type { BusinessExtraction } from "../types";
-
-const KNOWN_COMPANIES = [
-  "pln",
-  "mayora",
-  "telkom",
-  "bca",
-  "mandiri",
-  "bri",
-  "bni",
-  "gojek",
-  "grab",
-  "tokopedia",
-  "shopee",
-];
+import { resolveAccount } from "./account-linker";
 
 export function extractBusinessInfo(rep: Representation): BusinessExtraction {
-  const text = `${rep.title} ${rep.content}`.toLowerCase();
-  const originalTitle = rep.title;
+  const text = `${rep.title} ${rep.content}`;
+  const lower = text.toLowerCase();
+  const fromEmail = rep.participants.find((p) => p.role === "from")?.email;
 
-  let company: string | null = null;
-  for (const candidate of KNOWN_COMPANIES) {
-    if (text.includes(candidate)) {
-      company = candidate.toUpperCase();
-      break;
-    }
-  }
+  const account = resolveAccount(text, fromEmail);
+  const company = account?.name ?? null;
 
   let type: BusinessExtraction["type"] = "Other";
 
-  if (text.includes("tagihan") || text.includes("invoice") || text.includes("rp ")) {
+  if (lower.includes("tagihan") || lower.includes("invoice") || lower.includes("inv-")) {
     type = "Invoice";
-  } else if (text.includes("meeting") || text.includes("q3") || text.includes("planning")) {
+  } else if (lower.includes("meeting") || lower.includes("q3") || lower.includes("planning") || lower.includes("review")) {
     type = "Meeting";
-  } else if (text.includes("proposal")) {
+  } else if (lower.includes("proposal")) {
     type = "Proposal";
-  } else if (text.includes("keluhan") || text.includes("complaint")) {
+  } else if (lower.includes("keluhan") || lower.includes("complaint") || lower.includes("urgent")) {
     type = "Complaint";
-  } else if (text.includes("purchase order") || text.includes("po ")) {
+  } else if (lower.includes("purchase order") || lower.includes("po-") || lower.includes("po ")) {
     type = "Purchase Order";
-  } else if (text.includes("kontrak") || text.includes("contract")) {
+  } else if (lower.includes("kontrak") || lower.includes("contract")) {
     type = "Contract";
-  } else if (text.includes("pembayaran") || text.includes("payment")) {
+  } else if (lower.includes("pembayaran") || lower.includes("payment")) {
     type = "Payment";
-  } else if (text.includes("reminder") || text.includes("jatuh tempo")) {
+  } else if (lower.includes("reminder") || lower.includes("jatuh tempo")) {
     type = "Reminder";
   } else {
     type = "Information";
   }
 
   const summary =
-    originalTitle.length > 60
-      ? `${originalTitle.substring(0, 57)}...`
-      : originalTitle;
+    rep.title.length > 60 ? `${rep.title.substring(0, 57)}...` : rep.title;
 
   let amount: number | undefined;
-  const amountMatch = text.match(/rp\s*([\d.]+)/i);
+  const amountMatch = lower.match(/rp\s*([\d.]+)/i);
   if (amountMatch) {
     amount = Number.parseInt(amountMatch[1].replace(/\./g, ""), 10);
   }
 
   let priority: BusinessExtraction["priority"] = "medium";
   if (
-    text.includes("urgent") ||
-    text.includes("segera") ||
-    text.includes("jatuh tempo")
+    lower.includes("urgent") ||
+    lower.includes("segera") ||
+    lower.includes("jatuh tempo")
   ) {
     priority = "high";
   }
 
   return {
     company,
+    companyId: account?.id,
     type,
     summary,
     amount,
     date: rep.timestamp.toISOString().split("T")[0],
     priority,
+    stakeholder: rep.participants.find((p) => p.role === "from")?.name,
   };
 }

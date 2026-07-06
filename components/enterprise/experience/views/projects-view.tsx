@@ -10,7 +10,7 @@ import { useEnterprise } from "../enterprise-context";
 import { EmptyState } from "../empty-state";
 import { EntityLink } from "../entity-link";
 import { IDA_CORE_MESSAGE } from "../narrative";
-import { getCompany, getPerson, getProject, PROJECTS } from "../mock-data";
+import { useEnterpriseData } from "../use-enterprise-data";
 import { PageHeader } from "../page-header";
 
 const statusStyle = {
@@ -27,6 +27,7 @@ const statusLabel = {
 
 export function ProjectsView() {
   const { entityId, navigateToEntity } = useEnterprise();
+  const { projects, getProject, getCompany, getPerson } = useEnterpriseData();
   const selected = entityId ? getProject(entityId) : null;
 
   if (entityId && !selected) {
@@ -93,7 +94,7 @@ export function ProjectsView() {
         description={`${IDA_CORE_MESSAGE} Active initiatives — progress, budget, and delivery risk.`}
       />
       <Stagger className="grid gap-4">
-        {PROJECTS.map((project) => (
+        {projects.map((project) => (
           <StaggerItem key={project.id}>
             <button type="button" onClick={() => navigateToEntity("project", project.id)} className="w-full text-left">
               <EnterpriseGlassCard padding="lg" interactive>

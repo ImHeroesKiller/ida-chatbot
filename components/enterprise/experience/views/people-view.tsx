@@ -9,11 +9,12 @@ import { useEnterprise } from "../enterprise-context";
 import { EmptyState } from "../empty-state";
 import { EntityLink } from "../entity-link";
 import { IDA_CORE_MESSAGE } from "../narrative";
-import { getCompany, getPerson, PEOPLE } from "../mock-data";
+import { useEnterpriseData } from "../use-enterprise-data";
 import { PageHeader } from "../page-header";
 
 export function PeopleView() {
   const { entityId, navigateToEntity } = useEnterprise();
+  const { people, getPerson, getCompany } = useEnterpriseData();
   const selected = entityId ? getPerson(entityId) : null;
 
   if (entityId && !selected) {
@@ -68,7 +69,7 @@ export function PeopleView() {
         description={`${IDA_CORE_MESSAGE} The people behind your accounts and initiatives.`}
       />
       <Stagger className="grid gap-4 sm:grid-cols-2">
-        {PEOPLE.map((person) => (
+        {people.map((person) => (
           <StaggerItem key={person.id}>
             <button type="button" onClick={() => navigateToEntity("person", person.id)} className="w-full text-left">
               <EnterpriseGlassCard padding="lg" interactive>

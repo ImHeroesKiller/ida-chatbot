@@ -4,24 +4,33 @@ import { exchangeGmailCode, isGmailConfigured } from "@/lib/integrations/gmail";
 
 export async function GET(request: NextRequest) {
   if (!isGmailConfigured()) {
-    return NextResponse.json({ error: "Gmail OAuth not configured" }, { status: 503 });
+    return NextResponse.redirect(new URL("/demo?gmail_error=not_configured", request.url));
   }
 
   const code = request.nextUrl.searchParams.get("code");
   if (!code) {
-    return NextResponse.json({ error: "Missing authorization code" }, { status: 400 });
+    return NextResponse.redirect(new URL("/demo?gmail_error=no_code", request.url));
   }
 
   try {
     const tokens = await exchangeGmailCode(code);
-    return NextResponse.json({
-      success: true,
-      message: "Gmail connected. POST access_token to /api/esl/sync",
-      access_token: tokens.access_token,
-      expires_in: tokens.expiry_date,
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "OAuth callback failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const redirect = new URL("/demo", request.url);
+    redirect.searchParams.set("gmail_connected", "1");
+
+    const response = NextResponse.redirect(redirect);
+
+    if (tokens.access_token) {
+      response.cookies.set("gmail_access_token", tokens.access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60,
+        path: "/",
+      });
+    }
+
+    return response;
+  } catch {
+    return NextResponse.redirect(new URL("/demo?gmail_error=oauth_failed", request.url));
   }
 }

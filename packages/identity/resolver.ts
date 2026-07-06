@@ -9,18 +9,37 @@ export class IdentityResolver {
           ...mapped.person,
           id: existingPerson.id,
           name: mapped.person.name ?? existingPerson.name,
-          organizationIds: [
-            ...existingPerson.organizationIds,
-            ...mapped.person.organizationIds,
-          ],
+          organizationIds: Array.from(
+            new Set([...existingPerson.organizationIds, ...mapped.person.organizationIds]),
+          ),
           createdAt: existingPerson.createdAt,
           updatedAt: new Date().toISOString(),
         })
       : eslStore.upsertPerson(mapped.person);
 
-    const organization = mapped.organization
-      ? eslStore.upsertOrganization(mapped.organization)
-      : undefined;
+    let organization = mapped.organization;
+    if (organization?.accountId) {
+      const existingOrg = eslStore.findOrganizationByAccountId(organization.accountId);
+      if (existingOrg) {
+        organization = eslStore.upsertOrganization({
+          ...existingOrg,
+          aliases: Array.from(new Set([...existingOrg.aliases, ...organization.aliases])),
+          updatedAt: new Date().toISOString(),
+        });
+      } else {
+        organization = eslStore.upsertOrganization(organization);
+      }
+    } else if (organization) {
+      const byName = eslStore.findOrganizationByName(organization.name);
+      organization = byName
+        ? eslStore.upsertOrganization({
+            ...byName,
+            aliases: Array.from(new Set([...byName.aliases, ...organization.aliases])),
+            accountId: organization.accountId ?? byName.accountId,
+            updatedAt: new Date().toISOString(),
+          })
+        : eslStore.upsertOrganization(organization);
+    }
 
     const communication = {
       ...mapped.communication,
@@ -31,6 +50,7 @@ export class IdentityResolver {
     const artifact = {
       ...mapped.artifact,
       organizationId: organization?.id ?? mapped.artifact.organizationId,
+      companyId: organization?.accountId ?? mapped.artifact.companyId,
     };
 
     eslStore.addCommunication(communication);

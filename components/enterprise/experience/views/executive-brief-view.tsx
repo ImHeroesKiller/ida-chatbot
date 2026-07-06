@@ -11,7 +11,7 @@ import { EmptyStateInline } from "../empty-state";
 import { EntityLink } from "../entity-link";
 import { PageHeader } from "../page-header";
 import { IDA_CORE_MESSAGE } from "../narrative";
-import { BRIEF_CARDS } from "../mock-data";
+import { useEnterpriseData } from "../use-enterprise-data";
 import type { BriefItemTone } from "../types";
 
 const SECTIONS: Array<{
@@ -35,7 +35,8 @@ const ENTITY_LABEL: Record<string, string> = {
 
 export function ExecutiveBriefView() {
   const { navigateToEntity, navigate } = useEnterprise();
-  const criticalCount = BRIEF_CARDS.filter((c) => c.tone === "critical").length;
+  const { briefCards, live, reality } = useEnterpriseData();
+  const criticalCount = briefCards.filter((c) => c.tone === "critical").length;
 
   return (
     <div>
@@ -46,14 +47,15 @@ export function ExecutiveBriefView() {
         action={
           <div className="enterprise-card-premium rounded-full px-4 py-2 text-[11px] font-medium text-muted-foreground">
             <span className="mr-2 inline-block size-1.5 animate-pulse rounded-full bg-emerald-500" />
-            Live intelligence • {criticalCount} items require attention
+            {live ? "Live imported data" : "Preview"} • {criticalCount} items require attention
+            {live && reality?.lastSync ? ` · synced ${new Date(reality.lastSync).toLocaleTimeString()}` : ""}
           </div>
         }
       />
 
       <Stagger className="grid gap-6 lg:grid-cols-2">
         {SECTIONS.map((section) => {
-          const items = BRIEF_CARDS.filter((c) => c.tone === section.tone);
+          const items = briefCards.filter((c) => c.tone === section.tone);
           const Icon = section.icon;
           return (
             <StaggerItem key={section.tone}>

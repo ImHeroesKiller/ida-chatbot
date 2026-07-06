@@ -11,11 +11,12 @@ import { EmptyState } from "../empty-state";
 import { EntityLink } from "../entity-link";
 import { IDA_CORE_MESSAGE } from "../narrative";
 import { OrganizationMemoryWow } from "../positioning/organization-memory-wow";
-import { COMPANIES, getCompany, PROJECTS, PEOPLE } from "../mock-data";
+import { useEnterpriseData } from "../use-enterprise-data";
 import { PageHeader } from "../page-header";
 
 export function CompaniesView() {
   const { entityId, navigate, navigateToEntity } = useEnterprise();
+  const { companies, getCompany, projects, people } = useEnterpriseData();
   const selected = entityId ? getCompany(entityId) : null;
 
   if (entityId && !selected) {
@@ -41,8 +42,8 @@ export function CompaniesView() {
   }
 
   if (selected) {
-    const relatedProjects = PROJECTS.filter((p) => p.companyId === selected.id);
-    const relatedPeople = PEOPLE.filter((p) => p.companyId === selected.id);
+    const relatedProjects = projects.filter((p) => p.companyId === selected.id);
+    const relatedPeople = people.filter((p) => p.companyId === selected.id);
 
     return (
       <div>
@@ -112,7 +113,7 @@ export function CompaniesView() {
         description={`${IDA_CORE_MESSAGE} Your enterprise accounts — health, pipeline, and linked stakeholders.`}
       />
       <Stagger className="grid gap-4 sm:grid-cols-2">
-        {COMPANIES.map((company) => (
+        {companies.map((company) => (
           <StaggerItem key={company.id}>
             <button
               type="button"

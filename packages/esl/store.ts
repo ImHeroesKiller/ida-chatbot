@@ -35,6 +35,7 @@ export class ESLMemoryStore {
       const merged: CanonicalOrganization = {
         ...byName,
         aliases: Array.from(new Set([...byName.aliases, ...org.aliases])),
+        accountId: org.accountId ?? byName.accountId,
         updatedAt: org.updatedAt,
       };
       this.organizations.set(byName.id, merged);
@@ -86,6 +87,42 @@ export class ESLMemoryStore {
         artifacts: this.artifacts.size,
       },
     };
+  }
+
+  findOrganizationByAccountId(accountId: string): CanonicalOrganization | undefined {
+    for (const org of this.organizations.values()) {
+      if (org.accountId === accountId) return org;
+    }
+    return undefined;
+  }
+
+  exportSnapshot(): {
+    persons: CanonicalPerson[];
+    organizations: CanonicalOrganization[];
+    communications: CanonicalCommunication[];
+    artifacts: CanonicalArtifact[];
+    lastSync: string | null;
+  } {
+    return {
+      persons: Array.from(this.persons.values()),
+      organizations: Array.from(this.organizations.values()),
+      communications: Array.from(this.communications.values()),
+      artifacts: Array.from(this.artifacts.values()),
+      lastSync: new Date().toISOString(),
+    };
+  }
+
+  importSnapshot(snapshot: {
+    persons: CanonicalPerson[];
+    organizations: CanonicalOrganization[];
+    communications: CanonicalCommunication[];
+    artifacts: CanonicalArtifact[];
+  }): void {
+    this.clear();
+    for (const person of snapshot.persons) this.persons.set(person.id, person);
+    for (const org of snapshot.organizations) this.organizations.set(org.id, org);
+    for (const comm of snapshot.communications) this.communications.set(comm.id, comm);
+    for (const artifact of snapshot.artifacts) this.artifacts.set(artifact.id, artifact);
   }
 
   clear(): void {

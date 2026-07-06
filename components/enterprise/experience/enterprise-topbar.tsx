@@ -5,14 +5,12 @@ import { HelpCircle, Menu, Search } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-
 import { InvestorFaqTrigger } from "./investor-faq-modal";
 import { useEnterprise } from "./enterprise-context";
 import { EnterpriseSidebar } from "./enterprise-sidebar";
 
 export function EnterpriseTopbar() {
-  const { openSearch, openFaq } = useEnterprise();
+  const { openSearch, openFaq, reality } = useEnterprise();
   const [mobileNav, setMobileNav] = useState(false);
 
   return (
@@ -35,7 +33,7 @@ export function EnterpriseTopbar() {
           </div>
           <span className="hidden rounded-full border border-emerald-500/20 bg-emerald-500/8 px-2.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 sm:inline">
             <span className="mr-1.5 inline-block size-1.5 rounded-full bg-emerald-500" />
-            Production
+            {reality?.hasLiveData ? "Live data" : "Ready"}
           </span>
         </div>
 

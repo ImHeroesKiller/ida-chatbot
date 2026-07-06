@@ -4,7 +4,7 @@ import { runDemoESLPipeline } from "@ida/esl/pipeline";
 
 export async function POST() {
   try {
-    const result = runDemoESLPipeline();
+    const result = await runDemoESLPipeline();
     return NextResponse.json({ success: true, ...result });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Demo pipeline failed";

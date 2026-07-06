@@ -7,7 +7,7 @@ import { useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
 
 import { useEnterprise } from "./enterprise-context";
-import { SEARCH_INDEX } from "./mock-data";
+import { useEnterpriseData } from "./use-enterprise-data";
 import type { SearchResult } from "./types";
 
 const GROUP_ORDER = ["Companies", "People", "Projects", "Memory", "Decisions"] as const;
@@ -30,6 +30,7 @@ export function GlobalSearch() {
     navigateToEntity,
     navigate,
   } = useEnterprise();
+  const { searchIndex } = useEnterpriseData();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -46,19 +47,19 @@ export function GlobalSearch() {
   const grouped = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     const filtered = q
-      ? SEARCH_INDEX.filter(
+      ? searchIndex.filter(
           (r) =>
             r.title.toLowerCase().includes(q) ||
             r.subtitle.toLowerCase().includes(q) ||
             r.group.toLowerCase().includes(q),
         )
-      : SEARCH_INDEX;
+      : searchIndex;
 
     return GROUP_ORDER.map((group) => ({
       group,
       items: filtered.filter((r) => r.group === group),
     })).filter((g) => g.items.length > 0);
-  }, [searchQuery]);
+  }, [searchQuery, searchIndex]);
 
   function handleSelect(result: SearchResult) {
     if (result.entityType === "memory") {
