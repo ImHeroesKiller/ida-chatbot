@@ -59,7 +59,7 @@ type EnterpriseContextValue = {
 const EnterpriseContext = createContext<EnterpriseContextValue | null>(null);
 
 export function EnterpriseProvider({ children }: { children: ReactNode }) {
-  const [view, setView] = useState<EnterpriseView>("workforce");
+  const [view, setView] = useState<EnterpriseView>("overview");
   const [perspective, setPerspective] = useState<PerspectiveId>("ceo");
   const [workforceDemoPhase, setWorkforceDemoPhase] = useState<WorkforceDemoPhase>("idle");
   const [workforceDemoRunning, setWorkforceDemoRunning] = useState(false);
@@ -120,7 +120,7 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
       setGmailNotice({
         tone: "success",
         message: "Gmail connected successfully. Syncing emails…",
-        suggestion: "Your dashboard will update in a few seconds.",
+        suggestion: "Your Organization Workspace will update in a few seconds.",
         requestId,
       });
       fetch("/api/reality/gmail-sync", {
@@ -133,7 +133,7 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
           setGmailNotice({
             tone: "success",
             message: "Gmail emails imported.",
-            suggestion: "Open Executive Brief or Timeline to see live updates.",
+            suggestion: "Open Organization Workspace to see live updates.",
             requestId,
           });
         })
@@ -195,7 +195,7 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
   const runWorkforceDemo = useCallback(() => {
     resetWorkforceDemo();
     setWorkforceDemoRunning(true);
-    setView("workforce");
+    setView("overview");
     setPerspective("sales");
 
     const t1 = window.setTimeout(() => {

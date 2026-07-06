@@ -1,7 +1,7 @@
 {
   "slogan": {
-    "core": "IDA shows leaders their entire organization — so they can decide with confidence.",
-    "workforce": "Your Organization. Your Digital Workforce. One Intelligence."
+    "core": "One Organization. Humans and AI Working Together.",
+    "workforce": "One Organization. Humans and AI Working Together."
   },
   "modes": {
     "presentation": "Presentation",
@@ -10,25 +10,37 @@
     "internalHint": "Bahasa Indonesia · Tim internal"
   },
   "nav": {
-    "workforce": "Digital Workforce",
-    "import": "Import Data",
-    "whyIda": "Why IDA?",
-    "executiveBrief": "Executive Brief",
+    "story": "Your organization",
+    "overview": "Overview",
     "organization": "Organization",
+    "people": "People",
     "accounts": "Accounts",
-    "stakeholders": "Stakeholders",
-    "initiatives": "Initiatives",
-    "timeline": "Timeline",
+    "projects": "Projects",
     "knowledge": "Knowledge",
-    "roadmap": "Roadmap",
+    "workforce": "Digital Workforce",
+    "askIda": "Ask IDA",
+    "timeline": "Timeline",
+    "import": "Import Data",
     "search": "Search",
     "developer": "Debug Dashboard",
-    "platform": "Platform",
     "developerSection": "Developer"
+  },
+  "workspace": {
+    "eyebrow": "Organization Workspace",
+    "title": "Your organization, in one place",
+    "description": "Humans, Digital Workforce, and Organization Memory — working together in one operating system.",
+    "briefTitle": "What needs attention today",
+    "organizationTitle": "How everything connects",
+    "workforceTitle": "AI agents alongside your team",
+    "askTitle": "Ask anything about your organization",
+    "askDescription": "Questions grounded in Organization Memory — accounts, people, projects, and decisions.",
+    "askPageTitle": "Ask IDA anything",
+    "timelineTitle": "Recent organizational activity",
+    "viewFullTimeline": "View full timeline"
   },
   "topbar": {
     "title": "IDA Enterprise",
-    "subtitle": "Organizational intelligence for leaders",
+    "subtitle": "The organizational operating system",
     "ready": "Ready",
     "searchPlaceholder": "Search accounts, knowledge, initiatives…",
     "searchShort": "Search",
@@ -63,10 +75,10 @@
     "openEntity": "Open {entity} →",
     "emptyCategory": "No items in this category",
     "emptyCategoryDesc": "Organizational knowledge is current — nothing flagged here today.",
-    "footerStory": "The demo story — Brief → PLN account → Knowledge → Organization map.",
+    "footerStory": "Explore the organization — People → Accounts → Projects → Knowledge.",
     "links": {
+      "overview": "Organization Workspace",
       "workforce": "Digital Workforce",
-      "whyIda": "Why IDA?",
       "pln": "PLN Indonesia Power",
       "organization": "Organization map",
       "knowledge": "Organizational knowledge"
@@ -95,10 +107,10 @@
   "import": {
     "eyebrow": "Reality First",
     "title": "Connect your organization",
-    "description": "Start by importing real emails and documents — the dashboard updates in under 2 minutes.",
-    "afterImport": "After import → check Executive Brief and Timeline for live updates.",
+    "description": "Start by importing real emails and documents — your Organization Workspace updates in under 2 minutes.",
+    "afterImport": "After import → return to Organization Workspace for live updates.",
     "links": {
-      "brief": "Executive Brief",
+      "overview": "Organization Workspace",
       "timeline": "Timeline"
     }
   },
@@ -106,6 +118,6 @@
     "lastActivity": "Last activity"
   },
   "sidebar": {
-    "footer": "Your Organization. Your Digital Workforce. One Intelligence."
+    "footer": "One Organization. Humans and AI Working Together."
   }
 }

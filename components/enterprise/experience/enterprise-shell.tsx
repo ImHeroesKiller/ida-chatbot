@@ -19,6 +19,8 @@ import { ProjectsView } from "./views/projects-view";
 import { TimelineView } from "./views/timeline-view";
 import { MemoryView } from "./views/memory-view";
 import { RoadmapView } from "./views/roadmap-view";
+import { OverviewView } from "./views/overview-view";
+import { AskIdaView } from "./views/ask-ida-view";
 import { CoreMessageBanner } from "./core-message-banner";
 import { InvestorFaqModal } from "./investor-faq-modal";
 import { TrustSignals } from "./trust-signals";
@@ -31,6 +33,10 @@ function ActiveView() {
 
   const content = (() => {
     switch (view) {
+      case "overview":
+        return <OverviewView />;
+      case "ask-ida":
+        return <AskIdaView />;
       case "workforce":
         return <WorkforceView />;
       case "import":
@@ -54,11 +60,11 @@ function ActiveView() {
       case "roadmap":
         return <RoadmapView />;
       case "search":
-        return <ExecutiveBriefView />;
+        return <OverviewView />;
       case "developer":
         return <DebugDashboardView />;
       default:
-        return <ExecutiveBriefView />;
+        return <OverviewView />;
     }
   })();
 
@@ -82,6 +88,9 @@ function ActiveView() {
 }
 
 export function EnterpriseShell() {
+  const { view } = useEnterprise();
+  const hideBanner = view === "overview";
+
   return (
     <div className="enterprise-demo enterprise-demo-bg flex h-dvh max-h-dvh flex-col overflow-hidden font-sans text-foreground">
       <EnterpriseTopbar />
@@ -89,11 +98,13 @@ export function EnterpriseShell() {
         <EnterpriseSidebar />
         <main className="enterprise-demo-scroll flex-1 px-4 py-6 sm:px-8 sm:py-8 lg:px-10">
           <div className="mx-auto max-w-6xl">
-            <CoreMessageBanner />
+            {!hideBanner ? <CoreMessageBanner /> : null}
             <ActiveView />
-            <div className="mt-10">
-              <TrustSignals compact />
-            </div>
+            {view !== "overview" ? (
+              <div className="mt-10">
+                <TrustSignals compact />
+              </div>
+            ) : null}
           </div>
         </main>
       </div>

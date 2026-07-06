@@ -61,7 +61,7 @@ export function ExecutiveBriefView() {
         title={perspectiveConfig.greeting}
         description={
           isCeo
-            ? `${t("enterprise", "slogan.workforce")} ${t("enterprise", "brief.descriptionCeo")}`
+            ? `${t("enterprise", "slogan.core")} ${t("enterprise", "brief.descriptionCeo")}`
             : perspectiveConfig.description
         }
         action={
@@ -167,10 +167,10 @@ export function ExecutiveBriefView() {
             </button>
             <button
               type="button"
-              onClick={() => navigate({ view: "why-ida" })}
+              onClick={() => navigate({ view: "overview" })}
               className="enterprise-text-link inline-flex items-center gap-2 text-sm font-medium"
             >
-              {t("enterprise", "brief.links.whyIda")} <ArrowRight className="size-4" />
+              {t("enterprise", "brief.links.overview")} <ArrowRight className="size-4" />
             </button>
             <button
               type="button"

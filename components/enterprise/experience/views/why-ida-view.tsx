@@ -61,10 +61,10 @@ export function WhyIdaView() {
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={() => navigate({ view: "executive-brief" })}
+              onClick={() => navigate({ view: "overview" })}
               className="enterprise-text-link inline-flex items-center gap-2 text-sm font-medium"
             >
-              {t("views", "whyIda.links.brief")} <ArrowRight className="size-4" />
+              {t("enterprise", "brief.links.overview")} <ArrowRight className="size-4" />
             </button>
             <button
               type="button"

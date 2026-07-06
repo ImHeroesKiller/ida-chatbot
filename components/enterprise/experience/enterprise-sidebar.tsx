@@ -3,14 +3,12 @@
 import {
   Brain,
   Building2,
-  Calendar,
   FolderKanban,
-  LayoutDashboard,
   Bot,
   Import,
-  Lightbulb,
+  LayoutGrid,
+  MessageCircle,
   Network,
-  Map,
   Search,
   Settings2,
   Users,
@@ -23,19 +21,20 @@ import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-loc
 import { useEnterprise } from "./enterprise-context";
 import type { EnterpriseView } from "./types";
 
-const NAV: Array<{ id: EnterpriseView; labelKey: string; icon: typeof LayoutDashboard }> = [
-  { id: "workforce", labelKey: "nav.workforce", icon: Bot },
-  { id: "import", labelKey: "nav.import", icon: Import },
-  { id: "why-ida", labelKey: "nav.whyIda", icon: Lightbulb },
-  { id: "executive-brief", labelKey: "nav.executiveBrief", icon: LayoutDashboard },
+const STORY_NAV: Array<{ id: EnterpriseView; labelKey: string; icon: typeof LayoutGrid }> = [
+  { id: "overview", labelKey: "nav.overview", icon: LayoutGrid },
   { id: "organization", labelKey: "nav.organization", icon: Network },
+  { id: "people", labelKey: "nav.people", icon: Users },
   { id: "companies", labelKey: "nav.accounts", icon: Building2 },
-  { id: "people", labelKey: "nav.stakeholders", icon: Users },
-  { id: "projects", labelKey: "nav.initiatives", icon: FolderKanban },
-  { id: "timeline", labelKey: "nav.timeline", icon: Calendar },
+  { id: "projects", labelKey: "nav.projects", icon: FolderKanban },
   { id: "memory", labelKey: "nav.knowledge", icon: Brain },
-  { id: "roadmap", labelKey: "nav.roadmap", icon: Map },
-  { id: "search", labelKey: "nav.search", icon: Search },
+  { id: "workforce", labelKey: "nav.workforce", icon: Bot },
+  { id: "ask-ida", labelKey: "nav.askIda", icon: MessageCircle },
+];
+
+const DEV_NAV: Array<{ id: EnterpriseView; labelKey: string; icon: typeof Settings2 }> = [
+  { id: "import", labelKey: "nav.import", icon: Import },
+  { id: "developer", labelKey: "nav.developer", icon: Settings2 },
 ];
 
 type EnterpriseSidebarProps = {
@@ -51,11 +50,7 @@ export function EnterpriseSidebar({
   const { t } = useEnterpriseLocale();
 
   function handleNav(viewId: EnterpriseView) {
-    if (viewId === "search") {
-      openSearch();
-    } else {
-      navigate({ view: viewId });
-    }
+    navigate({ view: viewId });
     onNavigate?.();
   }
 
@@ -68,9 +63,9 @@ export function EnterpriseSidebar({
     >
       <nav className="enterprise-demo-scroll flex flex-1 flex-col gap-1 p-4">
         <p className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-          {t("enterprise", "nav.platform")}
+          {t("enterprise", "nav.story")}
         </p>
-        {NAV.map((item) => {
+        {STORY_NAV.map((item) => {
           const Icon = item.icon;
           const active = view === item.id;
           return (
@@ -90,22 +85,42 @@ export function EnterpriseSidebar({
             </button>
           );
         })}
+
+        <button
+          type="button"
+          onClick={() => {
+            openSearch();
+            onNavigate?.();
+          }}
+          className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-muted-foreground transition-all duration-200 hover:bg-muted/50 hover:text-foreground"
+        >
+          <Search className="size-4 shrink-0" strokeWidth={1.75} />
+          {t("enterprise", "nav.search")}
+        </button>
+
         <p className="mb-3 mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
           {t("enterprise", "nav.developerSection")}
         </p>
-        <button
-          type="button"
-          onClick={() => handleNav("developer")}
-          className={cn(
-            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium transition-all duration-200",
-            view === "developer"
-              ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/15"
-              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:translate-x-0.5",
-          )}
-        >
-          <Settings2 className="size-4 shrink-0" strokeWidth={1.75} />
-          {t("enterprise", "nav.developer")}
-        </button>
+        {DEV_NAV.map((item) => {
+          const Icon = item.icon;
+          const active = view === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => handleNav(item.id)}
+              className={cn(
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium transition-all duration-200",
+                active
+                  ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/15"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:translate-x-0.5",
+              )}
+            >
+              <Icon className="size-4 shrink-0" strokeWidth={1.75} />
+              {t("enterprise", item.labelKey)}
+            </button>
+          );
+        })}
       </nav>
       <div className="border-t border-border/40 p-4">
         <p className="text-[10px] leading-relaxed text-muted-foreground">

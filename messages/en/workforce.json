@@ -1,6 +1,8 @@
 {
-  "slogan": "Your Organization. Your Digital Workforce. One Intelligence.",
-  "intro": "Humans and Digital Workforce share the same Organization Memory. Switch perspective — see what each role needs. One intelligence, many lenses.",
+  "slogan": "One Organization. Humans and AI Working Together.",
+  "intro": "Humans and Digital Workforce share the same Organization Memory. Switch perspective — see what each role needs.",
+  "hubDescription": "Governed AI agents work alongside your team — reading the same Organization Memory, surfacing insights to every role.",
+  "hubFootnote": "Active for {role} perspective · same memory, different lens",
   "playDemo": "Play 60s demo",
   "demoRunning": "Demo running…",
   "reset": "Reset",
@@ -15,6 +17,7 @@
   "footerReady": "Switch to Executive Brief as CEO to see the workforce-generated insight.",
   "footerIdle": "Run the demo — watch Proposal Analyst work, then see the CEO brief update.",
   "links": {
+    "overview": "Organization Workspace",
     "brief": "Executive Brief",
     "memory": "Organization Memory"
   },

@@ -67,10 +67,10 @@ export function ImportView() {
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={() => navigate({ view: "executive-brief" })}
+              onClick={() => navigate({ view: "overview" })}
               className="enterprise-text-link inline-flex items-center gap-2 text-sm font-medium"
             >
-              {t("enterprise", "import.links.brief")} <ArrowRight className="size-4" />
+              {t("enterprise", "import.links.overview")} <ArrowRight className="size-4" />
             </button>
             <button
               type="button"

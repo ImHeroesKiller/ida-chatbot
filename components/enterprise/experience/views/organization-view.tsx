@@ -33,7 +33,7 @@ export function OrganizationView() {
       <PageHeader
         eyebrow={t("views", "organization.eyebrow")}
         title={t("views", "organization.title")}
-        description={`${t("enterprise", "slogan.core")} ${t("views", "organization.description")}`}
+        description={`${t("enterprise", "slogan.core")} · ${t("views", "organization.description")}`}
       />
       <LivingOrganizationMap
         nodes={MAP_NODES}

@@ -110,6 +110,25 @@ type ViewSkeletonProps = {
 
 export function ViewSkeleton({ view }: ViewSkeletonProps) {
   switch (view) {
+    case "overview":
+      return (
+        <div className="space-y-10">
+          <HeaderSkeleton />
+          <BriefSkeleton />
+          <MapSkeleton />
+          <CardGridSkeleton count={3} />
+        </div>
+      );
+    case "ask-ida":
+      return (
+        <div>
+          <HeaderSkeleton />
+          <div className="enterprise-card-premium rounded-2xl p-7">
+            <Bone className="mb-4 h-10 w-full" />
+            <Bone className="h-24 w-full" />
+          </div>
+        </div>
+      );
     case "import":
     case "why-ida":
     case "roadmap":

@@ -34,7 +34,7 @@ export function MemoryView() {
       <PageHeader
         eyebrow={t("enterprise", "memory.eyebrow")}
         title={t("enterprise", "memory.title")}
-        description={t("enterprise", "memory.description")}
+        description={`${t("enterprise", "slogan.core")} · ${t("enterprise", "memory.description")}`}
       />
 
       <FadeIn className="mb-6 flex flex-wrap gap-2">

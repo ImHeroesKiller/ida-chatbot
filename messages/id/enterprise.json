@@ -1,7 +1,7 @@
 {
   "slogan": {
-    "core": "IDA bantu pemimpin melihat seluruh organisasi — supaya keputusan bisa dibuat dengan yakin.",
-    "workforce": "Your Organization. Your Digital Workforce. One Intelligence."
+    "core": "One Organization. Humans and AI Working Together.",
+    "workforce": "One Organization. Humans and AI Working Together."
   },
   "modes": {
     "presentation": "Presentation",
@@ -10,25 +10,37 @@
     "internalHint": "Bahasa Indonesia · tim internal"
   },
   "nav": {
-    "workforce": "Digital Workforce",
-    "import": "Import Data",
-    "whyIda": "Why IDA?",
-    "executiveBrief": "Executive Brief",
+    "story": "Organisasi Anda",
+    "overview": "Overview",
     "organization": "Organization",
+    "people": "People",
     "accounts": "Accounts",
-    "stakeholders": "Stakeholders",
-    "initiatives": "Initiatives",
-    "timeline": "Timeline",
+    "projects": "Projects",
     "knowledge": "Memory",
-    "roadmap": "Roadmap",
+    "workforce": "Digital Workforce",
+    "askIda": "Ask IDA",
+    "timeline": "Timeline",
+    "import": "Import Data",
     "search": "Search",
     "developer": "Debug Dashboard",
-    "platform": "Platform",
     "developerSection": "Developer"
+  },
+  "workspace": {
+    "eyebrow": "Organization Workspace",
+    "title": "Seluruh organisasi Anda, dalam satu tempat",
+    "description": "Manusia, Digital Workforce, dan Organization Memory — bekerja bersama dalam satu operating system.",
+    "briefTitle": "Yang perlu perhatian hari ini",
+    "organizationTitle": "Bagaimana semuanya terhubung",
+    "workforceTitle": "AI agent di samping tim Anda",
+    "askTitle": "Tanya apa saja tentang organisasi",
+    "askDescription": "Pertanyaan berbasis Organization Memory — account, orang, project, dan decision.",
+    "askPageTitle": "Tanya IDA apa saja",
+    "timelineTitle": "Aktivitas organisasi terbaru",
+    "viewFullTimeline": "Lihat timeline lengkap"
   },
   "topbar": {
     "title": "IDA Enterprise",
-    "subtitle": "Organizational intelligence untuk pemimpin",
+    "subtitle": "Organizational operating system",
     "ready": "Ready",
     "searchPlaceholder": "Cari account, memory, initiative…",
     "searchShort": "Search",
@@ -64,10 +76,10 @@
     "openEntity": "Buka {entity} →",
     "emptyCategory": "Belum ada item di kategori ini",
     "emptyCategoryDesc": "Organization Memory sudah up to date — tidak ada yang perlu ditandai hari ini.",
-    "footerStory": "Alur demo — Executive Brief → Account PLN → Memory → Organization map.",
+    "footerStory": "Jelajahi organisasi — People → Accounts → Projects → Memory.",
     "links": {
+      "overview": "Organization Workspace",
       "workforce": "Digital Workforce",
-      "whyIda": "Why IDA?",
       "pln": "PLN Indonesia Power",
       "organization": "Organization map",
       "knowledge": "Organization Memory"
@@ -96,10 +108,10 @@
   "import": {
     "eyebrow": "Reality First",
     "title": "Connect organisasi Anda",
-    "description": "Mulai dari import email dan dokumen — dashboard update dalam kurang dari 2 menit.",
-    "afterImport": "Setelah import → cek Executive Brief dan Timeline untuk update live.",
+    "description": "Mulai dari import email dan dokumen — Organization Workspace ter-update dalam kurang dari 2 menit.",
+    "afterImport": "Setelah import → kembali ke Organization Workspace untuk update live.",
     "links": {
-      "brief": "Executive Brief",
+      "overview": "Organization Workspace",
       "timeline": "Timeline"
     }
   },
@@ -117,6 +129,6 @@
     "engagements": "Engagement ter-index"
   },
   "sidebar": {
-    "footer": "Your Organization. Your Digital Workforce. One Intelligence."
+    "footer": "One Organization. Humans and AI Working Together."
   }
 }

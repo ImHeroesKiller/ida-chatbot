@@ -1,6 +1,8 @@
 {
-  "slogan": "Your Organization. Your Digital Workforce. One Intelligence.",
-  "intro": "Manusia dan Digital Workforce pakai Organization Memory yang sama. Ganti perspective — lihat apa yang dibutuhkan tiap role. Satu intelligence, banyak sudut pandang.",
+  "slogan": "One Organization. Humans and AI Working Together.",
+  "intro": "Manusia dan Digital Workforce pakai Organization Memory yang sama. Ganti perspective — lihat apa yang dibutuhkan tiap role.",
+  "hubDescription": "AI agent ter-govern bekerja di samping tim Anda — membaca Organization Memory yang sama, menampilkan insight ke setiap role.",
+  "hubFootnote": "Aktif untuk perspective {role} · memory sama, sudut pandang beda",
   "playDemo": "Play demo 60 detik",
   "demoRunning": "Demo berjalan…",
   "reset": "Reset",
@@ -15,6 +17,7 @@
   "footerReady": "Buka Executive Brief sebagai CEO untuk lihat insight dari Digital Workforce.",
   "footerIdle": "Jalankan demo — lihat Proposal Analyst bekerja, lalu Executive Brief CEO ke-update.",
   "links": {
+    "overview": "Organization Workspace",
     "brief": "Executive Brief",
     "memory": "Organization Memory"
   },

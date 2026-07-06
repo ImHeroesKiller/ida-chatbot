@@ -84,7 +84,7 @@ export function WorkforceView() {
               {tv("digitalWorkforce")}
             </p>
             <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
-              {t("workforce", "slogan")}
+              {t("enterprise", "slogan.core")}
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
               {t("workforce", "intro")}
@@ -361,10 +361,10 @@ export function WorkforceView() {
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={() => navigate({ view: "executive-brief" })}
+              onClick={() => navigate({ view: "overview" })}
               className="enterprise-text-link inline-flex items-center gap-2 text-sm font-medium"
             >
-              {t("workforce", "links.brief")} <ArrowRight className="size-4" />
+              {t("workforce", "links.overview")} <ArrowRight className="size-4" />
             </button>
             <button
               type="button"
