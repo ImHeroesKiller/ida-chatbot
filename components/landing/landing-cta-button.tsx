@@ -51,13 +51,7 @@ export function LandingCtaButton({
     setSigningIn(true);
 
     try {
-      // Fix: Use proper redirectTo pointing to our app, not Supabase
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectHref)}`;
-      
-      await signInWithGoogle({ 
-        redirectTo,
-        scopes: 'email profile' 
-      });
+      await signInWithGoogle({ next: redirectHref });
     } catch (error) {
       console.error("[IDA login]", error);
       toast.error(copy.authError);
