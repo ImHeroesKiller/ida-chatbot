@@ -1,88 +1,25 @@
-import type { MetadataRoute } from "next";
+import { MetadataRoute } from 'next';
+import { getMessages } from 'next-intl/server';
 
-import { BRAND } from "@/lib/brand";
-import idMessages from "@/messages/id.json";
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const idMessages = await getMessages({ locale: 'id' });
 
-export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "IDA — Asisten AI Indonesia",
-    short_name: BRAND.shortName,
-    description: idMessages.Seo.description,
+    short_name: "IDA",
+    description: idMessages.Seo?.description || "Enterprise Decision & Digital Workforce Operating System",
     start_url: "/",
     scope: "/",
     id: "/",
-    display: "standalone",
-    display_override: ["standalone", "minimal-ui", "browser"],
-    background_color: BRAND.backgroundColor,
-    theme_color: BRAND.themeColor,
-    orientation: "portrait-primary",
-    lang: "id",
-    dir: "ltr",
-    categories: ["productivity", "business", "utilities"],
     icons: [
       {
-        src: "/ida-icon-192.png",
+        src: "/icon.png",
         sizes: "192x192",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: "/ida-icon-maskable-192.png",
-        sizes: "192x192",
-        type: "image/png",
-        purpose: "maskable",
-      },
-      {
-        src: "/ida-icon-512.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: "/ida-icon-maskable-512.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "maskable",
-      },
-      {
-        src: "/ida-logo.png",
-        sizes: "528x530",
-        type: "image/png",
-        purpose: "any",
-      },
+        type: "image/png"
+      }
     ],
-    screenshots: [
-      {
-        src: "/pwa-screenshot-narrow.png",
-        sizes: "540x720",
-        type: "image/png",
-        form_factor: "narrow",
-        label: "Tampilan chat IDA di ponsel",
-      },
-      {
-        src: "/pwa-screenshot-wide.png",
-        sizes: "1280x720",
-        type: "image/png",
-        form_factor: "wide",
-        label: "Tampilan IDA di desktop",
-      },
-    ],
-    shortcuts: [
-      {
-        name: "Mulai Chat Gratis",
-        short_name: "Chat",
-        description: "Buka percakapan IDA",
-        url: "/chat",
-        icons: [{ src: "/ida-icon-192.png", sizes: "192x192", type: "image/png" }],
-      },
-      {
-        name: "Akun",
-        short_name: "Akun",
-        description: "Kelola profil pengguna",
-        url: "/account",
-        icons: [{ src: "/ida-icon-192.png", sizes: "192x192", type: "image/png" }],
-      },
-    ],
-    prefer_related_applications: false,
+    theme_color: "#2563EB",
+    background_color: "#F8FAFC",
+    display: "standalone"
   };
 }
