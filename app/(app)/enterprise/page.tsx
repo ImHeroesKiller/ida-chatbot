@@ -1,5 +1,6 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Users, BarChart3, Shield, Zap } from "lucide-react";
 
 export default function EnterprisePage() {
@@ -84,7 +85,7 @@ export default function EnterprisePage() {
             Halaman Enterprise sedang dalam pengembangan. Fitur-fitur di atas akan segera tersedia.
           </p>
           <Button size="lg" asChild>
-            <a href="/chat">Kembali ke Chat</a>
+            <Link href="/chat">Kembali ke Chat</Link>
           </Button>
         </div>
       </div>
