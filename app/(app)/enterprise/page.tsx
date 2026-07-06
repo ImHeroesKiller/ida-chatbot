@@ -84,9 +84,12 @@ export default function EnterprisePage() {
           <p className="text-muted-foreground mb-4">
             Halaman Enterprise sedang dalam pengembangan. Fitur-fitur di atas akan segera tersedia.
           </p>
-          <Button size="lg" asChild>
-            <Link href="/chat">Kembali ke Chat</Link>
-          </Button>
+          <Link
+            href="/chat"
+            className="inline-flex items-center justify-center rounded-lg bg-primary px-8 py-3 text-lg font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Kembali ke Chat
+          </Link>
         </div>
       </div>
     </div>
