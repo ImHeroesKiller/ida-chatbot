@@ -15,10 +15,6 @@ export default function DemoPage() {
     projects: 5
   });
 
-  const updateContext = (node: any) => {
-    setSelectedNode(node);
-  };
-
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans">
       {/* Premium Header */}
