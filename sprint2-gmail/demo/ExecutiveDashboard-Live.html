@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDA Executive Dashboard • Live</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .font-display { font-family: 'Space Grotesk', 'Inter', sans-serif; font-weight: 600; }
+        .dashboard-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .nav-item { transition: all 0.1s ease; }
+        .nav-item.active { background-color: #f1f5f9; font-weight: 600; }
+        .section-header { font-size: 12px; letter-spacing: -.3px; font-weight: 600; color: #64748b; }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div class="flex h-screen overflow-hidden">
+        <div class="w-64 bg-white border-r border-slate-200 flex flex-col">
+            <div class="px-6 py-5 border-b">
+                <div class="flex items-center gap-x-3">
+                    <div class="w-9 h-9 bg-[#0A66C2] rounded-2xl flex items-center justify-center">
+                        <span class="text-white font-bold text-2xl">I</span>
+                    </div>
+                    <span class="font-display text-2xl font-semibold tracking-tighter">IDA</span>
+                </div>
+                <div class="text-[10px] text-slate-500 pl-1">Enterprise Decision OS</div>
+            </div>
+
+            <div class="px-3 py-4 flex-1">
+                <div class="space-y-1 text-sm">
+                    <a href="#" class="nav-item active flex items-center gap-x-3 px-4 py-2.5 rounded-3xl"><i class="fa-solid fa-chart-line w-4"></i><span>Overview</span></a>
+                    <a href="#" class="nav-item flex items-center gap-x-3 px-4 py-2.5 rounded-3xl text-slate-600"><i class="fa-solid fa-envelope w-4"></i><span>Communications</span></a>
+                    <a href="#" class="nav-item flex items-center gap-x-3 px-4 py-2.5 rounded-3xl text-slate-600"><i class="fa-solid fa-tasks w-4"></i><span>Projects</span></a>
+                    <a href="#" class="nav-item flex items-center gap-x-3 px-4 py-2.5 rounded-3xl text-slate-600"><i class="fa-solid fa-handshake w-4"></i><span>Commercial</span></a>
+                    <a href="#" class="nav-item flex items-center gap-x-3 px-4 py-2.5 rounded-3xl text-slate-600"><i class="fa-solid fa-brain w-4"></i><span>Memory</span></a>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t text-sm">
+                <div class="flex items-center gap-x-3">
+                    <img src="https://i.pravatar.cc/32?img=68" class="w-8 h-8 rounded-2xl">
+                    <div>
+                        <div class="font-medium">Ary Wibowo</div>
+                        <div class="text-xs text-slate-500">Founder</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 flex flex-col">
+            <div class="h-14 bg-white border-b px-8 flex items-center justify-between">
+                <div class="flex items-center gap-x-4">
+                    <span class="text-sm text-slate-500">Good morning, <span class="font-semibold text-slate-900">Ary</span></span>
+                    
+                    <div id="gmail-status" class="flex items-center gap-x-2 px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-3xl cursor-pointer" onclick="showConnectModal()">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span id="status-text">Connected to Gmail</span>
+                        <span id="last-sync" class="text-emerald-600/70">• 2 min ago</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-x-3">
+                    <button onclick="syncGmail()" class="flex items-center gap-x-2 px-5 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-sm font-medium rounded-3xl">
+                        <i class="fa-solid fa-sync mr-1.5"></i>
+                        <span>Sync Now</span>
+                    </button>
+                    
+                    <div class="relative w-72">
+                        <input id="globalSearch" type="text" placeholder="Search anything..." class="w-full bg-slate-100 rounded-3xl py-2 pl-10 text-sm focus:outline-none" onkeyup="if (event.key === 'Enter') globalSearch()">
+                        <i class="fa-solid fa-search absolute left-4 top-3 text-slate-400 text-sm"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-auto p-8">
+                <div id="overview-section">
+                    <h1 class="font-display text-4xl tracking-tighter font-semibold mb-1">Today Overview</h1>
+                    <p class="text-slate-500 text-sm mb-8">Monday, 6 July 2026 • Jakarta</p>
+
+                    <div class="mb-8">
+                        <div class="flex items-center gap-x-2 mb-3">
+                            <i class="fa-solid fa-exclamation-triangle text-amber-500"></i>
+                            <span class="section-header">ISSUES NEED ATTENTION</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="dashboard-card bg-white border border-amber-200 rounded-3xl p-5">
+                                <div class="font-semibold">PLN Invoice jatuh tempo besok</div>
+                                <div class="text-sm text-slate-600 mt-1">Rp 450.000 • Due 7 Jul</div>
+                                <button onclick="showPLNDetail()" class="mt-3 text-xs px-4 py-1.5 bg-amber-600 text-white rounded-3xl">Review</button>
+                            </div>
+                            <div class="dashboard-card bg-white border border-red-200 rounded-3xl p-5">
+                                <div class="font-semibold">Proposal Mayora belum dibalas 5 hari</div>
+                                <button onclick="alert('Follow up flow will be added in Sprint 3')" class="mt-3 text-xs px-4 py-1.5 bg-red-600 text-white rounded-3xl">Follow up</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <div class="section-header mb-3">TODAY'S ACTIVITIES</div>
+                        <div class="grid grid-cols-4 gap-4" id="metrics-grid"></div>
+                    </div>
+
+                    <div>
+                        <div class="section-header mb-3">ORGANIZATION SIGNALS</div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="dashboard-card bg-white border rounded-3xl p-5 flex gap-x-3">
+                                <div class="mt-1"><div class="w-2 h-2 bg-yellow-500 rounded-full"></div></div>
+                                <div class="text-sm">PLN communication increased <span class="text-xs text-slate-500">(+340%)</span></div>
+                            </div>
+                            <div class="dashboard-card bg-white border rounded-3xl p-5 flex gap-x-3">
+                                <div class="mt-1"><div class="w-2 h-2 bg-red-500 rounded-full"></div></div>
+                                <div class="text-sm">Customer complaint detected</div>
+                            </div>
+                            <div class="dashboard-card bg-white border rounded-3xl p-5 flex gap-x-3">
+                                <div class="mt-1"><div class="w-2 h-2 bg-emerald-500 rounded-full"></div></div>
+                                <div class="text-sm">Proposal approved</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-80 border-l bg-white flex flex-col">
+            <div class="p-4 border-b font-semibold text-sm flex items-center gap-x-2">
+                <i class="fa-solid fa-comments text-[#0A66C2]"></i>
+                <span>Chat with IDA</span>
+            </div>
+            <div id="chatMessages" class="flex-1 p-4 overflow-auto text-sm space-y-4"></div>
+            <div class="p-4 border-t">
+                <div class="flex gap-x-2">
+                    <input id="chatInput" class="flex-1 border rounded-3xl px-4 py-2 text-sm" placeholder="Ask anything..." onkeyup="if(event.key==='Enter') sendChat()">
+                    <button onclick="sendChat()" class="px-5 bg-[#0A66C2] text-white rounded-3xl text-sm">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="connect-modal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div class="bg-white rounded-3xl w-full max-w-md p-6">
+            <h3 class="font-semibold text-xl mb-1">Connect Gmail</h3>
+            <p class="text-sm text-slate-600 mb-6">IDA will only read your emails. We never send or delete anything.</p>
+            
+            <div class="space-y-3">
+                <button onclick="connectGmail()" class="w-full flex items-center justify-center gap-x-3 bg-[#0A66C2] text-white py-3 rounded-3xl font-medium">
+                    <i class="fa-brands fa-google"></i>
+                    <span>Continue with Google</span>
+                </button>
+                <button onclick="hideConnectModal()" class="w-full py-3 text-sm text-slate-500">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isConnected = false;
+        let currentData = [];
+
+        function updateGmailStatus(connected, lastSync = null) {
+            const statusEl = document.getElementById('gmail-status');
+            const textEl = document.getElementById('status-text');
+            const timeEl = document.getElementById('last-sync');
+
+            if (connected) {
+                statusEl.className = 'flex items-center gap-x-2 px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-3xl cursor-pointer';
+                textEl.textContent = 'Connected to Gmail';
+                timeEl.textContent = lastSync ? `• ${lastSync}` : '• Just now';
+                isConnected = true;
+            } else {
+                statusEl.className = 'flex items-center gap-x-2 px-3 py-1 bg-slate-200 text-slate-600 text-xs font-medium rounded-3xl cursor-pointer';
+                textEl.textContent = 'Connect Gmail';
+                timeEl.textContent = '';
+                isConnected = false;
+            }
+        }
+
+        function showConnectModal() {
+            if (!isConnected) {
+                document.getElementById('connect-modal').classList.remove('hidden');
+            } else {
+                if (confirm('Disconnect Gmail?')) {
+                    updateGmailStatus(false);
+                    localStorage.removeItem('gmail_connected');
+                }
+            }
+        }
+
+        function hideConnectModal() {
+            document.getElementById('connect-modal').classList.add('hidden');
+        }
+
+        async function connectGmail() {
+            hideConnectModal();
+            
+            const loading = document.createElement('div');
+            loading.className = 'fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-3xl text-sm flex items-center gap-x-3';
+            loading.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Connecting to Gmail...</span>`;
+            document.body.appendChild(loading);
+
+            setTimeout(() => {
+                loading.remove();
+                updateGmailStatus(true, 'Just now');
+                localStorage.setItem('gmail_connected', 'true');
+                
+                setTimeout(() => {
+                    syncGmail(true);
+                }, 800);
+            }, 1400);
+        }
+
+        async function syncGmail(auto = false) {
+            if (!isConnected && !auto) {
+                alert('Please connect Gmail first');
+                return;
+            }
+
+            const btns = document.querySelectorAll('button');
+            btns.forEach(b => b.disabled = true);
+
+            const metricsGrid = document.getElementById('metrics-grid');
+            metricsGrid.innerHTML = `<div class="col-span-4 text-center py-8 text-slate-400">Syncing emails...</div>`;
+
+            setTimeout(() => {
+                currentData = [
+                    { id: 1, type: 'Invoice', company: 'PLN', amount: 450000, title: 'Tagihan PLN Juli' },
+                    { id: 2, type: 'Meeting', company: 'PLN', title: 'Q3 Planning Call' },
+                    { id: 3, type: 'Proposal', company: 'Mayora', title: 'Partnership Proposal' },
+                    { id: 4, type: 'Invoice', company: 'Telkom', amount: 1250000, title: 'Internet Billing' },
+                ];
+
+                updateMetrics();
+                updateGmailStatus(true, 'Just now');
+
+                btns.forEach(b => b.disabled = false);
+                
+                if (!auto) {
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed bottom-6 right-6 bg-emerald-600 text-white px-5 py-3 rounded-3xl text-sm flex items-center gap-x-3 shadow-xl';
+                    toast.innerHTML = `<i class="fa-solid fa-check-double"></i> <span>${currentData.length} emails synced</span>`;
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 2200);
+                }
+            }, 1600);
+        }
+
+        function updateMetrics() {
+            const grid = document.getElementById('metrics-grid');
+            if (!currentData.length) {
+                grid.innerHTML = `<div class="col-span-4 text-center py-8 text-slate-400 text-sm">Connect Gmail to see live data</div>`;
+                return;
+            }
+
+            const counts = {
+                Email: currentData.length,
+                Meeting: currentData.filter(d => d.type === 'Meeting').length,
+                Invoice: currentData.filter(d => d.type === 'Invoice').length,
+                Proposal: currentData.filter(d => d.type === 'Proposal').length,
+            };
+
+            grid.innerHTML = `
+                <div class="dashboard-card bg-white border rounded-3xl p-5"><div class="text-3xl font-semibold">${counts.Email}</div><div class="text-sm text-slate-600">Emails</div></div>
+                <div class="dashboard-card bg-white border rounded-3xl p-5"><div class="text-3xl font-semibold">${counts.Meeting}</div><div class="text-sm text-slate-600">Meetings</div></div>
+                <div class="dashboard-card bg-white border rounded-3xl p-5"><div class="text-3xl font-semibold">${counts.Invoice}</div><div class="text-sm text-slate-600">Invoices</div></div>
+                <div class="dashboard-card bg-white border rounded-3xl p-5"><div class="text-3xl font-semibold">${counts.Proposal}</div><div class="text-sm text-slate-600">Proposals</div></div>
+            `;
+        }
+
+        function showPLNDetail() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/40 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-3xl w-full max-w-2xl p-6">
+                    <div class="flex justify-between mb-6">
+                        <div class="flex items-center gap-x-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-bolt text-blue-600 text-2xl"></i></div>
+                            <div><h2 class="font-display text-3xl">PLN</h2><div class="text-sm text-slate-500">12 communications this month</div></div>
+                        </div>
+                        <button onclick="this.closest('.fixed').remove()" class="text-2xl text-slate-400">&times;</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <div class="section-header mb-2">COMMUNICATIONS</div>
+                            <div class="text-4xl font-semibold">12</div>
+                            <div class="mt-4 space-y-3 text-sm">
+                                <div class="flex justify-between"><span>2 Jul</span> <span class="font-medium">Proposal</span></div>
+                                <div class="flex justify-between"><span>5 Jul</span> <span class="font-medium">Invoice</span></div>
+                                <div class="flex justify-between"><span>7 Jul</span> <span class="font-medium">Meeting</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="section-header mb-2">PEOPLE</div>
+                            <div class="space-y-2 text-sm">
+                                <div>Ary Wibowo (You)</div>
+                                <div>Pak Budi Santoso (Manager)</div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="section-header mb-2">INVOICES THIS MONTH</div>
+                                <div class="text-sm">• Rp 450.000 (Due tomorrow)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function globalSearch() {
+            const q = document.getElementById('globalSearch').value.toLowerCase();
+            if (q.includes('pln')) showPLNDetail();
+            else alert('Search result will open detail view (Sprint 2)');
+        }
+
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const container = document.getElementById('chatMessages');
+            container.innerHTML += `<div class="flex justify-end"><div class="bg-[#0A66C2] text-white px-4 py-2 rounded-3xl text-sm max-w-[75%]">${msg}</div></div>`;
+            container.scrollTop = container.scrollHeight;
+            input.value = '';
+
+            setTimeout(() => {
+                let reply = 'Saya sudah mencatat. Coba tanya tentang PLN atau Mayora.';
+                if (msg.toLowerCase().includes('pln')) {
+                    reply = `Dalam 7 hari terakhir dari PLN:<br>• 1 Invoice (Rp450.000)<br>• 1 Meeting (Q3 Planning)<br>• 1 Reminder`;
+                }
+                container.innerHTML += `<div class="flex"><div class="bg-slate-100 px-4 py-2 rounded-3xl text-sm max-w-[80%]">${reply}</div></div>`;
+                container.scrollTop = container.scrollHeight;
+            }, 700);
+        }
+
+        function initialize() {
+            if (localStorage.getItem('gmail_connected')) {
+                updateGmailStatus(true, '2 min ago');
+                setTimeout(() => {
+                    currentData = [
+                        { id: 1, type: 'Invoice', company: 'PLN', amount: 450000, title: 'Tagihan PLN Juli' },
+                        { id: 2, type: 'Meeting', company: 'PLN', title: 'Q3 Planning' },
+                    ];
+                    updateMetrics();
+                }, 300);
+            } else {
+                updateGmailStatus(false);
+                document.getElementById('metrics-grid').innerHTML = `<div class="col-span-4 text-center py-8 text-slate-400 text-sm">Connect Gmail to see live data</div>`;
+            }
+
+            setTimeout(() => {
+                const chat = document.getElementById('chatMessages');
+                chat.innerHTML = `<div class="flex"><div class="bg-slate-100 px-4 py-2.5 rounded-3xl text-sm">Good morning. Saya sudah menganalisis data Anda. Ada 2 hal yang perlu perhatian.</div></div>`;
+            }, 900);
+        }
+
+        window.onload = initialize;
+    </script>
+</body>
+</html>
