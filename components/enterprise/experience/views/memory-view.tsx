@@ -1,6 +1,6 @@
 "use client";
 
-import { Brain } from "lucide-react";
+import { Bot, Brain } from "lucide-react";
 
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
 import { FadeIn, Stagger, StaggerItem } from "@/components/enterprise/enterprise-motion";
@@ -72,10 +72,25 @@ export function MemoryView() {
                     : undefined
                 }
               >
-                <EnterpriseGlassCard padding="md" interactive className="h-full">
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                    {item.date}
-                  </p>
+                <EnterpriseGlassCard
+                  padding="md"
+                  interactive
+                  className={cn(
+                    "h-full",
+                    item.workforce && "ring-1 ring-violet-500/25",
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                      {item.date}
+                    </p>
+                    {item.workforce ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-700">
+                        <Bot className="size-2.5" />
+                        Workforce
+                      </span>
+                    ) : null}
+                  </div>
                   <h3 className="mt-1 text-sm font-semibold leading-snug">{item.title}</h3>
                   <p className="mt-1 text-xs text-muted-foreground">{item.subtitle}</p>
                 </EnterpriseGlassCard>

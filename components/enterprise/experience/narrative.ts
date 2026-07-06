@@ -90,6 +90,12 @@ export const INVESTOR_FAQ = [
     answer:
       "The demo uses realistic mock data modeled on Indonesian enterprise accounts (PLN Indonesia Power, Mayora, Telkom, Hutama Karya) to show how IDA works in production.",
   },
+  {
+    id: "workforce",
+    question: "What is the Digital Workforce?",
+    answer:
+      "Governed AI agents — Proposal Analyst, Contract Reviewer, Relationship Analyst — that work alongside humans using the same Organization Memory. Their output surfaces in Executive Briefs and Knowledge, visible to every role.",
+  },
 ] as const;
 
 export const PRODUCT_ROADMAP = {
@@ -108,10 +114,10 @@ export const PRODUCT_ROADMAP = {
     label: "Next",
     tagline: "Execution and integration — 6–12 months",
     items: [
-      { title: "Digital Workers", desc: "Governed agents for research, document prep, and operational coordination." },
+      { title: "Digital Workforce", desc: "Proposal Analyst, Contract Reviewer, Relationship Analyst — working alongside humans in demo." },
       { title: "Workflow Integration", desc: "Connect decisions to actions across ERP, CRM, and existing tools." },
       { title: "Live Data Connectors", desc: "Gmail, calendar, and document systems feeding organizational memory." },
-      { title: "Multi-Account Governance", desc: "Role-based views for executives, account teams, and program leads." },
+      { title: "Multi-Perspective Views", desc: "CEO, CFO, Sales, Project, HR — each role sees what matters, from one intelligence." },
     ],
   },
   future: {

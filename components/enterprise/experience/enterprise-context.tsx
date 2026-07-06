@@ -18,6 +18,8 @@ import type {
   EntityType,
   MemoryTab,
   NavigationTarget,
+  PerspectiveId,
+  WorkforceDemoPhase,
 } from "./types";
 
 type EnterpriseContextValue = {
@@ -44,12 +46,25 @@ type EnterpriseContextValue = {
     tone: "error" | "success";
   } | null;
   clearGmailNotice: () => void;
+  perspective: PerspectiveId;
+  setPerspective: (id: PerspectiveId) => void;
+  workforceDemoPhase: WorkforceDemoPhase;
+  workforceDemoRunning: boolean;
+  workforceMemoryAdded: boolean;
+  activeWorkerId: string | null;
+  runWorkforceDemo: () => void;
+  resetWorkforceDemo: () => void;
 };
 
 const EnterpriseContext = createContext<EnterpriseContextValue | null>(null);
 
 export function EnterpriseProvider({ children }: { children: ReactNode }) {
-  const [view, setView] = useState<EnterpriseView>("import");
+  const [view, setView] = useState<EnterpriseView>("workforce");
+  const [perspective, setPerspective] = useState<PerspectiveId>("ceo");
+  const [workforceDemoPhase, setWorkforceDemoPhase] = useState<WorkforceDemoPhase>("idle");
+  const [workforceDemoRunning, setWorkforceDemoRunning] = useState(false);
+  const [workforceMemoryAdded, setWorkforceMemoryAdded] = useState(false);
+  const [activeWorkerId, setActiveWorkerId] = useState<string | null>(null);
   const [entityId, setEntityId] = useState<string | null>(null);
   const [memoryTab, setMemoryTab] = useState<MemoryTab>("communications");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -170,6 +185,48 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
     setFaqOpen(false);
   }, []);
 
+  const resetWorkforceDemo = useCallback(() => {
+    setWorkforceDemoPhase("idle");
+    setWorkforceDemoRunning(false);
+    setWorkforceMemoryAdded(false);
+    setActiveWorkerId(null);
+  }, []);
+
+  const runWorkforceDemo = useCallback(() => {
+    resetWorkforceDemo();
+    setWorkforceDemoRunning(true);
+    setView("workforce");
+    setPerspective("sales");
+
+    const t1 = window.setTimeout(() => {
+      setWorkforceDemoPhase("analyst_working");
+      setActiveWorkerId("proposal-analyst");
+    }, 400);
+
+    const t2 = window.setTimeout(() => {
+      setWorkforceDemoPhase("memory_updated");
+      setWorkforceMemoryAdded(true);
+    }, 5000);
+
+    const t3 = window.setTimeout(() => {
+      setPerspective("ceo");
+      setWorkforceDemoPhase("ceo_ready");
+    }, 8000);
+
+    const t4 = window.setTimeout(() => {
+      setWorkforceDemoPhase("complete");
+      setWorkforceDemoRunning(false);
+      setActiveWorkerId(null);
+    }, 12000);
+
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.clearTimeout(t3);
+      window.clearTimeout(t4);
+    };
+  }, [resetWorkforceDemo]);
+
   const value = useMemo(
     () => ({
       view,
@@ -190,6 +247,14 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
       refreshReality,
       gmailNotice,
       clearGmailNotice,
+      perspective,
+      setPerspective,
+      workforceDemoPhase,
+      workforceDemoRunning,
+      workforceMemoryAdded,
+      activeWorkerId,
+      runWorkforceDemo,
+      resetWorkforceDemo,
     }),
     [
       view,
@@ -209,6 +274,13 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
       refreshReality,
       gmailNotice,
       clearGmailNotice,
+      perspective,
+      workforceDemoPhase,
+      workforceDemoRunning,
+      workforceMemoryAdded,
+      activeWorkerId,
+      runWorkforceDemo,
+      resetWorkforceDemo,
     ],
   );
 

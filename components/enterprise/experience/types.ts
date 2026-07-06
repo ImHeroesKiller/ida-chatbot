@@ -1,5 +1,6 @@
 export type EnterpriseView =
   | "import"
+  | "workforce"
   | "why-ida"
   | "executive-brief"
   | "organization"
@@ -23,6 +24,54 @@ export type MemoryTab =
   | "notes";
 
 export type BriefItemTone = "critical" | "opportunity" | "health" | "risk" | "action";
+
+export type PerspectiveId = "ceo" | "cfo" | "sales" | "project" | "hr";
+
+export type WorkforceDemoPhase =
+  | "idle"
+  | "analyst_working"
+  | "memory_updated"
+  | "ceo_ready"
+  | "complete";
+
+export type DigitalWorkerStatus = "idle" | "working" | "completed";
+
+export interface DigitalWorker {
+  id: string;
+  name: string;
+  specialty: string;
+  description: string;
+  perspectives: PerspectiveId[];
+  accent: string;
+}
+
+export interface PerspectiveMetric {
+  label: string;
+  value: string;
+  delta?: string;
+  tone?: "neutral" | "positive" | "warning" | "critical";
+}
+
+export interface PerspectiveFocusCard {
+  id: string;
+  title: string;
+  description: string;
+  metric?: string;
+  entityType?: EntityType;
+  entityId?: string;
+  tone?: BriefItemTone;
+}
+
+export interface PerspectiveConfig {
+  id: PerspectiveId;
+  label: string;
+  title: string;
+  greeting: string;
+  description: string;
+  metrics: PerspectiveMetric[];
+  focusCards: PerspectiveFocusCard[];
+  activeWorkers: string[];
+}
 
 export interface Company {
   id: string;
@@ -77,6 +126,7 @@ export interface MemoryItem {
   date: string;
   entityType?: EntityType;
   entityId?: string;
+  workforce?: boolean;
 }
 
 export interface BriefCard {
@@ -87,6 +137,7 @@ export interface BriefCard {
   entityType?: EntityType;
   entityId?: string;
   metric?: string;
+  workforce?: boolean;
 }
 
 export interface SearchResult {

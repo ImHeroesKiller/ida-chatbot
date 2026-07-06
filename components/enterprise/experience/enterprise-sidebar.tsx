@@ -6,6 +6,7 @@ import {
   Calendar,
   FolderKanban,
   LayoutDashboard,
+  Bot,
   Import,
   Lightbulb,
   Network,
@@ -21,6 +22,7 @@ import { useEnterprise } from "./enterprise-context";
 import type { EnterpriseView } from "./types";
 
 const NAV: Array<{ id: EnterpriseView; label: string; icon: typeof LayoutDashboard }> = [
+  { id: "workforce", label: "Digital Workforce", icon: Bot },
   { id: "import", label: "Import Data", icon: Import },
   { id: "why-ida", label: "Why IDA?", icon: Lightbulb },
   { id: "executive-brief", label: "Executive Brief", icon: LayoutDashboard },
@@ -104,7 +106,7 @@ export function EnterpriseSidebar({
       </nav>
       <div className="border-t border-border/40 p-4">
         <p className="text-[10px] leading-relaxed text-muted-foreground">
-          IDA Enterprise · Humans decide, IDA informs
+          Your Organization. Your Digital Workforce. One Intelligence.
         </p>
       </div>
     </aside>

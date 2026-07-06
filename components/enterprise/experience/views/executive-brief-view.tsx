@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, AlertTriangle, Lightbulb, Heart, ShieldAlert, Zap } from "lucide-react";
+import { ArrowRight, AlertTriangle, Bot, Lightbulb, Heart, ShieldAlert, Zap } from "lucide-react";
 
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
 import { FadeIn, Stagger, StaggerItem } from "@/components/enterprise/enterprise-motion";
@@ -10,7 +10,8 @@ import { useEnterprise } from "../enterprise-context";
 import { EmptyStateInline } from "../empty-state";
 import { EntityLink } from "../entity-link";
 import { PageHeader } from "../page-header";
-import { IDA_CORE_MESSAGE } from "../narrative";
+import { WORKFORCE_SLOGAN } from "../digital-workforce-data";
+import { PerspectiveSelector } from "../perspective-selector";
 import { useEnterpriseData } from "../use-enterprise-data";
 import type { BriefItemTone } from "../types";
 
@@ -33,29 +34,52 @@ const ENTITY_LABEL: Record<string, string> = {
   project: "initiative",
 };
 
+const PERSPECTIVE_BRIEF_TONES: Record<string, BriefItemTone[]> = {
+  ceo: ["critical", "opportunity", "health", "risk", "action"],
+  cfo: ["critical", "risk", "opportunity"],
+  sales: ["opportunity", "health", "action"],
+  project: ["critical", "risk", "action"],
+  hr: ["health", "risk", "opportunity"],
+};
+
 export function ExecutiveBriefView() {
-  const { navigateToEntity, navigate } = useEnterprise();
-  const { briefCards, live, reality } = useEnterpriseData();
-  const criticalCount = briefCards.filter((c) => c.tone === "critical").length;
+  const { navigateToEntity, navigate, perspective } = useEnterprise();
+  const { briefCards, live, reality, workforceInsightReady, perspectiveConfig } =
+    useEnterpriseData();
+  const isCeo = perspective === "ceo";
+  const filteredCards = isCeo
+    ? briefCards
+    : briefCards.filter((c) =>
+        (PERSPECTIVE_BRIEF_TONES[perspective] ?? []).includes(c.tone),
+      );
+  const criticalCount = filteredCards.filter((c) => c.tone === "critical").length;
 
   return (
     <div>
       <PageHeader
-        eyebrow="Executive Brief"
-        title="Good morning, Ary"
-        description={`${IDA_CORE_MESSAGE} Here is what needs your attention today.`}
+        eyebrow={isCeo ? "Executive Brief" : `${perspectiveConfig.label} Brief`}
+        title={perspectiveConfig.greeting}
+        description={
+          isCeo
+            ? `${WORKFORCE_SLOGAN} Here is what needs your attention today.`
+            : `${perspectiveConfig.description}`
+        }
         action={
-          <div className="enterprise-card-premium rounded-full px-4 py-2 text-[11px] font-medium text-muted-foreground">
-            <span className="mr-2 inline-block size-1.5 animate-pulse rounded-full bg-emerald-500" />
-            {live ? "Live imported data" : "Preview"} • {criticalCount} items require attention
-            {live && reality?.lastSync ? ` · synced ${new Date(reality.lastSync).toLocaleTimeString()}` : ""}
+          <div className="flex flex-col items-end gap-2">
+            <PerspectiveSelector compact />
+            <div className="enterprise-card-premium rounded-full px-4 py-2 text-[11px] font-medium text-muted-foreground">
+              <span className="mr-2 inline-block size-1.5 animate-pulse rounded-full bg-emerald-500" />
+              {live ? "Live imported data" : "Preview"} • {criticalCount} items require attention
+              {workforceInsightReady ? " · 1 workforce insight" : ""}
+              {live && reality?.lastSync ? ` · synced ${new Date(reality.lastSync).toLocaleTimeString()}` : ""}
+            </div>
           </div>
         }
       />
 
       <Stagger className="grid gap-6 lg:grid-cols-2">
         {SECTIONS.map((section) => {
-          const items = briefCards.filter((c) => c.tone === section.tone);
+          const items = filteredCards.filter((c) => c.tone === section.tone);
           const Icon = section.icon;
           return (
             <StaggerItem key={section.tone}>
@@ -77,10 +101,21 @@ export function ExecutiveBriefView() {
                     {items.map((item) => (
                       <li
                         key={item.id}
-                        className="enterprise-list-item group rounded-xl border border-border/30 p-4"
+                        className={cn(
+                          "enterprise-list-item group rounded-xl border p-4",
+                          item.workforce
+                            ? "border-violet-500/30 bg-violet-500/5 ring-1 ring-violet-500/20"
+                            : "border-border/30",
+                        )}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
+                            {item.workforce ? (
+                              <p className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-violet-600">
+                                <Bot className="size-3" />
+                                Digital Workforce
+                              </p>
+                            ) : null}
                             <p className="text-sm font-medium leading-snug">{item.title}</p>
                             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                               {item.description}
@@ -115,6 +150,13 @@ export function ExecutiveBriefView() {
             The demo story — Brief → PLN account → Knowledge → Organization map.
           </p>
           <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => navigate({ view: "workforce" })}
+              className="enterprise-text-link inline-flex items-center gap-2 text-sm font-medium"
+            >
+              Digital Workforce <ArrowRight className="size-4" />
+            </button>
             <button
               type="button"
               onClick={() => navigate({ view: "why-ida" })}

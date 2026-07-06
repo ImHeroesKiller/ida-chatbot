@@ -2,6 +2,7 @@
 
 import { useEnterprise } from "./enterprise-context";
 import type { RealityViewModel } from "@/lib/enterprise/reality-adapter";
+import { useWorkforceData } from "./use-workforce-data";
 import {
   BRIEF_CARDS,
   COMPANIES,
@@ -26,14 +27,15 @@ import type {
 
 export function useEnterpriseData() {
   const { reality, realityLoading } = useEnterprise();
+  const workforce = useWorkforceData();
   const live = reality?.hasLiveData ?? false;
 
   const companies: Company[] = live ? reality!.companies : COMPANIES;
   const people: Person[] = live ? reality!.people : PEOPLE;
   const projects: Project[] = live ? reality!.projects : PROJECTS;
-  const briefCards: BriefCard[] = live ? reality!.briefCards : BRIEF_CARDS;
-  const timeline: TimelineEvent[] = live ? reality!.timeline : TIMELINE;
-  const memoryItems: MemoryItem[] = live ? reality!.memoryItems : MEMORY_ITEMS;
+  const briefCards: BriefCard[] = live ? reality!.briefCards : workforce.briefCards;
+  const timeline: TimelineEvent[] = live ? reality!.timeline : workforce.timeline;
+  const memoryItems: MemoryItem[] = live ? reality!.memoryItems : workforce.memoryItems;
   const searchIndex: SearchResult[] = live ? reality!.searchIndex : SEARCH_INDEX;
 
   function resolveCompany(id: string) {
@@ -65,5 +67,7 @@ export function useEnterpriseData() {
     getCompany: resolveCompany,
     getPerson: resolvePerson,
     getProject: resolveProject,
+    workforceInsightReady: workforce.workforceInsightReady,
+    perspectiveConfig: workforce.perspectiveConfig,
   };
 }
