@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 export default function DemoPage() {
   const [context, setContext] = useState({
@@ -10,8 +11,8 @@ export default function DemoPage() {
     derived: { comm: 47, meetings: 12, invoices: 8, projects: 5 }
   });
 
-  const updateContext = (newContext: any) => {
-    setContext(newContext);
+  const updateContext = (newContext: Record<string, unknown>) => {
+    setContext(newContext as any);
   };
 
   return (
@@ -26,7 +27,7 @@ export default function DemoPage() {
             <span className="font-semibold text-xl tracking-tighter">IDA</span>
             <div className="text-xs px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-3xl ml-2">Demo</div>
           </div>
-          <a href="/" className="text-sm text-slate-400 hover:text-white">← Back to Homepage</a>
+          <Link href="/" className="text-sm text-slate-400 hover:text-white">← Back to Homepage</Link>
         </div>
       </div>
 
