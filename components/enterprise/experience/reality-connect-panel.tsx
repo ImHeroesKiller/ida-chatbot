@@ -5,6 +5,7 @@ import { useCallback, useRef, useState } from "react";
 import { CheckCircle2, FileUp, Loader2, Mail, Upload } from "lucide-react";
 
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
 import { formatApiError, parseApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +22,7 @@ type StatusMessage = {
 
 export function RealityConnectPanel() {
   const { refreshReality, reality } = useEnterprise();
+  const { t } = useEnterpriseLocale();
   const fileRef = useRef<HTMLInputElement>(null);
   const [gmailStatus, setGmailStatus] = useState<SyncStatus>("idle");
   const [uploadStatus, setUploadStatus] = useState<SyncStatus>("idle");
@@ -43,12 +45,13 @@ export function RealityConnectPanel() {
           throw Object.assign(new Error(formatApiError(err)), { parsed: err });
         }
         setGmailStatus("success");
+        const count = data.emailCount ?? data.pipeline?.processed ?? 0;
         setMessage({
           tone: "success",
           text:
             data.source === "gmail"
-              ? `Imported ${data.emailCount} emails from Gmail.`
-              : data.message ?? `Imported ${data.pipeline?.processed ?? 0} demo emails.`,
+              ? t("views", "importPanel.gmailImported", { count })
+              : data.message ?? t("views", "importPanel.demoImported", { count }),
           requestId: data.requestId,
         });
         await refreshReality();
@@ -66,7 +69,7 @@ export function RealityConnectPanel() {
         });
       }
     },
-    [refreshReality],
+    [refreshReality, t],
   );
 
   const uploadFiles = useCallback(
@@ -89,7 +92,10 @@ export function RealityConnectPanel() {
         setUploadStatus("success");
         setMessage({
           tone: "success",
-          text: `Extracted and indexed ${data.uploaded} document${data.uploaded > 1 ? "s" : ""}.`,
+          text:
+            data.uploaded > 1
+              ? t("views", "importPanel.docsIndexedPlural", { count: data.uploaded })
+              : t("views", "importPanel.docsIndexed", { count: data.uploaded }),
           requestId: data.requestId,
         });
         await refreshReality();
@@ -107,20 +113,20 @@ export function RealityConnectPanel() {
         });
       }
     },
-    [refreshReality],
+    [refreshReality, t],
   );
 
   return (
     <EnterpriseGlassCard padding="lg" className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold tracking-tight">Import real data</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{t("views", "importPanel.title")}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Connect Gmail or upload PDF/DOCX — your Executive Brief, Timeline, and Ask IDA update automatically.
+          {t("views", "importPanel.description")}
         </p>
         {reality?.hasLiveData ? (
           <p className="mt-2 flex items-center gap-2 text-xs font-medium text-emerald-600">
             <CheckCircle2 className="size-3.5" />
-            Live data active · {reality.counts.communications} records indexed
+            {t("views", "importPanel.liveActive", { count: reality.counts.communications })}
           </p>
         ) : null}
       </div>
@@ -129,10 +135,10 @@ export function RealityConnectPanel() {
         <div className="rounded-xl border border-border/40 p-4">
           <div className="mb-3 flex items-center gap-2">
             <Mail className="size-4 text-primary" />
-            <h3 className="text-sm font-semibold">Gmail</h3>
+            <h3 className="text-sm font-semibold">{t("views", "importPanel.gmailTitle")}</h3>
           </div>
           <p className="mb-4 text-xs text-muted-foreground">
-            Pull recent emails into organizational memory. Auto-links @pln.co.id → PT PLN Indonesia Power.
+            {t("views", "importPanel.gmailDesc")}
           </p>
           <div className="flex flex-wrap gap-2">
             <button
@@ -142,7 +148,7 @@ export function RealityConnectPanel() {
               }}
               className="inline-flex h-9 items-center rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
-              Connect Gmail
+              {t("views", "importPanel.connectGmail")}
             </button>
             <button
               type="button"
@@ -151,13 +157,13 @@ export function RealityConnectPanel() {
               className="inline-flex h-9 items-center gap-1.5 rounded-lg border px-4 text-xs font-medium transition-colors hover:bg-muted/50"
             >
               {gmailStatus === "syncing" ? <Loader2 className="size-3.5 animate-spin" /> : null}
-              Load demo emails
+              {t("views", "importPanel.loadDemo")}
             </button>
           </div>
           <p className="mt-3 text-[11px] text-muted-foreground">
-            OAuth setup:{" "}
+            {t("views", "importPanel.oauthSetup")}{" "}
             <Link href="/docs/setup/gmail" className="text-primary hover:underline">
-              Gmail wizard
+              {t("views", "importPanel.gmailWizard")}
             </Link>
           </p>
         </div>
@@ -180,10 +186,10 @@ export function RealityConnectPanel() {
         >
           <div className="mb-3 flex items-center gap-2">
             <FileUp className="size-4 text-primary" />
-            <h3 className="text-sm font-semibold">PDF &amp; DOCX</h3>
+            <h3 className="text-sm font-semibold">{t("views", "importPanel.uploadTitle")}</h3>
           </div>
           <p className="mb-4 text-xs text-muted-foreground">
-            Drag &amp; drop invoices, proposals, or meeting minutes. Extracts company, value, deadline, stakeholder.
+            {t("views", "importPanel.uploadDesc")}
           </p>
           <input
             ref={fileRef}
@@ -204,9 +210,9 @@ export function RealityConnectPanel() {
             ) : (
               <Upload className="size-3.5" />
             )}
-            Upload files
+            {t("views", "importPanel.uploadFiles")}
           </button>
-          <p className="mt-3 text-[11px] text-muted-foreground">Max 4 MB per file</p>
+          <p className="mt-3 text-[11px] text-muted-foreground">{t("views", "importPanel.maxSize")}</p>
         </div>
       </div>
 

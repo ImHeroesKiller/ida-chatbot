@@ -1,0 +1,251 @@
+{
+  "trustSignals": [
+    {
+      "id": "enterprise",
+      "label": "Enterprise-ready",
+      "detail": "Built for regulated industries — energy, telecom, and infrastructure."
+    },
+    {
+      "id": "human",
+      "label": "Humans in control",
+      "detail": "IDA recommends. Leaders decide. Every action has an owner."
+    },
+    {
+      "id": "audit",
+      "label": "Full audit trail",
+      "detail": "Every briefing, decision, and change is recorded and traceable."
+    }
+  ],
+  "fourQuestions": [
+    {
+      "id": "what",
+      "question": "What is IDA?",
+      "answer": "IDA is the system that shows leaders everything happening across their organization — accounts, people, projects, and decisions — in one place."
+    },
+    {
+      "id": "who",
+      "question": "Who is it for?",
+      "answer": "CEOs and leadership teams at large enterprises who need clarity before making important decisions — not another chat window for individuals."
+    },
+    {
+      "id": "why-not",
+      "question": "Why not ChatGPT or Copilot?",
+      "answer": "Those tools answer one-off questions. IDA remembers your organization, connects the dots across accounts and projects, and prepares executive-ready briefings."
+    },
+    {
+      "id": "outcome",
+      "question": "What do you get?",
+      "answer": "A live view of what needs attention, what is at risk, and what to do next — built from real business activity, not generic AI responses."
+    }
+  ],
+  "investorFaq": [
+    {
+      "id": "chatgpt",
+      "question": "How is IDA different from ChatGPT?",
+      "answer": "ChatGPT answers questions in isolation and forgets your context. IDA builds persistent organizational memory — it knows your accounts, stakeholders, projects, and history, then surfaces what leaders need today."
+    },
+    {
+      "id": "copilot",
+      "question": "How is IDA different from Microsoft Copilot?",
+      "answer": "Copilot assists individuals inside Microsoft 365. IDA operates at organizational scale — cross-linking accounts like PT PLN Indonesia Power, commercial records, delivery risk, and executive briefings in one system."
+    },
+    {
+      "id": "data",
+      "question": "Where does IDA get its data?",
+      "answer": "From organizational activity your enterprise already generates — emails, meetings, project updates, commercial records, and decisions. IDA indexes and connects them; it does not require replacing existing systems."
+    },
+    {
+      "id": "decisions",
+      "question": "Does IDA make decisions automatically?",
+      "answer": "No. IDA prepares intelligence and recommended actions. Humans retain final authority. Every decision is logged with ownership and a complete audit trail."
+    },
+    {
+      "id": "control",
+      "question": "Who is in control?",
+      "answer": "Always the leadership team. IDA is an intelligence layer — it surfaces context, risks, and opportunities. Approval, commitment, and accountability stay with people."
+    },
+    {
+      "id": "security",
+      "question": "Is it enterprise-ready?",
+      "answer": "Yes. IDA is designed for enterprise governance — role-based access, audit trails, human-in-the-loop design, and deployment within your security perimeter."
+    },
+    {
+      "id": "demo",
+      "question": "Is this real data in the demo?",
+      "answer": "The demo uses realistic mock data modeled on Indonesian enterprise accounts (PLN Indonesia Power, Mayora, Telkom, Hutama Karya) to show how IDA works in production."
+    },
+    {
+      "id": "workforce",
+      "question": "What is the Digital Workforce?",
+      "answer": "Governed AI agents — Proposal Analyst, Contract Reviewer, Relationship Analyst — that work alongside humans using the same Organization Memory. Their output surfaces in Executive Briefs and Knowledge, visible to every role."
+    }
+  ],
+  "roadmap": {
+    "footer": "Today is live in this demo. Next and Future show the product vision — no technical setup required.",
+    "phases": {
+      "today": {
+        "label": "Today",
+        "tagline": "Organizational intelligence — live in demo",
+        "items": [
+          { "title": "Executive Brief", "desc": "Critical issues, opportunities, risks, and recommended actions in one view." },
+          { "title": "Living Organization", "desc": "Relationship map connecting accounts, initiatives, and functions." },
+          { "title": "Account Intelligence", "desc": "Full context per enterprise account — stakeholders, pipeline, delivery." },
+          { "title": "Organizational Knowledge", "desc": "Emails, meetings, commercial records, and decisions — cross-linked." },
+          { "title": "Global Search", "desc": "Find any account, stakeholder, initiative, or knowledge record instantly." }
+        ]
+      },
+      "next": {
+        "label": "Next",
+        "tagline": "Execution and integration — 6–12 months",
+        "items": [
+          { "title": "Digital Workforce", "desc": "Proposal Analyst, Contract Reviewer, Relationship Analyst — working alongside humans in demo." },
+          { "title": "Workflow Integration", "desc": "Connect decisions to actions across ERP, CRM, and existing tools." },
+          { "title": "Live Data Connectors", "desc": "Gmail, calendar, and document systems feeding organizational memory." },
+          { "title": "Multi-Perspective Views", "desc": "CEO, CFO, Sales, Project, HR — each role sees what matters, from one intelligence." }
+        ]
+      },
+      "future": {
+        "label": "Future",
+        "tagline": "The decision operating system — 12–24 months",
+        "items": [
+          { "title": "Industry Templates", "desc": "Pre-built intelligence models for energy, telecom, and infrastructure." },
+          { "title": "Predictive Intelligence", "desc": "Early warning on delivery risk, payment delays, and relationship drift." },
+          { "title": "Board-Ready Reporting", "desc": "Automated executive and board packages from live organizational data." },
+          { "title": "Partner Ecosystem", "desc": "Consulting and SI partners deploying IDA across enterprise portfolios." }
+        ]
+      }
+    }
+  },
+  "comparison": {
+    "title": "Traditional AI vs IDA",
+    "subtitle": "Chat tools forget. IDA remembers your whole organization.",
+    "headers": {
+      "dimension": "Dimension",
+      "traditional": "Traditional AI",
+      "ida": "IDA"
+    },
+    "rows": [
+      {
+        "dimension": "Organization Memory",
+        "traditional": "Session-only — forgets after each chat",
+        "ida": "Persistent memory built from emails, meetings, decisions, and commercial records"
+      },
+      {
+        "dimension": "Context",
+        "traditional": "Generic answers without account or stakeholder history",
+        "ida": "Full organizational context — who said what, when, and why it matters"
+      },
+      {
+        "dimension": "Insights",
+        "traditional": "Surface-level summaries with no cross-linking",
+        "ida": "Cross-linked intelligence across accounts, initiatives, risks, and commitments"
+      },
+      {
+        "dimension": "Decisions",
+        "traditional": "Suggestions with no audit trail or governance",
+        "ida": "Governed decision records with ownership, traceability, and executive briefs"
+      }
+    ]
+  },
+  "copilot": {
+    "title": "Why not Copilot?",
+    "subtitle": "Copilot assists individuals. IDA operates at organizational scale.",
+    "headers": {
+      "capability": "Capability",
+      "copilot": "Microsoft Copilot",
+      "ida": "IDA Enterprise"
+    },
+    "rows": [
+      { "capability": "Organizational memory", "copilot": "No persistent enterprise memory", "ida": "Unified knowledge layer across all interactions" },
+      { "capability": "Account-level context", "copilot": "Generic — no CRM or project linkage", "ida": "Full account intelligence (e.g. PT PLN Indonesia Power)" },
+      { "capability": "Cross-system insights", "copilot": "Isolated to Microsoft 365", "ida": "Cross-links emails, meetings, projects, and decisions" },
+      { "capability": "Executive briefings", "copilot": "Manual prompting required", "ida": "Automated brief with critical issues and actions" },
+      { "capability": "Decision governance", "copilot": "No audit trail or ownership", "ida": "Logged decisions with accountability and traceability" },
+      { "capability": "Relationship mapping", "copilot": "Not available", "ida": "Living organization map with stakeholder intelligence" },
+      { "capability": "Commercial awareness", "copilot": "Cannot track POs, invoices, pipeline", "ida": "Commercial records linked to delivery risk" }
+    ]
+  },
+  "howIdaThinks": {
+    "title": "How IDA works",
+    "subtitle": "From what happens in your business to what leaders need to decide — one clear path.",
+    "steps": [
+      { "id": "reality", "label": "Reality", "desc": "Emails, meetings, contracts, and project updates across the enterprise" },
+      { "id": "observations", "label": "Observations", "desc": "IDA captures events, stakeholders, and commercial signals as they happen" },
+      { "id": "memory", "label": "Memory", "desc": "Knowledge indexed and cross-linked to accounts, people, and initiatives" },
+      { "id": "context", "label": "Context", "desc": "Full situational awareness — history, relationships, and open commitments" },
+      { "id": "insights", "label": "Insights", "desc": "Patterns surfaced: risks, opportunities, and items requiring attention" },
+      { "id": "decisions", "label": "Decisions", "desc": "Executive-ready briefs with recommended actions and governance" }
+    ]
+  },
+  "plnWow": {
+    "eyebrow": "Organization Memory",
+    "title": "Everything IDA knows about {account}",
+    "recordsSubtitle": "{count} indexed records across people, communications, projects, risks, decisions, and commitments — synthesized in real time.",
+    "synthesizedBadge": "Synthesized {date}",
+    "healthLabel": "Relationship health",
+    "lastSynthesized": "Last synthesized",
+    "recordsIndexed": "{count} records indexed across {categories} categories",
+    "account": "PT PLN Indonesia Power",
+    "lastSynthesizedValue": "6 Jul 2026, 10:42 WIB",
+    "categories": {
+      "people": {
+        "label": "People",
+        "items": [
+          { "title": "Budi Santoso", "detail": "VP Strategic Accounts — primary relationship owner, 23 engagements" },
+          { "title": "Dr. Hendra Wijaya", "detail": "Director of Engineering — SCADA technical authority" },
+          { "title": "Maya Kusuma", "detail": "Head of Procurement — commercial annex counterparty" },
+          { "title": "Agus Firmansyah", "detail": "Project Director — Phase II delivery sponsor" }
+        ]
+      },
+      "meetings": {
+        "label": "Meetings",
+        "items": [
+          { "title": "Technical Design Review", "detail": "3 Jul 2026 — 4 action items, 3 resolved" },
+          { "title": "Commercial Annex Working Session", "detail": "5 Jul 2026 — pricing schedule aligned" },
+          { "title": "Board Prep Briefing", "detail": "Scheduled 10 Jul 2026 — 5 attendees" },
+          { "title": "Q3 Steering Committee", "detail": "14 Jul 2026 — Phase II go/no-go" }
+        ]
+      },
+      "emails": {
+        "label": "Emails",
+        "items": [
+          { "title": "RE: SCADA Phase II — Commercial Annex v4", "detail": "18 messages this week — procurement thread" },
+          { "title": "FW: SLA Appendix — technical sign-off", "detail": "Engineering approval pending Hendra Wijaya" },
+          { "title": "RE: Board submission timeline", "detail": "Target 11 Jul — Budi Santoso confirmed" },
+          { "title": "RE: Integration architecture — Phase II", "detail": "12 messages — API gateway scope clarified" }
+        ]
+      },
+      "projects": {
+        "label": "Projects",
+        "items": [
+          { "title": "SCADA Modernization Phase II", "detail": "Rp 4.2B · 71% complete · On track" },
+          { "title": "Operations Intelligence Pilot", "detail": "Rp 180M · 34% complete · Planning" }
+        ]
+      },
+      "risks": {
+        "label": "Risks",
+        "items": [
+          { "title": "Board submission window", "detail": "Commercial annex must lock by 9 Jul for 11 Jul board review" },
+          { "title": "Resource overlap Q3", "detail": "Telkom audit renewal may compete for shared delivery lead" }
+        ]
+      },
+      "decisions": {
+        "label": "Decisions",
+        "items": [
+          { "title": "Technical design approved", "detail": "3 Jul 2026 — architecture review signed off" },
+          { "title": "Procurement aligned on annex structure", "detail": "5 Jul 2026 — pricing schedule accepted" },
+          { "title": "Board submission date confirmed", "detail": "11 Jul 2026 — pending final commercial lock" }
+        ]
+      },
+      "commitments": {
+        "label": "Commitments",
+        "items": [
+          { "title": "Deliver commercial annex v5 by 9 Jul", "detail": "Owner: IDA account team · Due in 3 days" },
+          { "title": "Executive summary for board review", "detail": "Owner: Budi Santoso · Due 10 Jul" },
+          { "title": "SLA appendix engineering sign-off", "detail": "Owner: Hendra Wijaya · Due 8 Jul" },
+          { "title": "Phase II kickoff readiness assessment", "detail": "Owner: Agus Firmansyah · Due 15 Jul" }
+        ]
+      }
+    }
+  }
+}

@@ -4,14 +4,18 @@ import enAsk from "@/messages/en/ask.json";
 import enAskResponses from "@/messages/en/ask-responses.json";
 import enContent from "@/messages/en/content.json";
 import enEnterprise from "@/messages/en/enterprise.json";
+import enNarrative from "@/messages/en/narrative.json";
 import enVocabulary from "@/messages/en/vocabulary.json";
+import enViews from "@/messages/en/views.json";
 import enWorkforce from "@/messages/en/workforce.json";
 
 import idAsk from "@/messages/id/ask.json";
 import idAskResponses from "@/messages/id/ask-responses.json";
 import idContent from "@/messages/id/content.json";
 import idEnterprise from "@/messages/id/enterprise.json";
+import idNarrative from "@/messages/id/narrative.json";
 import idVocabulary from "@/messages/id/vocabulary.json";
+import idViews from "@/messages/id/views.json";
 import idWorkforce from "@/messages/id/workforce.json";
 
 const CATALOG: Record<EnterpriseLocale, EnterpriseMessages> = {
@@ -22,6 +26,8 @@ const CATALOG: Record<EnterpriseLocale, EnterpriseMessages> = {
     ask: enAsk,
     content: enContent,
     askResponses: enAskResponses,
+    views: enViews,
+    narrative: enNarrative,
   },
   id: {
     enterprise: idEnterprise,
@@ -30,6 +36,8 @@ const CATALOG: Record<EnterpriseLocale, EnterpriseMessages> = {
     ask: idAsk,
     content: idContent,
     askResponses: idAskResponses,
+    views: idViews,
+    narrative: idNarrative,
   },
 };
 

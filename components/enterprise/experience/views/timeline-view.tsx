@@ -4,29 +4,30 @@ import { Calendar } from "lucide-react";
 
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
 import { Stagger, StaggerItem } from "@/components/enterprise/enterprise-motion";
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
 
 import { useEnterprise } from "../enterprise-context";
 import { EmptyState } from "../empty-state";
-import { IDA_CORE_MESSAGE } from "../narrative";
 import { useEnterpriseData } from "../use-enterprise-data";
 import { PageHeader } from "../page-header";
 
 export function TimelineView() {
   const { navigateToEntity } = useEnterprise();
   const { timeline } = useEnterpriseData();
+  const { t, format } = useEnterpriseLocale();
 
   return (
     <div>
       <PageHeader
-        eyebrow="Timeline"
-        title="Organizational activity stream"
-        description={`${IDA_CORE_MESSAGE} Recent activity across your organization — in order.`}
+        eyebrow={t("views", "timeline.eyebrow")}
+        title={t("views", "timeline.title")}
+        description={`${t("enterprise", "slogan.core")} ${t("views", "timeline.description")}`}
       />
       {timeline.length === 0 ? (
         <EmptyState
           icon={Calendar}
-          title="No activity recorded yet"
-          description="As your organization captures communications, meetings, and decisions, they will appear here in chronological order."
+          title={t("views", "timeline.emptyTitle")}
+          description={t("views", "timeline.emptyDesc")}
         />
       ) : (
         <Stagger className="relative space-y-0">
@@ -43,7 +44,7 @@ export function TimelineView() {
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
                       <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                        {event.date} · {event.type}
+                        {event.date} · {format.timelineType(event.type)}
                       </p>
                       <h3 className="mt-1 text-sm font-semibold">{event.title}</h3>
                       <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
@@ -56,7 +57,7 @@ export function TimelineView() {
                         onClick={() => navigateToEntity(event.entityType!, event.entityId!)}
                         className="enterprise-text-link shrink-0 text-xs font-medium"
                       >
-                        Open record →
+                        {t("views", "timeline.openRecord")}
                       </button>
                     ) : null}
                   </div>

@@ -4,13 +4,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import { HelpCircle, X } from "lucide-react";
 import { useEffect } from "react";
 
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
 import { cn } from "@/lib/utils";
 
 import { useEnterprise } from "./enterprise-context";
-import { INVESTOR_FAQ } from "./narrative";
+
+type FaqItem = { id: string; question: string; answer: string };
 
 export function InvestorFaqTrigger() {
   const { openFaq } = useEnterprise();
+  const { t } = useEnterpriseLocale();
   return (
     <button
       type="button"
@@ -18,13 +21,15 @@ export function InvestorFaqTrigger() {
       className="hidden items-center gap-1.5 rounded-full border border-border/50 bg-muted/30 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:bg-muted/50 hover:text-foreground sm:inline-flex"
     >
       <HelpCircle className="size-3.5" />
-      Investor FAQ
+      {t("views", "faq.title")}
     </button>
   );
 }
 
 export function InvestorFaqModal() {
   const { faqOpen, closeFaq } = useEnterprise();
+  const { t, messages } = useEnterpriseLocale();
+  const investorFaq = messages.narrative.investorFaq as FaqItem[];
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -54,8 +59,8 @@ export function InvestorFaqModal() {
           >
             <div className="flex items-center justify-between border-b border-border/40 px-5 py-4">
               <div>
-                <h2 className="text-sm font-semibold">Investor FAQ</h2>
-                <p className="text-xs text-muted-foreground">Short answers to the questions investors ask most.</p>
+                <h2 className="text-sm font-semibold">{t("views", "faq.title")}</h2>
+                <p className="text-xs text-muted-foreground">{t("views", "faq.modalSubtitle")}</p>
               </div>
               <button
                 type="button"
@@ -66,7 +71,7 @@ export function InvestorFaqModal() {
               </button>
             </div>
             <div className="enterprise-demo-scroll max-h-[60vh] divide-y divide-border/30 p-2">
-              {INVESTOR_FAQ.map((item) => (
+              {investorFaq.map((item) => (
                 <details key={item.id} className="group px-3 py-3">
                   <summary
                     className={cn(

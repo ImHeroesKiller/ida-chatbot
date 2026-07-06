@@ -1,111 +1,122 @@
 {
   "slogan": {
-    "core": "IDA memberi pemimpin gambaran utuh organisasi mereka — agar keputusan dibuat dengan keyakinan.",
-    "workforce": "Organisasi Anda. Tenaga Kerja Digital Anda. Satu Kecerdasan."
+    "core": "IDA bantu pemimpin melihat seluruh organisasi — supaya keputusan bisa dibuat dengan yakin.",
+    "workforce": "Your Organization. Your Digital Workforce. One Intelligence."
   },
   "modes": {
-    "presentation": "Presentasi",
+    "presentation": "Presentation",
     "internal": "Internal",
-    "presentationHint": "English · Demo investor",
-    "internalHint": "Bahasa Indonesia · Tim internal"
+    "presentationHint": "English · demo investor",
+    "internalHint": "Bahasa Indonesia · tim internal"
   },
   "nav": {
-    "workforce": "Tenaga Kerja Digital",
-    "import": "Impor Data",
-    "whyIda": "Mengapa IDA?",
-    "executiveBrief": "Ringkasan Eksekutif",
-    "organization": "Organisasi",
-    "accounts": "Akun",
-    "stakeholders": "Pemangku Kepentingan",
-    "initiatives": "Inisiatif",
-    "timeline": "Linimasa",
-    "knowledge": "Pengetahuan",
-    "roadmap": "Peta Jalan",
-    "search": "Cari",
-    "developer": "Dasbor Debug",
+    "workforce": "Digital Workforce",
+    "import": "Import Data",
+    "whyIda": "Why IDA?",
+    "executiveBrief": "Executive Brief",
+    "organization": "Organization",
+    "accounts": "Accounts",
+    "stakeholders": "Stakeholders",
+    "initiatives": "Initiatives",
+    "timeline": "Timeline",
+    "knowledge": "Memory",
+    "roadmap": "Roadmap",
+    "search": "Search",
+    "developer": "Debug Dashboard",
     "platform": "Platform",
-    "developerSection": "Pengembang"
+    "developerSection": "Developer"
   },
   "topbar": {
     "title": "IDA Enterprise",
-    "subtitle": "Kecerdasan organisasi untuk pemimpin",
-    "ready": "Siap",
-    "searchPlaceholder": "Cari akun, pengetahuan, inisiatif…",
-    "searchShort": "Cari",
-    "homepage": "Beranda",
-    "contact": "Hubungi"
+    "subtitle": "Organizational intelligence untuk pemimpin",
+    "ready": "Ready",
+    "searchPlaceholder": "Cari account, memory, initiative…",
+    "searchShort": "Search",
+    "homepage": "Homepage",
+    "contact": "Contact",
+    "investorFaq": "Investor FAQ"
   },
   "perspective": {
-    "label": "Sudut pandang",
+    "label": "Perspective",
     "ceo": "CEO",
     "cfo": "CFO",
-    "sales": "Penjualan",
-    "project": "Proyek",
-    "hr": "SDM"
+    "sales": "Sales",
+    "project": "Project",
+    "hr": "HR"
   },
   "brief": {
-    "eyebrow": "Ringkasan Eksekutif",
-    "eyebrowRole": "Ringkasan {role}",
-    "descriptionCeo": "Berikut yang perlu perhatian Anda hari ini.",
-    "statusLive": "Data impor aktual",
-    "statusPreview": "Pratinjau",
-    "itemsAttention": "{count} butuh perhatian",
-    "workforceInsight": "1 wawasan tenaga kerja digital",
-    "synced": "disinkronkan {time}",
+    "eyebrow": "Executive Brief",
+    "eyebrowRole": "Executive Brief · {role}",
+    "descriptionCeo": "Ini yang perlu perhatian Anda hari ini.",
+    "statusLive": "Live data",
+    "statusPreview": "Preview",
+    "itemsAttention": "{count} perlu perhatian",
+    "workforceInsight": "1 insight dari Digital Workforce",
+    "synced": "sync {time}",
     "sections": {
-      "critical": "Isu Kritis",
-      "opportunity": "Peluang",
-      "health": "Kesehatan Akun",
-      "risk": "Risiko",
-      "action": "Tindakan Disarankan"
+      "critical": "Critical Issues",
+      "opportunity": "Opportunities",
+      "health": "Account Health",
+      "risk": "Risks",
+      "action": "Recommended Actions"
     },
-    "workforceBadge": "Tenaga Kerja Digital",
+    "workforceBadge": "Digital Workforce",
     "openEntity": "Buka {entity} →",
-    "emptyCategory": "Tidak ada item dalam kategori ini",
-    "emptyCategoryDesc": "Pengetahuan organisasi sudah mutakhir — tidak ada yang ditandai hari ini.",
-    "footerStory": "Alur demo — Ringkasan → Akun PLN → Pengetahuan → Peta organisasi.",
+    "emptyCategory": "Belum ada item di kategori ini",
+    "emptyCategoryDesc": "Organization Memory sudah up to date — tidak ada yang perlu ditandai hari ini.",
+    "footerStory": "Alur demo — Executive Brief → Account PLN → Memory → Organization map.",
     "links": {
-      "workforce": "Tenaga Kerja Digital",
-      "whyIda": "Mengapa IDA?",
+      "workforce": "Digital Workforce",
+      "whyIda": "Why IDA?",
       "pln": "PLN Indonesia Power",
-      "organization": "Peta organisasi",
-      "knowledge": "Pengetahuan organisasi"
+      "organization": "Organization map",
+      "knowledge": "Organization Memory"
     }
   },
   "memory": {
-    "eyebrow": "Pengetahuan",
-    "title": "Yang diketahui organisasi Anda",
-    "description": "Setiap email, rapat, dan keputusan — terindeks dan terhubung ke akun serta inisiatif.",
+    "eyebrow": "Memory",
+    "title": "Yang organisasi Anda ketahui",
+    "description": "Email, meeting, dan decision — ter-index dan terhubung ke account serta initiative.",
     "tabs": {
-      "communications": "Komunikasi",
-      "meetings": "Rapat",
-      "projects": "Proyek",
-      "commercial": "Komersial",
-      "decisions": "Keputusan",
-      "notes": "Catatan"
+      "communications": "Communications",
+      "meetings": "Meetings",
+      "projects": "Projects",
+      "commercial": "Commercial",
+      "decisions": "Decisions",
+      "notes": "Notes"
     },
-    "workforceBadge": "Tenaga Kerja",
-    "emptyTitle": "Belum ada catatan pengetahuan",
-    "emptyDesc": "Komunikasi, rapat, dan keputusan yang tercatat akan muncul di sini — terindeks dan saling terhubung secara otomatis."
+    "workforceBadge": "Workforce",
+    "emptyTitle": "Belum ada record di kategori ini",
+    "emptyDesc": "Communication, meeting, dan decision yang tercatat akan muncul di sini — ter-index dan saling terhubung otomatis."
   },
   "empty": {
-    "inlineTitle": "Tidak ada item dalam kategori ini",
-    "inlineDesc": "Pengetahuan organisasi sudah mutakhir — tidak ada yang ditandai hari ini."
+    "inlineTitle": "Belum ada item di kategori ini",
+    "inlineDesc": "Organization Memory sudah up to date — tidak ada yang perlu ditandai hari ini."
   },
   "import": {
-    "eyebrow": "Data Nyata",
-    "title": "Hubungkan organisasi Anda",
-    "description": "Mulai dengan mengimpor email dan dokumen — dasbor diperbarui dalam kurang dari 2 menit.",
-    "afterImport": "Setelah impor → buka Ringkasan Eksekutif dan Linimasa untuk pembaruan langsung.",
+    "eyebrow": "Reality First",
+    "title": "Connect organisasi Anda",
+    "description": "Mulai dari import email dan dokumen — dashboard update dalam kurang dari 2 menit.",
+    "afterImport": "Setelah import → cek Executive Brief dan Timeline untuk update live.",
     "links": {
-      "brief": "Ringkasan Eksekutif",
-      "timeline": "Linimasa"
+      "brief": "Executive Brief",
+      "timeline": "Timeline"
     }
   },
   "people": {
-    "lastActivity": "Aktivitas terakhir"
+    "lastActivity": "Last activity",
+    "eyebrow": "Stakeholders",
+    "title": "Relationship directory",
+    "description": "Orang-orang di balik account dan initiative Anda.",
+    "notFoundTitle": "Stakeholder tidak ditemukan",
+    "notFoundDesc": "Record ini mungkin sudah di-archive atau akses dibatasi. Kembali ke directory untuk lihat relasi yang ter-index.",
+    "detailEyebrow": "Stakeholder",
+    "role": "Role",
+    "email": "Email",
+    "organization": "Organization",
+    "engagements": "Engagement ter-index"
   },
   "sidebar": {
-    "footer": "Organisasi Anda. Tenaga Kerja Digital Anda. Satu Kecerdasan."
+    "footer": "Your Organization. Your Digital Workforce. One Intelligence."
   }
 }

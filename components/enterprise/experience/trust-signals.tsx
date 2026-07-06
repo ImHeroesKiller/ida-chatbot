@@ -2,9 +2,8 @@
 
 import { FileCheck, ShieldCheck, Users } from "lucide-react";
 
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
 import { cn } from "@/lib/utils";
-
-import { TRUST_SIGNALS } from "./narrative";
 
 const ICONS = {
   enterprise: ShieldCheck,
@@ -12,12 +11,17 @@ const ICONS = {
   audit: FileCheck,
 } as const;
 
+type TrustSignal = { id: keyof typeof ICONS; label: string; detail: string };
+
 type TrustSignalsProps = {
   compact?: boolean;
   className?: string;
 };
 
 export function TrustSignals({ compact = false, className }: TrustSignalsProps) {
+  const { messages } = useEnterpriseLocale();
+  const trustSignals = messages.narrative.trustSignals as TrustSignal[];
+
   return (
     <div
       className={cn(
@@ -26,7 +30,7 @@ export function TrustSignals({ compact = false, className }: TrustSignalsProps) 
         className,
       )}
     >
-      {TRUST_SIGNALS.map((signal) => {
+      {trustSignals.map((signal) => {
         const Icon = ICONS[signal.id];
         return (
           <div

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Building2, FolderKanban, Search, Users, X } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
 import { cn } from "@/lib/utils";
 
 import { useEnterprise } from "./enterprise-context";
@@ -31,6 +32,7 @@ export function GlobalSearch() {
     navigate,
   } = useEnterprise();
   const { searchIndex } = useEnterpriseData();
+  const { t } = useEnterpriseLocale();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -71,6 +73,10 @@ export function GlobalSearch() {
     closeSearch();
   }
 
+  function groupLabel(group: string): string {
+    return t("views", `search.groups.${group}`);
+  }
+
   return (
     <AnimatePresence>
       {searchOpen ? (
@@ -95,7 +101,7 @@ export function GlobalSearch() {
                 autoFocus
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search accounts, stakeholders, initiatives, knowledge…"
+                placeholder={t("views", "search.placeholder")}
                 className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               />
               <button
@@ -109,10 +115,9 @@ export function GlobalSearch() {
             <div className="enterprise-demo-scroll max-h-[50vh] p-2">
               {grouped.length === 0 ? (
                 <div className="px-6 py-10 text-center">
-                  <p className="text-sm font-medium">No matching records</p>
+                  <p className="text-sm font-medium">{t("views", "search.noMatching")}</p>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    No accounts, stakeholders, initiatives, or knowledge records match &ldquo;{searchQuery}&rdquo;.
-                    Try a company name, project title, or stakeholder email.
+                    {t("views", "search.noMatchingDesc", { query: searchQuery })}
                   </p>
                 </div>
               ) : (
@@ -121,7 +126,7 @@ export function GlobalSearch() {
                   return (
                     <div key={group} className="mb-2">
                       <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                        {group}
+                        {groupLabel(group)}
                       </p>
                       {items.map((item) => (
                         <button

@@ -1,0 +1,251 @@
+{
+  "trustSignals": [
+    {
+      "id": "enterprise",
+      "label": "Enterprise-ready",
+      "detail": "Dibangun untuk industri ter-regulasi — energy, telecom, dan infrastructure."
+    },
+    {
+      "id": "human",
+      "label": "Humans in control",
+      "detail": "IDA merekomendasikan. Pemimpin yang memutuskan. Setiap action punya owner."
+    },
+    {
+      "id": "audit",
+      "label": "Full audit trail",
+      "detail": "Setiap briefing, decision, dan perubahan tercatat dan bisa dilacak."
+    }
+  ],
+  "fourQuestions": [
+    {
+      "id": "what",
+      "question": "Apa itu IDA?",
+      "answer": "IDA adalah sistem yang menampilkan kepada pemimpin segala yang terjadi di organisasi — account, orang, project, dan decision — dalam satu tempat."
+    },
+    {
+      "id": "who",
+      "question": "Untuk siapa?",
+      "answer": "CEO dan leadership team di enterprise besar yang butuh kejelasan sebelum mengambil keputusan penting — bukan chat window untuk individu."
+    },
+    {
+      "id": "why-not",
+      "question": "Kenapa bukan ChatGPT atau Copilot?",
+      "answer": "Tool itu menjawab pertanyaan sekali pakai. IDA mengingat organisasi Anda, menghubungkan titik-titik di account dan project, lalu menyiapkan briefing siap eksekutif."
+    },
+    {
+      "id": "outcome",
+      "question": "Apa yang Anda dapat?",
+      "answer": "Tampilan live tentang apa yang perlu perhatian, apa yang at risk, dan apa langkah berikutnya — dibangun dari aktivitas bisnis nyata, bukan respons AI generik."
+    }
+  ],
+  "investorFaq": [
+    {
+      "id": "chatgpt",
+      "question": "Apa bedanya IDA dengan ChatGPT?",
+      "answer": "ChatGPT menjawab pertanyaan secara terisolasi dan melupakan konteks Anda. IDA membangun organizational memory yang persisten — tahu account, stakeholder, project, dan history Anda, lalu menampilkan apa yang pemimpin butuhkan hari ini."
+    },
+    {
+      "id": "copilot",
+      "question": "Apa bedanya IDA dengan Microsoft Copilot?",
+      "answer": "Copilot membantu individu di dalam Microsoft 365. IDA beroperasi di skala organisasi — cross-link account seperti PT PLN Indonesia Power, commercial record, delivery risk, dan executive briefing dalam satu sistem."
+    },
+    {
+      "id": "data",
+      "question": "Dari mana IDA mendapat data?",
+      "answer": "Dari aktivitas organisasi yang enterprise Anda sudah hasilkan — email, meeting, update project, commercial record, dan decision. IDA meng-index dan menghubungkannya; tidak perlu mengganti sistem yang sudah ada."
+    },
+    {
+      "id": "decisions",
+      "question": "Apakah IDA membuat decision secara otomatis?",
+      "answer": "Tidak. IDA menyiapkan intelligence dan recommended action. Manusia tetap punya otoritas final. Setiap decision tercatat dengan ownership dan audit trail lengkap."
+    },
+    {
+      "id": "control",
+      "question": "Siapa yang mengontrol?",
+      "answer": "Selalu leadership team. IDA adalah intelligence layer — menampilkan konteks, risk, dan opportunity. Approval, commitment, dan accountability tetap di tangan manusia."
+    },
+    {
+      "id": "security",
+      "question": "Apakah enterprise-ready?",
+      "answer": "Ya. IDA dirancang untuk enterprise governance — role-based access, audit trail, human-in-the-loop design, dan deployment dalam security perimeter Anda."
+    },
+    {
+      "id": "demo",
+      "question": "Apakah data di demo ini nyata?",
+      "answer": "Demo menggunakan mock data realistis yang dimodelkan dari account enterprise Indonesia (PLN Indonesia Power, Mayora, Telkom, Hutama Karya) untuk menunjukkan cara kerja IDA di production."
+    },
+    {
+      "id": "workforce",
+      "question": "Apa itu Digital Workforce?",
+      "answer": "AI agent yang ter-govern — Proposal Analyst, Contract Reviewer, Relationship Analyst — bekerja bersama manusia memakai Organization Memory yang sama. Output mereka muncul di Executive Brief dan Knowledge, terlihat untuk setiap role."
+    }
+  ],
+  "roadmap": {
+    "footer": "Today sudah live di demo ini. Next dan Future menunjukkan product vision — tanpa setup teknis.",
+    "phases": {
+      "today": {
+        "label": "Today",
+        "tagline": "Organizational intelligence — live di demo",
+        "items": [
+          { "title": "Executive Brief", "desc": "Critical issue, opportunity, risk, dan recommended action dalam satu view." },
+          { "title": "Living Organization", "desc": "Relationship map yang menghubungkan account, initiative, dan function." },
+          { "title": "Account Intelligence", "desc": "Konteks lengkap per enterprise account — stakeholder, pipeline, delivery." },
+          { "title": "Organizational Knowledge", "desc": "Email, meeting, commercial record, dan decision — saling terhubung." },
+          { "title": "Global Search", "desc": "Temukan account, stakeholder, initiative, atau knowledge record secara instan." }
+        ]
+      },
+      "next": {
+        "label": "Next",
+        "tagline": "Execution dan integration — 6–12 bulan",
+        "items": [
+          { "title": "Digital Workforce", "desc": "Proposal Analyst, Contract Reviewer, Relationship Analyst — bekerja bersama manusia di demo." },
+          { "title": "Workflow Integration", "desc": "Hubungkan decision ke action di ERP, CRM, dan tool yang sudah ada." },
+          { "title": "Live Data Connectors", "desc": "Gmail, calendar, dan document system yang mengisi organizational memory." },
+          { "title": "Multi-Perspective Views", "desc": "CEO, CFO, Sales, Project, HR — setiap role melihat yang relevan, dari satu intelligence." }
+        ]
+      },
+      "future": {
+        "label": "Future",
+        "tagline": "Decision operating system — 12–24 bulan",
+        "items": [
+          { "title": "Industry Templates", "desc": "Intelligence model siap pakai untuk energy, telecom, dan infrastructure." },
+          { "title": "Predictive Intelligence", "desc": "Early warning untuk delivery risk, payment delay, dan relationship drift." },
+          { "title": "Board-Ready Reporting", "desc": "Executive dan board package otomatis dari live organizational data." },
+          { "title": "Partner Ecosystem", "desc": "Consulting dan SI partner yang deploy IDA di portfolio enterprise." }
+        ]
+      }
+    }
+  },
+  "comparison": {
+    "title": "Traditional AI vs IDA",
+    "subtitle": "Chat tool melupakan. IDA mengingat seluruh organisasi Anda.",
+    "headers": {
+      "dimension": "Dimension",
+      "traditional": "Traditional AI",
+      "ida": "IDA"
+    },
+    "rows": [
+      {
+        "dimension": "Organization Memory",
+        "traditional": "Hanya per session — lupa setelah setiap chat",
+        "ida": "Memory persisten dari email, meeting, decision, dan commercial record"
+      },
+      {
+        "dimension": "Context",
+        "traditional": "Jawaban generik tanpa history account atau stakeholder",
+        "ida": "Konteks organisasi lengkap — siapa bilang apa, kapan, dan mengapa penting"
+      },
+      {
+        "dimension": "Insights",
+        "traditional": "Ringkasan dangkal tanpa cross-linking",
+        "ida": "Intelligence saling terhubung di account, initiative, risk, dan commitment"
+      },
+      {
+        "dimension": "Decisions",
+        "traditional": "Saran tanpa audit trail atau governance",
+        "ida": "Decision record ter-govern dengan ownership, traceability, dan executive brief"
+      }
+    ]
+  },
+  "copilot": {
+    "title": "Kenapa bukan Copilot?",
+    "subtitle": "Copilot membantu individu. IDA beroperasi di skala organisasi.",
+    "headers": {
+      "capability": "Capability",
+      "copilot": "Microsoft Copilot",
+      "ida": "IDA Enterprise"
+    },
+    "rows": [
+      { "capability": "Organizational memory", "copilot": "Tidak ada enterprise memory persisten", "ida": "Knowledge layer terpadu di semua interaksi" },
+      { "capability": "Account-level context", "copilot": "Generik — tanpa linkage CRM atau project", "ida": "Account intelligence lengkap (mis. PT PLN Indonesia Power)" },
+      { "capability": "Cross-system insights", "copilot": "Terisolasi di Microsoft 365", "ida": "Cross-link email, meeting, project, dan decision" },
+      { "capability": "Executive briefings", "copilot": "Perlu prompting manual", "ida": "Brief otomatis dengan critical issue dan action" },
+      { "capability": "Decision governance", "copilot": "Tanpa audit trail atau ownership", "ida": "Decision tercatat dengan accountability dan traceability" },
+      { "capability": "Relationship mapping", "copilot": "Tidak tersedia", "ida": "Living organization map dengan stakeholder intelligence" },
+      { "capability": "Commercial awareness", "copilot": "Tidak bisa track PO, invoice, pipeline", "ida": "Commercial record terhubung ke delivery risk" }
+    ]
+  },
+  "howIdaThinks": {
+    "title": "Cara kerja IDA",
+    "subtitle": "Dari apa yang terjadi di bisnis Anda ke apa yang pemimpin perlu putuskan — satu jalur yang jelas.",
+    "steps": [
+      { "id": "reality", "label": "Reality", "desc": "Email, meeting, contract, dan update project di seluruh enterprise" },
+      { "id": "observations", "label": "Observations", "desc": "IDA menangkap event, stakeholder, dan commercial signal saat terjadi" },
+      { "id": "memory", "label": "Memory", "desc": "Knowledge ter-index dan terhubung ke account, orang, dan initiative" },
+      { "id": "context", "label": "Context", "desc": "Situational awareness lengkap — history, relationship, dan commitment terbuka" },
+      { "id": "insights", "label": "Insights", "desc": "Pola yang muncul: risk, opportunity, dan item yang perlu perhatian" },
+      { "id": "decisions", "label": "Decisions", "desc": "Brief siap eksekutif dengan recommended action dan governance" }
+    ]
+  },
+  "plnWow": {
+    "eyebrow": "Organization Memory",
+    "title": "Semua yang IDA ketahui tentang {account}",
+    "recordsSubtitle": "{count} record ter-index di people, communication, project, risk, decision, dan commitment — disintesis secara real time.",
+    "synthesizedBadge": "Disintesis {date}",
+    "healthLabel": "Relationship health",
+    "lastSynthesized": "Terakhir disintesis",
+    "recordsIndexed": "{count} record ter-index di {categories} kategori",
+    "account": "PT PLN Indonesia Power",
+    "lastSynthesizedValue": "6 Jul 2026, 10:42 WIB",
+    "categories": {
+      "people": {
+        "label": "People",
+        "items": [
+          { "title": "Budi Santoso", "detail": "VP Strategic Accounts — primary relationship owner, 23 engagement" },
+          { "title": "Dr. Hendra Wijaya", "detail": "Director of Engineering — otoritas teknis SCADA" },
+          { "title": "Maya Kusuma", "detail": "Head of Procurement — counterparty commercial annex" },
+          { "title": "Agus Firmansyah", "detail": "Project Director — sponsor delivery Phase II" }
+        ]
+      },
+      "meetings": {
+        "label": "Meetings",
+        "items": [
+          { "title": "Technical Design Review", "detail": "3 Jul 2026 — 4 action item, 3 resolved" },
+          { "title": "Commercial Annex Working Session", "detail": "5 Jul 2026 — pricing schedule sudah align" },
+          { "title": "Board Prep Briefing", "detail": "Terjadwal 10 Jul 2026 — 5 attendee" },
+          { "title": "Q3 Steering Committee", "detail": "14 Jul 2026 — go/no-go Phase II" }
+        ]
+      },
+      "emails": {
+        "label": "Emails",
+        "items": [
+          { "title": "RE: SCADA Phase II — Commercial Annex v4", "detail": "18 pesan minggu ini — thread procurement" },
+          { "title": "FW: SLA Appendix — technical sign-off", "detail": "Engineering approval menunggu Hendra Wijaya" },
+          { "title": "RE: Board submission timeline", "detail": "Target 11 Jul — Budi Santoso konfirmasi" },
+          { "title": "RE: Integration architecture — Phase II", "detail": "12 pesan — scope API gateway sudah jelas" }
+        ]
+      },
+      "projects": {
+        "label": "Projects",
+        "items": [
+          { "title": "SCADA Modernization Phase II", "detail": "Rp 4,2B · 71% complete · On track" },
+          { "title": "Operations Intelligence Pilot", "detail": "Rp 180M · 34% complete · Planning" }
+        ]
+      },
+      "risks": {
+        "label": "Risks",
+        "items": [
+          { "title": "Board submission window", "detail": "Commercial annex harus lock 9 Jul untuk board review 11 Jul" },
+          { "title": "Resource overlap Q3", "detail": "Renewal audit Telkom bisa bersaing dengan shared delivery lead" }
+        ]
+      },
+      "decisions": {
+        "label": "Decisions",
+        "items": [
+          { "title": "Technical design approved", "detail": "3 Jul 2026 — architecture review signed off" },
+          { "title": "Procurement aligned on annex structure", "detail": "5 Jul 2026 — pricing schedule diterima" },
+          { "title": "Board submission date confirmed", "detail": "11 Jul 2026 — menunggu final commercial lock" }
+        ]
+      },
+      "commitments": {
+        "label": "Commitments",
+        "items": [
+          { "title": "Deliver commercial annex v5 by 9 Jul", "detail": "Owner: IDA account team · Due 3 hari lagi" },
+          { "title": "Executive summary for board review", "detail": "Owner: Budi Santoso · Due 10 Jul" },
+          { "title": "SLA appendix engineering sign-off", "detail": "Owner: Hendra Wijaya · Due 8 Jul" },
+          { "title": "Phase II kickoff readiness assessment", "detail": "Owner: Agus Firmansyah · Due 15 Jul" }
+        ]
+      }
+    }
+  }
+}

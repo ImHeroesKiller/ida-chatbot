@@ -12,7 +12,9 @@ messages/
     vocabulary.json    # Business term dictionary (tv())
     ask.json           # Ask IDA UI strings
     ask-responses.json # Ask IDA API response templates
-    content.json       # Brief cards, relative time, metrics
+    content.json       # Brief cards, relative time, metrics, status labels
+    views.json         # Per-view UI strings (timeline, accounts, search, …)
+    narrative.json     # FAQ, roadmap, trust signals, positioning copy
   id/
     (same structure)
 ```
@@ -40,14 +42,16 @@ Switch via topbar **Presentation / Internal** toggle. Persists to `localStorage`
 import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
 
 function MyView() {
-  const { t, tv, format, locale } = useEnterpriseLocale();
+  const { t, tv, format, locale, messages } = useEnterpriseLocale();
 
   return (
     <>
       <h1>{t("enterprise", "brief.eyebrow")}</h1>
+      <p>{t("views", "timeline.title")}</p>
       <p>{tv("organizationMemory")}</p>
       <span>{format.relative("2 min ago")}</span>
-      <span>{format.money("Rp 4.2B")}</span>
+      <span>{format.projectStatus("on-track")}</span>
+      <span>{format.timelineType("meeting")}</span>
     </>
   );
 }
@@ -55,7 +59,9 @@ function MyView() {
 
 ### `t(scope, key, params?)`
 
-Nested dot-path lookup into `enterprise`, `workforce`, `ask`, or `content` scopes.
+Nested dot-path lookup into `enterprise`, `workforce`, `ask`, `content`, `views`, or `narrative` scopes.
+
+For arrays (FAQ, four questions, trust signals), read from `messages.narrative` directly.
 
 ### `tv(term)`
 
@@ -63,9 +69,9 @@ Business vocabulary from `vocabulary.json` — use for consistent terms:
 
 | Key | EN | ID |
 |-----|----|----|
-| `organizationMemory` | Organization Memory | Pengetahuan Organisasi |
-| `executiveBrief` | Executive Brief | Ringkasan Eksekutif |
-| `digitalWorkforce` | Digital Workforce | Tenaga Kerja Digital |
+| `organizationMemory` | Organization Memory | Organization Memory |
+| `executiveBrief` | Executive Brief | Executive Brief |
+| `digitalWorkforce` | Digital Workforce | Digital Workforce |
 
 ### `format.*`
 
@@ -76,17 +82,37 @@ Business vocabulary from `vocabulary.json` — use for consistent terms:
 | `format.date(d)` | Medium date style |
 | `format.time(d)` | Short time |
 | `format.relative(label)` | Maps `"2 min ago"` → localized string |
+| `format.projectStatus(status)` | `on-track` / `at-risk` / `stalled` labels |
+| `format.timelineType(type)` | Timeline event type labels |
 
 ## Tone of voice
 
 - **English:** Microsoft / Linear / Notion / Stripe — clear, confident, no jargon stacking
-- **Indonesian:** Natural business Bahasa — not literal translation. Prefer *Pengetahuan Organisasi* over *Memori Organisasi*, *Ringkasan Eksekutif* over *Brief Eksekutif*
+- **Indonesian:** Natural business Bahasa — not literal translation
+
+### English loanwords in Indonesian (keep as-is)
+
+Use English for established business/tech terms. Translate only framing and explanations.
+
+| Keep English | Example in ID copy |
+|--------------|-------------------|
+| Executive Brief | "Lihat Executive Brief" |
+| Digital Workforce | "1 insight dari Digital Workforce" |
+| Organization Memory | "Tarik email ke Organization Memory" |
+| Timeline, Pipeline, Dashboard | Nav labels stay English |
+| Account, Stakeholder, Initiative | "Cari account, stakeholder, initiative" |
+| On track, At risk, Stalled | Project status badges |
+| Milestone, kickoff, steering committee | In brief cards and narrative |
+| Gmail, OAuth, invoice, PO | Import panel and commercial copy |
+| Live data, Preview, sync | Status indicators |
+
+**Avoid** stiff literal translations like *Ringkasan Eksekutif*, *Tenaga Kerja Digital*, *Linimasa*, *Pemangku Kepentingan*.
 
 ## Adding strings
 
 1. Add key to `messages/en/{file}.json`
 2. Add natural Indonesian equivalent to `messages/id/{file}.json`
-3. Use `t("enterprise", "your.key")` in the component
+3. Use `t("views", "your.key")` or `t("narrative", "your.key")` in the component
 4. For shared business terms, add to both `vocabulary.json` files and use `tv()`
 
 ## Ask IDA localization
@@ -99,8 +125,8 @@ Worker names live in `workforce.json` under `workers.{id}.name`. IDs stay stable
 
 | ID | EN | ID |
 |----|----|----|
-| `proposal-analyst` | Proposal Analyst | Analis Proposal |
-| `contract-reviewer` | Contract Reviewer | Peninjau Kontrak |
+| `proposal-analyst` | Proposal Analyst | Proposal Analyst |
+| `contract-reviewer` | Contract Reviewer | Contract Reviewer |
 
 ## Executive Brief cards
 
@@ -112,4 +138,5 @@ Card copy is keyed by mock ID in `content.json` → `briefCards.{id}`. `localize
 - [ ] Empty states use natural copy, not literal EN→ID
 - [ ] Dates, money, relative time via `format.*`
 - [ ] Business terms via `tv()`, not hardcoded
+- [ ] English loanwords kept per style guide above
 - [ ] Test both Presentation and Internal modes without reload

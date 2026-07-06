@@ -40,6 +40,8 @@ type EnterpriseLocaleContextValue = {
     time: (date: Date | string | number) => string;
     relative: (label: string) => string;
     relativeKey: (key: string, count?: number) => string;
+    projectStatus: (status: string) => string;
+    timelineType: (type: string) => string;
   };
 };
 
@@ -93,6 +95,14 @@ export function EnterpriseLocaleProvider({ children }: { children: ReactNode }) 
         relative: (label: string) => localizeRelativeLabel(locale, label, relativeMessages),
         relativeKey: (key: string, count?: number) =>
           formatRelativeTimeKey(locale, key, count, relativeMessages),
+        projectStatus: (status: string) => {
+          const statuses = messages.content.projectStatus as Record<string, string> | undefined;
+          return statuses?.[status] ?? status;
+        },
+        timelineType: (type: string) => {
+          const types = messages.content.timelineTypes as Record<string, string> | undefined;
+          return types?.[type] ?? type;
+        },
       },
     };
   }, [locale, messages, relativeMessages, setLocale]);

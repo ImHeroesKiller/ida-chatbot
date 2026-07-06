@@ -1,0 +1,158 @@
+{
+  "importPanel": {
+    "title": "Import real data",
+    "description": "Connect Gmail or upload PDF/DOCX — your Executive Brief, Timeline, and Ask IDA update automatically.",
+    "liveActive": "Live data active · {count} records indexed",
+    "gmailTitle": "Gmail",
+    "gmailDesc": "Pull recent emails into Organization Memory. Auto-links @pln.co.id → PT PLN Indonesia Power.",
+    "connectGmail": "Connect Gmail",
+    "loadDemo": "Load demo emails",
+    "oauthSetup": "OAuth setup:",
+    "gmailWizard": "Gmail wizard",
+    "uploadTitle": "PDF & DOCX",
+    "uploadDesc": "Drag & drop invoices, proposals, or meeting minutes. Extracts company, value, deadline, stakeholder.",
+    "uploadFiles": "Upload files",
+    "maxSize": "Max 4 MB per file",
+    "gmailImported": "Imported {count} emails from Gmail.",
+    "demoImported": "Imported {count} demo emails.",
+    "docsIndexed": "Extracted and indexed {count} document.",
+    "docsIndexedPlural": "Extracted and indexed {count} documents."
+  },
+  "timeline": {
+    "eyebrow": "Timeline",
+    "title": "Organizational activity stream",
+    "description": "Recent activity across your organization — in order.",
+    "emptyTitle": "No activity recorded yet",
+    "emptyDesc": "As your organization captures communications, meetings, and decisions, they will appear here in chronological order.",
+    "openRecord": "Open record →",
+    "types": {
+      "communication": "communication",
+      "meeting": "meeting",
+      "decision": "decision",
+      "commercial": "commercial",
+      "project": "project"
+    }
+  },
+  "companies": {
+    "eyebrow": "Accounts",
+    "eyebrowSingle": "Account",
+    "title": "Enterprise account portfolio",
+    "description": "Your enterprise accounts — health, pipeline, and linked stakeholders.",
+    "notFound": "Account not found",
+    "notFoundTitle": "This account record is unavailable",
+    "notFoundDesc": "The account may have been archived or you may not have access. Return to the portfolio to view active enterprise accounts.",
+    "backPortfolio": "View account portfolio →",
+    "overview": "Account overview",
+    "sector": "Sector",
+    "pipelineRevenue": "Pipeline / Revenue",
+    "stakeholdersLabel": "Stakeholders",
+    "activeInitiatives": "Active initiatives",
+    "keyStakeholders": "Key stakeholders",
+    "noStakeholders": "No stakeholders indexed for this account.",
+    "linkedInitiatives": "Linked initiatives",
+    "noInitiatives": "No active initiatives linked to this account.",
+    "viewProfile": "View account profile",
+    "health": "Health"
+  },
+  "projects": {
+    "eyebrow": "Initiatives",
+    "eyebrowSingle": "Initiative",
+    "title": "Delivery portfolio",
+    "description": "Active initiatives — progress, budget, and delivery risk.",
+    "notFound": "Initiative not found",
+    "notFoundTitle": "This initiative record is unavailable",
+    "notFoundDesc": "The project may have been completed or archived. Return to the portfolio to view active delivery initiatives.",
+    "progress": "Delivery progress",
+    "contractValue": "Contract value",
+    "lastUpdate": "Last update",
+    "account": "Account",
+    "programOwner": "Program owner",
+    "complete": "complete",
+    "updated": "Updated",
+    "status": {
+      "on-track": "On track",
+      "at-risk": "At risk",
+      "stalled": "Stalled"
+    }
+  },
+  "people": {
+    "eyebrow": "Stakeholders",
+    "eyebrowSingle": "Stakeholder",
+    "title": "Relationship directory",
+    "description": "The people behind your accounts and initiatives.",
+    "notFound": "Stakeholder not found",
+    "notFoundTitle": "This stakeholder record is unavailable",
+    "notFoundDesc": "The contact may have been archived or access may be restricted. Return to the directory to view indexed relationships.",
+    "role": "Role",
+    "email": "Email",
+    "organization": "Organization",
+    "engagements": "Engagements indexed"
+  },
+  "organization": {
+    "eyebrow": "Organization",
+    "title": "How everything connects",
+    "description": "Accounts, initiatives, and teams — linked in one living map."
+  },
+  "whyIda": {
+    "eyebrow": "Start here",
+    "title": "Why IDA?",
+    "investorFaq": "Investor FAQ →",
+    "explorePln": "Explore PLN account →",
+    "seeBrief": "See Executive Brief →",
+    "organizationMap": "Organization map →",
+    "continueStory": "Continue the story — executive brief, then PLN Indonesia Power, then the organization map.",
+    "links": {
+      "brief": "Executive Brief",
+      "pln": "PLN account",
+      "roadmap": "Roadmap"
+    }
+  },
+  "roadmap": {
+    "eyebrow": "Product Roadmap",
+    "title": "Where IDA is going"
+  },
+  "search": {
+    "placeholder": "Search accounts, stakeholders, initiatives, knowledge…",
+    "noMatching": "No matching records",
+    "noMatchingDesc": "No accounts, stakeholders, initiatives, or knowledge records match \"{query}\". Try a company name, project title, or stakeholder email.",
+    "groups": {
+      "Companies": "Accounts",
+      "People": "Stakeholders",
+      "Projects": "Initiatives",
+      "Memory": "Memory",
+      "Decisions": "Decisions"
+    }
+  },
+  "faq": {
+    "title": "Investor FAQ",
+    "subtitle": "Common questions about IDA Enterprise",
+    "modalSubtitle": "Short answers to the questions investors ask most."
+  },
+  "debug": {
+    "eyebrow": "Developer",
+    "title": "Debug Dashboard",
+    "description": "Health checks, ESL snapshot, and Gmail setup — for diagnosing import issues without digging through raw logs.",
+    "refresh": "Refresh",
+    "health": "Health",
+    "eslStore": "ESL Store",
+    "status": "Status",
+    "version": "Version",
+    "checked": "Checked",
+    "requestId": "Request ID",
+    "hydrated": "Hydrated",
+    "storePath": "Store path",
+    "graph": "Graph",
+    "nodesEdges": "{nodes} nodes · {edges} edges",
+    "attentionItems": "Attention items",
+    "eslUnavailable": "ESL debug unavailable.",
+    "orgsInEsl": "Organizations in ESL",
+    "gmailOAuth": "Gmail OAuth",
+    "gmailConfigured": "Server credentials detected.",
+    "gmailNotConfigured": "Not configured — use demo emails or follow setup wizard.",
+    "setupWizard": "Setup wizard",
+    "apiEndpoints": "API endpoints:"
+  },
+  "gmailNotice": {
+    "wizard": "Open Gmail setup wizard →"
+  }
+}

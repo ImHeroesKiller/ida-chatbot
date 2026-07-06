@@ -1,0 +1,158 @@
+{
+  "importPanel": {
+    "title": "Import data nyata",
+    "description": "Connect Gmail atau upload PDF/DOCX — Executive Brief, Timeline, dan Ask IDA otomatis ter-update.",
+    "liveActive": "Live data aktif · {count} record ter-index",
+    "gmailTitle": "Gmail",
+    "gmailDesc": "Tarik email terbaru ke Organization Memory. Auto-link @pln.co.id → PT PLN Indonesia Power.",
+    "connectGmail": "Connect Gmail",
+    "loadDemo": "Load demo emails",
+    "oauthSetup": "OAuth setup:",
+    "gmailWizard": "Gmail wizard",
+    "uploadTitle": "PDF & DOCX",
+    "uploadDesc": "Drag & drop invoice, proposal, atau meeting minutes. Extract company, value, deadline, stakeholder.",
+    "uploadFiles": "Upload files",
+    "maxSize": "Max 4 MB per file",
+    "gmailImported": "Berhasil import {count} email dari Gmail.",
+    "demoImported": "Berhasil import {count} demo email.",
+    "docsIndexed": "Berhasil extract dan index {count} dokumen.",
+    "docsIndexedPlural": "Berhasil extract dan index {count} dokumen."
+  },
+  "timeline": {
+    "eyebrow": "Timeline",
+    "title": "Alur aktivitas organisasi",
+    "description": "Aktivitas terbaru di seluruh organisasi — berurutan.",
+    "emptyTitle": "Belum ada aktivitas tercatat",
+    "emptyDesc": "Saat organisasi Anda mencatat communication, meeting, dan decision, semuanya akan muncul di sini secara kronologis.",
+    "openRecord": "Buka record →",
+    "types": {
+      "communication": "communication",
+      "meeting": "meeting",
+      "decision": "decision",
+      "commercial": "commercial",
+      "project": "project"
+    }
+  },
+  "companies": {
+    "eyebrow": "Accounts",
+    "eyebrowSingle": "Account",
+    "title": "Portfolio account enterprise",
+    "description": "Account enterprise Anda — health, pipeline, dan stakeholder terhubung.",
+    "notFound": "Account tidak ditemukan",
+    "notFoundTitle": "Record account ini tidak tersedia",
+    "notFoundDesc": "Account mungkin sudah di-archive atau Anda tidak punya akses. Kembali ke portfolio untuk lihat account enterprise yang aktif.",
+    "backPortfolio": "Lihat portfolio account →",
+    "overview": "Account overview",
+    "sector": "Sector",
+    "pipelineRevenue": "Pipeline / Revenue",
+    "stakeholdersLabel": "Stakeholders",
+    "activeInitiatives": "Active initiatives",
+    "keyStakeholders": "Key stakeholders",
+    "noStakeholders": "Belum ada stakeholder ter-index untuk account ini.",
+    "linkedInitiatives": "Linked initiatives",
+    "noInitiatives": "Belum ada initiative aktif yang terhubung ke account ini.",
+    "viewProfile": "Lihat profil account",
+    "health": "Health"
+  },
+  "projects": {
+    "eyebrow": "Initiatives",
+    "eyebrowSingle": "Initiative",
+    "title": "Portfolio delivery",
+    "description": "Initiative aktif — progress, budget, dan delivery risk.",
+    "notFound": "Initiative tidak ditemukan",
+    "notFoundTitle": "Record initiative ini tidak tersedia",
+    "notFoundDesc": "Project mungkin sudah selesai atau di-archive. Kembali ke portfolio untuk lihat initiative delivery yang aktif.",
+    "progress": "Delivery progress",
+    "contractValue": "Contract value",
+    "lastUpdate": "Last update",
+    "account": "Account",
+    "programOwner": "Program owner",
+    "complete": "complete",
+    "updated": "Updated",
+    "status": {
+      "on-track": "On track",
+      "at-risk": "At risk",
+      "stalled": "Stalled"
+    }
+  },
+  "people": {
+    "eyebrow": "Stakeholders",
+    "eyebrowSingle": "Stakeholder",
+    "title": "Relationship directory",
+    "description": "Orang-orang di balik account dan initiative Anda.",
+    "notFound": "Stakeholder tidak ditemukan",
+    "notFoundTitle": "Record stakeholder ini tidak tersedia",
+    "notFoundDesc": "Kontak mungkin sudah di-archive atau akses dibatasi. Kembali ke directory untuk lihat relasi yang ter-index.",
+    "role": "Role",
+    "email": "Email",
+    "organization": "Organization",
+    "engagements": "Engagement ter-index"
+  },
+  "organization": {
+    "eyebrow": "Organization",
+    "title": "Bagaimana semuanya terhubung",
+    "description": "Account, initiative, dan tim — terhubung dalam satu living map."
+  },
+  "whyIda": {
+    "eyebrow": "Mulai di sini",
+    "title": "Why IDA?",
+    "investorFaq": "Investor FAQ →",
+    "explorePln": "Explore account PLN →",
+    "seeBrief": "Lihat Executive Brief →",
+    "organizationMap": "Organization map →",
+    "continueStory": "Lanjutkan cerita — Executive Brief, lalu PLN Indonesia Power, lalu organization map.",
+    "links": {
+      "brief": "Executive Brief",
+      "pln": "Account PLN",
+      "roadmap": "Roadmap"
+    }
+  },
+  "roadmap": {
+    "eyebrow": "Product Roadmap",
+    "title": "Ke mana IDA berkembang"
+  },
+  "search": {
+    "placeholder": "Cari account, stakeholder, initiative, knowledge…",
+    "noMatching": "Tidak ada record yang cocok",
+    "noMatchingDesc": "Tidak ada account, stakeholder, initiative, atau knowledge record yang cocok dengan \"{query}\". Coba nama perusahaan, judul project, atau email stakeholder.",
+    "groups": {
+      "Companies": "Accounts",
+      "People": "Stakeholders",
+      "Projects": "Initiatives",
+      "Memory": "Memory",
+      "Decisions": "Decisions"
+    }
+  },
+  "faq": {
+    "title": "Investor FAQ",
+    "subtitle": "Pertanyaan umum tentang IDA Enterprise",
+    "modalSubtitle": "Jawaban singkat untuk pertanyaan yang paling sering ditanyakan investor."
+  },
+  "gmailNotice": {
+    "wizard": "Buka Gmail setup wizard →"
+  },
+  "debug": {
+    "eyebrow": "Developer",
+    "title": "Debug Dashboard",
+    "description": "Health check, snapshot ESL, dan setup Gmail — untuk diagnosa masalah import tanpa perlu buka raw log.",
+    "refresh": "Refresh",
+    "health": "Health",
+    "eslStore": "ESL Store",
+    "status": "Status",
+    "version": "Version",
+    "checked": "Dicek",
+    "requestId": "Request ID",
+    "hydrated": "Hydrated",
+    "storePath": "Store path",
+    "graph": "Graph",
+    "nodesEdges": "{nodes} nodes · {edges} edges",
+    "attentionItems": "Attention items",
+    "eslUnavailable": "ESL debug tidak tersedia.",
+    "orgsInEsl": "Organization di ESL",
+    "gmailOAuth": "Gmail OAuth",
+    "gmailConfigured": "Server credentials terdeteksi.",
+    "gmailNotConfigured": "Belum dikonfigurasi — gunakan demo email atau ikuti setup wizard.",
+    "setupWizard": "Setup wizard",
+    "apiEndpoints": "API endpoints:"
+  }
+}

@@ -5,22 +5,28 @@ import { motion } from "framer-motion";
 
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
 import { FadeIn } from "@/components/enterprise/enterprise-motion";
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
 
-import { HOW_IDA_THINKS_STEPS } from "../positioning-data";
+type HowIdaThinksData = {
+  title: string;
+  subtitle: string;
+  steps: Array<{ id: string; label: string; desc: string }>;
+};
 
 export function HowIdaThinks() {
+  const { messages } = useEnterpriseLocale();
+  const howIdaThinks = messages.narrative.howIdaThinks as HowIdaThinksData;
+
   return (
     <FadeIn delay={0.08}>
       <EnterpriseGlassCard padding="lg">
         <div className="mb-8">
-          <h2 className="text-lg font-semibold tracking-tight">How IDA works</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            From what happens in your business to what leaders need to decide — one clear path.
-          </p>
+          <h2 className="text-lg font-semibold tracking-tight">{howIdaThinks.title}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{howIdaThinks.subtitle}</p>
         </div>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-stretch lg:gap-2">
-          {HOW_IDA_THINKS_STEPS.map((step, index) => (
+          {howIdaThinks.steps.map((step, index) => (
             <div key={step.id} className="flex flex-1 items-center gap-2 lg:flex-col lg:gap-3">
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
@@ -36,7 +42,7 @@ export function HowIdaThinks() {
                 </div>
                 <p className="text-xs leading-relaxed text-muted-foreground">{step.desc}</p>
               </motion.div>
-              {index < HOW_IDA_THINKS_STEPS.length - 1 ? (
+              {index < howIdaThinks.steps.length - 1 ? (
                 <ArrowRight className="hidden size-4 shrink-0 text-muted-foreground/50 lg:block" />
               ) : null}
             </div>

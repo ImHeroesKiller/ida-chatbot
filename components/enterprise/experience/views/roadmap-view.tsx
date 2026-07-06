@@ -4,9 +4,9 @@ import { CheckCircle2, Circle, Sparkles } from "lucide-react";
 
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
 import { FadeIn, Stagger, StaggerItem } from "@/components/enterprise/enterprise-motion";
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
 import { cn } from "@/lib/utils";
 
-import { IDA_CORE_MESSAGE, PRODUCT_ROADMAP } from "../narrative";
 import { PageHeader } from "../page-header";
 
 const PHASES = [
@@ -15,18 +15,32 @@ const PHASES = [
   { key: "future" as const, icon: Sparkles, style: "border-violet-500/30 bg-violet-500/5 text-violet-700" },
 ];
 
+type RoadmapPhase = {
+  label: string;
+  tagline: string;
+  items: Array<{ title: string; desc: string }>;
+};
+
+type RoadmapData = {
+  footer: string;
+  phases: Record<string, RoadmapPhase>;
+};
+
 export function RoadmapView() {
+  const { t, messages } = useEnterpriseLocale();
+  const roadmap = messages.narrative.roadmap as RoadmapData;
+
   return (
     <div>
       <PageHeader
-        eyebrow="Product Roadmap"
-        title="Where IDA is going"
-        description={IDA_CORE_MESSAGE}
+        eyebrow={t("views", "roadmap.eyebrow")}
+        title={t("views", "roadmap.title")}
+        description={t("enterprise", "slogan.core")}
       />
 
       <Stagger className="space-y-8">
         {PHASES.map(({ key, icon: Icon, style }) => {
-          const phase = PRODUCT_ROADMAP[key];
+          const phase = roadmap.phases[key];
           return (
             <StaggerItem key={key}>
               <EnterpriseGlassCard padding="lg">
@@ -58,7 +72,7 @@ export function RoadmapView() {
 
       <FadeIn delay={0.15} className="mt-8">
         <p className="text-center text-xs text-muted-foreground">
-          Today is live in this demo. Next and Future show the product vision — no technical setup required.
+          {roadmap.footer}
         </p>
       </FadeIn>
     </div>

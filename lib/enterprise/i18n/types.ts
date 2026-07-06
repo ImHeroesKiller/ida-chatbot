@@ -25,4 +25,6 @@ export type EnterpriseMessages = {
   ask: Record<string, unknown>;
   content: Record<string, unknown>;
   askResponses: Record<string, string>;
+  views: Record<string, unknown>;
+  narrative: Record<string, unknown>;
 };

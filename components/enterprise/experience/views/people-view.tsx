@@ -4,13 +4,11 @@ import { Users } from "lucide-react";
 
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
 import { Stagger, StaggerItem } from "@/components/enterprise/enterprise-motion";
-
 import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
 
 import { useEnterprise } from "../enterprise-context";
 import { EmptyState } from "../empty-state";
 import { EntityLink } from "../entity-link";
-import { IDA_CORE_MESSAGE } from "../narrative";
 import { useEnterpriseData } from "../use-enterprise-data";
 import { PageHeader } from "../page-header";
 
@@ -23,11 +21,11 @@ export function PeopleView() {
   if (entityId && !selected) {
     return (
       <div>
-        <PageHeader eyebrow="Stakeholders" title="Stakeholder not found" />
+        <PageHeader eyebrow={t("views", "people.eyebrow")} title={t("views", "people.notFound")} />
         <EmptyState
           icon={Users}
-          title="This stakeholder record is unavailable"
-          description="The contact may have been archived or access may be restricted. Return to the directory to view indexed relationships."
+          title={t("views", "people.notFoundTitle")}
+          description={t("views", "people.notFoundDesc")}
         />
       </div>
     );
@@ -38,16 +36,16 @@ export function PeopleView() {
     return (
       <div>
         <PageHeader
-          eyebrow="Stakeholder"
+          eyebrow={t("views", "people.eyebrowSingle")}
           title={selected.name}
           description={selected.summary}
         />
         <EnterpriseGlassCard padding="lg">
           <dl className="grid gap-4 sm:grid-cols-2">
-            <div><dt className="text-xs text-muted-foreground">Role</dt><dd className="font-medium">{selected.role}</dd></div>
-            <div><dt className="text-xs text-muted-foreground">Email</dt><dd className="font-medium">{selected.email}</dd></div>
+            <div><dt className="text-xs text-muted-foreground">{t("views", "people.role")}</dt><dd className="font-medium">{selected.role}</dd></div>
+            <div><dt className="text-xs text-muted-foreground">{t("views", "people.email")}</dt><dd className="font-medium">{selected.email}</dd></div>
             <div>
-              <dt className="text-xs text-muted-foreground">Organization</dt>
+              <dt className="text-xs text-muted-foreground">{t("views", "people.organization")}</dt>
               <dd className="font-medium">
                 {company ? (
                   <EntityLink type="company" id={company.id}>{company.name}</EntityLink>
@@ -57,7 +55,7 @@ export function PeopleView() {
               </dd>
             </div>
             <div><dt className="text-xs text-muted-foreground">{t("enterprise", "people.lastActivity")}</dt><dd className="font-medium">{format.relative(selected.lastActive)}</dd></div>
-            <div><dt className="text-xs text-muted-foreground">Engagements indexed</dt><dd className="font-medium">{selected.engagements}</dd></div>
+            <div><dt className="text-xs text-muted-foreground">{t("views", "people.engagements")}</dt><dd className="font-medium">{selected.engagements}</dd></div>
           </dl>
         </EnterpriseGlassCard>
       </div>
@@ -67,9 +65,9 @@ export function PeopleView() {
   return (
     <div>
       <PageHeader
-        eyebrow="Stakeholders"
-        title="Relationship directory"
-        description={`${IDA_CORE_MESSAGE} The people behind your accounts and initiatives.`}
+        eyebrow={t("views", "people.eyebrow")}
+        title={t("views", "people.title")}
+        description={`${t("enterprise", "slogan.core")} ${t("views", "people.description")}`}
       />
       <Stagger className="grid gap-4 sm:grid-cols-2">
         {people.map((person) => (

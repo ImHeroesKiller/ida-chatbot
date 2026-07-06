@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
 
 import { PageHeader } from "../page-header";
 
@@ -54,6 +55,7 @@ function StatusBadge({ value }: { value: string }) {
 }
 
 export function DebugDashboardView() {
+  const { t } = useEnterpriseLocale();
   const [health, setHealth] = useState<HealthPayload | null>(null);
   const [esl, setEsl] = useState<EslDebugPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -88,9 +90,9 @@ export function DebugDashboardView() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Developer"
-        title="Debug Dashboard"
-        description="Health checks, ESL snapshot, and Gmail setup — for diagnosing import issues without digging through raw logs."
+        eyebrow={t("views", "debug.eyebrow")}
+        title={t("views", "debug.title")}
+        description={t("views", "debug.description")}
         action={
           <button
             type="button"
@@ -99,7 +101,7 @@ export function DebugDashboardView() {
             className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors hover:bg-muted/50"
           >
             {loading ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
-            Refresh
+            {t("views", "debug.refresh")}
           </button>
         }
       />
@@ -112,26 +114,26 @@ export function DebugDashboardView() {
         <EnterpriseGlassCard padding="md" className="space-y-4">
           <div className="flex items-center gap-2">
             <Activity className="size-4 text-primary" />
-            <h2 className="text-sm font-semibold">Health</h2>
+            <h2 className="text-sm font-semibold">{t("views", "debug.health")}</h2>
           </div>
           {loading && !health ? (
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
           ) : health ? (
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Status</dt>
+                <dt className="text-muted-foreground">{t("views", "debug.status")}</dt>
                 <dd><StatusBadge value={health.status} /></dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Version</dt>
+                <dt className="text-muted-foreground">{t("views", "debug.version")}</dt>
                 <dd className="font-mono text-xs">{health.version}</dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Checked</dt>
+                <dt className="text-muted-foreground">{t("views", "debug.checked")}</dt>
                 <dd className="text-xs">{new Date(health.timestamp).toLocaleString()}</dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Request ID</dt>
+                <dt className="text-muted-foreground">{t("views", "debug.requestId")}</dt>
                 <dd className="font-mono text-xs">{health.requestId}</dd>
               </div>
               {Object.entries(health.checks).map(([key, value]) => (
@@ -147,32 +149,32 @@ export function DebugDashboardView() {
         <EnterpriseGlassCard padding="md" className="space-y-4">
           <div className="flex items-center gap-2">
             <Database className="size-4 text-primary" />
-            <h2 className="text-sm font-semibold">ESL Store</h2>
+            <h2 className="text-sm font-semibold">{t("views", "debug.eslStore")}</h2>
           </div>
           {loading && !esl ? (
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
           ) : esl ? (
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Hydrated</dt>
+                <dt className="text-muted-foreground">{t("views", "debug.hydrated")}</dt>
                 <dd><StatusBadge value={esl.hydrated ? "ok" : "empty"} /></dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Store path</dt>
+                <dt className="text-muted-foreground">{t("views", "debug.storePath")}</dt>
                 <dd className="font-mono text-xs">{esl.storePath}</dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Graph</dt>
+                <dt className="text-muted-foreground">{t("views", "debug.graph")}</dt>
                 <dd className="text-xs">
-                  {esl.graph.nodeCount} nodes · {esl.graph.edgeCount} edges
+                  {t("views", "debug.nodesEdges", { nodes: esl.graph.nodeCount, edges: esl.graph.edgeCount })}
                 </dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Attention items</dt>
+                <dt className="text-muted-foreground">{t("views", "debug.attentionItems")}</dt>
                 <dd>{esl.attentionItems}</dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Request ID</dt>
+                <dt className="text-muted-foreground">{t("views", "debug.requestId")}</dt>
                 <dd className="font-mono text-xs">{esl.requestId}</dd>
               </div>
               {Object.entries(esl.counts).map(([key, value]) => (
@@ -183,14 +185,14 @@ export function DebugDashboardView() {
               ))}
             </dl>
           ) : (
-            <p className="text-sm text-muted-foreground">ESL debug unavailable.</p>
+            <p className="text-sm text-muted-foreground">{t("views", "debug.eslUnavailable")}</p>
           )}
         </EnterpriseGlassCard>
       </div>
 
       {esl && esl.organizations.length > 0 ? (
         <EnterpriseGlassCard padding="md" className="space-y-3">
-          <h2 className="text-sm font-semibold">Organizations in ESL</h2>
+          <h2 className="text-sm font-semibold">{t("views", "debug.orgsInEsl")}</h2>
           <ul className="space-y-2 text-sm">
             {esl.organizations.map((org) => (
               <li key={org.id} className="flex justify-between gap-4 rounded-lg bg-muted/30 px-3 py-2">
@@ -208,11 +210,11 @@ export function DebugDashboardView() {
         <div className="flex items-center gap-3">
           <Mail className="size-5 text-primary" />
           <div>
-            <p className="text-sm font-semibold">Gmail OAuth</p>
+            <p className="text-sm font-semibold">{t("views", "debug.gmailOAuth")}</p>
             <p className="text-xs text-muted-foreground">
               {health?.checks.gmail === "configured"
-                ? "Server credentials detected."
-                : "Not configured — use demo emails or follow setup wizard."}
+                ? t("views", "debug.gmailConfigured")
+                : t("views", "debug.gmailNotConfigured")}
             </p>
           </div>
         </div>
@@ -220,13 +222,13 @@ export function DebugDashboardView() {
           href="/docs/setup/gmail"
           className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-xs font-medium transition-colors hover:bg-muted/50"
         >
-          Setup wizard
+          {t("views", "debug.setupWizard")}
           <ExternalLink className="size-3.5" />
         </Link>
       </EnterpriseGlassCard>
 
       <p className="text-center text-xs text-muted-foreground">
-        API endpoints: <code className="rounded bg-muted px-1">GET /api/health</code> ·{" "}
+        {t("views", "debug.apiEndpoints")} <code className="rounded bg-muted px-1">GET /api/health</code> ·{" "}
         <code className="rounded bg-muted px-1">GET /api/debug/esl</code>
       </p>
     </div>

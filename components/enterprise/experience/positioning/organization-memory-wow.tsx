@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 
 import { EnterpriseGlassCard } from "@/components/enterprise/enterprise-glass-card";
 import { FadeIn, Stagger, StaggerItem } from "@/components/enterprise/enterprise-motion";
+import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
 import { cn } from "@/lib/utils";
 
 import { PLN_EVERYTHING_IDA_KNOWS } from "../positioning-data";
@@ -28,15 +29,33 @@ const CATEGORY_META = {
   commitments: { icon: Handshake, color: "text-rose-600 bg-rose-500/10" },
 } as const;
 
-type CategoryKey = keyof typeof PLN_EVERYTHING_IDA_KNOWS.categories;
+type CategoryKey = keyof typeof CATEGORY_META;
+
+type PlnCategory = {
+  label: string;
+  items: Array<{ title: string; detail: string }>;
+};
+
+type PlnWowData = {
+  eyebrow: string;
+  title: string;
+  recordsSubtitle: string;
+  synthesizedBadge: string;
+  account: string;
+  lastSynthesizedValue: string;
+  categories: Record<CategoryKey, PlnCategory>;
+};
 
 export function OrganizationMemoryWow() {
-  const data = PLN_EVERYTHING_IDA_KNOWS;
-  const categories = Object.entries(data.categories) as Array<
-    [CategoryKey, (typeof data.categories)[CategoryKey]]
-  >;
+  const { t, messages } = useEnterpriseLocale();
+  const plnWow = messages.narrative.plnWow as PlnWowData;
+  const counts = PLN_EVERYTHING_IDA_KNOWS.categories;
 
-  const totalRecords = categories.reduce((sum, [, cat]) => sum + cat.count, 0);
+  const categories = Object.entries(plnWow.categories) as Array<[CategoryKey, PlnCategory]>;
+  const totalRecords = categories.reduce(
+    (sum, [key]) => sum + (counts[key]?.count ?? 0),
+    0,
+  );
 
   return (
     <div className="mt-8">
@@ -44,18 +63,18 @@ export function OrganizationMemoryWow() {
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
-              Organization Memory
+              {plnWow.eyebrow}
             </p>
             <h2 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">
-              Everything IDA knows about {data.account}
+              {t("narrative", "plnWow.title", { account: plnWow.account })}
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              {totalRecords} indexed records across people, communications, projects, risks, decisions, and commitments — synthesized in real time.
+              {t("narrative", "plnWow.recordsSubtitle", { count: totalRecords })}
             </p>
           </div>
           <div className="enterprise-card-premium rounded-full px-4 py-2 text-[11px] font-medium text-muted-foreground">
             <CheckCircle2 className="mr-1.5 inline size-3.5 text-emerald-500" />
-            Synthesized {data.lastSynthesized}
+            {t("narrative", "plnWow.synthesizedBadge", { date: plnWow.lastSynthesizedValue })}
           </div>
         </div>
       </FadeIn>
@@ -64,6 +83,7 @@ export function OrganizationMemoryWow() {
         {categories.map(([key, category]) => {
           const meta = CATEGORY_META[key];
           const Icon = meta.icon;
+          const count = counts[key]?.count ?? category.items.length;
           return (
             <StaggerItem key={key}>
               <EnterpriseGlassCard padding="md" className="h-full">
@@ -80,7 +100,7 @@ export function OrganizationMemoryWow() {
                     transition={{ delay: 0.2, duration: 0.3 }}
                     className="rounded-full bg-muted/50 px-2 py-0.5 text-[10px] font-bold tabular-nums"
                   >
-                    {category.count}
+                    {count}
                   </motion.span>
                 </div>
                 <ul className="space-y-2.5">

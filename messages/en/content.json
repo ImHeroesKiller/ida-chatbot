@@ -54,5 +54,17 @@
     "dueIn24h": "Due in 24h",
     "health94": "Health 94",
     "exposure450m": "Rp 450M exposure"
+  },
+  "projectStatus": {
+    "on-track": "On track",
+    "at-risk": "At risk",
+    "stalled": "Stalled"
+  },
+  "timelineTypes": {
+    "communication": "communication",
+    "meeting": "meeting",
+    "decision": "decision",
+    "commercial": "commercial",
+    "project": "project"
   }
 }

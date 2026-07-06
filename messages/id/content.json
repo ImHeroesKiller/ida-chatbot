@@ -10,49 +10,61 @@
   },
   "briefCards": {
     "c1": {
-      "title": "Integrasi Segmen 7 terhenti — 11 hari tanpa pembaruan milestone",
-      "description": "Komite steering PT Hutama Karya belum menetapkan pemilik keputusan. UAT sign-off dan serah terima API gateway terblokir."
+      "title": "Segment 7 stuck — 11 hari tanpa update milestone",
+      "description": "Steering committee PT Hutama Karya belum assign decision owner. UAT sign-off dan API gateway handover masih blocked."
     },
     "c2": {
       "title": "Invoice INV-203 jatuh tempo 7 Juli 2026",
-      "description": "PT Hutama Karya — Rp 127 juta untuk milestone 3 Segmen 7. Konfirmasi pembayaran diperlukan dari Direktur Keuangan."
+      "description": "PT Hutama Karya — Rp 127 juta untuk milestone 3 Segment 7. Butuh konfirmasi payment dari Finance Director."
     },
     "o1": {
-      "title": "PLN Indonesia Power SCADA Fase II bergerak maju",
-      "description": "Volume thread komersial naik 41% minggu ini. Pengadaan selaras pada lampiran teknis — jendela pengajuan dewan terbuka."
+      "title": "PLN Indonesia Power SCADA Phase II maju",
+      "description": "Volume commercial thread naik 41% minggu ini. Procurement sudah align di technical annex — window board submission terbuka."
     },
     "o2": {
-      "title": "Mayora PO-8821 dieksekusi — Rp 850 juta",
-      "description": "Platform Analitik Distribusi Nasional disetujui. Disarankan percepat kickoff sebelum siklus perencanaan Kuartal III."
+      "title": "Mayora PO-8821 executed — Rp 850 juta",
+      "description": "National Distribution Analytics Platform approved. Disarankan fast-track kickoff sebelum Q3 planning cycle."
     },
     "h1": {
-      "title": "PT PLN Indonesia Power — kesehatan relasi kuat",
-      "description": "14 pemangku kepentingan aktif, 6 rapat kuartal ini, tren perpanjangan positif. NPS 8,7 dari tinjauan eksekutif terakhir."
+      "title": "PT PLN Indonesia Power — relationship health kuat",
+      "description": "14 stakeholder aktif, 6 meeting kuartal ini, renewal trend positif. NPS 8,7 dari executive review terakhir."
     },
     "h2": {
-      "title": "Skor kecerdasan organisasi",
-      "description": "147 relasi terindeks, 31 pembaruan pengetahuan hari ini di komunikasi, keputusan, dan catatan komersial."
+      "title": "Organization intelligence score",
+      "description": "147 relasi ter-index, 31 update memory hari ini di communication, decision, dan commercial record."
     },
     "r1": {
-      "title": "Keterlambatan pembayaran Hutama Karya dapat berdampak ke Segmen 7",
-      "description": "INV-203 tertunggak dapat menunda mobilisasi subkontraktor dan mendorong go-live Kuartal III melewati jendela komitmen."
+      "title": "Payment delay Hutama Karya bisa berdampak ke Segment 7",
+      "description": "INV-203 outstanding bisa delay mobilisasi subkontraktor dan dorong go-live Q3 lewat committed window."
     },
     "r2": {
-      "title": "Konflik kapasitas pengiriman Kuartal III — Telkom vs PLN",
-      "description": "Perpanjangan Enterprise Network Audit bertabrakan dengan minggu komite steering PLN 14 Juli. Lead pengiriman bersama ditandai."
+      "title": "Konflik delivery capacity Q3 — Telkom vs PLN",
+      "description": "Renewal Enterprise Network Audit overlap minggu steering committee PLN 14 Juli. Shared delivery lead di-flag."
     },
     "a1": {
-      "title": "Konfirmasi pengajuan dewan SCADA Fase II dengan Budi Santoso",
-      "description": "Kunci lampiran komersial dan ringkasan eksekutif sebelum tinjauan dewan PLN Indonesia Power 11 Juli."
+      "title": "Konfirmasi board submission SCADA Phase II dengan Budi Santoso",
+      "description": "Lock commercial annex dan executive summary sebelum board review PLN Indonesia Power 11 Juli."
     },
     "a2": {
-      "title": "Eskalasi keputusan komite steering Segmen 7",
-      "description": "Minta pemilik keputusan untuk UAT sign-off dan serah terima API gateway dalam 48 jam."
+      "title": "Eskalasi keputusan steering committee Segment 7",
+      "description": "Minta named owner untuk UAT sign-off dan API gateway handover dalam 48 jam."
     }
   },
   "metrics": {
-    "dueIn24h": "Jatuh tempo 24 jam",
-    "health94": "Kesehatan 94",
-    "exposure450m": "Eksposur Rp 450 juta"
+    "dueIn24h": "Due 24 jam",
+    "health94": "Health 94",
+    "exposure450m": "Exposure Rp 450 juta"
+  },
+  "projectStatus": {
+    "on-track": "On track",
+    "at-risk": "At risk",
+    "stalled": "Stalled"
+  },
+  "timelineTypes": {
+    "communication": "communication",
+    "meeting": "meeting",
+    "decision": "decision",
+    "commercial": "commercial",
+    "project": "project"
   }
 }

@@ -36,7 +36,7 @@ export function ImportView() {
               ) : null}
               {gmailNotice.tone === "error" ? (
                 <Link href="/docs/setup/gmail" className="text-xs font-medium text-primary hover:underline">
-                  Open Gmail setup wizard →
+                  {t("views", "gmailNotice.wizard")}
                 </Link>
               ) : null}
             </div>

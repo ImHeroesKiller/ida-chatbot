@@ -1,120 +1,120 @@
 {
-  "slogan": "Organisasi Anda. Tenaga Kerja Digital Anda. Satu Kecerdasan.",
-  "intro": "Manusia dan Tenaga Kerja Digital berbagi Pengetahuan Organisasi yang sama. Ganti sudut pandang — lihat apa yang dibutuhkan setiap peran. Satu kecerdasan, banyak lensa.",
-  "playDemo": "Putar demo 60 detik",
+  "slogan": "Your Organization. Your Digital Workforce. One Intelligence.",
+  "intro": "Manusia dan Digital Workforce pakai Organization Memory yang sama. Ganti perspective — lihat apa yang dibutuhkan tiap role. Satu intelligence, banyak sudut pandang.",
+  "playDemo": "Play demo 60 detik",
   "demoRunning": "Demo berjalan…",
-  "reset": "Atur ulang",
-  "demoFlowTitle": "Alur demo — Analis Proposal → Pengetahuan → Wawasan CEO",
-  "demoComplete": "Demo selesai — Analis Proposal bekerja, Pengetahuan Organisasi diperbarui, CEO melihat wawasan baru. Memori sama, sudut pandang berbeda.",
-  "perspectiveEyebrow": "Sudut pandang {role}",
+  "reset": "Reset",
+  "demoFlowTitle": "Alur demo — Proposal Analyst → Memory → CEO insight",
+  "demoComplete": "Demo selesai — Proposal Analyst selesai kerja, Organization Memory ke-update, CEO dapat insight baru. Memory sama, perspektif beda.",
+  "perspectiveEyebrow": "Perspective {role}",
   "focusTitle": "{title} — fokus hari ini",
-  "workersTitle": "Tenaga Kerja Digital — aktif untuk {role}",
-  "memoryBannerTitle": "Catatan baru di Pengetahuan Organisasi",
-  "memoryBannerDesc": "Output Analis Proposal terindeks — terlihat di setiap sudut pandang dan Ringkasan Eksekutif CEO.",
-  "viewKnowledge": "Lihat di Pengetahuan",
-  "footerReady": "Buka Ringkasan Eksekutif sebagai CEO untuk melihat wawasan dari tenaga kerja digital.",
-  "footerIdle": "Jalankan demo — saksikan Analis Proposal bekerja, lalu lihat pembaruan ringkasan CEO.",
+  "workersTitle": "Digital Workforce aktif untuk {role}",
+  "memoryBannerTitle": "Record baru di Organization Memory",
+  "memoryBannerDesc": "Output Proposal Analyst sudah ter-index — kelihatan di semua perspective dan Executive Brief CEO.",
+  "viewKnowledge": "Lihat di Memory",
+  "footerReady": "Buka Executive Brief sebagai CEO untuk lihat insight dari Digital Workforce.",
+  "footerIdle": "Jalankan demo — lihat Proposal Analyst bekerja, lalu Executive Brief CEO ke-update.",
   "links": {
-    "brief": "Ringkasan Eksekutif",
-    "memory": "Pengetahuan Organisasi"
+    "brief": "Executive Brief",
+    "memory": "Organization Memory"
   },
   "status": {
-    "working": "Bekerja",
-    "done": "Selesai",
-    "idle": "Siaga"
+    "working": "Working",
+    "done": "Done",
+    "idle": "Idle"
   },
   "workers": {
     "proposal-analyst": {
-      "name": "Analis Proposal",
-      "specialty": "Proposal komersial & posisi kompetitif",
-      "description": "Membaca proposal, RFP, dan dokumen tender — mengangkat peluang, celah, dan risiko kompetitif ke Pengetahuan Organisasi.",
-      "workingTask": "Menganalisis PLN SCADA Fase II vs penawaran modul gardu Siemens…"
+      "name": "Proposal Analyst",
+      "specialty": "Commercial proposal & competitive positioning",
+      "description": "Baca proposal, RFP, dan dokumen tender — angkat opportunity, gap, dan competitive risk ke Organization Memory.",
+      "workingTask": "Menganalisis PLN SCADA Phase II vs bid modul gardu Siemens…"
     },
     "contract-reviewer": {
-      "name": "Peninjau Kontrak",
-      "specialty": "Klausul, tanggung jawab & komersial",
-      "description": "Meninjau kontrak dan MSA — menandai syarat pembayaran, eksposur liabilitas, dan klausul perpanjangan untuk keuangan dan legal."
+      "name": "Contract Reviewer",
+      "specialty": "Terms, liability & commercial clause",
+      "description": "Review kontrak dan MSA — flag payment terms, liability exposure, dan renewal clause untuk finance & legal."
     },
     "relationship-analyst": {
-      "name": "Analis Relasi",
-      "specialty": "Kesehatan & keterlibatan pemangku kepentingan",
-      "description": "Memantau pola komunikasi di seluruh akun — mendeteksi penurunan relasi, perubahan champion, dan penurunan keterlibatan."
+      "name": "Relationship Analyst",
+      "specialty": "Stakeholder health & engagement",
+      "description": "Pantau pola komunikasi di seluruh account — deteksi relationship drift, perubahan champion, dan penurunan engagement."
     },
     "delivery-monitor": {
-      "name": "Pemantau Pengiriman",
-      "specialty": "Milestone, hambatan & risiko pengiriman",
-      "description": "Melacak progres inisiatif terhadap komitmen — mengeskalasi milestone yang tertahan dan konflik sumber daya ke pemimpin program."
+      "name": "Delivery Monitor",
+      "specialty": "Milestone, blocker & delivery risk",
+      "description": "Track progress initiative vs komitmen — eskalasi milestone yang stuck dan resource conflict ke program lead."
     },
     "commercial-analyst": {
-      "name": "Analis Komersial",
-      "specialty": "Invoice, pembayaran & risiko pendapatan",
-      "description": "Memantau catatan komersial — memprediksi keterlambatan pembayaran, menandai invoice tertunggak, dan memodelkan eksposur arus kas."
+      "name": "Commercial Analyst",
+      "specialty": "Invoice, payment & revenue risk",
+      "description": "Pantau commercial record — prediksi payment delay, flag outstanding invoice, dan model cash-flow exposure."
     }
   },
   "demoSteps": {
-    "1": { "label": "Sudut pandang Penjualan", "detail": "Analis Proposal menerima proposal PLN SCADA" },
-    "2": { "label": "Tenaga Kerja Digital bekerja", "detail": "Menganalisis posisi kompetitif vs penawaran Siemens" },
-    "3": { "label": "Pengetahuan Organisasi", "detail": "Hasil terindeks — memori yang sama untuk manusia dan agen" },
-    "4": { "label": "Sudut pandang CEO", "detail": "Wawasan strategis baru muncul di Ringkasan Eksekutif" }
+    "1": { "label": "Perspective Sales", "detail": "Proposal Analyst terima proposal PLN SCADA" },
+    "2": { "label": "Digital Workforce bekerja", "detail": "Analisis competitive positioning vs bid Siemens" },
+    "3": { "label": "Organization Memory", "detail": "Hasil ter-index — memory yang sama untuk manusia dan agent" },
+    "4": { "label": "Perspective CEO", "detail": "Insight strategis baru muncul di Executive Brief" }
   },
   "perspectives": {
     "ceo": {
-      "title": "Komando Eksekutif",
+      "title": "Executive Command",
       "greeting": "Selamat pagi, Ary",
-      "description": "Tampilan strategis lintas akun, inisiatif, dan wawasan Tenaga Kerja Digital — satu kecerdasan untuk setiap keputusan."
+      "description": "Tampilan strategis lintas account, initiative, dan insight Digital Workforce — satu intelligence untuk setiap keputusan."
     },
     "cfo": {
-      "title": "Kontrol Komersial",
-      "greeting": "Selamat pagi, Keuangan",
-      "description": "Pipeline pendapatan, invoice tertunggak, dan risiko pembayaran — dengan Analis Komersial memantau setiap catatan."
+      "title": "Commercial Control",
+      "greeting": "Selamat pagi, Finance",
+      "description": "Revenue pipeline, outstanding invoice, dan payment risk — Commercial Analyst pantau setiap record."
     },
     "sales": {
-      "title": "Intelijen Pipeline",
-      "greeting": "Selamat pagi, Penjualan",
-      "description": "Proposal aktif, momentum akun, dan sinyal kompetitif — Analis Proposal bekerja bersama tim Anda."
+      "title": "Pipeline Intelligence",
+      "greeting": "Selamat pagi, Sales",
+      "description": "Proposal aktif, momentum account, dan competitive signal — Proposal Analyst kerja bareng tim Anda."
     },
     "project": {
-      "title": "Komando Pengiriman",
-      "greeting": "Selamat pagi, Program",
-      "description": "Kesehatan inisiatif, pelacakan milestone, dan eskalasi hambatan — Pemantau Pengiriman menjaga program tetap on track."
+      "title": "Delivery Command",
+      "greeting": "Selamat pagi, Programs",
+      "description": "Kesehatan initiative, milestone tracking, dan eskalasi blocker — Delivery Monitor jaga program tetap on track."
     },
     "hr": {
-      "title": "Intelijen Talenta",
-      "greeting": "Selamat pagi, SDM",
-      "description": "Keterlibatan pemangku kepentingan, kesehatan relasi, dan konektivitas organisasi — Analis Relasi mendeteksi penurunan lebih awal."
+      "title": "People Intelligence",
+      "greeting": "Selamat pagi, People Ops",
+      "description": "Stakeholder engagement, relationship health, dan konektivitas organisasi — Relationship Analyst deteksi drift lebih awal."
     }
   },
   "metrics": {
-    "activeAccounts": "Akun aktif",
+    "activeAccounts": "Active accounts",
     "pipeline": "Pipeline",
-    "criticalItems": "Isu kritis",
-    "workforceInsights": "Wawasan tenaga kerja",
-    "pipelineValue": "Nilai pipeline",
-    "outstanding": "Tertunggak",
-    "poExecuted": "PO dieksekusi",
-    "paymentRisk": "Risiko pembayaran",
-    "activePipeline": "Pipeline aktif",
-    "proposalsInReview": "Proposal ditinjau",
-    "winRate": "Tingkat menang",
-    "workforceTasks": "Tugas tenaga kerja",
+    "criticalItems": "Critical items",
+    "workforceInsights": "Workforce insights",
+    "pipelineValue": "Pipeline value",
+    "outstanding": "Outstanding",
+    "poExecuted": "PO executed",
+    "paymentRisk": "Payment risk",
+    "activePipeline": "Active pipeline",
+    "proposalsInReview": "Proposal in review",
+    "winRate": "Win rate",
+    "workforceTasks": "Workforce tasks",
     "onTrack": "On track",
-    "atRisk": "Berisiko",
-    "stalled": "Terhenti",
-    "blockedDeliverables": "Deliverable terblokir",
-    "activeStakeholders": "Pemangku kepentingan aktif",
-    "engagementScore": "Skor keterlibatan",
-    "atRiskRelationships": "Relasi berisiko",
-    "championChanges": "Perubahan champion"
+    "atRisk": "At risk",
+    "stalled": "Stalled",
+    "blockedDeliverables": "Blocked deliverables",
+    "activeStakeholders": "Active stakeholders",
+    "engagementScore": "Engagement score",
+    "atRiskRelationships": "At-risk relationships",
+    "championChanges": "Champion changes"
   },
   "workforceOutput": {
-    "memoryTitle": "Analisis Proposal — PLN SCADA Fase II",
-    "memorySubtitle": "Tenaga Kerja Digital · Analis Proposal · Penawaran Siemens 12% lebih rendah pada modul gardu — respons value-engineering disarankan",
-    "ceoInsightTitle": "Wawasan Tenaga Kerja Digital — posisi kompetitif PLN",
-    "ceoInsightDesc": "Analis Proposal menandai Siemens 12% lebih rendah pada modul gardu. Disarankan respons value-engineering sebelum pengajuan dewan 11 Juli — melindungi pipeline Rp 4,2 M.",
-    "timelineTitle": "Analis Proposal menyelesaikan analisis kompetitif PLN SCADA",
-    "timelineSummary": "Output Tenaga Kerja Digital terindeks ke Pengetahuan Organisasi. Ringkasan Eksekutif CEO diperbarui dengan wawasan posisi kompetitif.",
+    "memoryTitle": "Proposal Analysis — PLN SCADA Phase II",
+    "memorySubtitle": "Digital Workforce · Proposal Analyst · Bid Siemens 12% lebih rendah di modul gardu — disarankan value-engineering response",
+    "ceoInsightTitle": "Insight Digital Workforce — competitive positioning PLN",
+    "ceoInsightDesc": "Proposal Analyst flag Siemens 12% lebih rendah di modul gardu. Disarankan value-engineering response sebelum board submission 11 Juli — melindungi pipeline Rp 4,2 M.",
+    "timelineTitle": "Proposal Analyst selesaikan competitive analysis PLN SCADA",
+    "timelineSummary": "Output Digital Workforce ter-index ke Organization Memory. Executive Brief CEO ke-update dengan insight competitive positioning.",
     "justNow": "Baru saja",
-    "fromWorkforce": "Dari Tenaga Kerja Digital",
-    "analystWorking": "Analis Proposal bekerja…"
+    "fromWorkforce": "Dari Digital Workforce",
+    "analystWorking": "Proposal Analyst working…"
   }
 }
