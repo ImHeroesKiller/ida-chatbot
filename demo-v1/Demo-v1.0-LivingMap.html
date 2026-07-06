@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDA • Demo v1.0 (Living Organization)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .demo-container { max-width: 1200px; margin: 0 auto; }
+        .node { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .node:hover { transform: scale(1.05); }
+        .node.active { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        .insight-card { transition: all 0.2s ease; }
+        .fade-in { animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-950 text-white">
+    
+    <!-- Top Navigation -->
+    <div class="border-b border-slate-800 bg-slate-900">
+        <div class="demo-container px-8 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-x-3">
+                <div class="w-8 h-8 bg-[#0A66C2] rounded-2xl flex items-center justify-center">
+                    <span class="font-bold">I</span>
+                </div>
+                <span class="font-semibold text-xl tracking-tighter">IDA</span>
+            </div>
+            <div onclick="resetDemo()" class="cursor-pointer text-sm text-slate-400 hover:text-white">Restart Demo</div>
+        </div>
+    </div>
+
+    <div class="demo-container px-8 py-8">
+        
+        <!-- Header -->
+        <div class="flex items-end justify-between mb-8">
+            <div>
+                <h1 class="font-semibold text-4xl tracking-tighter">Good morning, Ary</h1>
+                <p class="text-emerald-400">3 things need your attention today.</p>
+            </div>
+            <div class="text-xs px-4 py-2 bg-slate-900 rounded-3xl border border-slate-700">Last updated: just now</div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left: Insights -->
+            <div class="lg:col-span-4 space-y-4">
+                <div class="insight-card bg-slate-900 border border-emerald-900/50 rounded-3xl p-5">
+                    <div class="text-emerald-400 text-xs mb-2">NEEDS YOUR ATTENTION</div>
+                    <div class="font-semibold">Communication with PLN increased 35%</div>
+                </div>
+                <div class="insight-card bg-slate-900 border border-amber-900/50 rounded-3xl p-5">
+                    <div class="text-amber-400 text-xs mb-2">DUE TOMORROW</div>
+                    <div class="font-semibold">Invoice #INV-203 • Rp 1.2M</div>
+                </div>
+                <div class="insight-card bg-slate-900 border border-red-900/50 rounded-3xl p-5">
+                    <div class="text-red-400 text-xs mb-2">STALLED</div>
+                    <div class="font-semibold">Project Alpha has no update for 9 days</div>
+                </div>
+            </div>
+
+            <!-- Center: Living Organization Map -->
+            <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-3xl p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <div class="font-semibold">Living Organization</div>
+                        <div class="text-xs text-slate-400">One system. Many connections.</div>
+                    </div>
+                    <div onclick="resetMap()" class="text-xs px-3 py-1 bg-slate-800 rounded-3xl cursor-pointer">Reset View</div>
+                </div>
+
+                <!-- Simple Mind Map -->
+                <div class="relative h-72 flex items-center justify-center">
+                    
+                    <!-- Center: Ary -->
+                    <div onclick="switchToPerson('Ary')" 
+                         class="node absolute bg-emerald-500/10 border border-emerald-500 text-emerald-400 px-6 py-3 rounded-3xl text-center active">
+                        <div class="font-semibold">Ary Wibowo</div>
+                        <div class="text-xs">Founder &amp; CEO</div>
+                    </div>
+
+                    <!-- PLN -->
+                    <div onclick="switchToCompany('PLN')" 
+                         class="node absolute left-8 top-8 bg-blue-500/10 border border-blue-500 text-blue-400 px-5 py-2.5 rounded-3xl text-sm">
+                        <div class="font-medium">PLN</div>
+                        <div class="text-xs text-blue-400/70">Customer Health 92</div>
+                    </div>
+
+                    <!-- Project A -->
+                    <div onclick="switchToProject('Project Alpha')" 
+                         class="node absolute right-8 top-8 bg-purple-500/10 border border-purple-500 text-purple-400 px-5 py-2.5 rounded-3xl text-sm">
+                        <div class="font-medium">Project Alpha</div>
+                        <div class="text-xs text-purple-400/70">Stalled • 9 days</div>
+                    </div>
+
+                    <!-- Finance -->
+                    <div onclick="switchToFinance()" 
+                         class="node absolute bottom-8 left-1/2 -translate-x-1/2 bg-amber-500/10 border border-amber-500 text-amber-400 px-5 py-2.5 rounded-3xl text-sm">
+                        <div class="font-medium">Finance</div>
+                    </div>
+
+                    <!-- Lines (simplified) -->
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: -1;">
+                        <line x1="50%" y1="45%" x2="25%" y2="25%" stroke="#334155" stroke-width="1.5"/>
+                        <line x1="50%" y1="45%" x2="75%" y2="25%" stroke="#334155" stroke-width="1.5"/>
+                        <line x1="50%" y1="55%" x2="50%" y2="75%" stroke="#334155" stroke-width="1.5"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Right: Current Context -->
+            <div class="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-3xl p-6">
+                <div class="text-xs text-slate-400 mb-2">CURRENT CONTEXT</div>
+                <div id="context-name" class="font-semibold text-2xl mb-1">Organization Overview</div>
+                <div id="context-type" class="text-sm text-emerald-400 mb-6">Healthy • 82/100</div>
+
+                <div class="text-xs text-slate-400 mb-2">DERIVED FROM</div>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between"><span>Communications</span> <span class="font-medium">47</span></div>
+                    <div class="flex justify-between"><span>Meetings</span> <span class="font-medium">12</span></div>
+                    <div class="flex justify-between"><span>Invoices</span> <span class="font-medium">8</span></div>
+                    <div class="flex justify-between"><span>Projects</span> <span class="font-medium">5</span></div>
+                </div>
+
+                <div class="mt-8">
+                    <button onclick="askContextAware()" class="w-full py-3 bg-white text-slate-900 rounded-3xl text-sm font-medium">Ask IDA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentContext = { type: 'organization', name: 'Organization Overview' };
+
+        function updateContext(name, type, health, derived) {
+            document.getElementById('context-name').innerText = name;
+            document.getElementById('context-type').innerHTML = `${type} • <span class="font-mono">${health}</span>`;
+            
+            const container = document.querySelector('.lg\\:col-span-3 .space-y-2');
+            if (container && derived) {
+                container.innerHTML = `
+                    <div class="flex justify-between"><span>Communications</span> <span class="font-medium">${derived.comm}</span></div>
+                    <div class="flex justify-between"><span>Meetings</span> <span class="font-medium">${derived.meetings}</span></div>
+                    <div class="flex justify-between"><span>Invoices</span> <span class="font-medium">${derived.invoices}</span></div>
+                    <div class="flex justify-between"><span>Projects</span> <span class="font-medium">${derived.projects}</span></div>
+                `;
+            }
+        }
+
+        function switchToCompany(company) {
+            const nodes = document.querySelectorAll('.node');
+            nodes.forEach(n => n.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            if (company === 'PLN') {
+                updateContext('PLN', 'Customer Health', '92', { comm: 12, meetings: 4, invoices: 3, projects: 2 });
+            }
+        }
+
+        function switchToPerson(person) {
+            updateContext('Ary Wibowo', 'High Engagement', 'Active', { comm: 23, meetings: 7, invoices: 2, projects: 5 });
+        }
+
+        function switchToProject(project) {
+            updateContext('Project Alpha', 'At Risk', 'Stalled', { comm: 8, meetings: 3, invoices: 1, projects: 1 });
+        }
+
+        function switchToFinance() {
+            updateContext('Finance', 'On Track', '87', { comm: 15, meetings: 5, invoices: 12, projects: 3 });
+        }
+
+        function askContextAware() {
+            const originalText = event.target.innerText;
+            event.target.innerText = 'Thinking...';
+            
+            setTimeout(() => {
+                alert(`Based on current context (${currentContext.name}):\n\n• 3 open items need attention\n• Communication is healthy\n• One commitment is due tomorrow\n\nWould you like me to prepare a summary?`);
+                event.target.innerText = originalText;
+            }, 850);
+        }
+
+        function resetMap() {
+            updateContext('Organization Overview', 'Healthy', '82', { comm: 47, meetings: 12, invoices: 8, projects: 5 });
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
+        }
+
+        function resetDemo() {
+            location.reload();
+        }
+
+        function init() {
+            updateContext('Organization Overview', 'Healthy', '82', { comm: 47, meetings: 12, invoices: 8, projects: 5 });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
