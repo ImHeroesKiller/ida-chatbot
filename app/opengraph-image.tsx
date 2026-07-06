@@ -3,10 +3,11 @@ import { join } from "node:path";
 
 import { ImageResponse } from "next/og";
 
-import { BRAND } from "@/lib/brand";
-import idMessages from "@/messages/id.json";
+const TITLE = "IDA - Enterprise Decision & Digital Workforce OS";
+const DESCRIPTION =
+  "IDA is an Enterprise Decision & Digital Workforce Operating System.";
 
-export const alt = `${BRAND.name} — Asisten AI Indonesia`;
+export const alt = TITLE;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -41,7 +42,7 @@ export default async function OpenGraphImage() {
             textAlign: "center",
           }}
         >
-          {BRAND.name} — Asisten AI Indonesia
+          {TITLE}
         </p>
         <p
           style={{
@@ -64,7 +65,7 @@ export default async function OpenGraphImage() {
             maxWidth: 880,
           }}
         >
-          {idMessages.Seo.description.slice(0, 120)}…
+          {DESCRIPTION}
         </p>
       </div>
     ),

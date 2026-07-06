@@ -6,6 +6,18 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
+  webpack: (config) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+    };
+    config.ignoreWarnings = [
+      {
+        module: /node_modules\/e2b/,
+      },
+    ];
+    return config;
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [36, 40, 64, 96, 128, 256, 384, 528],
