@@ -1,0 +1,7 @@
+# Ignore incomplete sprint demo folders from Vercel build
+sprint2-gmail/
+
+# Keep only production code
+node_modules
+.next
+out
