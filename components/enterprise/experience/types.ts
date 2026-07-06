@@ -7,6 +7,7 @@ export type EnterpriseView =
   | "projects"
   | "timeline"
   | "memory"
+  | "roadmap"
   | "search";
 
 export type EntityType = "company" | "person" | "project";

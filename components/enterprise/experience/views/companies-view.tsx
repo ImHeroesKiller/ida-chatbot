@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useEnterprise } from "../enterprise-context";
 import { EmptyState } from "../empty-state";
 import { EntityLink } from "../entity-link";
+import { IDA_CORE_MESSAGE } from "../narrative";
 import { OrganizationMemoryWow } from "../positioning/organization-memory-wow";
 import { COMPANIES, getCompany, PROJECTS, PEOPLE } from "../mock-data";
 import { PageHeader } from "../page-header";
@@ -108,7 +109,7 @@ export function CompaniesView() {
       <PageHeader
         eyebrow="Accounts"
         title="Enterprise account portfolio"
-        description="Relationship health, commercial pipeline, and cross-links to stakeholders and delivery initiatives."
+        description={`${IDA_CORE_MESSAGE} Your enterprise accounts — health, pipeline, and linked stakeholders.`}
       />
       <Stagger className="grid gap-4 sm:grid-cols-2">
         {COMPANIES.map((company) => (

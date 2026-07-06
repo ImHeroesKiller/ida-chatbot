@@ -8,6 +8,7 @@ import { Stagger, StaggerItem } from "@/components/enterprise/enterprise-motion"
 import { useEnterprise } from "../enterprise-context";
 import { EmptyState } from "../empty-state";
 import { EntityLink } from "../entity-link";
+import { IDA_CORE_MESSAGE } from "../narrative";
 import { getCompany, getPerson, PEOPLE } from "../mock-data";
 import { PageHeader } from "../page-header";
 
@@ -64,7 +65,7 @@ export function PeopleView() {
       <PageHeader
         eyebrow="Stakeholders"
         title="Relationship directory"
-        description="Executive sponsors, account owners, and commercial counterparts — built from organizational knowledge and engagement history."
+        description={`${IDA_CORE_MESSAGE} The people behind your accounts and initiatives.`}
       />
       <Stagger className="grid gap-4 sm:grid-cols-2">
         {PEOPLE.map((person) => (

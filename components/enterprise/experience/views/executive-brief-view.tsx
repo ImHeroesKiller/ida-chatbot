@@ -10,6 +10,7 @@ import { useEnterprise } from "../enterprise-context";
 import { EmptyStateInline } from "../empty-state";
 import { EntityLink } from "../entity-link";
 import { PageHeader } from "../page-header";
+import { IDA_CORE_MESSAGE } from "../narrative";
 import { BRIEF_CARDS } from "../mock-data";
 import type { BriefItemTone } from "../types";
 
@@ -41,7 +42,7 @@ export function ExecutiveBriefView() {
       <PageHeader
         eyebrow="Executive Brief"
         title="Good morning, Ary"
-        description="Synthesized from organizational knowledge — critical issues, commercial exposure, and recommended actions for today's leadership decisions."
+        description={`${IDA_CORE_MESSAGE} Here is what needs your attention today.`}
         action={
           <div className="enterprise-card-premium rounded-full px-4 py-2 text-[11px] font-medium text-muted-foreground">
             <span className="mr-2 inline-block size-1.5 animate-pulse rounded-full bg-emerald-500" />
@@ -109,7 +110,7 @@ export function ExecutiveBriefView() {
       <FadeIn delay={0.2} className="mt-8">
         <EnterpriseGlassCard padding="md" className="flex flex-wrap items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            Priority pathways — navigate from intelligence to account, knowledge, and timeline.
+            The demo story — Brief → PLN account → Knowledge → Organization map.
           </p>
           <div className="flex flex-wrap gap-3">
             <button

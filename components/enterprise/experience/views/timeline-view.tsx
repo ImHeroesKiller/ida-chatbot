@@ -7,6 +7,7 @@ import { Stagger, StaggerItem } from "@/components/enterprise/enterprise-motion"
 
 import { useEnterprise } from "../enterprise-context";
 import { EmptyState } from "../empty-state";
+import { IDA_CORE_MESSAGE } from "../narrative";
 import { TIMELINE } from "../mock-data";
 import { PageHeader } from "../page-header";
 
@@ -18,7 +19,7 @@ export function TimelineView() {
       <PageHeader
         eyebrow="Timeline"
         title="Organizational activity stream"
-        description="Communications, meetings, commercial events, and decisions — sequenced chronologically and cross-linked to accounts and initiatives."
+        description={`${IDA_CORE_MESSAGE} Recent activity across your organization — in order.`}
       />
       {TIMELINE.length === 0 ? (
         <EmptyState

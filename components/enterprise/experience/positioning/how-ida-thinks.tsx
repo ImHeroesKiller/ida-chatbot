@@ -13,9 +13,9 @@ export function HowIdaThinks() {
     <FadeIn delay={0.08}>
       <EnterpriseGlassCard padding="lg">
         <div className="mb-8">
-          <h2 className="text-lg font-semibold tracking-tight">How IDA thinks</h2>
+          <h2 className="text-lg font-semibold tracking-tight">How IDA works</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            From raw enterprise reality to governed decisions — one continuous intelligence pipeline.
+            From what happens in your business to what leaders need to decide — one clear path.
           </p>
         </div>
 

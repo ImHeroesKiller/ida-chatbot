@@ -13,9 +13,9 @@ export function WhyIdaComparison() {
     <FadeIn>
       <EnterpriseGlassCard padding="lg">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold tracking-tight">Why IDA?</h2>
+          <h2 className="text-lg font-semibold tracking-tight">Traditional AI vs IDA</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Traditional AI answers questions. IDA understands your organization.
+            Chat tools forget. IDA remembers your whole organization.
           </p>
         </div>
 

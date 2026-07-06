@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useEnterprise } from "../enterprise-context";
 import { EmptyState } from "../empty-state";
 import { EntityLink } from "../entity-link";
+import { IDA_CORE_MESSAGE } from "../narrative";
 import { getCompany, getPerson, getProject, PROJECTS } from "../mock-data";
 import { PageHeader } from "../page-header";
 
@@ -89,7 +90,7 @@ export function ProjectsView() {
       <PageHeader
         eyebrow="Initiatives"
         title="Delivery portfolio"
-        description="Track milestone progress, commercial exposure, and delivery risk across enterprise accounts."
+        description={`${IDA_CORE_MESSAGE} Active initiatives — progress, budget, and delivery risk.`}
       />
       <Stagger className="grid gap-4">
         {PROJECTS.map((project) => (

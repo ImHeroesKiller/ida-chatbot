@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 import { useEnterprise } from "../enterprise-context";
 import { EmptyState } from "../empty-state";
+import { IDA_CORE_MESSAGE } from "../narrative";
 import { MEMORY_ITEMS } from "../mock-data";
 import { PageHeader } from "../page-header";
 import type { MemoryTab } from "../types";
@@ -28,9 +29,9 @@ export function MemoryView() {
   return (
     <div>
       <PageHeader
-        eyebrow="Organizational Knowledge"
-        title="Enterprise memory layer"
-        description="Built from communications, meetings, commercial records, decisions, and project history — cross-linked to accounts, stakeholders, and initiatives."
+        eyebrow="Knowledge"
+        title="What your organization knows"
+        description={`${IDA_CORE_MESSAGE} Every email, meeting, and decision — indexed and linked to accounts and initiatives.`}
       />
 
       <FadeIn className="mb-6 flex flex-wrap gap-2">

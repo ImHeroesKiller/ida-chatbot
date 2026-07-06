@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Lightbulb,
   Network,
+  Map,
   Search,
   Users,
 } from "lucide-react";
@@ -26,6 +27,7 @@ const NAV: Array<{ id: EnterpriseView; label: string; icon: typeof LayoutDashboa
   { id: "projects", label: "Initiatives", icon: FolderKanban },
   { id: "timeline", label: "Timeline", icon: Calendar },
   { id: "memory", label: "Knowledge", icon: Brain },
+  { id: "roadmap", label: "Roadmap", icon: Map },
   { id: "search", label: "Search", icon: Search },
 ];
 
@@ -82,7 +84,9 @@ export function EnterpriseSidebar({
         })}
       </nav>
       <div className="border-t border-border/40 p-4">
-        <p className="text-[10px] text-muted-foreground">IDA Enterprise · Live environment</p>
+        <p className="text-[10px] leading-relaxed text-muted-foreground">
+          IDA Enterprise · Humans decide, IDA informs
+        </p>
       </div>
     </aside>
   );

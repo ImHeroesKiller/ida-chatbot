@@ -22,9 +22,12 @@ type EnterpriseContextValue = {
   memoryTab: MemoryTab;
   searchOpen: boolean;
   searchQuery: string;
+  faqOpen: boolean;
   navigate: (target: NavigationTarget) => void;
   openSearch: (query?: string) => void;
   closeSearch: () => void;
+  openFaq: () => void;
+  closeFaq: () => void;
   setSearchQuery: (query: string) => void;
   navigateToEntity: (type: EntityType, id: string) => void;
 };
@@ -37,12 +40,14 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
   const [memoryTab, setMemoryTab] = useState<MemoryTab>("communications");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [faqOpen, setFaqOpen] = useState(false);
 
   const navigate = useCallback((target: NavigationTarget) => {
     setView(target.view);
     setEntityId(target.entityId ?? null);
     if (target.memoryTab) setMemoryTab(target.memoryTab);
     setSearchOpen(false);
+    setFaqOpen(false);
   }, []);
 
   const navigateToEntity = useCallback((type: EntityType, id: string) => {
@@ -63,6 +68,14 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
     setSearchOpen(false);
   }, []);
 
+  const openFaq = useCallback(() => {
+    setFaqOpen(true);
+  }, []);
+
+  const closeFaq = useCallback(() => {
+    setFaqOpen(false);
+  }, []);
+
   const value = useMemo(
     () => ({
       view,
@@ -70,9 +83,12 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
       memoryTab,
       searchOpen,
       searchQuery,
+      faqOpen,
       navigate,
       openSearch,
       closeSearch,
+      openFaq,
+      closeFaq,
       setSearchQuery,
       navigateToEntity,
     }),
@@ -82,9 +98,12 @@ export function EnterpriseProvider({ children }: { children: ReactNode }) {
       memoryTab,
       searchOpen,
       searchQuery,
+      faqOpen,
       navigate,
       openSearch,
       closeSearch,
+      openFaq,
+      closeFaq,
       navigateToEntity,
     ],
   );

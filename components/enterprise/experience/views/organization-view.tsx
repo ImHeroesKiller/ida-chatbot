@@ -11,6 +11,7 @@ import {
 import type { OrganizationNode } from "@/components/enterprise/types";
 
 import { useEnterprise } from "../enterprise-context";
+import { IDA_CORE_MESSAGE } from "../narrative";
 import { PageHeader } from "../page-header";
 
 export function OrganizationView() {
@@ -30,8 +31,8 @@ export function OrganizationView() {
     <div>
       <PageHeader
         eyebrow="Organization"
-        title="Organizational intelligence map"
-        description="Relationships, commercial exposure, and delivery risk — built from communications, meetings, projects, and decisions across your enterprise."
+        title="How everything connects"
+        description={`${IDA_CORE_MESSAGE} Accounts, initiatives, and teams — linked in one living map.`}
       />
       <LivingOrganizationMap
         nodes={MAP_NODES}

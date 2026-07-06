@@ -16,6 +16,10 @@ import { PeopleView } from "./views/people-view";
 import { ProjectsView } from "./views/projects-view";
 import { TimelineView } from "./views/timeline-view";
 import { MemoryView } from "./views/memory-view";
+import { RoadmapView } from "./views/roadmap-view";
+import { CoreMessageBanner } from "./core-message-banner";
+import { InvestorFaqModal } from "./investor-faq-modal";
+import { TrustSignals } from "./trust-signals";
 
 function ActiveView() {
   const { view } = useEnterprise();
@@ -39,6 +43,8 @@ function ActiveView() {
         return <TimelineView />;
       case "memory":
         return <MemoryView />;
+      case "roadmap":
+        return <RoadmapView />;
       case "search":
         return <ExecutiveBriefView />;
       default:
@@ -69,11 +75,16 @@ export function EnterpriseShell() {
         <EnterpriseSidebar />
         <main className="enterprise-demo-scroll flex-1 px-4 py-6 sm:px-8 sm:py-8 lg:px-10">
           <div className="mx-auto max-w-6xl">
+            <CoreMessageBanner />
             <ActiveView />
+            <div className="mt-10">
+              <TrustSignals compact />
+            </div>
           </div>
         </main>
       </div>
       <GlobalSearch />
+      <InvestorFaqModal />
     </div>
   );
 }

@@ -1,17 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Search } from "lucide-react";
+import { HelpCircle, Menu, Search } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import { InvestorFaqTrigger } from "./investor-faq-modal";
 import { useEnterprise } from "./enterprise-context";
 import { EnterpriseSidebar } from "./enterprise-sidebar";
 
 export function EnterpriseTopbar() {
-  const { openSearch } = useEnterprise();
+  const { openSearch, openFaq } = useEnterprise();
   const [mobileNav, setMobileNav] = useState(false);
 
   return (
@@ -30,7 +31,7 @@ export function EnterpriseTopbar() {
           </div>
           <div className="leading-tight">
             <div className="text-sm font-semibold tracking-tight">IDA Enterprise</div>
-            <div className="text-[10px] text-muted-foreground">Decision &amp; Workforce OS</div>
+            <div className="text-[10px] text-muted-foreground">Organizational intelligence for leaders</div>
           </div>
           <span className="hidden rounded-full border border-emerald-500/20 bg-emerald-500/8 px-2.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 sm:inline">
             <span className="mr-1.5 inline-block size-1.5 rounded-full bg-emerald-500" />
@@ -51,6 +52,15 @@ export function EnterpriseTopbar() {
               ⌘K
             </kbd>
           </button>
+          <InvestorFaqTrigger />
+          <button
+            type="button"
+            onClick={() => openFaq()}
+            className="rounded-lg p-2 text-muted-foreground hover:bg-muted/50 sm:hidden"
+            aria-label="Investor FAQ"
+          >
+            <HelpCircle className="size-5" />
+          </button>
           <Link
             href="/"
             className="hidden text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline"
@@ -58,7 +68,7 @@ export function EnterpriseTopbar() {
             Homepage
           </Link>
           <Button size="sm" className="hidden h-8 rounded-full px-4 text-xs sm:inline-flex">
-            Book Demo
+            Contact
           </Button>
         </div>
       </header>
