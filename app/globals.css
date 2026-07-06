@@ -312,6 +312,12 @@ html[data-ida-animation="none"] *::after {
   .enterprise-demo {
     font-family: var(--font-sans);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  .enterprise-demo-scroll {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
   }

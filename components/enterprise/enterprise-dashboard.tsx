@@ -37,10 +37,10 @@ export function EnterpriseDashboard() {
   const greetingDate = useMemo(() => getGreetingDate(), []);
 
   return (
-    <div className="enterprise-demo enterprise-demo-bg min-h-dvh overflow-y-auto overscroll-y-contain font-sans text-foreground">
+    <div className="enterprise-demo enterprise-demo-bg flex h-dvh max-h-dvh flex-col overflow-hidden font-sans text-foreground">
       <EnterpriseDashboardHeader />
 
-      <main className="mx-auto w-full max-w-7xl px-5 pb-16 pt-10 sm:px-8 sm:pb-20 sm:pt-12 lg:px-10 lg:pb-24 lg:pt-14">
+      <main className="enterprise-demo-scroll mx-auto w-full max-w-7xl flex-1 px-5 pb-16 pt-10 sm:px-8 sm:pb-20 sm:pt-12 lg:px-10 lg:pb-24 lg:pt-14">
         <FadeIn>
           <section className="mb-12 flex flex-col gap-8 lg:mb-16 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl space-y-3">
