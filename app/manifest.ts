@@ -1,13 +1,11 @@
-import { MetadataRoute } from 'next';
-import { getMessages } from 'next-intl/server';
+import type { MetadataRoute } from "next";
 
-export default async function manifest(): Promise<MetadataRoute.Manifest> {
-  const idMessages = await getMessages({ locale: 'id' });
-
+export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "IDA — Asisten AI Indonesia",
     short_name: "IDA",
-    description: idMessages.Seo?.description || "Enterprise Decision & Digital Workforce Operating System",
+    description:
+      "IDA is an Enterprise Decision & Digital Workforce Operating System.",
     start_url: "/",
     scope: "/",
     id: "/",
@@ -15,11 +13,11 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
       {
         src: "/icon.png",
         sizes: "192x192",
-        type: "image/png"
-      }
+        type: "image/png",
+      },
     ],
     theme_color: "#2563EB",
     background_color: "#F8FAFC",
-    display: "standalone"
+    display: "standalone",
   };
 }
