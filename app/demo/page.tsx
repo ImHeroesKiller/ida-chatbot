@@ -1,5 +1,5 @@
-import { EnterpriseDashboard } from "@/components/enterprise/enterprise-dashboard";
+import { EnterpriseExperience } from "@/components/enterprise/experience/enterprise-experience";
 
 export default function DemoPage() {
-  return <EnterpriseDashboard />;
+  return <EnterpriseExperience />;
 }

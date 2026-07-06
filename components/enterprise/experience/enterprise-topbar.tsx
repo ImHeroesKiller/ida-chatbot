@@ -1,0 +1,81 @@
+"use client";
+
+import Link from "next/link";
+import { Menu, Search } from "lucide-react";
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+import { useEnterprise } from "./enterprise-context";
+import { EnterpriseSidebar } from "./enterprise-sidebar";
+
+export function EnterpriseTopbar() {
+  const { openSearch } = useEnterprise();
+  const [mobileNav, setMobileNav] = useState(false);
+
+  return (
+    <>
+      <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border/40 bg-background/70 px-4 backdrop-blur-2xl sm:px-6">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="rounded-lg p-2 text-muted-foreground hover:bg-muted/50 lg:hidden"
+            onClick={() => setMobileNav((v) => !v)}
+          >
+            <Menu className="size-5" />
+          </button>
+          <div className="flex size-8 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
+            I
+          </div>
+          <div className="leading-tight">
+            <div className="text-sm font-semibold tracking-tight">IDA Enterprise</div>
+            <div className="text-[10px] text-muted-foreground">Decision & Workforce OS</div>
+          </div>
+          <span className="hidden rounded-full border border-emerald-500/20 bg-emerald-500/8 px-2.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 sm:inline">
+            Investor Demo
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 sm:gap-4">
+          <button
+            type="button"
+            onClick={() => openSearch()}
+            className="flex h-9 min-w-[140px] items-center gap-2 rounded-xl border border-border/50 bg-muted/30 px-3 text-xs text-muted-foreground transition-colors hover:border-border hover:bg-muted/50 sm:min-w-[220px]"
+          >
+            <Search className="size-3.5" />
+            <span className="hidden sm:inline">Search organization…</span>
+            <span className="sm:hidden">Search</span>
+            <kbd className="ml-auto hidden rounded border border-border/60 bg-background px-1.5 py-0.5 text-[10px] sm:inline">
+              ⌘K
+            </kbd>
+          </button>
+          <Link
+            href="/"
+            className="hidden text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline"
+          >
+            Homepage
+          </Link>
+          <Button size="sm" className="hidden h-8 rounded-full px-4 text-xs sm:inline-flex">
+            Book Demo
+          </Button>
+        </div>
+      </header>
+
+      {mobileNav ? (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="absolute inset-0 bg-background/60 backdrop-blur-sm"
+            onClick={() => setMobileNav(false)}
+          />
+          <div className="absolute inset-y-0 left-0 w-64 bg-background shadow-xl">
+            <EnterpriseSidebar
+              className="flex h-full"
+              onNavigate={() => setMobileNav(false)}
+            />
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
