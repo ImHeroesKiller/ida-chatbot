@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDA • Demo v1.0 (Final)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .demo-container { max-width: 1100px; margin: 0 auto; }
+        .insight-card { transition: all 0.2s ease; }
+        .context-panel { background: #0f172a; }
+        .fade-in { animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .number-change { transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    </style>
+</head>
+<body class="bg-slate-950 text-white">
+    
+    <!-- Top Navigation -->
+    <div class="border-b border-slate-800 bg-slate-900">
+        <div class="demo-container px-8 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-x-3">
+                <div class="w-8 h-8 bg-[#0A66C2] rounded-2xl flex items-center justify-center">
+                    <span class="font-bold">I</span>
+                </div>
+                <span class="font-semibold text-xl tracking-tighter">IDA</span>
+            </div>
+            
+            <div class="flex items-center gap-x-4 text-sm">
+                <div onclick="resetDemo()" class="cursor-pointer text-slate-400 hover:text-white">Restart Demo</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-container px-8 py-8">
+        
+        <!-- Scene Indicator -->
+        <div class="flex items-center gap-x-2 mb-6">
+            <div class="text-xs px-3 py-1 bg-slate-800 rounded-3xl">SCENE <span id="scene-number">1</span>/6</div>
+            <div id="scene-title" class="text-sm text-slate-400"></div>
+        </div>
+
+        <!-- Main Demo Area -->
+        <div id="demo-area" class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
+            <div id="main-content" class="p-8 min-h-[520px]"></div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex justify-between mt-6">
+            <button onclick="prevScene()" class="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 rounded-3xl text-sm flex items-center gap-x-2 disabled:opacity-40" id="btn-prev">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Previous</span>
+            </button>
+            
+            <button onclick="nextScene()" class="px-8 py-2.5 bg-white text-slate-900 rounded-3xl text-sm font-medium flex items-center gap-x-2" id="btn-next">
+                <span id="btn-next-text">Next</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+        
+    </div>
+
+    <script>
+        let currentScene = 1;
+        let currentContext = { type: 'organization', id: 'overview' };
+
+        function updateScene() {
+            const content = document.getElementById('main-content');
+            const sceneNum = document.getElementById('scene-number');
+            const sceneTitle = document.getElementById('scene-title');
+            const btnNext = document.getElementById('btn-next');
+            const btnPrev = document.getElementById('btn-prev');
+
+            sceneNum.innerText = currentScene;
+            btnPrev.disabled = currentScene === 1;
+
+            content.innerHTML = '';
+            content.className = 'p-8 min-h-[520px] fade-in';
+
+            switch(currentScene) {
+                case 1:
+                    sceneTitle.innerText = "Landing Page";
+                    content.innerHTML = `
+                        <div class="text-center py-12">
+                            <h1 class="font-display text-5xl tracking-tighter font-semibold mb-4">The Enterprise Operating System<br>for the AI Era</h1>
+                            <p class="text-2xl text-slate-400 max-w-xl mx-auto mb-10">One Organization. One Memory. Unlimited Perspectives.</p>
+                            
+                            <button onclick="nextScene()" 
+                                    class="px-10 py-4 bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white rounded-3xl font-semibold text-lg flex items-center gap-x-3 mx-auto">
+                                <span>Launch Interactive Demo</span>
+                            </button>
+                        </div>
+                    `;
+                    btnNext.style.display = 'none';
+                    break;
+
+                case 2:
+                    sceneTitle.innerText = "Good Morning, Ary";
+                    content.innerHTML = `
+                        <div>
+                            <div class="mb-8">
+                                <h2 class="text-3xl font-semibold tracking-tighter">Good morning, Ary</h2>
+                                <p class="text-emerald-400">3 things need your attention today.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="insight-card bg-slate-800 border border-emerald-900/50 rounded-3xl p-5">
+                                    <div class="text-emerald-400 text-xs mb-2">NEEDS YOUR ATTENTION</div>
+                                    <div class="font-semibold">Communication with PLN increased 35%</div>
+                                </div>
+                                <div class="insight-card bg-slate-800 border border-amber-900/50 rounded-3xl p-5">
+                                    <div class="text-amber-400 text-xs mb-2">DUE TOMORROW</div>
+                                    <div class="font-semibold">Invoice #INV-203 • Rp 1.2M</div>
+                                </div>
+                                <div class="insight-card bg-slate-800 border border-red-900/50 rounded-3xl p-5">
+                                    <div class="text-red-400 text-xs mb-2">STALLED</div>
+                                    <div class="font-semibold">Project Alpha has no update for 9 days</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    btnNext.style.display = 'flex';
+                    document.getElementById('btn-next-text').innerText = 'Next: Click PLN';
+                    break;
+
+                case 3:
+                    sceneTitle.innerText = "Context Switch: PLN";
+                    currentContext = { type: 'company', id: 'pln' };
+                    
+                    content.innerHTML = `
+                        <div>
+                            <div class="flex items-center gap-x-4 mb-6">
+                                <div class="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-2xl flex items-center justify-center">
+                                    <i class="fa-solid fa-building text-2xl"></i>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-3xl">PLN</div>
+                                    <div class="text-emerald-400 text-sm">Customer Health: <span id="health-score" class="font-mono">92</span></div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div class="lg:col-span-2">
+                                    <div class="mb-6">
+                                        <div class="section-header mb-3">WHAT'S CHANGED</div>
+                                        <div class="space-y-4 text-sm">
+                                            <div class="flex gap-x-4"><div class="w-16 text-slate-400">09:10</div><div>Invoice #INV-PLN-0726 sent</div></div>
+                                            <div class="flex gap-x-4"><div class="w-16 text-slate-400">09:32</div><div>Procurement discussed payment via Telegram</div></div>
+                                            <div class="flex gap-x-4"><div class="w-16 text-slate-400">10:15</div><div>Meeting created: Q3 Capacity Planning</div></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-800 border border-slate-700 rounded-3xl p-6">
+                                    <div class="text-xs text-slate-400 mb-3">CURRENT FOCUS</div>
+                                    <div class="space-y-3 text-sm">
+                                        <div>Open Items: <span class="font-medium">3</span></div>
+                                        <div>Active Discussions: <span class="font-medium">2</span></div>
+                                        <div>Key Contacts: <span class="font-medium">8</span></div>
+                                    </div>
+
+                                    <div class="mt-6">
+                                        <button onclick="askAboutPLN()" class="w-full py-3 bg-white text-slate-900 rounded-3xl text-sm font-medium">Ask about PLN</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    btnNext.style.display = 'flex';
+                    document.getElementById('btn-next-text').innerText = 'Next: Ask about PLN';
+                    break;
+
+                case 4:
+                    sceneTitle.innerText = "Context-aware Chat";
+                    content.innerHTML = `
+                        <div>
+                            <div class="mb-6">
+                                <div class="font-medium mb-2">You asked:</div>
+                                <div class="bg-slate-800 border border-slate-700 rounded-3xl px-5 py-3">"Apa yang perlu saya ketahui?"</div>
+                            </div>
+                            
+                            <div id="chat-response">
+                                <div class="font-medium mb-3 text-emerald-400">IDA is thinking...</div>
+                                <div class="space-y-2 text-sm text-slate-400">
+                                    <div>Understanding current context...</div>
+                                    <div>Reviewing recent communications...</div>
+                                    <div>Checking open commitments...</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    setTimeout(() => {
+                        document.getElementById('chat-response').innerHTML = `
+                            <div class="font-medium mb-3 text-emerald-400">IDA:</div>
+                            <div class="bg-slate-800 border border-slate-700 rounded-3xl p-5 text-sm leading-relaxed">
+                                <strong>PLN</strong><br><br>
+                                • Customer Health: <span class="text-emerald-400">Healthy</span><br>
+                                • Communication: <span class="text-emerald-400">+35% this week</span><br>
+                                • Invoice #INV-203: <span class="text-amber-400">Due tomorrow</span><br>
+                                • Meeting: Friday 10:00<br>
+                                • No unresolved issues
+                            </div>
+                        `;
+                    }, 900);
+                    
+                    btnNext.style.display = 'flex';
+                    document.getElementById('btn-next-text').innerText = 'Next: Click Ary Wibowo';
+                    break;
+
+                case 5:
+                    sceneTitle.innerText = "Context Switch: Ary Wibowo";
+                    currentContext = { type: 'person', id: 'ary' };
+                    
+                    content.innerHTML = `
+                        <div>
+                            <div class="flex items-center gap-x-4 mb-8">
+                                <img src="https://i.pravatar.cc/56?img=68" class="w-14 h-14 rounded-2xl">
+                                <div>
+                                    <div class="font-semibold text-3xl">Ary Wibowo</div>
+                                    <div class="text-emerald-400">Founder &amp; CEO • High engagement</div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div class="lg:col-span-2">
+                                    <div class="section-header mb-3">WHAT'S CHANGED (LAST 7 DAYS)</div>
+                                    <div class="space-y-4 text-sm">
+                                        <div class="flex gap-x-4"><div class="w-16 text-slate-400">Mon</div><div>Meeting with PLN • Q3 Planning</div></div>
+                                        <div class="flex gap-x-4"><div class="w-16 text-slate-400">Tue</div><div>Revised proposal for Mayora</div></div>
+                                        <div class="flex gap-x-4"><div class="w-16 text-slate-400">Wed</div><div>3 follow-ups completed</div></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-slate-800 border border-slate-700 rounded-3xl p-6">
+                                    <div class="text-xs text-slate-400 mb-3">CURRENT FOCUS</div>
+                                    <div class="space-y-3 text-sm">
+                                        <div>Active Items: <span class="font-medium">5</span></div>
+                                        <div>Pending Follow-ups: <span class="font-medium">3</span></div>
+                                        <div>Meetings this week: <span class="font-medium">7</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    btnNext.style.display = 'flex';
+                    document.getElementById('btn-next-text').innerText = 'Next: Search Mayora';
+                    break;
+
+                case 6:
+                    sceneTitle.innerText = "Final Scene";
+                    content.innerHTML = `
+                        <div class="text-center py-16">
+                            <h2 class="font-display text-6xl tracking-tighter font-semibold mb-4">One Organization.<br>One Memory.<br>Unlimited Perspectives.</h2>
+                            
+                            <div class="mt-12">
+                                <div class="inline-flex items-center gap-x-3 px-8 py-3 bg-slate-800 border border-slate-700 rounded-3xl">
+                                    <div class="w-8 h-8 bg-[#0A66C2] rounded-2xl flex items-center justify-center">
+                                        <span class="font-bold">I</span>
+                                    </div>
+                                    <span class="font-semibold text-2xl tracking-tighter">IDA</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 text-slate-400">
+                                Enterprise Decision &amp; Digital Workforce Operating System
+                            </div>
+                        </div>
+                    `;
+                    btnNext.style.display = 'none';
+                    break;
+            }
+        }
+
+        function nextScene() {
+            if (currentScene < 6) {
+                currentScene++;
+                updateScene();
+            }
+        }
+
+        function prevScene() {
+            if (currentScene > 1) {
+                currentScene--;
+                updateScene();
+            }
+        }
+
+        function askAboutPLN() {
+            const content = document.getElementById('main-content');
+            content.innerHTML = `
+                <div>
+                    <div class="mb-6">
+                        <div class="font-medium mb-2">You asked:</div>
+                        <div class="bg-slate-800 border border-slate-700 rounded-3xl px-5 py-3">"Apa yang perlu saya ketahui?"</div>
+                    </div>
+                    
+                    <div id="chat-response">
+                        <div class="font-medium mb-3 text-emerald-400">IDA is thinking...</div>
+                        <div class="space-y-2 text-sm text-slate-400">
+                            <div>Understanding current context...</div>
+                            <div>Reviewing recent communications...</div>
+                            <div>Checking open commitments...</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                document.getElementById('chat-response').innerHTML = `
+                    <div class="font-medium mb-3 text-emerald-400">IDA:</div>
+                    <div class="bg-slate-800 border border-slate-700 rounded-3xl p-5 text-sm leading-relaxed">
+                        <strong>PLN</strong><br><br>
+                        • Customer Health: <span class="text-emerald-400">Healthy</span><br>
+                        • Communication: <span class="text-emerald-400">+35% this week</span><br>
+                        • Invoice #INV-203: <span class="text-amber-400">Due tomorrow</span><br>
+                        • Meeting: Friday 10:00<br>
+                        • No unresolved issues
+                    </div>
+                `;
+            }, 900);
+        }
+
+        function resetDemo() {
+            currentScene = 1;
+            currentContext = { type: 'organization', id: 'overview' };
+            updateScene();
+        }
+
+        // Initialize
+        function init() {
+            updateScene();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
