@@ -1,0 +1,51 @@
+{
+  "hero": {
+    "title": "Organisasi Anda. Tenaga Kerja Digital Anda. Satu Kecerdasan.",
+    "subtitle": "IDA adalah sistem operasi yang memungkinkan setiap tim bekerja dengan memori organisasi yang hidup dan selalu terkini.",
+    "cta": "Masuk ke Platform Enterprise",
+    "demo": "Tonton Demo 60 Detik"
+  },
+  "whatIsIda": {
+    "title": "Apa Itu IDA?",
+    "description": "IDA bukan sekadar chatbot AI. IDA adalah lapisan kecerdasan bersama yang menghubungkan manusia, data, dan tenaga kerja digital di seluruh organisasi Anda."
+  },
+  "forTheWholeOrganization": {
+    "title": "Dibuat untuk Seluruh Perusahaan",
+    "description": "Dari CEO hingga tim proyek, dari keuangan hingga penjualan — semua orang bekerja dari memori yang sama dan selalu up-to-date.",
+    "leadership": {
+      "title": "Kepemimpinan",
+      "description": "Lihat kesehatan organisasi, risiko, dan peluang dalam satu tampilan."
+    },
+    "financeOperations": {
+      "title": "Keuangan & Operasional",
+      "description": "Lacak komitmen, arus kas, dan eksekusi secara real-time."
+    },
+    "salesCustomer": {
+      "title": "Tim Penjualan & Pelanggan",
+      "description": "Pahami setiap akun, hubungan, dan renewal yang akan datang."
+    }
+  },
+  "howItWorks": {
+    "title": "Bagaimana IDA Bekerja",
+    "memory": {
+      "title": "Satu Memori Organisasi",
+      "description": "Setiap email, dokumen, rapat, dan keputusan terhubung dalam satu tempat."
+    },
+    "perspectives": {
+      "title": "Berbagai Perspektif Manusia",
+      "description": "CEO, CFO, Sales, Project Manager, dan HR masing-masing melihat informasi yang mereka butuhkan."
+    },
+    "workforce": {
+      "title": "Tenaga Kerja Digital",
+      "description": "Pekerja AI menangani analisis, penyusunan, dan pemantauan — sehingga manusia bisa fokus pada keputusan."
+    }
+  },
+  "whyDifferent": {
+    "title": "Mengapa IDA Berbeda",
+    "description": "Sebagian besar alat AI membantu individu. IDA membantu seluruh organisasi berpikir dan bertindak bersama."
+  },
+  "ctaSection": {
+    "button": "Mulai Demo Enterprise Gratis",
+    "note": "Tidak perlu kartu kredit • Siap dalam kurang dari 2 menit"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "hero": {
+    "title": "Your Organization. Your Digital Workforce. One Intelligence.",
+    "subtitle": "IDA is the operating system that lets every team work with the same living memory of the company.",
+    "cta": "Enter Enterprise Platform",
+    "demo": "Watch 60-Second Demo"
+  },
+  "whatIsIda": {
+    "title": "What Is IDA?",
+    "description": "IDA is not another AI chat. It is the shared intelligence layer that connects people, data, and digital workers across your entire organization."
+  },
+  "forTheWholeOrganization": {
+    "title": "Built for the Whole Organization",
+    "description": "From the CEO to the project team, from finance to sales — everyone works from the same up-to-date memory.",
+    "leadership": {
+      "title": "Leadership",
+      "description": "See organization health, risks, and opportunities in one view."
+    },
+    "financeOperations": {
+      "title": "Finance & Operations",
+      "description": "Track commitments, cash flow, and execution in real time."
+    },
+    "salesCustomer": {
+      "title": "Sales & Customer Teams",
+      "description": "Understand every account, relationship, and upcoming renewal."
+    }
+  },
+  "howItWorks": {
+    "title": "How IDA Works",
+    "memory": {
+      "title": "One Organization Memory",
+      "description": "Every email, document, meeting, and decision is connected in one place."
+    },
+    "perspectives": {
+      "title": "Multiple Human Perspectives",
+      "description": "CEO, CFO, Sales, Project Manager, and HR each see the information they need."
+    },
+    "workforce": {
+      "title": "Digital Workforce",
+      "description": "AI workers handle analysis, drafting, and monitoring — so humans can focus on decisions."
+    }
+  },
+  "whyDifferent": {
+    "title": "Why IDA Is Different",
+    "description": "Most AI tools help individuals. IDA helps the entire organization think and act together."
+  },
+  "ctaSection": {
+    "button": "Start Free Enterprise Demo",
+    "note": "No credit card required • Ready in under 2 minutes"
+  }
+}
