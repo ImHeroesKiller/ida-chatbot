@@ -15,7 +15,7 @@ export default function DemoPage() {
     projects: 5
   });
 
-  const updateContext = (node: any) => {
+  const updateContext = (node) => {
     setSelectedNode(node);
   };
 
