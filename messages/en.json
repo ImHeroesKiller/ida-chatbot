@@ -6,350 +6,85 @@
     "termsLink": "Terms of Service"
   },
   "Seo": {
-    "title": "IDA — Intelligent Digital Assistant | Chat, Worksheet, Web Search & Research",
-    "description": "IDA is an AI assistant for chat, Worksheet, Web Search, Research, and Map. Free to try — start chatting and get things done faster.",
-    "ogTitle": "An AI Assistant That Understands Your Context — IDA",
-    "ogImageAlt": "IDA — AI assistant with Worksheet, Web Search, and Research",
+    "title": "IDA — Enterprise Decision & Digital Workforce Operating System",
+    "description": "IDA gives leaders a live view of their entire organization — accounts, people, projects, and decisions — so they can decide with confidence.",
+    "ogTitle": "IDA — See Your Organization. Decide with Confidence.",
+    "ogImageAlt": "IDA — Enterprise Decision Operating System",
     "keywords": [
       "IDA",
-      "Intelligent Digital Assistant",
-      "AI assistant",
-      "Indonesian chatbot",
-      "Worksheet AI",
-      "Web Search AI",
-      "AI Research",
-      "free AI chat",
-      "productivity AI"
+      "Enterprise AI",
+      "Decision Intelligence",
+      "Digital Workforce",
+      "Organizational Intelligence",
+      "Enterprise Operating System"
     ]
   },
   "Landing": {
     "hero": {
-      "badge": "Professional AI Assistant",
-      "title": "An AI Assistant That Understands Your Context",
-      "subtitle": "IDA helps you work faster with Worksheet, Web Search, Research, and Map — all in one place.",
-      "ctaPrimary": "Try IDA Free",
-      "ctaSecondary": "See Features",
-      "continueToChat": "Continue to Chat",
-      "trustLine": "Free to try · Google Sign-in · No credit card"
+      "title": "IDA shows leaders their entire organization — so they can decide with confidence.",
+      "subtitle": "One place to see accounts, people, projects, and decisions — updated from real business activity.",
+      "ctaPrimary": "See it live",
+      "ctaSecondary": "4 questions answered"
     },
-    "features": {
-      "title": "Key Features",
-      "worksheet": {
-        "title": "Worksheet",
-        "desc": "Create professional documents directly from chat. Edit, export PDF/DOCX, save versions, and use templates."
+    "fourQuestions": {
+      "badge": "Understand IDA in 30 seconds",
+      "what": {
+        "question": "What is IDA?",
+        "answer": "IDA is the system that shows leaders everything happening across their organization — accounts, people, projects, and decisions — in one place."
       },
-      "webSearch": {
-        "title": "Web Search",
-        "desc": "Get up-to-date information from the internet with clear sources."
+      "who": {
+        "question": "Who is it for?",
+        "answer": "CEOs and leadership teams at large enterprises who need clarity before making important decisions — not another chat window for individuals."
       },
-      "research": {
-        "title": "Research",
-        "desc": "Conduct in-depth research with multiple depth levels and structured results."
+      "whyNot": {
+        "question": "Why not ChatGPT or Copilot?",
+        "answer": "Those tools answer one-off questions. IDA remembers your organization, connects the dots across accounts and projects, and prepares executive-ready briefings."
       },
-      "map": {
-        "title": "Map",
-        "desc": "Map integration for location needs and spatial analysis."
+      "outcome": {
+        "question": "What do you get?",
+        "answer": "A live view of what needs attention, what is at risk, and what to do next — built from real business activity, not generic AI responses."
       }
     },
-    "benefits": {
-      "title": "Why Choose IDA?",
-      "items": [
-        "Save time with an integrated workflow",
-        "Consistent, exportable results",
-        "Your data privacy is protected",
-        "Support for Indonesian, English, and 中文"
-      ]
-    },
-    "howItWorks": {
-      "title": "How It Works",
-      "steps": [
-        "Sign in with Google",
-        "Start chatting or open Tools",
-        "Use Worksheet, Web Search, or Research",
-        "Edit and export results right away"
-      ]
-    },
-    "finalCta": {
-      "title": "Ready to Boost Your Productivity?",
-      "subtitle": "Start using IDA now. Free to get started."
-    },
-    "signIn": {
-      "title": "Ready to try IDA?",
-      "description": "Sign in with Google to open the chat room and start using your favorite tools."
-    },
-    "legal": {
-      "consent": "By using IDA, you agree to our <privacy></privacy> and <terms></terms>.",
-      "privacy": "Privacy Policy",
-      "terms": "Terms of Service"
-    },
-    "agentFlow": {
-      "badge": "Advanced feature",
-      "title": "Need workflow automation?",
-      "description": "AgentFlow is for teams that want to automate document processes and business workflows — beyond IDA's core chat experience.",
-      "cta": "Learn AgentFlow",
-      "headerLink": "AgentFlow"
-    }
-  },
-  "Privacy": {
-    "title": "Privacy Policy",
-    "lastUpdated": "Last updated: July 1, 2026",
-    "intro": "This Privacy Policy explains how IDA (\"IDA\", \"we\") collects, uses, and protects your information when you use our AI chatbot service.",
-    "sections": {
-      "dataCollection": {
-        "title": "1. Data We Collect",
-        "blocks": [
-          {
-            "type": "labeled",
-            "label": "Account data:",
-            "text": "When you sign in with Google, we receive basic profile information such as name, email address, profile photo, and user ID through Supabase Auth."
-          },
-          {
-            "type": "labeled",
-            "label": "Conversation data:",
-            "text": "Messages you send and assistant responses, chat history, session titles, and interface preferences (theme, language, voice settings) are stored to provide the service and sync across devices."
-          },
-          {
-            "type": "labeled",
-            "label": "Technical data:",
-            "text": "API request logs (model, provider, tokens, status), IP addresses for rate limiting, and session metadata for security and operational analytics."
-          },
-          {
-            "type": "labeled",
-            "label": "File uploads:",
-            "text": "Images or PDFs you attach are processed for text extraction (OCR) and are not stored permanently except as part of your conversation history."
-          }
-        ]
+    "trustSignals": {
+      "enterprise": {
+        "label": "Enterprise-ready",
+        "detail": "Built for regulated industries — energy, telecom, and infrastructure."
       },
-      "dataUse": {
-        "title": "2. How We Use Data",
-        "blocks": [
-          {
-            "type": "list",
-            "items": [
-              "Provide, maintain, and improve IDA chat services.",
-              "Sync your chat history across devices.",
-              "Process AI requests, knowledge base search (RAG), and voice features.",
-              "Prevent abuse, spam, and security violations.",
-              "Meet legal obligations and respond to lawful requests."
-            ]
-          }
-        ]
+      "human": {
+        "label": "Humans in control",
+        "detail": "IDA recommends. Leaders decide. Every action has an owner."
       },
-      "storageRetention": {
-        "title": "3. Storage & Retention",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "Data is stored on Supabase infrastructure (database and authentication). Chat history is retained while your account is active or until you delete it. We may remove inactive data after a reasonable period per internal policy."
-          }
-        ]
-      },
-      "cookies": {
-        "title": "4. Cookies & Local Storage",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "We use authentication session cookies (Supabase Auth) and browser local storage (localStorage/sessionStorage) for theme, UI preferences, and configuration cache. Essential cookies are required for login and sessions to work."
-          }
-        ]
-      },
-      "thirdParty": {
-        "title": "5. Third-Party Services",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "IDA integrates the following providers that process data under their own policies:"
-          },
-          {
-            "type": "list",
-            "items": [
-              "Supabase — authentication, database, session storage.",
-              "Google — OAuth login and AI models (Gemini) for chat, embeddings, OCR, and transcription.",
-              "Groq — voice transcription (optional, if configured).",
-              "xAI / OpenAI / Hugging Face — alternative AI models or TTS (if enabled by administrator).",
-              "Vercel — application hosting."
-            ]
-          },
-          {
-            "type": "text",
-            "text": "Conversation content may be sent to AI model providers to generate responses. Do not share sensitive information (passwords, OTPs, critical medical data) via chat."
-          }
-        ]
-      },
-      "security": {
-        "title": "6. Security",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "We implement reasonable measures to protect data, including encryption in transit (HTTPS), OAuth-based authentication, and restricted server-side database access. No system is 100% secure; use the service with risks you understand."
-          }
-        ]
-      },
-      "userRights": {
-        "title": "7. Your Rights",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "You can:"
-          },
-          {
-            "type": "list",
-            "items": [
-              "Access and update your profile via the Account page.",
-              "Delete chat history from within the app.",
-              "Request account deletion by contacting the service operator.",
-              "Stop using the service at any time."
-            ]
-          }
-        ]
-      },
-      "policyChanges": {
-        "title": "8. Policy Changes",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "We may update this policy at any time. Material changes will be posted on this page with an updated date. Continued use after changes means you accept the updated policy."
-          }
-        ]
-      },
-      "contact": {
-        "title": "9. Contact",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "For privacy questions, contact the IDA operator through the official channels of the organization operating this service."
-          }
-        ]
+      "audit": {
+        "label": "Full audit trail",
+        "detail": "Every briefing, decision, and change is recorded and traceable."
       }
-    }
-  },
-  "Terms": {
-    "title": "Terms of Service",
-    "lastUpdated": "Last updated: July 1, 2026",
-    "intro": "By accessing or using IDA (\"IDA\", \"the service\"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the service.",
-    "sections": {
-      "serviceDescription": {
-        "title": "1. Service Description",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "IDA is an AI-powered digital assistant providing conversation, knowledge base search (RAG), voice input, Worksheet, Web Search, Research, Map, and related features. The service is intended for general information and does not replace professional advice (medical, legal, financial, etc.)."
-          }
-        ]
+    },
+    "scale": {
+      "title": "Built for enterprise scale"
+    },
+    "demo": {
+      "title": "What you will see in the demo",
+      "subtitle": "Three minutes. One story. No setup required.",
+      "executiveBrief": {
+        "title": "Executive Brief",
+        "desc": "What needs attention today — issues, risks, and recommended actions."
       },
-      "userAccount": {
-        "title": "2. User Account",
-        "blocks": [
-          {
-            "type": "list",
-            "items": [
-              "You must sign in with a valid Google account.",
-              "You are responsible for keeping your session and devices secure.",
-              "You agree to provide accurate information and not misuse others' accounts.",
-              "We may suspend or terminate accounts that violate these terms."
-            ]
-          }
-        ]
+      "livingOrganization": {
+        "title": "Living Organization",
+        "desc": "How accounts, people, and projects connect across your business."
       },
-      "acceptableUse": {
-        "title": "3. Acceptable Use",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "You agree not to:"
-          },
-          {
-            "type": "list",
-            "items": [
-              "Use the service for illegal, harmful, or misleading activities.",
-              "Send spam, malware, or content that infringes third-party rights.",
-              "Attempt to access systems, APIs, or other users' data without permission.",
-              "Bypass technical limits (rate limits, authentication, etc.).",
-              "Use AI output for critical decisions without independent verification."
-            ]
-          }
-        ]
+      "knowledge": {
+        "title": "Organizational Knowledge",
+        "desc": "Everything IDA knows about an account — emails, meetings, decisions."
       },
-      "aiContent": {
-        "title": "4. AI Content & Responses",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "IDA responses are generated by AI models and may be inaccurate, incomplete, or outdated. You are responsible for evaluating and verifying information before acting. We do not guarantee accuracy, availability, or fitness for a particular purpose."
-          }
-        ]
-      },
-      "intellectualProperty": {
-        "title": "5. Intellectual Property",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "IDA's name, logo, interface, and source code are protected by applicable law. You may not copy, modify, or distribute parts of the service without written permission, except as allowed by any open-source project license (if applicable)."
-          },
-          {
-            "type": "text",
-            "text": "You retain rights to content you submit. By using the service, you grant us a limited license to process that content to provide and improve the service."
-          }
-        ]
-      },
-      "thirdParty": {
-        "title": "6. Third-Party Services",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "IDA relies on third-party services (Supabase, Google, Groq, and other configured model providers). Their availability and terms apply separately. We are not responsible for disruptions caused by third parties."
-          }
-        ]
-      },
-      "limitation": {
-        "title": "7. Limitation of Liability",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "To the extent permitted by law, IDA and its operators are not liable for indirect, incidental, special, or consequential damages arising from use of the service, including data loss, business interruption, or decisions based on AI output."
-          },
-          {
-            "type": "text",
-            "text": "Our total liability is limited to amounts you paid for the service in the past 12 months, or zero if the service is provided free of charge."
-          }
-        ]
-      },
-      "termination": {
-        "title": "8. Termination",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "We may modify, suspend, or terminate the service at any time. You may stop using the service by signing out and no longer accessing the application."
-          }
-        ]
-      },
-      "changes": {
-        "title": "9. Changes to Terms",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "These terms may be updated. The last updated date is shown above. Continued use after changes means you accept the updated terms."
-          }
-        ]
-      },
-      "governingLaw": {
-        "title": "10. Governing Law",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "These terms are governed by the laws of the Republic of Indonesia, without regard to conflict-of-law provisions, unless otherwise required by applicable regulations."
-          }
-        ]
-      },
-      "contact": {
-        "title": "11. Contact",
-        "blocks": [
-          {
-            "type": "text",
-            "text": "Questions about these terms may be submitted through the official channels of the IDA operator."
-          }
-        ]
-      }
+      "cta": "Start the 3-minute demo"
+    },
+    "whoFor": {
+      "badge": "For leadership teams",
+      "title": "If you lead a large organization, IDA is for you.",
+      "subtitle": "Energy, telecommunications, infrastructure, and any enterprise where decisions depend on knowing the full picture — not searching through inboxes.",
+      "ctaPrimary": "Enter the platform",
+      "ctaSecondary": "Speak with our team"
     }
   }
 }
