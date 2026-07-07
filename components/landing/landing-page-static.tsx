@@ -21,10 +21,9 @@ import { useTranslations } from "next-intl";
 import { IDA_CONFIG } from "@/lib/config";
 import { routes } from "@/lib/routes";
 
-// Note: This is a Server Component. For dynamic locale-aware routes,
-// we would normally get locale from params. For now we use a placeholder.
-// In production, pass locale from parent or use getLocale().
-const DEFAULT_LOCALE = 'en' as const;
+// Temporary default locale for static landing.
+// In real usage, this should come from params or getLocale().
+const DEFAULT_LOCALE = "en" as const;
 
 export function LandingPageStatic() {
   const t = useTranslations("Landing");
