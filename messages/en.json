@@ -7,9 +7,9 @@
   },
   "Seo": {
     "title": "IDA — Enterprise Decision & Digital Workforce Operating System",
-    "description": "IDA gives leaders a live view of their entire organization — accounts, people, projects, and decisions — so they can decide with confidence.",
-    "ogTitle": "IDA — See Your Organization. Decide with Confidence.",
-    "ogImageAlt": "IDA — Enterprise Decision Operating System",
+    "description": "IDA connects your entire organization — accounts, people, projects, and decisions — so teams across the company can work with clarity.",
+    "ogTitle": "IDA — See Your Organization. Work with Clarity.",
+    "ogImageAlt": "IDA — Organization Operating System",
     "keywords": [
       "IDA",
       "Enterprise AI",
@@ -21,8 +21,8 @@
   },
   "Landing": {
     "hero": {
-      "title": "IDA shows leaders their entire organization — so they can decide with confidence.",
-      "subtitle": "One place to see accounts, people, projects, and decisions — updated from real business activity.",
+      "title": "IDA connects your entire organization — so everyone can work with clarity.",
+      "subtitle": "One place to see accounts, people, projects, and decisions — updated from real business activity across the company.",
       "ctaPrimary": "See it live",
       "ctaSecondary": "4 questions answered"
     },
@@ -30,19 +30,19 @@
       "badge": "Understand IDA in 30 seconds",
       "what": {
         "question": "What is IDA?",
-        "answer": "IDA is the system that shows leaders everything happening across their organization — accounts, people, projects, and decisions — in one place."
+        "answer": "IDA is the system that brings together everything happening across your organization — accounts, people, projects, and decisions — in one shared place."
       },
       "who": {
-        "question": "Who is it for?",
-        "answer": "CEOs and leadership teams at large enterprises who need clarity before making important decisions — not another chat window for individuals."
+        "question": "Who uses IDA?",
+        "answer": "Teams across the company who need shared context to do their work effectively — not just executives."
       },
       "whyNot": {
         "question": "Why not ChatGPT or Copilot?",
-        "answer": "Those tools answer one-off questions. IDA remembers your organization, connects the dots across accounts and projects, and prepares executive-ready briefings."
+        "answer": "Those tools help individuals. IDA creates shared memory for the whole organization and surfaces what each team needs."
       },
       "outcome": {
         "question": "What do you get?",
-        "answer": "A live view of what needs attention, what is at risk, and what to do next — built from real business activity, not generic AI responses."
+        "answer": "A live, connected view of your organization so teams can see what matters and act faster."
       }
     },
     "trustSignals": {
@@ -52,7 +52,7 @@
       },
       "human": {
         "label": "Humans in control",
-        "detail": "IDA recommends. Leaders decide. Every action has an owner."
+        "detail": "IDA recommends. People decide. Every action has an owner."
       },
       "audit": {
         "label": "Full audit trail",
@@ -80,9 +80,9 @@
       "cta": "Start the 3-minute demo"
     },
     "whoFor": {
-      "badge": "For leadership teams",
-      "title": "If you lead a large organization, IDA is for you.",
-      "subtitle": "Energy, telecommunications, infrastructure, and any enterprise where decisions depend on knowing the full picture — not searching through inboxes.",
+      "badge": "For organizations",
+      "title": "IDA is built for companies that want everyone aligned with the same clarity.",
+      "subtitle": "From leadership to operational teams — anyone who needs to understand context, risks, and next steps without digging through scattered information.",
       "ctaPrimary": "Enter the platform",
       "ctaSecondary": "Speak with our team"
     }
