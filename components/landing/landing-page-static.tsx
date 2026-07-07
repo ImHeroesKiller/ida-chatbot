@@ -19,6 +19,12 @@ import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 
 import { IDA_CONFIG } from "@/lib/config";
+import { routes } from "@/lib/routes";
+
+// Note: This is a Server Component. For dynamic locale-aware routes,
+// we would normally get locale from params. For now we use a placeholder.
+// In production, pass locale from parent or use getLocale().
+const DEFAULT_LOCALE = 'en' as const;
 
 export function LandingPageStatic() {
   const t = useTranslations("Landing");
@@ -66,7 +72,7 @@ export function LandingPageStatic() {
 
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <NextLink
-                href="/demo"
+                href={routes.demo(DEFAULT_LOCALE)}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 active:scale-[0.985]"
               >
                 {t("hero.ctaPrimary")}
@@ -178,7 +184,7 @@ export function LandingPageStatic() {
             </div>
             <div className="mt-10 flex justify-center">
               <NextLink
-                href="/demo"
+                href={routes.demo(DEFAULT_LOCALE)}
                 className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-7 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 {t("demo.cta")}
@@ -203,7 +209,7 @@ export function LandingPageStatic() {
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <NextLink
-                href="/demo"
+                href={routes.demo(DEFAULT_LOCALE)}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-10 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90"
               >
                 {t("whoFor.ctaPrimary")}
