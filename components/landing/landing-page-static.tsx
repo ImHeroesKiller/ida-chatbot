@@ -13,17 +13,16 @@ import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 import { LandingFooter } from "@/components/landing/footer";
 import { LandingHeaderActionsLazy } from "@/components/landing/landing-header-actions-lazy";
 import { LandingLcpLogo } from "@/components/landing/landing-lcp-logo";
-import {
-  IDA_CORE_MESSAGE,
-  LANDING_FOUR_QUESTIONS,
-  TRUST_SIGNALS,
-} from "@/components/enterprise/experience/narrative";
 import NextLink from "next/link";
 
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
+
 import { IDA_CONFIG } from "@/lib/config";
 
-export async function LandingPageStatic() {
+export function LandingPageStatic() {
+  const t = useTranslations("Landing");
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
@@ -35,7 +34,7 @@ export async function LandingPageStatic() {
                 {IDA_CONFIG.name}
               </span>
               <span className="hidden text-[11px] text-muted-foreground sm:block">
-                Organizational intelligence for leaders
+                {t("hero.subtitle")}
               </span>
             </div>
           </div>
@@ -49,7 +48,7 @@ export async function LandingPageStatic() {
       </header>
 
       <main className="flex-1">
-        {/* HERO — core message in 5 seconds */}
+        {/* HERO */}
         <section className="relative overflow-hidden border-b px-4 py-16 sm:px-6 sm:py-20">
           <div
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/12 via-background to-background"
@@ -58,11 +57,11 @@ export async function LandingPageStatic() {
 
           <div className="relative mx-auto max-w-4xl text-center">
             <h1 className="text-balance text-4xl font-bold tracking-tighter sm:text-5xl lg:text-[3.25rem] lg:leading-[1.08]">
-              {IDA_CORE_MESSAGE}
+              {t("hero.title")}
             </h1>
 
             <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground">
-              One place to see your accounts, people, projects, and decisions — updated from real business activity.
+              {t("hero.subtitle")}
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -70,31 +69,31 @@ export async function LandingPageStatic() {
                 href="/demo"
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 active:scale-[0.985]"
               >
-                See it live
+                {t("hero.ctaPrimary")}
                 <ArrowRight className="size-4" />
               </NextLink>
               <Link
                 href="#four-questions"
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border bg-card/60 px-8 text-base font-medium transition-colors hover:bg-muted"
               >
-                4 questions answered
+                {t("hero.ctaSecondary")}
               </Link>
             </div>
           </div>
         </section>
 
-        {/* 4 QUESTIONS — 30 seconds */}
+        {/* 4 QUESTIONS */}
         <section id="four-questions" className="scroll-mt-20 border-b bg-muted/20 px-4 py-14 sm:px-6 sm:py-16">
           <div className="mx-auto max-w-4xl">
             <p className="text-center text-xs font-semibold uppercase tracking-widest text-primary">
-              Understand IDA in 30 seconds
+              {t("fourQuestions.badge")}
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {LANDING_FOUR_QUESTIONS.map((item) => (
-                <div key={item.id} className="rounded-2xl border bg-background p-6">
-                  <h2 className="text-base font-semibold">{item.question}</h2>
+              {[ "what", "who", "whyNot", "outcome" ].map((key) => (
+                <div key={key} className="rounded-2xl border bg-background p-6">
+                  <h2 className="text-base font-semibold">{t(`fourQuestions.${key}.question`)}</h2>
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {item.answer}
+                    {t(`fourQuestions.${key}.answer`)}
                   </p>
                 </div>
               ))}
@@ -106,18 +105,18 @@ export async function LandingPageStatic() {
         <section className="border-b px-4 py-12 sm:px-6">
           <div className="mx-auto max-w-4xl">
             <div className="grid gap-4 sm:grid-cols-3">
-              {TRUST_SIGNALS.map((signal) => (
+              {[ "enterprise", "human", "audit" ].map((key) => (
                 <div
-                  key={signal.id}
+                  key={key}
                   className="flex items-start gap-3 rounded-2xl border bg-card/50 p-5"
                 >
                   <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
                     <ShieldCheck className="size-4" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold">{signal.label}</h3>
+                    <h3 className="text-sm font-semibold">{t(`trustSignals.${key}.label`)}</h3>
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                      {signal.detail}
+                      {t(`trustSignals.${key}.detail`)}
                     </p>
                   </div>
                 </div>
@@ -130,7 +129,7 @@ export async function LandingPageStatic() {
         <section className="border-b px-4 py-14 sm:px-6">
           <div className="mx-auto max-w-5xl">
             <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
-              Built for enterprise scale
+              {t("scale.title")}
             </h2>
             <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
               {[
@@ -152,38 +151,26 @@ export async function LandingPageStatic() {
         <section id="platform" className="scroll-mt-20 border-b bg-muted/20 px-4 py-14 sm:px-6">
           <div className="mx-auto max-w-5xl">
             <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
-              What you will see in the demo
+              {t("demo.title")}
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
-              Three minutes. One story. No setup required.
+              {t("demo.subtitle")}
             </p>
             <div className="mt-10 grid gap-5 sm:grid-cols-3">
-              {[
-                {
-                  icon: LayoutDashboard,
-                  title: "Executive Brief",
-                  desc: "What needs attention today — issues, risks, and recommended actions.",
-                },
-                {
-                  icon: Network,
-                  title: "Living Organization",
-                  desc: "How accounts, people, and projects connect across your business.",
-                },
-                {
-                  icon: Brain,
-                  title: "Organizational Knowledge",
-                  desc: "Everything IDA knows about an account — emails, meetings, decisions.",
-                },
+              {[ 
+                { icon: LayoutDashboard, key: "executiveBrief" },
+                { icon: Network, key: "livingOrganization" },
+                { icon: Brain, key: "knowledge" }
               ].map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.title} className="rounded-2xl border bg-background p-6">
+                  <div key={item.key} className="rounded-2xl border bg-background p-6">
                     <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                       <Icon className="size-5" />
                     </div>
-                    <h3 className="font-semibold">{item.title}</h3>
+                    <h3 className="font-semibold">{t(`demo.${item.key}.title`)}</h3>
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                      {item.desc}
+                      {t(`demo.${item.key}.desc`)}
                     </p>
                   </div>
                 );
@@ -194,7 +181,7 @@ export async function LandingPageStatic() {
                 href="/demo"
                 className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-7 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
               >
-                Start the 3-minute demo
+                {t("demo.cta")}
                 <ArrowRight className="size-4" />
               </NextLink>
             </div>
@@ -206,26 +193,26 @@ export async function LandingPageStatic() {
           <div className="mx-auto max-w-3xl text-center">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1 text-xs font-medium text-muted-foreground">
               <Users className="size-3.5" />
-              For leadership teams
+              {t("whoFor.badge")}
             </div>
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              If you lead a large organization, IDA is for you.
+              {t("whoFor.title")}
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Energy, telecommunications, infrastructure, and any enterprise where decisions depend on knowing the full picture — not searching through inboxes.
+              {t("whoFor.subtitle")}
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <NextLink
                 href="/demo"
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-10 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90"
               >
-                Enter the platform
+                {t("whoFor.ctaPrimary")}
               </NextLink>
               <Link
                 href="/contact"
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border bg-card/60 px-8 text-base font-medium transition-colors hover:bg-muted"
               >
-                Speak with our team
+                {t("whoFor.ctaSecondary")}
               </Link>
             </div>
           </div>
