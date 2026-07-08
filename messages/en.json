@@ -86,5 +86,267 @@
       "ctaPrimary": "Enter the platform",
       "ctaSecondary": "Speak with our team"
     }
+  },
+  "Privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: July 1, 2026",
+    "intro": "This Privacy Policy explains how IDA (\"IDA\", \"we\") collects, uses, and protects your information when you use our AI chatbot service.",
+    "sections": {
+      "dataCollection": {
+        "title": "1. Data We Collect",
+        "blocks": [
+          {
+            "type": "labeled",
+            "label": "Account data:",
+            "text": "When you sign in with Google, we receive basic profile information such as name, email address, profile picture, and user identifier (user ID) through Supabase Auth."
+          },
+          {
+            "type": "labeled",
+            "label": "Conversation data:",
+            "text": "Messages you send and assistant responses, chat history, session titles, and UI preferences (theme, language, voice settings) are stored to provide the service and synchronize across devices."
+          },
+          {
+            "type": "labeled",
+            "label": "Technical data:",
+            "text": "API request logs (model, provider, tokens, status), IP address for rate limiting, and session metadata for security and operational analytics."
+          },
+          {
+            "type": "labeled",
+            "label": "File uploads:",
+            "text": "Images or PDFs you attach are processed for text extraction (OCR) and are not stored permanently unless they become part of your conversation history."
+          }
+        ]
+      },
+      "dataUse": {
+        "title": "2. How We Use Data",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "Provide, maintain, and improve the IDA chat service.",
+              "Synchronize your chat history across devices.",
+              "Process AI requests, knowledge base retrieval (RAG), and voice features.",
+              "Prevent abuse, spam, and security violations.",
+              "Comply with legal obligations and respond to valid requests."
+            ]
+          }
+        ]
+      },
+      "storageRetention": {
+        "title": "3. Storage & Retention",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Data is stored on Supabase infrastructure (database and authentication). Chat history is retained as long as the account is active or until you delete it. We may delete inactive data after a reasonable period according to internal policy."
+          }
+        ]
+      },
+      "cookies": {
+        "title": "4. Cookies & Local Storage",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "We use Supabase Auth session cookies and browser local storage (localStorage/sessionStorage) for theme, UI preferences, and configuration caching. Essential cookies are required for login and session functionality."
+          }
+        ]
+      },
+      "thirdParty": {
+        "title": "5. Third-Party Services",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "IDA integrates with the following providers that process data according to their own policies:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Supabase — authentication, database, and session storage.",
+              "Google — OAuth login and AI models (Gemini) for chat, embeddings, OCR, and transcription.",
+              "Groq — speech transcription (optional, if configured).",
+              "xAI / OpenAI / Hugging Face — alternative AI models or TTS (if enabled by administrators).",
+              "Vercel — application hosting."
+            ]
+          },
+          {
+            "type": "text",
+            "text": "Conversation content may be sent to AI model providers to generate responses. Do not share sensitive information (passwords, OTPs, critical medical data) through chat."
+          }
+        ]
+      },
+      "security": {
+        "title": "6. Security",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "We implement reasonable measures to protect data, including encryption in transit (HTTPS), OAuth-based authentication, and database access limited to server-side. No system is 100% secure; use the service with awareness of the risks."
+          }
+        ]
+      },
+      "userRights": {
+        "title": "7. Your Rights",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "You can:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Access and update your profile through the Account page.",
+              "Delete chat history from within the application.",
+              "Request account deletion by contacting the service administrator.",
+              "Stop using the service at any time."
+            ]
+          }
+        ]
+      },
+      "policyChanges": {
+        "title": "8. Policy Changes",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "We may update this policy at any time. Material changes will be noted on this page with the update date. Continued use after changes means you accept the updated policy."
+          }
+        ]
+      },
+      "contact": {
+        "title": "9. Contact",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "For privacy questions, contact the IDA administrator through official organizational channels."
+          }
+        ]
+      }
+    }
+  },
+  "Terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: July 1, 2026",
+    "intro": "By accessing or using IDA (\"IDA\", \"the Service\"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Service.",
+    "sections": {
+      "serviceDescription": {
+        "title": "1. Service Description",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "IDA is an AI-powered digital assistant that provides conversations, knowledge base retrieval (RAG), voice input, Worksheet, Web Search, Research, Map, and related features. The service is intended to assist with general information and does not replace professional advice (medical, legal, financial, etc.)."
+          }
+        ]
+      },
+      "userAccount": {
+        "title": "2. User Account",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "You must sign in with a valid Google account.",
+              "You are responsible for maintaining the security of your session and devices.",
+              "You agree to provide accurate information and not misuse other users' accounts.",
+              "We may suspend or terminate accounts that violate these terms."
+            ]
+          }
+        ]
+      },
+      "acceptableUse": {
+        "title": "3. Acceptable Use",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "You agree not to:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Use the service for illegal, harmful, or misleading activities.",
+              "Send spam, malware, or content that violates third-party rights.",
+              "Attempt to access other users' systems, APIs, or data without permission.",
+              "Bypass technical limitations (rate limits, authentication, etc.).",
+              "Use AI output for critical decisions without independent verification."
+            ]
+          }
+        ]
+      },
+      "aiContent": {
+        "title": "4. AI Content & Responses",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "IDA responses are generated by AI models and may be inaccurate, incomplete, or outdated. You are responsible for evaluating and verifying information before taking action. We do not guarantee the accuracy, availability, or suitability of responses for any particular purpose."
+          }
+        ]
+      },
+      "intellectualProperty": {
+        "title": "5. Intellectual Property Rights",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "The name, logo, interface, and source code of IDA are protected by applicable law. You may not copy, modify, or distribute any part of the service without written permission, except as permitted by the project's open-source license (if any)."
+          },
+          {
+            "type": "text",
+            "text": "You retain rights to the content you submit. By using the service, you grant us a limited license to process that content to provide and improve the service."
+          }
+        ]
+      },
+      "thirdParty": {
+        "title": "6. Third-Party Services",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "IDA relies on third-party services (Supabase, Google, Groq, and other model providers as configured). Their availability and terms apply separately. We are not responsible for disruptions caused by third parties."
+          }
+        ]
+      },
+      "limitation": {
+        "title": "7. Limitation of Liability",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "To the extent permitted by law, IDA and its operators are not liable for indirect, incidental, special, or consequential damages arising from use of the service, including loss of data, business interruption, or decisions made based on AI output."
+          },
+          {
+            "type": "text",
+            "text": "Our total liability is limited to the amount you paid for the service in the last 12 months, or zero if the service is provided for free."
+          }
+        ]
+      },
+      "termination": {
+        "title": "8. Termination",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "We may modify, suspend, or terminate the service at any time. You may stop using the service by signing out and no longer accessing the application."
+          }
+        ]
+      },
+      "changes": {
+        "title": "9. Changes to Terms",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "These terms may be updated. The last update date is listed above. Continued use after changes means you accept the updated terms."
+          }
+        ]
+      },
+      "governingLaw": {
+        "title": "10. Governing Law",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "These terms are governed by the laws of the Republic of Indonesia, without regard to conflict of law provisions, unless otherwise required by applicable regulations."
+          }
+        ]
+      },
+      "contact": {
+        "title": "11. Contact",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "Questions regarding the terms of service may be submitted through official IDA administrator channels."
+          }
+        ]
+      }
+    }
   }
 }
