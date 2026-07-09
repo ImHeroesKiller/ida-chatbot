@@ -23,8 +23,8 @@
     "hero": {
       "title": "IDA connects your entire organization — so everyone can work with clarity.",
       "subtitle": "One place to see accounts, people, projects, and decisions — updated from real business activity across the company.",
-      "ctaPrimary": "See it live",
-      "ctaSecondary": "4 questions answered"
+      "ctaPrimary": "Try Interactive Demo",
+      "ctaSecondary": "Try Chat Now"
     },
     "fourQuestions": {
       "badge": "Understand IDA in 30 seconds",
@@ -77,14 +77,19 @@
         "title": "Organizational Knowledge",
         "desc": "Everything IDA knows about an account — emails, meetings, decisions."
       },
-      "cta": "Start the 3-minute demo"
+      "cta": "Open Demo"
     },
     "whoFor": {
       "badge": "For organizations",
       "title": "IDA is built for companies that want everyone aligned with the same clarity.",
       "subtitle": "From leadership to operational teams — anyone who needs to understand context, risks, and next steps without digging through scattered information.",
-      "ctaPrimary": "Enter the platform",
-      "ctaSecondary": "Speak with our team"
+      "ctaPrimary": "Start with Demo",
+      "ctaSecondary": "Go to Chat"
+    },
+    "legal": {
+      "consent": "By using IDA, you agree to our <privacy></privacy> and <terms></terms>.",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
     }
   },
   "Privacy": {

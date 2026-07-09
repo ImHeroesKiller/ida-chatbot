@@ -8,25 +8,20 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
+import { getTranslations } from "next-intl/server";
+import NextLink from "next/link";
 
 import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 import { LandingFooter } from "@/components/landing/footer";
 import { LandingHeaderActionsLazy } from "@/components/landing/landing-header-actions-lazy";
 import { LandingLcpLogo } from "@/components/landing/landing-lcp-logo";
-import NextLink from "next/link";
-
-import { Link } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
-
 import { IDA_CONFIG } from "@/lib/config";
-import { routes } from "@/lib/routes";
 
-// Temporary default locale for static landing.
-// In real usage, this should come from params or getLocale().
-const DEFAULT_LOCALE = "en" as const;
+const DEMO_URL = "https://ida.arywibowo.id/demo";
+const CHAT_URL = "https://ida.arywibowo.id/chat";
 
-export function LandingPageStatic() {
-  const t = useTranslations("Landing");
+export async function LandingPageStatic() {
+  const t = await getTranslations("Landing");
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -71,18 +66,18 @@ export function LandingPageStatic() {
 
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <NextLink
-                href={routes.demo(DEFAULT_LOCALE)}
+                href={DEMO_URL}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 active:scale-[0.985]"
               >
                 {t("hero.ctaPrimary")}
                 <ArrowRight className="size-4" />
               </NextLink>
-              <Link
-                href="#four-questions"
+              <NextLink
+                href={CHAT_URL}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border bg-card/60 px-8 text-base font-medium transition-colors hover:bg-muted"
               >
                 {t("hero.ctaSecondary")}
-              </Link>
+              </NextLink>
             </div>
           </div>
         </section>
@@ -94,9 +89,11 @@ export function LandingPageStatic() {
               {t("fourQuestions.badge")}
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {[ "what", "who", "whyNot", "outcome" ].map((key) => (
+              {(["what", "who", "whyNot", "outcome"] as const).map((key) => (
                 <div key={key} className="rounded-2xl border bg-background p-6">
-                  <h2 className="text-base font-semibold">{t(`fourQuestions.${key}.question`)}</h2>
+                  <h2 className="text-base font-semibold">
+                    {t(`fourQuestions.${key}.question`)}
+                  </h2>
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                     {t(`fourQuestions.${key}.answer`)}
                   </p>
@@ -110,7 +107,7 @@ export function LandingPageStatic() {
         <section className="border-b px-4 py-12 sm:px-6">
           <div className="mx-auto max-w-4xl">
             <div className="grid gap-4 sm:grid-cols-3">
-              {[ "enterprise", "human", "audit" ].map((key) => (
+              {(["enterprise", "human", "audit"] as const).map((key) => (
                 <div
                   key={key}
                   className="flex items-start gap-3 rounded-2xl border bg-card/50 p-5"
@@ -119,7 +116,9 @@ export function LandingPageStatic() {
                     <ShieldCheck className="size-4" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold">{t(`trustSignals.${key}.label`)}</h3>
+                    <h3 className="text-sm font-semibold">
+                      {t(`trustSignals.${key}.label`)}
+                    </h3>
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                       {t(`trustSignals.${key}.detail`)}
                     </p>
@@ -144,7 +143,9 @@ export function LandingPageStatic() {
                 { value: "91%", label: "Org health score" },
               ].map((m) => (
                 <div key={m.label} className="rounded-2xl border bg-card/50 p-5 text-center">
-                  <div className="text-2xl font-bold tracking-tight text-primary">{m.value}</div>
+                  <div className="text-2xl font-bold tracking-tight text-primary">
+                    {m.value}
+                  </div>
                   <div className="mt-1 text-xs text-muted-foreground">{m.label}</div>
                 </div>
               ))}
@@ -162,11 +163,13 @@ export function LandingPageStatic() {
               {t("demo.subtitle")}
             </p>
             <div className="mt-10 grid gap-5 sm:grid-cols-3">
-              {[ 
-                { icon: LayoutDashboard, key: "executiveBrief" },
-                { icon: Network, key: "livingOrganization" },
-                { icon: Brain, key: "knowledge" }
-              ].map((item) => {
+              {(
+                [
+                  { icon: LayoutDashboard, key: "executiveBrief" },
+                  { icon: Network, key: "livingOrganization" },
+                  { icon: Brain, key: "knowledge" },
+                ] as const
+              ).map((item) => {
                 const Icon = item.icon;
                 return (
                   <div key={item.key} className="rounded-2xl border bg-background p-6">
@@ -183,7 +186,7 @@ export function LandingPageStatic() {
             </div>
             <div className="mt-10 flex justify-center">
               <NextLink
-                href={routes.demo(DEFAULT_LOCALE)}
+                href={DEMO_URL}
                 className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-7 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 {t("demo.cta")}
@@ -203,22 +206,20 @@ export function LandingPageStatic() {
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
               {t("whoFor.title")}
             </h2>
-            <p className="mt-4 text-muted-foreground">
-              {t("whoFor.subtitle")}
-            </p>
+            <p className="mt-4 text-muted-foreground">{t("whoFor.subtitle")}</p>
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <NextLink
-                href={routes.demo(DEFAULT_LOCALE)}
+                href={DEMO_URL}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-10 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90"
               >
                 {t("whoFor.ctaPrimary")}
               </NextLink>
-              <Link
-                href="/contact"
+              <NextLink
+                href={CHAT_URL}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border bg-card/60 px-8 text-base font-medium transition-colors hover:bg-muted"
               >
                 {t("whoFor.ctaSecondary")}
-              </Link>
+              </NextLink>
             </div>
           </div>
         </section>

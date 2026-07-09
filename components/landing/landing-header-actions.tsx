@@ -1,31 +1,25 @@
 "use client";
 
-import Link from "next/link";
-import { Bot } from "lucide-react";
+import NextLink from "next/link";
 
-import { useAuth } from "@/components/auth/auth-provider";
-import { LandingCtaButton } from "@/components/landing/landing-cta-button";
-import { useTranslations } from "next-intl";
-import { cn } from "@/lib/utils";
+const DEMO_URL = "https://ida.arywibowo.id/demo";
+const CHAT_URL = "https://ida.arywibowo.id/chat";
 
 export function LandingHeaderActions() {
-  const t = useTranslations("Landing.agentFlow");
-  const { user } = useAuth();
-
   return (
     <div className="flex items-center gap-2 sm:gap-3">
-      {user ? (
-        <Link
-          href="/agent"
-          className={cn(
-            "hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:inline-flex",
-          )}
-        >
-          <Bot className="size-4" aria-hidden />
-          {t("headerLink")}
-        </Link>
-      ) : null}
-      <LandingCtaButton variant="header" />
+      <NextLink
+        href={DEMO_URL}
+        className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:px-4"
+      >
+        Demo
+      </NextLink>
+      <NextLink
+        href={CHAT_URL}
+        className="inline-flex h-9 items-center justify-center rounded-lg border bg-card/60 px-3 text-sm font-medium transition-colors hover:bg-muted sm:px-4"
+      >
+        Chat
+      </NextLink>
     </div>
   );
 }

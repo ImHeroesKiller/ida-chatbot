@@ -12,7 +12,10 @@ const LandingHeaderActionsWithAuth = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-9 w-24 animate-pulse rounded-lg bg-muted sm:w-28" />
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className="h-9 w-16 animate-pulse rounded-lg bg-muted sm:w-20" />
+        <div className="h-9 w-16 animate-pulse rounded-lg bg-muted sm:w-20" />
+      </div>
     ),
   },
 );

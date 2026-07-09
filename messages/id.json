@@ -24,70 +24,75 @@
   },
   "Landing": {
     "hero": {
-      "badge": "Asisten AI Profesional",
-      "title": "Asisten AI yang Mengerti Konteks Anda",
-      "subtitle": "IDA membantu Anda bekerja lebih cepat dengan Worksheet, Web Search, Research, dan Map — semua dalam satu tempat.",
-      "ctaPrimary": "Coba IDA Gratis",
-      "ctaSecondary": "Lihat Fitur",
-      "continueToChat": "Lanjut ke Chat",
-      "trustLine": "Gratis untuk dicoba · Login Google · Tanpa kartu kredit"
+      "title": "IDA menghubungkan seluruh organisasi Anda — agar semua bisa bekerja dengan kejelasan.",
+      "subtitle": "Satu tempat untuk melihat account, orang, project, dan decision — diperbarui dari aktivitas bisnis nyata di seluruh perusahaan.",
+      "ctaPrimary": "Lihat Demo Interaktif",
+      "ctaSecondary": "Coba Chat Sekarang"
     },
-    "features": {
-      "title": "Fitur Utama",
-      "worksheet": {
-        "title": "Worksheet",
-        "desc": "Buat dokumen profesional langsung dari chat. Edit, export PDF/DOCX, simpan versi, dan gunakan template."
+    "fourQuestions": {
+      "badge": "Pahami IDA dalam 30 detik",
+      "what": {
+        "question": "Apa itu IDA?",
+        "answer": "IDA adalah sistem yang menyatukan segala yang terjadi di organisasi Anda — account, orang, project, dan decision — dalam satu tempat bersama."
       },
-      "webSearch": {
-        "title": "Pencarian Web",
-        "desc": "Dapatkan informasi terkini langsung dari internet dengan sumber yang jelas."
+      "who": {
+        "question": "Siapa yang memakai IDA?",
+        "answer": "Tim di seluruh perusahaan yang butuh konteks bersama agar bekerja efektif — bukan hanya eksekutif."
       },
-      "research": {
-        "title": "Research",
-        "desc": "Lakukan riset mendalam dengan beberapa tingkat kedalaman dan hasil terstruktur."
+      "whyNot": {
+        "question": "Kenapa bukan ChatGPT atau Copilot?",
+        "answer": "Tool itu membantu individu. IDA membangun memori bersama untuk seluruh organisasi dan menampilkan apa yang dibutuhkan setiap tim."
       },
-      "map": {
-        "title": "Map",
-        "desc": "Integrasi peta untuk kebutuhan lokasi dan analisis spasial."
+      "outcome": {
+        "question": "Apa yang Anda dapat?",
+        "answer": "Tampilan live dan terhubung tentang organisasi Anda agar tim melihat yang penting dan bertindak lebih cepat."
       }
     },
-    "benefits": {
-      "title": "Kenapa Memilih IDA?",
-      "items": [
-        "Hemat waktu dengan workflow yang terintegrasi",
-        "Hasil yang konsisten dan dapat diekspor",
-        "Privasi data terjaga",
-        "Dukungan bahasa Indonesia, English, dan 中文"
-      ]
+    "trustSignals": {
+      "enterprise": {
+        "label": "Siap enterprise",
+        "detail": "Dibangun untuk industri ter-regulasi — energi, telekomunikasi, dan infrastruktur."
+      },
+      "human": {
+        "label": "Manusia yang mengendalikan",
+        "detail": "IDA merekomendasikan. Manusia yang memutuskan. Setiap aksi punya owner."
+      },
+      "audit": {
+        "label": "Jejak audit lengkap",
+        "detail": "Setiap briefing, decision, dan perubahan tercatat dan bisa dilacak."
+      }
     },
-    "howItWorks": {
-      "title": "Cara Kerja",
-      "steps": [
-        "Login dengan Google",
-        "Mulai chat atau buka Tools",
-        "Gunakan Worksheet, Web Search, atau Research",
-        "Hasil langsung bisa diedit dan diekspor"
-      ]
+    "scale": {
+      "title": "Dibangun untuk skala enterprise"
     },
-    "finalCta": {
-      "title": "Siap Meningkatkan Produktivitas Anda?",
-      "subtitle": "Mulai gunakan IDA sekarang. Gratis untuk memulai."
+    "demo": {
+      "title": "Apa yang Anda lihat di demo",
+      "subtitle": "Tiga menit. Satu cerita. Tanpa setup.",
+      "executiveBrief": {
+        "title": "Executive Brief",
+        "desc": "Apa yang perlu perhatian hari ini — issue, risk, dan recommended action."
+      },
+      "livingOrganization": {
+        "title": "Living Organization",
+        "desc": "Bagaimana account, orang, dan project saling terhubung di bisnis Anda."
+      },
+      "knowledge": {
+        "title": "Organizational Knowledge",
+        "desc": "Semua yang IDA ketahui tentang sebuah account — email, meeting, decision."
+      },
+      "cta": "Buka Demo"
     },
-    "signIn": {
-      "title": "Siap mencoba IDA?",
-      "description": "Masuk dengan Google untuk membuka chat room dan mulai pakai tools favoritmu."
+    "whoFor": {
+      "badge": "Untuk organisasi",
+      "title": "IDA dibangun untuk perusahaan yang ingin semua orang selaras dengan kejelasan yang sama.",
+      "subtitle": "Dari leadership hingga tim operasional — siapa pun yang perlu memahami konteks, risk, dan langkah berikutnya tanpa menggali informasi yang tersebar.",
+      "ctaPrimary": "Mulai dengan Demo",
+      "ctaSecondary": "Langsung ke Chat"
     },
     "legal": {
       "consent": "Dengan menggunakan IDA, Anda menyetujui <privacy></privacy> dan <terms></terms> kami.",
       "privacy": "Kebijakan Privasi",
       "terms": "Syarat & Ketentuan"
-    },
-    "agentFlow": {
-      "badge": "Fitur lanjutan",
-      "title": "Butuh otomatisasi workflow?",
-      "description": "AgentFlow hadir untuk tim yang ingin mengotomasi proses dokumen dan workflow bisnis — di luar pengalaman chat utama IDA.",
-      "cta": "Pelajari AgentFlow",
-      "headerLink": "AgentFlow"
     }
   },
   "Privacy": {
