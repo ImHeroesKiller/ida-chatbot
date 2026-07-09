@@ -4,10 +4,10 @@ import Link from "next/link";
 import { HelpCircle, Menu, Search } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { EnterpriseLocaleSwitcher } from "@/components/enterprise/i18n/enterprise-locale-switcher";
 import { useEnterpriseLocale } from "@/components/enterprise/i18n/enterprise-locale-provider";
 import { InvestorFaqTrigger } from "./investor-faq-modal";
+import { CHAT_URL } from "./demo-urls";
 import { useEnterprise } from "./enterprise-context";
 import { EnterpriseSidebar } from "./enterprise-sidebar";
 
@@ -31,8 +31,12 @@ export function EnterpriseTopbar() {
             I
           </div>
           <div className="leading-tight">
-            <div className="text-sm font-semibold tracking-tight">{t("enterprise", "topbar.title")}</div>
-            <div className="text-[10px] text-muted-foreground">{t("enterprise", "topbar.subtitle")}</div>
+            <div className="text-sm font-semibold tracking-tight">
+              {t("enterprise", "topbar.title")}
+            </div>
+            <div className="max-w-[140px] truncate text-[10px] text-muted-foreground sm:max-w-none">
+              {t("enterprise", "topbar.subtitle")}
+            </div>
           </div>
           <span className="hidden rounded-full border border-emerald-500/20 bg-emerald-500/8 px-2.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 sm:inline">
             <span className="mr-1.5 inline-block size-1.5 rounded-full bg-emerald-500" />
@@ -40,15 +44,17 @@ export function EnterpriseTopbar() {
           </span>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           <EnterpriseLocaleSwitcher compact className="hidden sm:flex" />
           <button
             type="button"
             onClick={() => openSearch()}
-            className="flex h-9 min-w-[140px] items-center gap-2 rounded-xl border border-border/50 bg-muted/30 px-3 text-xs text-muted-foreground transition-colors hover:border-border hover:bg-muted/50 sm:min-w-[220px]"
+            className="flex h-9 min-w-[120px] items-center gap-2 rounded-xl border border-border/50 bg-muted/30 px-3 text-xs text-muted-foreground transition-colors hover:border-border hover:bg-muted/50 sm:min-w-[200px]"
           >
             <Search className="size-3.5" />
-            <span className="hidden sm:inline">{t("enterprise", "topbar.searchPlaceholder")}</span>
+            <span className="hidden sm:inline">
+              {t("enterprise", "topbar.searchPlaceholder")}
+            </span>
             <span className="sm:hidden">{t("enterprise", "topbar.searchShort")}</span>
             <kbd className="ml-auto hidden rounded border border-border/60 bg-background px-1.5 py-0.5 text-[10px] sm:inline">
               ⌘K
@@ -65,13 +71,22 @@ export function EnterpriseTopbar() {
           </button>
           <Link
             href="/"
-            className="hidden text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline"
+            className="hidden text-xs font-medium text-muted-foreground transition-colors hover:text-foreground md:inline"
           >
             {t("enterprise", "topbar.homepage")}
           </Link>
-          <Button size="sm" className="hidden h-8 rounded-full px-4 text-xs sm:inline-flex">
+          <Link
+            href={CHAT_URL}
+            className="hidden h-8 items-center justify-center rounded-full border border-border/60 bg-card/60 px-3 text-xs font-medium transition-colors hover:bg-muted/50 sm:inline-flex"
+          >
+            {t("enterprise", "topbar.chat")}
+          </Link>
+          <a
+            href="mailto:aku@arywibowo.id"
+            className="hidden h-8 items-center justify-center rounded-full bg-primary px-4 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:inline-flex"
+          >
             {t("enterprise", "topbar.contact")}
-          </Button>
+          </a>
         </div>
       </header>
 

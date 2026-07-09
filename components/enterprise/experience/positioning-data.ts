@@ -22,12 +22,12 @@ export const TRADITIONAL_AI_VS_IDA = [
 ] as const;
 
 export const HOW_IDA_THINKS_STEPS = [
-  { id: "reality", label: "Reality", desc: "Emails, meetings, contracts, and project updates across the enterprise" },
-  { id: "observations", label: "Observations", desc: "IDA captures events, stakeholders, and commercial signals as they happen" },
-  { id: "memory", label: "Memory", desc: "Knowledge indexed and cross-linked to accounts, people, and initiatives" },
-  { id: "context", label: "Context", desc: "Full situational awareness — history, relationships, and open commitments" },
-  { id: "insights", label: "Insights", desc: "Patterns surfaced: risks, opportunities, and items requiring attention" },
-  { id: "decisions", label: "Decisions", desc: "Executive-ready briefs with recommended actions and governance" },
+  { id: "understand", label: "Understand", desc: "Unified enterprise context from applications, communications, and Organization Memory" },
+  { id: "analyze", label: "Analyze", desc: "AI-powered analysis of risks, opportunities, and cross-account signals" },
+  { id: "recommend", label: "Recommend", desc: "Clear options with rationale, impact, and confidence — decision packages" },
+  { id: "decide", label: "Decide", desc: "Governed decisions with policy, authority, and human approval when required" },
+  { id: "orchestrate", label: "Orchestrate", desc: "Coordinate Human Workforce and Digital Workforce to execute at scale" },
+  { id: "learn", label: "Learn", desc: "Outcomes feed Organization Memory and improve the next decision" },
 ] as const;
 
 export const COPILOT_COMPARISON = [

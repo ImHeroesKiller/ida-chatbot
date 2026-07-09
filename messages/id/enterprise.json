@@ -1,7 +1,8 @@
 {
   "slogan": {
-    "core": "One Organization. Humans and AI Working Together.",
-    "workforce": "One Organization. Humans and AI Working Together."
+    "core": "Sistem operasi untuk keputusan enterprise dan tenaga kerja digital.",
+    "workforce": "Human Workforce dan Digital Workforce — bekerja sebagai satu.",
+    "valueChain": "Information → Decisions → Execution → Value"
   },
   "modes": {
     "presentation": "Presentation",
@@ -10,13 +11,13 @@
     "internalHint": "Bahasa Indonesia · tim internal"
   },
   "nav": {
-    "story": "Organisasi Anda",
+    "story": "Decision OS",
     "overview": "Overview",
     "organization": "Organization",
     "people": "People",
     "accounts": "Accounts",
     "projects": "Projects",
-    "knowledge": "Memory",
+    "knowledge": "Organization Memory",
     "workforce": "Digital Workforce",
     "askIda": "Ask IDA",
     "timeline": "Timeline",
@@ -26,26 +27,47 @@
     "developerSection": "Developer"
   },
   "workspace": {
-    "eyebrow": "Organization Workspace",
-    "title": "Seluruh organisasi Anda, dalam satu tempat",
-    "description": "Manusia, Digital Workforce, dan Organization Memory — bekerja bersama dalam satu operating system.",
-    "briefTitle": "Yang perlu perhatian hari ini",
-    "organizationTitle": "Bagaimana semuanya terhubung",
-    "workforceTitle": "AI agent di samping tim Anda",
-    "askTitle": "Tanya apa saja tentang organisasi",
-    "askDescription": "Pertanyaan berbasis Organization Memory — account, orang, project, dan decision.",
-    "askPageTitle": "Tanya IDA apa saja",
+    "eyebrow": "Enterprise Decision Operating System",
+    "title": "Decision OS untuk enterprise Anda — demo live",
+    "description": "Ini adalah Enterprise Decision Layer: hubungkan informasi, kelola keputusan, dan orchestrate Human Workforce serta Digital Workforce — dalam satu sistem.",
+    "briefTitle": "Yang butuh keputusan hari ini",
+    "organizationTitle": "Bagaimana enterprise terhubung",
+    "workforceTitle": "Kolaborasi Human + Digital Workforce",
+    "askTitle": "Tanya dari Organization Memory",
+    "askDescription": "Berbasis account, decision, dan output workforce — bukan chatbot generik.",
+    "askPageTitle": "Tanya IDA dari Organization Memory",
     "timelineTitle": "Aktivitas organisasi terbaru",
-    "viewFullTimeline": "Lihat timeline lengkap"
+    "viewFullTimeline": "Lihat timeline lengkap",
+    "ctaPrimary": "Lihat Demo",
+    "ctaSecondary": "Coba Chat",
+    "closingTitle": "Siap lebih dalam?",
+    "closingDescription": "Jelajahi pengalaman Decision OS lengkap, atau buka Chat untuk kerja percakapan.",
+    "closingPrimary": "Buka Demo Lengkap",
+    "closingSecondary": "Coba Chat Sekarang"
+  },
+  "decisionCore": {
+    "eyebrow": "Decision Intelligence Core",
+    "title": "Bagaimana IDA mengubah informasi menjadi keputusan tepercaya",
+    "description": "Understand → Analyze → Recommend → Decide → Orchestrate → Learn — manusia mengendalikan setiap langkah kritis.",
+    "steps": {
+      "understand": { "label": "Understand", "desc": "Konteks terpadu dan kesadaran real-time" },
+      "analyze": { "label": "Analyze", "desc": "Insight bertenaga AI dari pengetahuan enterprise" },
+      "recommend": { "label": "Recommend", "desc": "Opsi dengan dampak, risk, dan confidence" },
+      "decide": { "label": "Decide", "desc": "Keputusan terkelola dengan policy dan otoritas" },
+      "orchestrate": { "label": "Orchestrate", "desc": "Koordinasikan human dan digital workforce" },
+      "learn": { "label": "Learn", "desc": "Tangkap outcome dan terus tingkatkan" }
+    },
+    "valueChainLabel": "Value chain"
   },
   "topbar": {
-    "title": "IDA Enterprise",
-    "subtitle": "Organizational operating system",
+    "title": "IDA",
+    "subtitle": "Enterprise Decision Operating System",
     "ready": "Ready",
-    "searchPlaceholder": "Cari account, memory, initiative…",
+    "searchPlaceholder": "Cari account, memory, decision…",
     "searchShort": "Search",
     "homepage": "Homepage",
-    "contact": "Contact",
+    "chat": "Coba Chat",
+    "contact": "Hubungi tim kami",
     "investorFaq": "Investor FAQ"
   },
   "perspective": {
@@ -59,7 +81,7 @@
   "brief": {
     "eyebrow": "Executive Brief",
     "eyebrowRole": "Executive Brief · {role}",
-    "descriptionCeo": "Ini yang perlu perhatian Anda hari ini.",
+    "descriptionCeo": "Perhatian siap keputusan untuk hari ini — risk, opportunity, dan recommended action.",
     "statusLive": "Live data",
     "statusPreview": "Preview",
     "itemsAttention": "{count} perlu perhatian",
@@ -76,9 +98,9 @@
     "openEntity": "Buka {entity} →",
     "emptyCategory": "Belum ada item di kategori ini",
     "emptyCategoryDesc": "Organization Memory sudah up to date — tidak ada yang perlu ditandai hari ini.",
-    "footerStory": "Jelajahi organisasi — People → Accounts → Projects → Memory.",
+    "footerStory": "Jelajahi Decision OS — People → Accounts → Projects → Organization Memory.",
     "links": {
-      "overview": "Organization Workspace",
+      "overview": "Decision OS Overview",
       "workforce": "Digital Workforce",
       "pln": "PLN Indonesia Power",
       "organization": "Organization map",
@@ -86,9 +108,9 @@
     }
   },
   "memory": {
-    "eyebrow": "Memory",
-    "title": "Yang organisasi Anda ketahui",
-    "description": "Email, meeting, dan decision — ter-index dan terhubung ke account serta initiative.",
+    "eyebrow": "Organization Memory",
+    "title": "Yang enterprise Anda ingat",
+    "description": "Email, meeting, commercial record, dan decision — ter-index dan terhubung agar Decision Intelligence Core merekomendasikan dengan konteks.",
     "tabs": {
       "communications": "Communications",
       "meetings": "Meetings",
@@ -97,7 +119,7 @@
       "decisions": "Decisions",
       "notes": "Notes"
     },
-    "workforceBadge": "Workforce",
+    "workforceBadge": "Digital Workforce",
     "emptyTitle": "Belum ada record di kategori ini",
     "emptyDesc": "Communication, meeting, dan decision yang tercatat akan muncul di sini — ter-index dan saling terhubung otomatis."
   },
@@ -107,11 +129,11 @@
   },
   "import": {
     "eyebrow": "Reality First",
-    "title": "Connect organisasi Anda",
-    "description": "Mulai dari import email dan dokumen — Organization Workspace ter-update dalam kurang dari 2 menit.",
-    "afterImport": "Setelah import → kembali ke Organization Workspace untuk update live.",
+    "title": "Hubungkan informasi enterprise",
+    "description": "Import email dan dokumen nyata — Organization Memory dan Decision Layer ter-update dalam kurang dari 2 menit.",
+    "afterImport": "Setelah import → kembali ke Overview untuk update Decision OS live.",
     "links": {
-      "overview": "Organization Workspace",
+      "overview": "Decision OS Overview",
       "timeline": "Timeline"
     }
   },
@@ -129,6 +151,6 @@
     "engagements": "Engagement ter-index"
   },
   "sidebar": {
-    "footer": "One Organization. Humans and AI Working Together."
+    "footer": "Intelligent Decision Automation · Enterprise Decision Operating System"
   }
 }

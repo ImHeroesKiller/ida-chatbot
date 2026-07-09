@@ -1,31 +1,31 @@
 /** One core message — used consistently across landing, demo, and all views. */
 export const IDA_CORE_MESSAGE =
-  "IDA shows leaders their entire organization — so they can decide with confidence.";
+  "The operating system for enterprise decisions and digital workforce.";
 
 export const LANDING_FOUR_QUESTIONS = [
   {
     id: "what",
     question: "What is IDA?",
     answer:
-      "IDA is the system that shows leaders everything happening across their organization — accounts, people, projects, and decisions — in one place.",
+      "IDA is the Enterprise Decision Operating System — Intelligent Decision Automation that unites Human Workforce and Digital Workforce so leaders make trusted decisions with full organizational context.",
   },
   {
     id: "who",
     question: "Who is it for?",
     answer:
-      "CEOs and leadership teams at large enterprises who need clarity before making important decisions — not another chat window for individuals.",
+      "CEOs and leadership teams at large enterprises who need governed, decision-ready intelligence — not another chat window for individuals.",
   },
   {
     id: "why-not",
     question: "Why not ChatGPT or Copilot?",
     answer:
-      "Those tools answer one-off questions. IDA remembers your organization, connects the dots across accounts and projects, and prepares executive-ready briefings.",
+      "Those tools answer one-off questions. IDA is a Decision Intelligence Core with Organization Memory, governance, and orchestration of human and digital workforces.",
   },
   {
     id: "outcome",
     question: "What do you get?",
     answer:
-      "A live view of what needs attention, what is at risk, and what to do next — built from real business activity, not generic AI responses.",
+      "Information → Decisions → Execution → Value: decision packages, executive briefs, and coordinated action from real enterprise activity — not generic AI answers.",
   },
 ] as const;
 
@@ -101,12 +101,12 @@ export const INVESTOR_FAQ = [
 export const PRODUCT_ROADMAP = {
   today: {
     label: "Today",
-    tagline: "Organizational intelligence — live in demo",
+    tagline: "Enterprise Decision Operating System — live in demo",
     items: [
       { title: "Executive Brief", desc: "Critical issues, opportunities, risks, and recommended actions in one view." },
       { title: "Living Organization", desc: "Relationship map connecting accounts, initiatives, and functions." },
       { title: "Account Intelligence", desc: "Full context per enterprise account — stakeholders, pipeline, delivery." },
-      { title: "Organizational Knowledge", desc: "Emails, meetings, commercial records, and decisions — cross-linked." },
+      { title: "Organization Memory", desc: "Emails, meetings, commercial records, and decisions — cross-linked." },
       { title: "Global Search", desc: "Find any account, stakeholder, initiative, or knowledge record instantly." },
     ],
   },
@@ -122,7 +122,7 @@ export const PRODUCT_ROADMAP = {
   },
   future: {
     label: "Future",
-    tagline: "The decision operating system — 12–24 months",
+    tagline: "Scale, prediction, and ecosystem — 12–24 months",
     items: [
       { title: "Industry Templates", desc: "Pre-built intelligence models for energy, telecom, and infrastructure." },
       { title: "Predictive Intelligence", desc: "Early warning on delivery risk, payment delays, and relationship drift." },
@@ -137,7 +137,7 @@ export const DEMO_TERMS = {
   accounts: "Accounts",
   stakeholders: "Stakeholders",
   initiatives: "Initiatives",
-  knowledge: "Knowledge",
+  knowledge: "Organization Memory",
   brief: "Executive Brief",
   organization: "Organization",
 } as const;

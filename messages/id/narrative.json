@@ -20,22 +20,22 @@
     {
       "id": "what",
       "question": "Apa itu IDA?",
-      "answer": "IDA adalah sistem yang menampilkan kepada pemimpin segala yang terjadi di organisasi — account, orang, project, dan decision — dalam satu tempat."
+      "answer": "IDA adalah Enterprise Decision Operating System — Intelligent Decision Automation yang menyatukan Human Workforce dan Digital Workforce agar pemimpin membuat keputusan tepercaya dengan konteks organisasi lengkap."
     },
     {
       "id": "who",
       "question": "Untuk siapa?",
-      "answer": "CEO dan leadership team di enterprise besar yang butuh kejelasan sebelum mengambil keputusan penting — bukan chat window untuk individu."
+      "answer": "CEO dan leadership team di enterprise besar yang butuh intelligence siap keputusan dan ter-govern — bukan chat window untuk individu."
     },
     {
       "id": "why-not",
       "question": "Kenapa bukan ChatGPT atau Copilot?",
-      "answer": "Tool itu menjawab pertanyaan sekali pakai. IDA mengingat organisasi Anda, menghubungkan titik-titik di account dan project, lalu menyiapkan briefing siap eksekutif."
+      "answer": "Tool itu menjawab pertanyaan sekali pakai. IDA adalah Decision Intelligence Core dengan Organization Memory, governance, dan orkestrasi human serta digital workforce."
     },
     {
       "id": "outcome",
       "question": "Apa yang Anda dapat?",
-      "answer": "Tampilan live tentang apa yang perlu perhatian, apa yang at risk, dan apa langkah berikutnya — dibangun dari aktivitas bisnis nyata, bukan respons AI generik."
+      "answer": "Information → Decisions → Execution → Value: decision package, executive brief, dan aksi terkoordinasi dari aktivitas enterprise nyata — bukan jawaban AI generik."
     }
   ],
   "investorFaq": [
@@ -85,7 +85,7 @@
     "phases": {
       "today": {
         "label": "Today",
-        "tagline": "Organizational intelligence — live di demo",
+        "tagline": "Enterprise Decision Operating System — live di demo",
         "items": [
           { "title": "Executive Brief", "desc": "Critical issue, opportunity, risk, dan recommended action dalam satu view." },
           { "title": "Living Organization", "desc": "Relationship map yang menghubungkan account, initiative, dan function." },
@@ -106,7 +106,7 @@
       },
       "future": {
         "label": "Future",
-        "tagline": "Decision operating system — 12–24 bulan",
+        "tagline": "Scale, prediksi, dan ekosistem — 12–24 bulan",
         "items": [
           { "title": "Industry Templates", "desc": "Intelligence model siap pakai untuk energy, telecom, dan infrastructure." },
           { "title": "Predictive Intelligence", "desc": "Early warning untuk delivery risk, payment delay, dan relationship drift." },
@@ -166,15 +166,15 @@
     ]
   },
   "howIdaThinks": {
-    "title": "Cara kerja IDA",
-    "subtitle": "Dari apa yang terjadi di bisnis Anda ke apa yang pemimpin perlu putuskan — satu jalur yang jelas.",
+    "title": "Decision Intelligence Core",
+    "subtitle": "Information → Decisions → Execution → Value. IDA menghubungkan intelligence dan aksi dalam satu siklus keputusan berkelanjutan.",
     "steps": [
-      { "id": "reality", "label": "Reality", "desc": "Email, meeting, contract, dan update project di seluruh enterprise" },
-      { "id": "observations", "label": "Observations", "desc": "IDA menangkap event, stakeholder, dan commercial signal saat terjadi" },
-      { "id": "memory", "label": "Memory", "desc": "Knowledge ter-index dan terhubung ke account, orang, dan initiative" },
-      { "id": "context", "label": "Context", "desc": "Situational awareness lengkap — history, relationship, dan commitment terbuka" },
-      { "id": "insights", "label": "Insights", "desc": "Pola yang muncul: risk, opportunity, dan item yang perlu perhatian" },
-      { "id": "decisions", "label": "Decisions", "desc": "Brief siap eksekutif dengan recommended action dan governance" }
+      { "id": "understand", "label": "Understand", "desc": "Konteks enterprise terpadu dari aplikasi, komunikasi, dan Organization Memory" },
+      { "id": "analyze", "label": "Analyze", "desc": "Analisis bertenaga AI atas risk, opportunity, dan sinyal lintas account" },
+      { "id": "recommend", "label": "Recommend", "desc": "Opsi jelas dengan rasional, dampak, dan confidence — decision package" },
+      { "id": "decide", "label": "Decide", "desc": "Keputusan ter-govern dengan policy, otoritas, dan human approval bila diperlukan" },
+      { "id": "orchestrate", "label": "Orchestrate", "desc": "Koordinasikan Human Workforce dan Digital Workforce untuk eksekusi berskala" },
+      { "id": "learn", "label": "Learn", "desc": "Outcome mengisi Organization Memory dan memperbaiki keputusan berikutnya" }
     ]
   },
   "plnWow": {

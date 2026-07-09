@@ -1,7 +1,8 @@
 {
   "slogan": {
-    "core": "One Organization. Humans and AI Working Together.",
-    "workforce": "One Organization. Humans and AI Working Together."
+    "core": "The operating system for enterprise decisions and digital workforce.",
+    "workforce": "Human Workforce and Digital Workforce — working as one.",
+    "valueChain": "Information → Decisions → Execution → Value"
   },
   "modes": {
     "presentation": "Presentation",
@@ -10,13 +11,13 @@
     "internalHint": "Bahasa Indonesia · Tim internal"
   },
   "nav": {
-    "story": "Your organization",
+    "story": "Decision OS",
     "overview": "Overview",
     "organization": "Organization",
     "people": "People",
     "accounts": "Accounts",
     "projects": "Projects",
-    "knowledge": "Knowledge",
+    "knowledge": "Organization Memory",
     "workforce": "Digital Workforce",
     "askIda": "Ask IDA",
     "timeline": "Timeline",
@@ -26,26 +27,47 @@
     "developerSection": "Developer"
   },
   "workspace": {
-    "eyebrow": "Organization Workspace",
-    "title": "Your organization, in one place",
-    "description": "Humans, Digital Workforce, and Organization Memory — working together in one operating system.",
-    "briefTitle": "What needs attention today",
-    "organizationTitle": "How everything connects",
-    "workforceTitle": "AI agents alongside your team",
-    "askTitle": "Ask anything about your organization",
-    "askDescription": "Questions grounded in Organization Memory — accounts, people, projects, and decisions.",
-    "askPageTitle": "Ask IDA anything",
+    "eyebrow": "Enterprise Decision Operating System",
+    "title": "Decision OS for your enterprise — live demo",
+    "description": "This is the Enterprise Decision Layer: connect information, govern decisions, and orchestrate Human Workforce and Digital Workforce — in one system.",
+    "briefTitle": "What needs a decision today",
+    "organizationTitle": "How the enterprise connects",
+    "workforceTitle": "Human + Digital Workforce collaboration",
+    "askTitle": "Ask from Organization Memory",
+    "askDescription": "Grounded in accounts, decisions, and workforce output — not a generic chatbot.",
+    "askPageTitle": "Ask IDA from Organization Memory",
     "timelineTitle": "Recent organizational activity",
-    "viewFullTimeline": "View full timeline"
+    "viewFullTimeline": "View full timeline",
+    "ctaPrimary": "See the Demo",
+    "ctaSecondary": "Try Chat",
+    "closingTitle": "Ready to go deeper?",
+    "closingDescription": "Explore the full Decision OS experience, or open Chat for conversational work.",
+    "closingPrimary": "Open Full Demo",
+    "closingSecondary": "Try Chat Now"
+  },
+  "decisionCore": {
+    "eyebrow": "Decision Intelligence Core",
+    "title": "How IDA turns information into trusted decisions",
+    "description": "Understand → Analyze → Recommend → Decide → Orchestrate → Learn — with humans in control at every critical step.",
+    "steps": {
+      "understand": { "label": "Understand", "desc": "Unified context and real-time awareness" },
+      "analyze": { "label": "Analyze", "desc": "AI-powered insight from enterprise knowledge" },
+      "recommend": { "label": "Recommend", "desc": "Options with impact, risk, and confidence" },
+      "decide": { "label": "Decide", "desc": "Governed decision with policy and authority" },
+      "orchestrate": { "label": "Orchestrate", "desc": "Coordinate human and digital workforces" },
+      "learn": { "label": "Learn", "desc": "Capture outcomes and improve continuously" }
+    },
+    "valueChainLabel": "Value chain"
   },
   "topbar": {
-    "title": "IDA Enterprise",
-    "subtitle": "The organizational operating system",
+    "title": "IDA",
+    "subtitle": "Enterprise Decision Operating System",
     "ready": "Ready",
-    "searchPlaceholder": "Search accounts, knowledge, initiatives…",
+    "searchPlaceholder": "Search accounts, memory, decisions…",
     "searchShort": "Search",
     "homepage": "Homepage",
-    "contact": "Contact"
+    "chat": "Try Chat",
+    "contact": "Talk to our team"
   },
   "perspective": {
     "label": "Perspective",
@@ -58,11 +80,11 @@
   "brief": {
     "eyebrow": "Executive Brief",
     "eyebrowRole": "{role} Brief",
-    "descriptionCeo": "Here is what needs your attention today.",
+    "descriptionCeo": "Decision-ready attention for today — risks, opportunities, and recommended actions.",
     "statusLive": "Live imported data",
     "statusPreview": "Preview",
     "itemsAttention": "{count} items require attention",
-    "workforceInsight": "1 workforce insight",
+    "workforceInsight": "1 Digital Workforce insight",
     "synced": "synced {time}",
     "sections": {
       "critical": "Critical Issues",
@@ -74,20 +96,20 @@
     "workforceBadge": "Digital Workforce",
     "openEntity": "Open {entity} →",
     "emptyCategory": "No items in this category",
-    "emptyCategoryDesc": "Organizational knowledge is current — nothing flagged here today.",
-    "footerStory": "Explore the organization — People → Accounts → Projects → Knowledge.",
+    "emptyCategoryDesc": "Organization Memory is current — nothing flagged here today.",
+    "footerStory": "Explore the Decision OS — People → Accounts → Projects → Organization Memory.",
     "links": {
-      "overview": "Organization Workspace",
+      "overview": "Decision OS Overview",
       "workforce": "Digital Workforce",
       "pln": "PLN Indonesia Power",
       "organization": "Organization map",
-      "knowledge": "Organizational knowledge"
+      "knowledge": "Organization Memory"
     }
   },
   "memory": {
-    "eyebrow": "Knowledge",
-    "title": "What your organization knows",
-    "description": "Every email, meeting, and decision — indexed and linked to accounts and initiatives.",
+    "eyebrow": "Organization Memory",
+    "title": "What the enterprise remembers",
+    "description": "Emails, meetings, commercial records, and decisions — indexed and linked so the Decision Intelligence Core can recommend with context.",
     "tabs": {
       "communications": "Communications",
       "meetings": "Meetings",
@@ -96,21 +118,21 @@
       "decisions": "Decisions",
       "notes": "Notes"
     },
-    "workforceBadge": "Workforce",
-    "emptyTitle": "No knowledge records in this category",
+    "workforceBadge": "Digital Workforce",
+    "emptyTitle": "No memory records in this category",
     "emptyDesc": "Communications, meetings, and decisions captured by your organization will appear here — indexed and cross-linked automatically."
   },
   "empty": {
     "inlineTitle": "No items in this category",
-    "inlineDesc": "Organizational knowledge is current — nothing flagged here today."
+    "inlineDesc": "Organization Memory is current — nothing flagged here today."
   },
   "import": {
     "eyebrow": "Reality First",
-    "title": "Connect your organization",
-    "description": "Start by importing real emails and documents — your Organization Workspace updates in under 2 minutes.",
-    "afterImport": "After import → return to Organization Workspace for live updates.",
+    "title": "Connect enterprise information",
+    "description": "Import real emails and documents — Organization Memory and the Decision Layer update in under 2 minutes.",
+    "afterImport": "After import → return to Overview for live Decision OS updates.",
     "links": {
-      "overview": "Organization Workspace",
+      "overview": "Decision OS Overview",
       "timeline": "Timeline"
     }
   },
@@ -118,6 +140,6 @@
     "lastActivity": "Last activity"
   },
   "sidebar": {
-    "footer": "One Organization. Humans and AI Working Together."
+    "footer": "Intelligent Decision Automation · Enterprise Decision Operating System"
   }
 }
