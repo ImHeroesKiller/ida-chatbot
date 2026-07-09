@@ -1,11 +1,22 @@
 {
   "title": "Ask IDA",
-  "liveData": "Live data",
-  "placeholder": "Ask about imported emails and documents…",
+  "subtitle": "Decision Intelligence over Organization Memory and the enterprise knowledge graph — not a generic chatbot.",
+  "liveData": "Live ESL data",
+  "demoMemory": "Demo memory",
+  "placeholder": "Ask a decision question — e.g. What needs attention on Hutama Karya?",
+  "thinking": "IDA is analyzing corporate context…",
+  "poweredByLlm": "Powered by Decision Intelligence Core",
+  "labels": {
+    "analysis": "Analysis",
+    "recommendation": "Recommendation",
+    "risks": "Risks & implications",
+    "actions": "Suggested actions"
+  },
   "suggestions": [
     "What needs attention today?",
-    "What does IDA know about PLN?",
-    "How many records are indexed?"
+    "What does IDA know about PLN Indonesia Power?",
+    "Recommend next steps for Segment 7 recovery",
+    "Which account has the highest commercial risk?"
   ],
   "errorNetwork": "Could not reach Ask IDA. Try again.",
   "noResponse": "No response"

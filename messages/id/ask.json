@@ -1,12 +1,23 @@
 {
   "title": "Ask IDA",
-  "liveData": "Live data",
-  "placeholder": "Tanya tentang email dan dokumen yang di-import…",
+  "subtitle": "Decision Intelligence atas Organization Memory dan knowledge graph enterprise — bukan chatbot generik.",
+  "liveData": "Data ESL live",
+  "demoMemory": "Demo memory",
+  "placeholder": "Ajukan pertanyaan keputusan — mis. Apa yang perlu perhatian di Hutama Karya?",
+  "thinking": "IDA sedang menganalisis konteks korporasi…",
+  "poweredByLlm": "Didukung Decision Intelligence Core",
+  "labels": {
+    "analysis": "Analisis",
+    "recommendation": "Rekomendasi",
+    "risks": "Risiko & implikasi",
+    "actions": "Langkah yang disarankan"
+  },
   "suggestions": [
     "Apa yang perlu perhatian hari ini?",
-    "Apa yang IDA tahu tentang PLN?",
-    "Berapa record yang sudah ter-index?"
+    "Apa yang IDA ketahui tentang PLN Indonesia Power?",
+    "Rekomendasikan langkah recovery Segment 7",
+    "Account mana yang risiko komersialnya tertinggi?"
   ],
-  "errorNetwork": "Ask IDA tidak terjangkau. Coba lagi.",
+  "errorNetwork": "Tidak bisa menghubungi Ask IDA. Coba lagi.",
   "noResponse": "Tidak ada respons"
 }

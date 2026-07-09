@@ -5,10 +5,6 @@ import { runAskIda } from "@/lib/enterprise/ask-ida";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-/**
- * Ask IDA over corporate context (ESL + demo Organization Memory).
- * Uses the same Decision OS service as /api/demo/ask-ida.
- */
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as {
@@ -30,8 +26,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Ask failed.";
-    console.error("[api/reality/ask]", error);
+      error instanceof Error ? error.message : "Ask IDA failed.";
+    console.error("[api/demo/ask-ida]", error);
     return NextResponse.json(
       {
         success: false,
