@@ -17,7 +17,7 @@ export type WorkflowAccessAction =
  * Temporary bypass: allow anyone to view/execute workflows without RBAC gates.
  * Set to false when account-level security is ready.
  */
-export const WORKFLOW_SECURITY_GUARDS_DISABLED = true;
+export const WORKFLOW_SECURITY_GUARDS_DISABLED = false;
 
 const ROLE_RANK: Record<WorkflowPermissionRole, number> = {
   viewer: 1,
