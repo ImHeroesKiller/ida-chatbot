@@ -20,7 +20,7 @@ function assert(condition, message) {
 function loadModule() {
   const snippet =
     'import { applyResumeActionToCheckpoint, buildOrderedNodeIds, getNodeMaxRetries, suggestWorkflowErrorRecovery } from "./lib/workflow-execution-state.ts"; ' +
-    'import { computeNextRunAt, formatScheduleLabel, parseTriggerSchedule } from "./lib/workflow-scheduler.ts"; ' +
+    'import { computeNextRunAt, formatScheduleLabel, parseTriggerSchedule } from "./lib/workflow-scheduler/index.ts"; ' +
     'import { buildWorkflowWorkspacePersistFingerprint } from "./lib/workflow.ts"; ' +
     "const workflow = { id: 'wf-1', name: 'Test', nodes: [ " +
     "{ id: 't1', type: 'default', position: { x: 0, y: 0 }, data: { label: 'Trigger', kind: 'trigger', config: { schedule: { type: 'delay', delayMs: 3000 } } } }, " +
