@@ -1,3 +1,0 @@
-## 2025-05-18 - Avoid Intl.DateTimeFormat Instantiation inside Array Loops
-**Learning:** Calling `toLocaleDateString` or `toLocaleString` with options inside array `.map` or `.filter` loops recreates an `Intl.DateTimeFormat` instance on every iteration. In V8, creating thousands of ICU formatters accounts for over 80% of execution time in data adapter methods. Combining pre-built O(1) Map lookups with module-scoped `Intl.DateTimeFormat` singletons reduced `buildRealityViewModel` runtime by ~20x (from 600ms down to 30ms for 2,000 items).
-**Action:** Always extract `Intl.DateTimeFormat` options to module-scoped singletons when formatting dates inside high-frequency loops or data transformation adapters.
