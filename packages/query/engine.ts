@@ -73,6 +73,16 @@ export class QueryEngine {
       personIds.has(person.id),
     );
 
+    // Single-pass signal counting over artifacts instead of multiple .filter() calls
+    let invoiceCount = 0;
+    let meetingCount = 0;
+    let highPriority = 0;
+    for (const a of artifacts) {
+      if (a.type === "Invoice") invoiceCount++;
+      if (a.type === "Meeting") meetingCount++;
+      if (a.priority === "high") highPriority++;
+    }
+
     return {
       organization: organization.name,
       found: true,
@@ -81,9 +91,9 @@ export class QueryEngine {
       people,
       signals: {
         totalMessages: communications.length,
-        invoiceCount: artifacts.filter((a) => a.type === "Invoice").length,
-        meetingCount: artifacts.filter((a) => a.type === "Meeting").length,
-        highPriority: artifacts.filter((a) => a.priority === "high").length,
+        invoiceCount,
+        meetingCount,
+        highPriority,
       },
     };
   }
@@ -91,14 +101,19 @@ export class QueryEngine {
   attentionItems(limit = 5): AttentionItem[] {
     const snapshot = eslStore.getSnapshot();
 
+    // Map lookups for O(1) comm/org retrieval instead of O(N) array search per artifact
+    const commMap = new Map(snapshot.communications.map((c) => [c.id, c]));
+    const orgMap = new Map(snapshot.organizations.map((o) => [o.id, o]));
+
     return snapshot.artifacts
       .map((artifact) => {
-        const communication = snapshot.communications.find(
-          (c) => c.id === artifact.communicationId,
-        );
+        const communication = commMap.get(artifact.communicationId);
         const organization = artifact.organizationId
-          ? snapshot.organizations.find((o) => o.id === artifact.organizationId)
+          ? orgMap.get(artifact.organizationId)
           : undefined;
+        const timestamp = communication?.timestamp ?? artifact.createdAt;
+        const priorityScore =
+          artifact.priority === "high" ? 3 : artifact.priority === "medium" ? 2 : 1;
 
         return {
           id: artifact.id,
@@ -107,37 +122,69 @@ export class QueryEngine {
           type: artifact.type,
           priority: artifact.priority,
           summary: artifact.summary,
-          timestamp: communication?.timestamp ?? artifact.createdAt,
+          timestamp,
+          timestampMs: new Date(timestamp).getTime(),
+          priorityScore,
         };
       })
       .sort((a, b) => {
-        const priorityScore = (value?: string) =>
-          value === "high" ? 3 : value === "medium" ? 2 : 1;
-        const byPriority = priorityScore(b.priority) - priorityScore(a.priority);
+        const byPriority = b.priorityScore - a.priorityScore;
         if (byPriority !== 0) return byPriority;
-        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+        return b.timestampMs - a.timestampMs;
       })
-      .slice(0, limit);
+      .slice(0, limit)
+      .map(({ timestampMs: _ms, priorityScore: _score, ...item }) => item);
   }
 
   overview(): QueryEngineOverview {
     const snapshot = eslStore.getSnapshot();
     const graph = knowledgeGraphBuilder.snapshot();
 
+    // Pre-group communications by organizationId and artifacts by communicationId
+    // Optimization: Reduces overview computation complexity from O(Orgs * (Comms + Artifacts)) to O(Orgs + Comms + Artifacts)
+    const commsByOrgId = new Map<string, typeof snapshot.communications>();
+    for (const comm of snapshot.communications) {
+      if (!comm.organizationId) continue;
+      let list = commsByOrgId.get(comm.organizationId);
+      if (!list) {
+        list = [];
+        commsByOrgId.set(comm.organizationId, list);
+      }
+      list.push(comm);
+    }
+
+    const artifactsByCommId = new Map<string, typeof snapshot.artifacts>();
+    for (const art of snapshot.artifacts) {
+      let list = artifactsByCommId.get(art.communicationId);
+      if (!list) {
+        list = [];
+        artifactsByCommId.set(art.communicationId, list);
+      }
+      list.push(art);
+    }
+
     const organizationSummaries = snapshot.organizations.map((org) => {
-      const communications = snapshot.communications.filter(
-        (c) => c.organizationId === org.id,
-      );
-      const communicationIds = new Set(communications.map((c) => c.id));
-      const artifacts = snapshot.artifacts.filter((a) =>
-        communicationIds.has(a.communicationId),
-      );
+      const communications = commsByOrgId.get(org.id) ?? [];
+      let totalArtifacts = 0;
+      let highPriority = 0;
+
+      for (const comm of communications) {
+        const commArtifacts = artifactsByCommId.get(comm.id);
+        if (commArtifacts) {
+          totalArtifacts += commArtifacts.length;
+          for (const a of commArtifacts) {
+            if (a.priority === "high") {
+              highPriority++;
+            }
+          }
+        }
+      }
 
       return {
         organization: org.name,
         communications: communications.length,
-        artifacts: artifacts.length,
-        highPriority: artifacts.filter((a) => a.priority === "high").length,
+        artifacts: totalArtifacts,
+        highPriority,
       };
     });
 
