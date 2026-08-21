@@ -149,7 +149,6 @@ export function buildRealityViewModel(snapshot: ESLSnapshot): RealityViewModel {
   });
 
   const people: Person[] = snapshot.persons.map((p) => {
-    // Preserve exact ordering logic of snapshot.organizations.find((o) => p.organizationIds.includes(o.id))
     const org = snapshot.organizations.find((o) => p.organizationIds.includes(o.id));
     const accountId = org?.accountId ?? "ida";
     const commCount = commsByPersonId.get(p.id) ?? 0;
