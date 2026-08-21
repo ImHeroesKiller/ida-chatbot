@@ -105,7 +105,9 @@ export function buildRealityViewModel(snapshot: ESLSnapshot): RealityViewModel {
   const artifactByCommId = new Map<string, typeof snapshot.artifacts[0]>();
   const artifactsByCompanyId = new Map<string, typeof snapshot.artifacts>();
   for (const a of snapshot.artifacts) {
-    artifactByCommId.set(a.communicationId, a);
+    if (!artifactByCommId.has(a.communicationId)) {
+      artifactByCommId.set(a.communicationId, a);
+    }
     if (a.companyId) {
       let list = artifactsByCompanyId.get(a.companyId);
       if (!list) {
