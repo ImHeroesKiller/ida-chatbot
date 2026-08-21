@@ -71,9 +71,16 @@ export function buildRealityViewModel(snapshot: ESLSnapshot): RealityViewModel {
   // Performance Optimization: Build O(1) Map lookup indexes to replace linear O(N) array traversals
   // across organizations, communications, artifacts, and persons. Reduces view model build from O(N^2) to O(N).
   const orgById = new Map(snapshot.organizations.map((org) => [org.id, org]));
-  const orgByAccountId = new Map<string, typeof snapshot.organizations[0]>();
+  const orgsByAccountId = new Map<string, typeof snapshot.organizations>();
   for (const org of snapshot.organizations) {
-    if (org.accountId) orgByAccountId.set(org.accountId, org);
+    if (org.accountId) {
+      let list = orgsByAccountId.get(org.accountId);
+      if (!list) {
+        list = [];
+        orgsByAccountId.set(org.accountId, list);
+      }
+      list.push(org);
+    }
   }
 
   const commById = new Map(snapshot.communications.map((c) => [c.id, c]));
@@ -110,8 +117,8 @@ export function buildRealityViewModel(snapshot: ESLSnapshot): RealityViewModel {
   }
 
   const companies: Company[] = ACCOUNT_DIRECTORY.map((account) => {
-    const org = orgByAccountId.get(account.id);
-    const comms = org ? (commsByOrgId.get(org.id) ?? []) : [];
+    const orgs = orgsByAccountId.get(account.id) ?? [];
+    const comms = orgs.flatMap((org) => commsByOrgId.get(org.id) ?? []);
     const commIds = new Set(comms.map((c) => c.id));
     const artifacts = snapshot.artifacts.filter((a) => commIds.has(a.communicationId));
     const people = snapshot.persons.filter((p) =>
@@ -135,8 +142,8 @@ export function buildRealityViewModel(snapshot: ESLSnapshot): RealityViewModel {
           : "No imported activity yet for this account.",
     };
   }).filter((c) => {
-    const org = orgByAccountId.get(c.id);
-    const hasComms = org ? (commsByOrgId.get(org.id)?.length ?? 0) > 0 : false;
+    const orgs = orgsByAccountId.get(c.id) ?? [];
+    const hasComms = orgs.some((org) => (commsByOrgId.get(org.id)?.length ?? 0) > 0);
     const hasArtifacts = (artifactsByCompanyId.get(c.id)?.length ?? 0) > 0;
     return hasComms || hasArtifacts;
   });
