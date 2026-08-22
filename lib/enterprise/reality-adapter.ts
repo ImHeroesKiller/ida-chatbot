@@ -37,6 +37,20 @@ function mapArtifactToMemoryTab(type: string): MemoryItem["tab"] {
   return "communications";
 }
 
+// Reuse cached DateTimeFormat instances to avoid expensive Intl locale resolution per call
+const shortDateTimeFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+const dateFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
 export type RealityViewModel = {
   hasLiveData: boolean;
   lastSync: string | null;
@@ -68,20 +82,79 @@ export function buildRealityViewModel(snapshot: ESLSnapshot): RealityViewModel {
     };
   }
 
-  const orgByAccount = new Map<string, string>();
+  // Performance optimization: Pre-index snapshot entities into Map lookups to avoid O(N²) array scans
+  const orgById = new Map(snapshot.organizations.map((o) => [o.id, o]));
+
+  // Index organization IDs by account ID (supports multiple organizations per account)
+  const orgIdsByAccountId = new Map<string, Set<string>>();
   for (const org of snapshot.organizations) {
-    if (org.accountId) orgByAccount.set(org.accountId, org.id);
+    if (org.accountId) {
+      const set = orgIdsByAccountId.get(org.accountId) ?? new Set();
+      set.add(org.id);
+      orgIdsByAccountId.set(org.accountId, set);
+    }
+  }
+
+  const personById = new Map(snapshot.persons.map((p) => [p.id, p]));
+  const commById = new Map(snapshot.communications.map((c) => [c.id, c]));
+
+  // Artifact lookup by communication ID and company ID
+  const artifactByCommId = new Map(snapshot.artifacts.map((a) => [a.communicationId, a]));
+  const artifactsByCompanyId = new Map<string, (typeof snapshot.artifacts)[number][]>();
+  for (const a of snapshot.artifacts) {
+    if (a.companyId) {
+      const existing = artifactsByCompanyId.get(a.companyId) ?? [];
+      existing.push(a);
+      artifactsByCompanyId.set(a.companyId, existing);
+    }
+  }
+
+  // Communications grouped by organization ID
+  const commsByOrgId = new Map<string, (typeof snapshot.communications)[number][]>();
+  for (const c of snapshot.communications) {
+    if (c.organizationId) {
+      const existing = commsByOrgId.get(c.organizationId) ?? [];
+      existing.push(c);
+      commsByOrgId.set(c.organizationId, existing);
+    }
+  }
+
+  // Communication counts by person ID
+  const commCountByPersonId = new Map<string, number>();
+  for (const c of snapshot.communications) {
+    if (c.fromPersonId) {
+      commCountByPersonId.set(c.fromPersonId, (commCountByPersonId.get(c.fromPersonId) ?? 0) + 1);
+    }
+  }
+
+  // Persons grouped by account ID without duplicates
+  const peopleByAccountId = new Map<string, (typeof snapshot.persons)[number][]>();
+  for (const p of snapshot.persons) {
+    const seenAccountIds = new Set<string>();
+    for (const oid of p.organizationIds) {
+      const org = orgById.get(oid);
+      if (org?.accountId && !seenAccountIds.has(org.accountId)) {
+        seenAccountIds.add(org.accountId);
+        const existing = peopleByAccountId.get(org.accountId) ?? [];
+        existing.push(p);
+        peopleByAccountId.set(org.accountId, existing);
+      }
+    }
   }
 
   const companies: Company[] = ACCOUNT_DIRECTORY.map((account) => {
-    const comms = snapshot.communications.filter(
-      (c) => c.organizationId && snapshot.organizations.find((o) => o.id === c.organizationId)?.accountId === account.id,
-    );
+    const accountOrgIds = orgIdsByAccountId.get(account.id);
+    const comms: (typeof snapshot.communications)[number][] = [];
+    if (accountOrgIds) {
+      for (const orgId of accountOrgIds) {
+        const orgComms = commsByOrgId.get(orgId);
+        if (orgComms) comms.push(...orgComms);
+      }
+    }
+
     const commIds = new Set(comms.map((c) => c.id));
     const artifacts = snapshot.artifacts.filter((a) => commIds.has(a.communicationId));
-    const people = snapshot.persons.filter((p) =>
-      p.organizationIds.some((oid) => snapshot.organizations.find((o) => o.id === oid)?.accountId === account.id),
-    );
+    const people = peopleByAccountId.get(account.id) ?? [];
     const pipeline = artifacts.reduce((sum, a) => sum + (a.amount ?? 0), 0);
     const highPriority = artifacts.filter((a) => a.priority === "high").length;
 
@@ -100,15 +173,16 @@ export function buildRealityViewModel(snapshot: ESLSnapshot): RealityViewModel {
           : "No imported activity yet for this account.",
     };
   }).filter((c) => {
-    const org = snapshot.organizations.find((o) => o.accountId === c.id);
-    const hasComms = snapshot.communications.some((comm) => comm.organizationId === org?.id);
-    return hasComms || snapshot.artifacts.some((a) => a.companyId === c.id);
+    const firstOrg = snapshot.organizations.find((o) => o.accountId === c.id);
+    const hasComms = firstOrg ? (commsByOrgId.get(firstOrg.id)?.length ?? 0) > 0 : false;
+    const hasCompanyArtifacts = (artifactsByCompanyId.get(c.id)?.length ?? 0) > 0;
+    return hasComms || hasCompanyArtifacts;
   });
 
   const people: Person[] = snapshot.persons.map((p) => {
     const org = snapshot.organizations.find((o) => p.organizationIds.includes(o.id));
     const accountId = org?.accountId ?? "ida";
-    const commCount = snapshot.communications.filter((c) => c.fromPersonId === p.id).length;
+    const commCount = commCountByPersonId.get(p.id) ?? 0;
     return {
       id: p.id,
       name: p.name ?? p.email.split("@")[0],
@@ -124,7 +198,7 @@ export function buildRealityViewModel(snapshot: ESLSnapshot): RealityViewModel {
   const projects: Project[] = snapshot.artifacts
     .filter((a) => ["Proposal", "Meeting", "Contract", "Purchase Order"].includes(a.type))
     .map((a) => {
-      const comm = snapshot.communications.find((c) => c.id === a.communicationId);
+      const comm = commById.get(a.communicationId);
       const accountId = a.companyId ?? "unknown";
       return {
         id: a.id,
@@ -135,23 +209,19 @@ export function buildRealityViewModel(snapshot: ESLSnapshot): RealityViewModel {
         budget: formatRp(a.amount),
         progress: a.type === "Meeting" ? 55 : 40,
         summary: a.summary,
-        updatedAt: new Date(comm?.timestamp ?? a.createdAt).toLocaleString("en-GB", {
-          day: "numeric",
-          month: "short",
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        updatedAt: shortDateTimeFormatter.format(new Date(comm?.timestamp ?? a.createdAt)),
       };
     });
 
   const briefCards: BriefCard[] = snapshot.artifacts
+    .slice()
     .sort((a, b) => {
       const score = (x: typeof a) => (x.priority === "high" ? 2 : 1);
       return score(b) - score(a);
     })
     .slice(0, 10)
     .map((a, i) => {
-      const comm = snapshot.communications.find((c) => c.id === a.communicationId);
+      const comm = commById.get(a.communicationId);
       const accountId = a.companyId;
       const tone: BriefCard["tone"] =
         a.priority === "high"
@@ -181,12 +251,11 @@ export function buildRealityViewModel(snapshot: ESLSnapshot): RealityViewModel {
     });
 
   const timeline: TimelineEvent[] = snapshot.communications
+    .slice()
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .map((c) => {
-      const artifact = snapshot.artifacts.find((a) => a.communicationId === c.id);
-      const org = c.organizationId
-        ? snapshot.organizations.find((o) => o.id === c.organizationId)
-        : undefined;
+      const artifact = artifactByCommId.get(c.id);
+      const org = c.organizationId ? orgById.get(c.organizationId) : undefined;
       const typeMap: Record<string, TimelineEvent["type"]> = {
         Invoice: "commercial",
         Meeting: "meeting",
@@ -197,12 +266,7 @@ export function buildRealityViewModel(snapshot: ESLSnapshot): RealityViewModel {
       };
       return {
         id: c.id,
-        date: new Date(c.timestamp).toLocaleString("en-GB", {
-          day: "numeric",
-          month: "short",
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        date: shortDateTimeFormatter.format(new Date(c.timestamp)),
         title: c.subject,
         type: typeMap[artifact?.type ?? ""] ?? "communication",
         entityType: org?.accountId ? ("company" as const) : undefined,
@@ -212,17 +276,15 @@ export function buildRealityViewModel(snapshot: ESLSnapshot): RealityViewModel {
     });
 
   const memoryItems: MemoryItem[] = snapshot.communications.map((c) => {
-    const artifact = snapshot.artifacts.find((a) => a.communicationId === c.id);
-    const person = snapshot.persons.find((p) => p.id === c.fromPersonId);
-    const org = c.organizationId
-      ? snapshot.organizations.find((o) => o.id === c.organizationId)
-      : undefined;
+    const artifact = artifactByCommId.get(c.id);
+    const person = personById.get(c.fromPersonId);
+    const org = c.organizationId ? orgById.get(c.organizationId) : undefined;
     return {
       id: c.id,
       tab: mapArtifactToMemoryTab(artifact?.type ?? "Information"),
       title: c.subject,
       subtitle: `${person?.name ?? person?.email ?? "Unknown"} · ${artifact?.type ?? "Import"}`,
-      date: new Date(c.timestamp).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+      date: dateFormatter.format(new Date(c.timestamp)),
       entityType: org?.accountId ? ("company" as const) : undefined,
       entityId: org?.accountId,
     };
