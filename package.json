@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "vercel-build": "npm run index:ida && next build",
+    "vercel-build": "next build",
     "start": "next start",
     "lint": "eslint",
     "index:ida": "node scripts/seed-ida-chunks.mjs",
